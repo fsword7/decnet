@@ -29,7 +29,7 @@ libdnet.a: ${LIBOBJS}
 	${AR} ${ARFLAGS} libdnet.a ${LIBOBJS}
   
 $(SHAREDLIB): ${PICOBJS}
-	${LD} ${LDFLAGS} -o $@ ${PICOBJS} -soname=libdnet.so.$(MAJOR_VERSION) -lc
+	${LD} ${LDFLAGS} -o $@ ${PICOBJS} -Wl,-soname=libdnet.so.$(MAJOR_VERSION) -lc
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 

@@ -1,3 +1,14 @@
+0.6 27th May 2000
+-----------------
+- New version number. Now a beta release
+- Lots of changes, far too many to relate here totally so these are highlights:
+- latcp is now functional. It should be used to start/stop latd. see
+  README.LATCP for the details
+- reverse LAT now works
+- Fixed Disconnect problem with Tru64. I hope this wil also fix a similar 
+  problem with DECserver 500s
+- now binds to the requested ethernet card so it doesn't hear messages it can't
+  respond to.
 
 
 0.0.5 15th April 2000

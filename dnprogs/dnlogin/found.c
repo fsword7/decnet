@@ -152,6 +152,7 @@ int found_read()
 {
     int len;
     char inbuf[1024];
+    int ptr = 0;
 
     if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT)) <= 0)
 
@@ -175,7 +176,7 @@ int found_read()
     }
 
 
-    /* Dispatch a foundation message */
+    /* Dispatch foundation messages */
     switch (inbuf[0])
     {
     case FOUND_MSG_BIND:
@@ -186,17 +187,31 @@ int found_read()
     case FOUND_MSG_UNBIND:
 	if (debug)
 	    printf("Unbind from host. reason = %d\n", inbuf[1]);
-	return 0;
+	return -1;
 
 	/* Common data goes straight to the terminal processor */
     case FOUND_MSG_COMMONDATA:
-	return terminal_processor(inbuf+4, len-4);
+        {
+	    int ptr = 2;
+	    while (ptr < len)
+	    {
+		int msglen = inbuf[ptr] | inbuf[ptr+1]<<8;
+
+		if (debug)
+		    printf("FOUND: commondata: %d bytes\n",msglen);
+
+		ptr += 2;
+		terminal_processor(inbuf+ptr, msglen);
+		ptr += msglen;
+	    }
+	}
+	break;
 
     default:
 	fprintf(stderr, "Unknown foundation services message %d received\n",
 		inbuf[0]);
     }
-    return -1;
+    return 0;
 }
 
 /* Open the DECnet connection */

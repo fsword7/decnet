@@ -1,3 +1,13 @@
+dnprogs (2.11-1) unstable; urgency=low
+
+  * Remove build-depends on fakeroot so it can build on MIPS/MIPSEL
+    Closes: bug#101427
+  * Minor source code fixes so it will compile cleanly with GCC 3.0
+  * Added German template for debconf in dnet-common. Thanks to Sebastian Feltel
+    Closes: bug#101606
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 20 Jun 2001 13:22:34 +0100
+
 dnprogs (2.10-1) unstable; urgency=low
 
   * Fix crash in libdap if the first byte of a message is the last

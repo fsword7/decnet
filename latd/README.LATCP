@@ -8,7 +8,7 @@ latcp -D         Delete a service
 latcp -j         Enable service responder (for smaller DECservers)
 latcp -J         Disable service responder
 latcp -d         Show learned and advertised services
-
+latcp -m         Set the multicast timer
 
 DETAIL
 ------
@@ -63,3 +63,7 @@ latcp -D <service>
 
 Delete an advertised login service. You currently cannot delete a reverse LAT service.
 
+
+latcp -m <seconds>
+
+Set the multicast timer to <seconds>. The default is 60.

@@ -142,6 +142,20 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+    // Set the multicast timer
+    case LATCP_SETMULTICAST:
+    {
+	int newtimer;
+
+	newtimer = *(int *)cmdbuf;
+
+	debuglog(("latcp: Set multicast: %d\n", newtimer));
+
+	LATServer::Instance()->set_multicast(newtimer);
+	send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
 
     // Connect a port to a remote service
     case LATCP_ADDPORT:

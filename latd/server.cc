@@ -912,6 +912,15 @@ void LATServer::remove_service(char *name)
     send_service_announcement(-1);
 }
 
+// Change the multicast timer
+void LATServer::set_multicast(int newtime)
+{ 
+    if (newtime)
+    {
+	multicast_timer = newtime;
+	alarm(newtime);
+    }
+}
 
 // Create a new client connection
 int LATServer::make_client_connection(unsigned char *service, 

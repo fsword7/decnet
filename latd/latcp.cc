@@ -63,9 +63,10 @@ bool open_socket(bool);
 void display(int argc, char *argv[]);
 void add_service(int argc, char *argv[]);
 void del_service(int argc, char *argv[]);
+void set_multicast(int);
 void set_responder(int onoff);
 void shutdown();
-void start_latd(char *);
+void start_latd(int argc, char *argv[]);
 
 int usage(char *cmd)
 {
@@ -73,7 +74,7 @@ int usage(char *cmd)
 
     printf ("Usage: latcp      {option}\n");
     printf ("     where option is one of the following:\n");
-    printf ("       -s\n");
+    printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
     printf ("       -A -a service [-i descript] [-o | -p ttylist]\n");
     printf ("       -A -v reserved_service\n");
@@ -148,7 +149,10 @@ int main(int argc, char *argv[])
 	printf("not yet done\n");
 	break;
     case 'm':
-	printf("not yet done\n");
+	if (argv[2])
+	    set_multicast(atoi(argv[2]));
+	else
+	    exit(usage(argv[0]));
 	break;
     case 'd':
 	display(argc-1, &argv[1]);
@@ -157,7 +161,7 @@ int main(int argc, char *argv[])
 	shutdown();
 	break;
     case 's':
-	start_latd(argv[0]);
+	start_latd(argc, argv);
 	break;
     case 'z':
 	printf("not yet done\n");
@@ -215,6 +219,19 @@ void shutdown()
 
     char dummy[1];
     send_msg(latcp_socket, LATCP_SHUTDOWN, dummy, 0);
+    printf("LAT stopped\n");
+}
+
+void set_multicast(int newtime)
+{
+    if (newtime == 0 || newtime > 32767)
+    {
+	fprintf(stderr, "invalid multicast time\n");
+	return;
+    }
+    if (!open_socket(false)) return;
+
+    send_msg(latcp_socket, LATCP_SETMULTICAST, (char *)&newtime, sizeof(int));
 }
 
 
@@ -359,7 +376,7 @@ void del_service(int argc, char *argv[])
 }
 
 // Start latd & run startup script.
-void start_latd(char *me)
+void start_latd(int argc, char *argv[])
 {
     if (getuid() != 0)
     {
@@ -370,51 +387,76 @@ void start_latd(char *me)
     // Look for latd in well-known places
     struct stat st;
     char *latd_bin = NULL;
+    char *latd_path = NULL;
 
     if (!stat("/usr/sbin/latd", &st))
     {
 	latd_bin = "/usr/sbin/latd";
+	latd_path = "/usr/sbin";
     }
     else if (!stat("/usr/local/sbin/latd", &st))
     {
 	latd_bin = "/usr/local/sbin/latd";
+	latd_path = "/usr/local/sbin";
     }
     else
     {
-	char *name = (char *)malloc(strlen(me)+1);
-	strcpy(name, me);
+	char *name = (char *)malloc(strlen(argv[0])+1);
+	char *path = (char *)malloc(strlen(argv[0])+1);
+	strcpy(name, argv[0]);
 
 	char *slash = rindex(name, '/');
 	if (slash)
 	{
 	    *slash='\0';
+	    strcpy(path, name);
 	    strcat(name, "/latd");
 	    if (!stat(name, &st))
+	    {
 		latd_bin = name;
+		latd_path = path;
+	    }
 	}
     }
 
     // Did we find it?
     if (latd_bin)
     {
-	char *argv[3] = {latd_bin, NULL};
+	char  newpath[1024];
+	char *newargv[argc+1];
+	char *newenv[argc+1];
+	int   i;
+
+	// Make a minimal path including wherever latd is.
+	sprintf(newpath, "PATH=/bin:/usr/bin:/sbin:/usr/sbin:%s", latd_path);
+	newargv[0] = latd_bin;
+	newargv[1] = NULL;
+	newenv[0] = newpath;
+	newenv[1] = NULL;
+
 	switch(fork())
 	{
 	case 1: //Error
 	    perror("fork failed");
 	    return;
 	case 0: // Child
-	    execve(latd_bin, argv, NULL);
+	    // Start latd with out args (after the "-s")
+	    for (i=2; i<argc; i++)
+		newargv[i-1] = argv[1];
+	    execve(latd_bin, newargv, NULL);
 	    perror("exec of latd failed");
 	    break;
 
 	default: //Parent
 	    // Run startup script if there is one.
+	    sleep(1);
+	    printf("LAT started\n");
 	    if (!stat("/etc/latd.conf", &st))
 	    {
-		argv[1] = "/etc/latd.conf";
-		argv[2] = NULL;
-		execve("/bin/sh", argv, NULL);
+		newargv[0] = "/bin/sh";
+		newargv[1] = "/etc/latd.conf";
+		newargv[2] = NULL;
+		execve("/bin/sh", newargv, newenv);
 		perror("exec of /bin/sh failed");
 	    }
 	    break;

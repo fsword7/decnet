@@ -384,6 +384,13 @@ void start_latd(int argc, char *argv[])
 	return;
     }
 
+    // If we can connect to LATD than it's already running
+    if (open_socket(true))
+    {
+	fprintf(stderr, "LAT is already running\n");
+	return;
+    }
+    
     // Look for latd in well-known places
     struct stat st;
     char *latd_bin = NULL;

@@ -1,3 +1,50 @@
+dnprogs (2.19-1) unstable; urgency=low
+
+  * Suggests: iproute
+  * dnet-progs.init.d doesn't give errors when stopping on a
+    system with no DECnet in the kernel
+  * Remove node_address setting from modutils into init.d so
+    it works when DECnet is compiled into the kernel
+  * Makefile fixes
+  * startnet fixes to arg parsing
+  * phone uses pixmap directory properly
+  * ctermd now responds to DEL, ^X etc (hooray!)
+  * dnetd task_server now won't run arbitrary programs.
+  * dntask prints error messages if the connection fails.
+  * setether uses "ip" command if available rather than ifconfig
+  * Added timeout switch to dnping
+  * FAL no longer eats directories starting with '0'
+    Thanks to Matjaz Godec
+  * Add virtual-root feature to FAL
+  * Change to libdnet_daemon to allow RSX to connect
+  * Fixed truncate option in FAL
+  * Fixed wildard fetching in FAL so it works with dncopy
+  * Changes to FAL to allow RSX file transfers
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 17 Jul 2002 16:38:52 +0100
+
+dnprogs (2.18-1) unstable; urgency=low
+
+  * Fix dependancies in dnet-progs so libdnet gets pulled in too even when
+    built by the autobuilders. Closes: bug#122893
+  * Fix sending of binary files by FAL by block.
+  * Add .html, .tgz & .bz2 file types to FAL types list
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 10 Dec 2001 10:15:12 +0000
+
+dnprogs (2.17-1) unstable; urgency=low
+
+  * Don't print "done" when stopping daemons in dnet-progs.init.d
+  * Use cuserid() rather than getlogin() to determine username so that
+    commands run under su and sudo work as expected
+  * include <stdarg> in rms/getreply.cc so it compiles on hppa
+  * Use -fsigned-char when building uulib to make it more portable
+  * Fixed message "Error opening file for input: Success" when attempting
+    to fetch a locked file using dncopy
+  * Fix some lintian warnings
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  7 Nov 2001 15:15:28 +0000
+
 dnprogs (2.16-1) unstable; urgency=low
 
   * Remove pre-increment in FAL so that close-time attributes get
@@ -5,7 +52,7 @@ dnprogs (2.16-1) unstable; urgency=low
   * Look at OPEN as well as CLOSE time attributes for SPL, DLT and TEF.
   * fal's directory output now correctly sends the new directory information
     if a double wildcard is used: eg [*]*
-  * Fix bug in fal where binary files got corrupted if copied in "record" 
+  * Fix bug in fal where binary files got corrupted if copied in "record"
     mode
   * setether now also sets the default interface for 2.4 kernels
 
@@ -13,9 +60,9 @@ dnprogs (2.16-1) unstable; urgency=low
 
 dnprogs (2.15-1) unstable; urgency=low
 
-  * in librms/parse.cc pass va_list in a wrapper struct so that it works on 
-    powerpc systems.  Closes: bug#111680   
-  * add set -e to Makefile so it gives up on error. I never was any good at 
+  * in librms/parse.cc pass va_list in a wrapper struct so that it works on
+    powerpc systems.  Closes: bug#111680
+  * add set -e to Makefile so it gives up on error. I never was any good at
     writing Makefiles.
   * Minor manpage changes.
 
@@ -62,7 +109,7 @@ dnprogs (2.10-1) unstable; urgency=low
 
   * Fix crash in libdap if the first byte of a message is the last
     byte of a packet.
-  * Add man page symlinks for dnet_accet/dnet_reject and 
+  * Add man page symlinks for dnet_accet/dnet_reject and
     dnet_endnode/dnet_nextnode.   Closes: bug#99611
 
  -- Patrick Caulfield <patrick@debian.org>  Sat,  2 Jun 2001 11:03:54 +0100
@@ -81,7 +128,7 @@ dnprogs (2.08-1) unstable; urgency=low
 
   * First Debian upload.  Closes: bug#83642
   * Split into 4 packages.
-  * FAL now correctly uses metadata for block-structured files. 
+  * FAL now correctly uses metadata for block-structured files.
 
  -- Patrick Caulfield <patrick@debian.org>  Sun,  4 Feb 2001 14:23:07 +0000
 
@@ -103,9 +150,9 @@ dnprogs (2.07-1) stable; urgency=low
   * Added -f (force) to startnet to make it DOWN an interface before mucking
     about with it.
   * This file is now a Debian changelog
- 
+
  -- Patrick Caulfield <patrick@debian.org>  Sat,  28 Jan 2000 15:13:09 +0000
-  
+
 dnprogs (2.06-1) stable; urgency=low
 
   * Fix build of phone on Debian Potato systems
@@ -113,7 +160,7 @@ dnprogs (2.06-1) stable; urgency=low
   * Improve performance and system overhead of ctermd & sethost
   * Fixed & tidied RPM building
   * Fixed phone bug so you can dial users by node number now
-  * A small number of potential buffer overflows removed from dnetd & 
+  * A small number of potential buffer overflows removed from dnetd &
     libdnet_daemon
   * Fixed compilation of phone on SuSE 6.4 & RedHat 6.2 systems
   * librms rms_open with O_CREAT is now useful
@@ -121,7 +168,7 @@ dnprogs (2.06-1) stable; urgency=low
   * dnetd now really re-reads the proxy DB every time
   * ctermd no longer goes into a tight loop if you ^Y^Y the session
   * Updated my email address
-  
+
  -- Patrick Caulfield <patrick@tykepenguin.com>  Sat,  28 Oct 2000 19:33:06 +0000
 
 dnprogs (2.05-1) stable; urgency=low
@@ -131,9 +178,9 @@ dnprogs (2.05-1) stable; urgency=low
   * Some bugfixes in librms
 
  -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Mon,  3 Apr 2000 19:33:06 +0000
-  
+
 dnprogs (2.04-1) stable; urgency=low
-  
+
   * Fixed random crash in FAL when creating multiple files
   * Fixed a memory leak in dncopy sending multiple files
   * Fixed compilation on Slackware; I love linux having millions of distros :-(
@@ -146,18 +193,18 @@ dnprogs (2.04-1) stable; urgency=low
   * Fixed bug in fal where OOB ACCOMP messages never got a response. This was
     most obvious when editting a large file via EDT and quitting near the top.
   * Removed dncopy.README as it didn't say anything anyway
-  * Include a modified dnping with all sorts of new features, submitted by 
+  * Include a modified dnping with all sorts of new features, submitted by
     Rob Davies. man page by me.
   * Sethost now supports RSTS and TOPS-20. Thanks to Paul Koning for the patch.
-  * Include rmtermd from Paul Koning so you can connect your PDP machines to 
+  * Include rmtermd from Paul Koning so you can connect your PDP machines to
     Linux too.
-  
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Sat,  5 Feb 2000 19:33:06 +0000  
+
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Sat,  5 Feb 2000 19:33:06 +0000
 
 dnprogs (2.03-1) stable; urgency=low
 
   * RPMs now include the decnetconf script.
-  * RPMs now include some previously missing man pages 
+  * RPMs now include some previously missing man pages
   * Corrected dndir so that it works with DECnet/E.
     Thanks to Paul Koning <pkoning@xedia.com> for the patch. I've reworked it
     a bit so if it doesn't work blame me and not him.
@@ -174,7 +221,7 @@ dnprogs (2.03-1) stable; urgency=low
   * Fixed dialling in phoned so that it bleeps at the user again.
   * ctermd no longer uses 'login -p'
   * Fixed the DAP client buffer size from 65536 to 65535. D'oh! Only my FAL
-    barfed on this piece of (probably alcohol induced) stupidity; and it 
+    barfed on this piece of (probably alcohol induced) stupidity; and it
     shouldn't have.
   * In FAL dir node::"/dir" now adds a "/*" to the end of the name so you get
     a directory listing.
@@ -198,8 +245,8 @@ dnprogs (2.03-1) stable; urgency=low
     is provided for completeness in case anyone wants to reconfigure their
     system on-the-fly.
 
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Thu,  9 Dec 1999 19:33:06 +0000  
-  
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Thu,  9 Dec 1999 19:33:06 +0000
+
 dnprogs (2.02-1) stable; urgency=low
 
   * Done a little porting for NetBSD
@@ -207,8 +254,8 @@ dnprogs (2.02-1) stable; urgency=low
   * Bug fixes to KEYed reads in librms
   * Added new functions to librms for easier programming
 
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Thu, 21 Oct 1999 19:33:06 +0000  
-  
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Thu, 21 Oct 1999 19:33:06 +0000
+
 dnprogs (2.01-1) stable; urgency=low
 
   * Now builds on libc5 systems. Will I never learn?
@@ -217,11 +264,11 @@ dnprogs (2.01-1) stable; urgency=low
   * Improved speed of dncopy and fal by extensive use of blocking
   * Fixed blocking(!)
   * New function in libdnet: dnet_recv(). This function is designed to hide
-    the differences between recv() in the 'Eduardo' and 'Steve' kernels in 
+    the differences between recv() in the 'Eduardo' and 'Steve' kernels in
     that it will always read a full record before returning.
 
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri, 15 Jul 1999 19:33:06 +0000    
-  
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri, 15 Jul 1999 19:33:06 +0000
+
 dnprogs (2.00-1) stable; urgency=medium
 
   * Tidied up all sorts of dndir output, particularly against VMS 7.2
@@ -237,11 +284,11 @@ dnprogs (2.00-1) stable; urgency=medium
     DECnet if /etc/decnet.conf exists
   * Added Steve's dnet_ntop and dnet_pton functions to libdnet
 
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Sun, 11 Jul 1999 19:33:06 +0000    
-  
-  
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Sun, 11 Jul 1999 19:33:06 +0000
+
+
 dnprogs (1.94-1) stable; urgency=low
-  
+
   * Tidied error messages from dndel
   * Fixed Makefile for librms
   * Fixed race condition in child-death handing of daemons
@@ -254,7 +301,7 @@ dnprogs (1.94-1) stable; urgency=low
  -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri, 13 Jun 1999 19:33:06 +0000
 
 dnprogs (1.93-1) stable; urgency=low
-  
+
   * All libraries are now release under the LGPL. Thanks to Eduardo and
     Steve for allowing me to change the licence on their parts of this software
   * Allow command-line options to daemons in dnetd.conf (actually this was a bug)
@@ -270,8 +317,8 @@ dnprogs (1.93-1) stable; urgency=low
   * Cosmetic fixes to phone client
   * NEW! librms library to help people write Linux applications that read VMS
     files (including indexed ones)
-  
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri, 23 May 1999 19:33:06 +0000  
+
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri, 23 May 1999 19:33:06 +0000
 
 dnprogs (1.92-1) stable; urgency=low
 
@@ -284,9 +331,9 @@ dnprogs (1.92-1) stable; urgency=low
   * fal now shows directories in a more sensible form
   * First stab at FAL file type guessing. Opinions please!!
 
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri,  9 May 1999 19:33:06 +0000    
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri,  9 May 1999 19:33:06 +0000
 
-dnprogs (1.91-1) stable; urgency=low  
+dnprogs (1.91-1) stable; urgency=low
 
   * This is a pre-release of dnprogs 2.0
 
@@ -309,6 +356,6 @@ dnprogs (1.91-1) stable; urgency=low
   * New library libdnet_daemon. This contains code used by all daemon processes
     that (can be) forked by dnetd or run standalone.
   * Re-worked all daemon programs to use libdnet_daemon
-  
- -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri,  3 May 1999 19:33:06 +0000      
+
+ -- Patrick Caulfield <patrick@pandh.demon.co.uk>  Fri,  3 May 1999 19:33:06 +0000
 

@@ -113,7 +113,7 @@ void LocalPort::init_port()
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 
-#ifdef USE_OPENPTY
+#ifdef HAVE_OPENPTY
     // Set it owned by "lat" if it exists. We only do this for
     // /dev/pts PTYs.
     gid_t lat_group = LATServer::Instance()->get_lat_group();

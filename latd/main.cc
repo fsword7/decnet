@@ -11,7 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#ifdef HAVE_MCHECK_H
 #include <mcheck.h>
+#endif
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <stdio.h>

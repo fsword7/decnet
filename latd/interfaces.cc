@@ -28,5 +28,5 @@ LATinterfaces::~LATinterfaces()
 {
 }
 
-// LATinterfaces *LATinterfaces::Create() is in
+// LATinterfaces::Create() is in
 // a real implementation class.

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,6 +13,7 @@
 ******************************************************************************/
 
 #include <sys/types.h>
+#include <sys/time.h>
 #include <unistd.h>
 
 #include <strstream>
@@ -51,11 +52,11 @@ bool LATCPCircuit::do_command()
     bool retval = true;
 
     debuglog(("latcp: do_command on fd %d\n", fd));
-    
+
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
 	return false; // Bad header
-    
+
     int len = head[1] * 256 + head[2];
     unsigned char *cmdbuf = new unsigned char[len];
 
@@ -66,16 +67,16 @@ bool LATCPCircuit::do_command()
 	return false; // Bad message
     }
 
-    // Have we completed negotiation? 
+    // Have we completed negotiation?
     if (head[0] != LATCP_VERSION &&
 	state != RUNNING)
     {
 	delete[] cmdbuf;
 	return false;
     }
-    
+
     debuglog(("latcp: do_command %d\n", head[0]));
-    
+
     // Do the command
     switch (head[0])
     {
@@ -117,14 +118,14 @@ bool LATCPCircuit::do_command()
     }
     break;
 
-    
+
     case LATCP_SETRESPONDER:
     {
 	bool onoff = cmdbuf[0]==0?false:true;
 	LATServer::Instance()->SetResponder(onoff);
     }
     break;
-    
+
     case LATCP_UNLOCK:
     {
 	debuglog(("UNLOCK received...off we go\n"));
@@ -180,7 +181,7 @@ bool LATCPCircuit::do_command()
     }
     break;
 
-    
+
     // Change the rating of a service
     case LATCP_SETRATING:
     {
@@ -218,7 +219,7 @@ bool LATCPCircuit::do_command()
     break;
 
 
-    
+
     // Add a login service
     case LATCP_ADDSERVICE:
     {
@@ -245,14 +246,14 @@ bool LATCPCircuit::do_command()
 		  name, ident));
 
 	if (LATServer::Instance()->add_service((char*)name, (char*)ident, (char*)command,
-					       max_connections, target_uid, target_gid, 
+					       max_connections, target_uid, target_gid,
 					       rating, static_rating))
 	    send_reply(LATCP_ACK, "", -1);
 	else
 	    send_reply(LATCP_ERRORMSG, "Local service already exists", -1);
     }
     break;
-    
+
     // Delete service
     case LATCP_REMSERVICE:
     {
@@ -354,8 +355,8 @@ bool LATCPCircuit::do_command()
         //
         // MSC DVK 12-Feb-2002, more verbose error report to user.
         //
-        
-	res = LATServer::Instance()->create_local_port(service, 
+
+	res = LATServer::Instance()->create_local_port(service,
 						     remport,
 						     localport,
 						     remnode,

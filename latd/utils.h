@@ -24,10 +24,21 @@ int expand_issue(const char *original, int len,
 		 char *newstring, int maxlen,
 		 const char *servicename);
 
-#ifndef USE_OPENPTY
+#ifndef HAVE_OPENPTY
 #define INTERNAL_OPENPTY
 #else
+#ifdef HAVE_PTY_H
 #include <pty.h>
+#endif /* HAVE_PTY_H */
+#ifdef HAVE_TERMIOS_H
+#include <termios.h>
+#endif /* HAVE_TERMIOS_H */
+#ifdef HAVE_LIBUTIL_H
+#include <libutil.h>
+#endif /* HAVE_LIBUTIL_H */
+#ifdef HAVE_UTIL_H
+#include <util.h>
+#endif /* HAVE_UTIL_H */
 #endif
 
 // RedHat 5 has a broken openpty()

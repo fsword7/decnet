@@ -85,7 +85,7 @@ static struct bpf_insn moprc_bpf_filter[] = {
   BPF_STMT(BPF_RET + BPF_K, 0),
 };
 
-int BPFInterfaces::Start()
+int BPFInterfaces::Start(int proto)
 {
 #define DEV_BPF_FORMAT "/dev/bpf%d"
     char dev_bpf_filename[sizeof(DEV_BPF_FORMAT) + (sizeof(int) * 3) + 1];
@@ -94,6 +94,8 @@ int BPFInterfaces::Start()
     u_int bpf_opt;
     struct bpf_version version;
 
+    protocol = proto;
+    
     /* loop trying to open a /dev/bpf device: */
     for(minor = 0;; minor++) {
 
@@ -612,8 +614,49 @@ int BPFInterfaces::remove_lat_multicast(int ifn)
     return 0;
 }
 
-int BPFInterfaces::bind_socket(int interface)
+int BPFInterfaces::bind_socket(int ifn)
 {
-    // TODO:
-    return -1;
+    struct ifreq interface_ifreq;
+    struct bpf_program program;
+    int dummy_fd;
+
+    /* if we don't have an interface, bail: */
+    if (ifn != 0 || _latd_bpf_interface_name == NULL) {
+      syslog(LOG_ERR, "No interfaces\n");
+      return -1;
+    }
+    strcpy(interface_ifreq.ifr_name, _latd_bpf_interface_name);
+
+    /* point the BPF device at the interface we're using: */
+    if (ioctl(_latd_bpf_fd, BIOCSETIF, &interface_ifreq) < 0) {
+      debuglog(("bpf: failed to point BPF socket at %s: %s\n",
+		   interface_ifreq.ifr_name, strerror(errno)));
+      syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
+      return -1;
+    }
+
+    /* set the filter on the BPF device: */
+    program.bf_len = sizeof(moprc_bpf_filter) / sizeof(moprc_bpf_filter[0]);
+    program.bf_insns = lat_bpf_filter;
+    if (ioctl(_latd_bpf_fd, BIOCSETF, &program) < 0) {
+      debuglog(("bpf: failed to set the filter: %s\n", strerror(errno)));
+      syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
+      return -1;
+    }
+
+    /* get the BPF read buffer size: */
+    if (ioctl(_latd_bpf_fd, BIOCGBLEN, &_latd_bpf_buffer_size) < 0) {
+      debuglog(("bpf: failed to read the buffer size: %s\n", strerror(errno)));
+      syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
+      return -1;
+    }
+    debuglog(("bpf: buffer size is %u\n", _latd_bpf_buffer_size));
+
+    /* allocate the buffer for BPF reads: */
+    if ((_latd_bpf_buffer = (unsigned char *) malloc(_latd_bpf_buffer_size)) == NULL) {
+      abort();
+    }
+    _latd_bpf_buffer_end = _latd_bpf_buffer_offset = 0;
+
+    return 0;
 }

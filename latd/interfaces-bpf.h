@@ -22,7 +22,7 @@ class BPFInterfaces : public LATinterfaces
     ~BPFInterfaces() {};
 
     // Initialise
-    virtual int Start();
+    virtual int Start(int proto);
 
     // Return a list of valid interface numbers and the count
     virtual void get_all_interfaces(int *ifs, int &num);

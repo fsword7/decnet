@@ -35,7 +35,12 @@
 #include <grp.h>
 #include <signal.h>
 #include <assert.h>
+#ifdef HAVE_NET_IF_ETHER_H
+#include <net/if.h>
+#include <net/if_ether.h>
+#else
 #include <netinet/ether.h>
+#endif
 
 #include <string>
 
@@ -111,7 +116,6 @@ int main(int argc, char *argv[])
 
 /* Get command-line options */
     opterr = 0;
-    optind = 0;
     while ((opt=getopt(argc,argv,"?hVvti:")) != EOF)
     {
 	switch(opt)
@@ -179,6 +183,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "Cannot resolve interface %s\n", ifname);
 	return 2;
     }
+
     mop_socket = iface->get_fd(0);
     if (iface->bind_socket(interface))
 	return 3;

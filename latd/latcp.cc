@@ -534,10 +534,7 @@ void add_service(int argc, char *argv[])
     gid_t target_gid = 0;
     struct passwd *target_user;
 
-
     opterr = 0;
-    optind = 0;
-
     while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:w:sQ8C:m:u:")) != EOF)
     {
 	switch(opt)

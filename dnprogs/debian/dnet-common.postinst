@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+
+set -e
+
+if [ "$1" != "configure" ]
+then
+  exit 0
+fi
+
+. /usr/share/debconf/confmodule
+
+# Get the node name and address
+db_get dnet-common/nodename
+name=$RET
+db_get dnet-common/nodeaddr
+addr=$RET
+
+db_stop
+
+# Update /etc/decnet.conf
+
+if [ ! -f /etc/decnet.conf ] 
+then
+  cp /usr/share/doc/dnet-common/decnet.conf.sample /etc/decnet.conf
+  chmod 0644 /etc/decnet.conf
+fi
+
+TMPFILE="`tempfile`"
+
+cat /etc/decnet.conf | awk -v NAME=$name -vADDR=$addr '
+{ if ($1 == "executor") { printf("executor\t%s\t\tname\t\t%s\tline\teth0\n", ADDR, NAME) ;} else { print $0; } }' > $TMPFILE
+
+cp /etc/decnet.conf /etc/decnet.conf.old
+cp $TMPFILE /etc/decnet.conf
+if [ $? -ne 0 ]
+then
+  cp /etc/decnet.conf.old /etc/decnet.conf
+fi
+
+rm -f $TMPFILE
+
+# Update /etc/modutils/decnet
+
+INTERFACE="`cat /etc/decnet.conf|grep executor|awk '{print $6}'`"
+COMMAADDR="`echo $addr|tr '.' ','`"
+TMPFILE="`tempfile`"
+
+head -1 /etc/modutils/decnet > $TMPFILE
+echo "options decnet addr=$COMMAADDR" >> $TMPFILE
+cp $TMPFILE /etc/modutils/decnet
+
+rm -f $TMPFILE
+
+/sbin/update-modules
+exec 2>/tmp/pjc2 >/tmp/pjc
+set -x
+#DEBHELPER#

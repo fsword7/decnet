@@ -1,5 +1,5 @@
 #!/bin/sh
-# postrm script for dnprogs
+# postrm script for dnet-common
 #
 # see: dh_installdeb(1)
 
@@ -24,6 +24,6 @@ then
 fi
 
 
-
+#DEBHELPER#
 
 

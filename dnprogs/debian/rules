@@ -1,8 +1,6 @@
 #!/usr/bin/make -f
-# Made with the aid of debmake, by Christoph Lameter,
-# based on the sample debian/rules file for GNU hello by Ian Jackson.
 
-package=dnprogs
+export DH_COMPAT=2
 
 build:
 	$(checkdir)
@@ -12,11 +10,12 @@ build:
 
 clean:
 	$(checkdir)
-	-rm -f build
+	#-rm -f build
 	-make clean
 	-rm -f `find . -name "*~"`
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
 	-rm -f debian/*substvars
+	dh_clean -k
 
 binary-indep: checkroot build
 	$(checkdir)
@@ -28,17 +27,51 @@ binary-arch: checkroot build
 	$(checkdir)
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS `
 	install -d debian/tmp
-	install -D -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
 	mkdir -p debian/tmp/etc/modutils
+	mkdir -p debian/tmp/etc/default
+	mkdir -p debian/tmp/usr/share/doc/dnet-common
+	mkdir -p debian/tmp/usr/share/doc/libdnet
+	mkdir -p debian/tmp/usr/share/doc/libdnet-dev
+	mkdir -p debian/tmp/usr/share/doc/dnet-progs
+	mkdir -p debian/tmp/sbin
 	echo "alias net-pf-12 decnet" > debian/tmp/etc/modutils/decnet
+	echo '# DNET_INTERFACES specifies the names of ethernet interfaces whose' >> debian/tmp/etc/default/decnet
+	echo '# MAC address is to be set to the DECnet node address' >> debian/tmp/etc/default/decnet
+	echo "DNET_INTERFACES=\"all\"" >> debian/tmp/etc/default/decnet
+	echo '# DNET_DAEMONS lists the daemons to start when dnet-progs is installed.' >> debian/tmp/etc/default/decnet
+	echo "DNET_DAEMONS=\"dnetd phoned\"" >> debian/tmp/etc/default/decnet
+	cp README debian/tmp/usr/share/doc/dnet-common
+	cp README debian/tmp/usr/share/doc/libdnet
+	cp README debian/tmp/usr/share/doc/dnet-progs
+	cp README debian/tmp/usr/share/doc/libdnet-dev
+	cp Documentation/*README debian/tmp/usr/share/doc/dnet-common
+	cp Documentation/*README debian/tmp/usr/share/doc/libdnet
+	cp Documentation/*README debian/tmp/usr/share/doc/dnet-progs
+	cp Documentation/*README debian/tmp/usr/share/doc/libdnet-dev
+	cp apps/decnet.conf debian/tmp/usr/share/doc/dnet-common/decnet.conf.sample
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
+	mv debian/tmp/usr/man debian/tmp/usr/share
+	mv debian/tmp/usr/sbin/startnet debian/tmp/sbin
 	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
+	dh_testversion 2
+	dh_installdirs
+	dh_installchangelogs
+	dh_installdocs
+	dh_link
 	dh_installdebconf
-	debstd -p 
-	dpkg-gencontrol -pdnprogs -isp
-	chown -R root.root debian/tmp
-	chmod -R go=rX debian/tmp
-	dpkg --build debian/tmp ..
+	dh_installinit  -pdnet-common  --init-script=decnet --update-rcd-params="start\ 39\ S\ .\ \ stop\ 11\ 1\ ."
+	dh_installinit  -pdnet-progs  --init-script=dnet-progs
+	dh_strip
+	dh_movefiles
+	dh_compress
+	dh_fixperms
+	dh_shlibdeps
+	dh_gencontrol
+	dh_makeshlibs
+	dh_installdeb
+	dh_md5sums
+	dh_builddeb
+
 
 define checkdir
 	test -f debian/rules

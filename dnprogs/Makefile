@@ -95,7 +95,6 @@ rpm:
 # Make Debian package. It's best to do this immediately after 'make rpm'
 #
 deb:
-	@if [ $$UID != 0 ]; then echo You must be root to make DEBs; exit 1; fi
 	rm -f Documentation/*~ Documentation/*.bak
 	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'        \
 	    -e's/%%VERSION%%/$(VERSION)/g'            \
@@ -106,7 +105,7 @@ deb:
 	cat NEWS >>debian/changelog
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
-	cd ../$(PKGNAME)-$(VERSION); debian/rules binary-arch
+	cd ../$(PKGNAME)-$(VERSION); fakeroot debian/rules binary-arch
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 
 #

@@ -221,9 +221,17 @@ void LocalPort::do_read()
 // Show info for latcp
 void LocalPort::show_info(bool verbose, std::ostrstream &output)
 {
-    output << devname << std::setw(24-devname.length()) << " " << service
-	   << std::setw(16-service.length()) << " "
-	   << remnode << std::setw(16-remnode.length()) << " " << portname
-	   << std::setw(16-portname.length()) << " " << (queued?"Yes":"No ")
-	   << (clean?" 8":" ") << std::endl;
+    output.setf(std::ios::left, std::ios::adjustfield);
+
+    output.width(23);
+    output << devname.c_str() << " ";
+
+    output.width(15);
+    output << service.c_str() << " ";
+
+    output.width(15);
+    output << remnode.c_str() << " ";
+
+    output.width(15);
+    output << portname.c_str() << " " << (queued?"Yes":"No ") << (clean?" 8":" ") << std::endl;
 }

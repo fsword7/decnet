@@ -170,10 +170,14 @@ void LATServices::serviceinfo::list_service(std::ostrstream &output)
     output << "Node Name        Status      Rating   Identification" << std::endl;
     for (; n != nodes.end(); n++)
     {
-	output << std::setw(28 - n->first.length()) << n->first <<
-	    (nodes[n->first].is_available()?"Reachable  ":"Unreachable") << "   " <<
-	    std::setw(4) << nodes[n->first].get_rating() << "   " <<
-	    nodes[n->first].get_ident() <<  std::endl;
+        output.width(17);
+        output.setf(std::ios::left, std::ios::adjustfield);
+	output << n->first.c_str() <<
+	         (nodes[n->first].is_available()?"Reachable  ":"Unreachable") << "   ";
+        output.width(4);
+        output.setf(std::ios::right, std::ios::adjustfield);
+	output << nodes[n->first].get_rating() << "   " <<
+ 	          nodes[n->first].get_ident() <<  std::endl;
     }
 }
 
@@ -193,15 +197,16 @@ bool LATServices::list_services(bool verbose, std::ostrstream &output)
 	      output << "Service Name:    " << s->first << std::endl;
 	      output << "Service Status:  " << (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " << std::endl;
 	      output << "Service Ident:   " << servicelist[s->first].get_ident() << std::endl << std::endl;
-	      servicelist[s->first].list_service(output);
+                        servicelist[s->first].list_service(output);
 	      output << "--------------------------------------------------------------------------------" << std::endl;
 
 	  }
 	  else
 	  {
-	      output << std::setw(28 - s->first.length()) << s->first <<
-		  (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " <<
-		  servicelist[s->first].get_ident() << std::endl;
+              output.width(28);
+              output.setf(std::ios::left, std::ios::adjustfield);
+	      output << s->first.c_str() << (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " <<
+                        servicelist[s->first].get_ident() << std::endl;
 	  }
       }
 

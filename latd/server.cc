@@ -1555,7 +1555,12 @@ int LATServer::create_local_port(unsigned char *service,
 bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
 {
     output <<std::endl;
-    output << "Node Name:  " << get_local_node() << std::setw(16-strlen((char*)get_local_node())) << " " << "    LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << std::endl;
+    output.setf(std::ios::left, std::ios::adjustfield);
+
+    output << "Node Name:  ";
+    output.width(15);
+    output << get_local_node() << " " << "    LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << std::endl;
+    output.setf(std::ios::right, std::ios::adjustfield);
     output << "Node State: On " << "                 LATD Version:               " << VERSION << std::endl;
     output << "Node Ident: " << greeting << std::endl;
     output << std::endl;
@@ -1585,7 +1590,11 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
     std::list<serviceinfo>::iterator i(servicelist.begin());
     for (; i != servicelist.end(); i++)
     {
-	output << std::setw(16) << i->get_name() << std::setw(15-i->get_name().size()) << " " << "Enabled" << std::setw(6) << i->get_rating() <<
+	output.width(15);
+	output.setf(std::ios::left, std::ios::adjustfield);
+	output << i->get_name().c_str();
+	output.setf(std::ios::right, std::ios::adjustfield);
+	output << "Enabled" << std::setw(6) << i->get_rating() <<
 	    (i->get_static()?"    ":" D  ") << i->get_id() << std::endl;
     }
 

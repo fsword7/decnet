@@ -170,10 +170,10 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 	    // If the last DATA message wasn't seen either then resend that too
 	    if (last_message.get_seq() > msg->header.ack_number ||
-		last_message.get_seq() == 0 && msg->header.ack_number == 0xff)
+		(last_message.get_seq() == 0 && msg->header.ack_number == 0xff))
 
 	    {
-		debuglog(("Also sending mast DATA message (%d)\n", last_message.get_seq()));
+		debuglog(("Also sending last DATA message (%d)\n", last_message.get_seq()));
 		last_message.send(interface,  last_recv_seq, macaddr);
 	    }
 	}
@@ -188,7 +188,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 	// If the last DATA message wasn't seen either then resend that too
 	if (last_message.get_seq() > msg->header.ack_number ||
-	    last_message.get_seq() == 0 && msg->header.ack_number == 0xff)
+	    (last_message.get_seq() == 0 && msg->header.ack_number == 0xff))
 	{
 	    debuglog(("Also sending last DATA message (%d)\n", last_message.get_seq()));
 	    last_message.send(interface,  last_recv_seq, macaddr);

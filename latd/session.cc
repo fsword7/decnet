@@ -216,7 +216,7 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
     LAT_SlotCmd *header = (LAT_SlotCmd *)reply;
     int  ptr;
 
-#ifdef REALLY_VERBOSE_DEBUG
+#ifdef REALLY_VERBOSE_DEBUGLOG
     debuglog(("Local Credit stands at %d\n", credit));
     debuglog(("Remote Credit stands at %d\n", remote_credit));
 #endif
@@ -317,6 +317,7 @@ void LATSession::send_issue()
 	close(f);
 
 	size_t newlen = 0;
+	if (len == 0) return;
 	if (len > 255) len = 255;
 
 	// Start with a new line

@@ -437,6 +437,21 @@ static int parse(char *fname)
         accessdata.acc_acc[0] = '\0';
 
 
+
+    /* If the password is "-" and fd 0 is a tty then 
+       prompt for a password */
+    if (accessdata.acc_pass[0] == '-' && accessdata.acc_pass[1] == '\0' && isatty(0))
+    {	
+	char *password = getpass("Password: ");
+	if (password == NULL || strlen(password) > (unsigned int)MAX_PASSWORD)
+	{
+	    lasterror = "Password input cancelled";
+	    return FALSE;
+	}
+	strcpy(accessdata.acc_pass, password);
+    }
+
+    
     /* Complete the accessdata structure */
     accessdata.acc_userl = strlen(accessdata.acc_user);
     accessdata.acc_passl = strlen(accessdata.acc_pass);

@@ -36,7 +36,6 @@ binary-indep: checkroot build
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	rm debian/tmp/usr/sbin/startnet
 	install -m755 apps/setether.sh debian/tmp/sbin/setether
-	dh_testversion 2
 	dh_installdirs -pdnet-common
 	dh_installchangelogs  -pdnet-common
 	dh_installdocs  -pdnet-common

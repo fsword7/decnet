@@ -527,7 +527,7 @@ void start_latd(int argc, char *argv[])
     {
 	char  newpath[1024];
 	char *newargv[argc+1];
-	char *newenv[argc+1];
+	char *newenv[3];
 	int   i;
 
 	// Make a minimal path including wherever latd is.
@@ -535,7 +535,8 @@ void start_latd(int argc, char *argv[])
 	newargv[0] = latd_bin;
 	newargv[1] = NULL;
 	newenv[0] = newpath;
-	newenv[1] = NULL;
+	newenv[1] = "LATCP_STARTED=true"; // Tell latd it was started by us.
+	newenv[2] = NULL;
 
 	switch(fork())
 	{
@@ -543,26 +544,58 @@ void start_latd(int argc, char *argv[])
 	    perror("fork failed");
 	    return;
 	case 0: // Child
-	    // Start latd with out args (after the "-s")
+	    // Start latd with our args (after the "-s")
 	    for (i=2; i<argc; i++)
 		newargv[i-1] = argv[i];
 	    newargv[i-1] = NULL;
 
-	    execve(latd_bin, newargv, NULL);
+	    execve(latd_bin, newargv, newenv);
 	    perror("exec of latd failed");
 	    break;
 
 	default: //Parent
-	    // Run startup script if there is one.
-	    sleep(1);
-	    printf("LAT started\n");
-	    if (!stat("/etc/latd.conf", &st))
 	    {
-		newargv[0] = "/bin/sh";
-		newargv[1] = "/etc/latd.conf";
-		newargv[2] = NULL;
-		execve("/bin/sh", newargv, newenv);
-		perror("exec of /bin/sh failed");
+		// Wait for latd to start up
+		int count = 0;
+		while (!open_socket(true) && count < 10)
+		{
+		    sleep(1);
+		    count++;
+		}
+		if (count >= 10)
+		{
+		    fprintf(stderr, "latd did not start\n");
+		    exit(2);
+		}
+		
+		
+		// Run startup script if there is one.
+		if (!stat("/etc/latd.conf", &st))
+		{
+		    pid_t shell_pid;
+		    switch ( (shell_pid=fork()) )
+		    {
+		    case 0: // Child
+			newargv[0] = "/bin/sh";
+			newargv[1] = "/etc/latd.conf";
+			newargv[2] = NULL;
+			execve("/bin/sh", newargv, newenv);
+			perror("exec of /bin/sh failed");
+			exit(0);
+			
+		    case -1:
+			perror("Fork failed");
+			exit(0);
+			
+		    default: // Parent. Wait for child to finish
+			waitpid(shell_pid, NULL, 0);
+		    }
+		}
+		// OK, latd has started and we have run the startup script.
+		// Now "unlock" latd. ie tell it we have finished initialisation
+		char dummy[1];
+		send_msg(latcp_socket, LATCP_UNLOCK, dummy, 0);
+		printf("LAT Started\n");
 	    }
 	    break;
 	}

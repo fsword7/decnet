@@ -121,7 +121,16 @@ bool LATCPCircuit::do_command()
 	LATServer::Instance()->SetResponder(onoff);
     }
     break;
+    
+    case LATCP_UNLOCK:
+    {
+	debuglog(("UNLOCK received...off we go\n"));
+	LATServer::Instance()->unlock();
 
+    }
+    break;
+
+    
     // Add a login service
     case LATCP_ADDSERVICE:
     {

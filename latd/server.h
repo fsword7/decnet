@@ -217,6 +217,7 @@ class LATServer
     bool remove_service(char *name);
     bool remove_port(char *name);
     void set_multicast(int newtime);
+    void unlock();
     bool show_characteristics(bool verbose, ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,
 				unsigned char *, unsigned char *, bool);

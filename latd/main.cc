@@ -224,6 +224,15 @@ int main(int argc, char *argv[])
 	exit(2);
     }
 
+    // Make sure we were started by latcp
+    if (getenv("LATCP_STARTED") == NULL)
+    {
+	fprintf(stderr, "\nlatd must be started with latcp -s\n");
+	fprintf(stderr, "see the man page for more information.\n\n");
+	exit(2);
+    }
+
+    
 #ifndef NO_FORK
     if (!debug) // Also available at run-time
     {

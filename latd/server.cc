@@ -282,8 +282,8 @@ void LATServer::run()
     fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));
     
     
-    // Start sending service announcements
-    alarm_signal(SIGALRM);
+    // Don't start sending service announcements
+    // until we get an UNLOCK message from latcp.
 
     // We rely on Linux's select() behaviour in that we use the
     // time left in the timeval parameter to make sure the circuit timer
@@ -962,6 +962,12 @@ void LATServer::set_multicast(int newtime)
 	multicast_timer = newtime;
 	alarm(newtime);
     }
+}
+
+// Start sending service announcements
+void LATServer::unlock()
+{
+    alarm_signal(SIGALRM);
 }
 
 // Create a new client connection

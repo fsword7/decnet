@@ -371,7 +371,7 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
   /* make the Ethernet header: */
   memcpy(ether_packet.ether_dhost, macaddr, ETHER_ADDR_LEN);
   memcpy(ether_packet.ether_shost, _latd_bpf_interface_addr, ETHER_ADDR_LEN);
-  ether_packet.ether_type = htons(ETHERTYPE_LAT);
+  ether_packet.ether_type = htons(protocol);
 
   /* write this packet: */
   iov[0].iov_base = (char* )&ether_packet;
@@ -620,7 +620,6 @@ int BPFInterfaces::bind_socket(int ifn)
 {
     struct ifreq interface_ifreq;
     struct bpf_program program;
-    int dummy_fd;
 
     /* if we don't have an interface, bail: */
     if (ifn != 0 || _latd_bpf_interface_name == NULL) {
@@ -639,7 +638,7 @@ int BPFInterfaces::bind_socket(int ifn)
 
     /* set the filter on the BPF device: */
     program.bf_len = sizeof(moprc_bpf_filter) / sizeof(moprc_bpf_filter[0]);
-    program.bf_insns = lat_bpf_filter;
+    program.bf_insns = moprc_bpf_filter;
     if (ioctl(_latd_bpf_fd, BIOCSETF, &program) < 0) {
       debuglog(("bpf: failed to set the filter: %s\n", strerror(errno)));
       syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
@@ -663,6 +662,5 @@ int BPFInterfaces::bind_socket(int ifn)
     return 0;
 }
 
-// These are just flag values
-int LATinterfaces::ProtoLAT = 1;
-int LATinterfaces::ProtoMOP = 2;
+int LATinterfaces::ProtoLAT = ETHERTYPE_LAT;
+int LATinterfaces::ProtoMOP = ETHERTYPE_MOPRC;

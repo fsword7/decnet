@@ -1,3 +1,35 @@
+dnprogs (2.22-1) unstable; urgency=low
+
+  * Make some bits of dncopy conditional on it being connected to VMS.
+    This helps with RSX connectivity.
+  * Fix bug in fal where it sends an extra newline at the end of a text file.
+  * Make .fal metadata directories 0777 so multiple users can use them.
+  * Make metadata file have the same protection as the real file
+  * Make records array (for VAR files) increase by 100s rather than 10s as
+    that's far too weedy.
+  * Red Hat startup scripts sets node name and default device now.
+  * getnodename & setnodename in libdnet actually work now.
+  * Tidy PTY definitions in Makefile.common & fix PTYs in rmtermd.
+    Thanks to Maciej W. Rozycki
+  * Fixes and chkconfig to the Red Hat startup script.
+    Thanks to Mats Magnusson
+  * Added loads of new error messages to libdap so it should be able to
+    make sense of most DAP errors now.
+  * Minor changes to debian control files to get rid of lintian/linda
+    warnings.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat,  2 Nov 2002 18:18:02 +0000
+
+dnprogs (2.21-1) unstable; urgency=low
+
+  * Don't check_kernel when building DEBS so
+    autobuilders can build it. Instead default to kernel 2.4.x
+    Previously I had done this manually but I often forgot, this
+    should remove that possibility
+  * Suggest: kernel-image-2.4
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 13 Sep 2002 11:48:28 +0100
+
 dnprogs (2.20-1) unstable; urgency=low
 
   * Fix vroot not NUL-terminating names properly
@@ -5,12 +37,11 @@ dnprogs (2.20-1) unstable; urgency=low
   * FAL fix overrun when sending binary files in record mode - OK you
     shouldn't do that anyway, but FAL shouldn't fail on you either.
   * Fix dncopy -mblock when copying file from VMS.
-    Thanks to Zdenek Cermak for reporting this.
   * dncopy blocks ATTRIB & ACCESS messages for efficiency.
   * Mention libdumbnet in package description in case people are looking
     for libdnet.sf.net software.
 
- --
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 13 Sep 2002 11:31:45 +0100
 
 dnprogs (2.19-1) unstable; urgency=low
 

@@ -182,7 +182,7 @@ void LATServer::send_service_announcement(int sig)
 	if (id.length() == 0)
 	{
 	    // Default service identification string
-	    char   stringbuf[1024];
+	    char stringbuf[1024];
 	    sprintf(stringbuf, "%s %s", uinfo.sysname, uinfo.release);
 	    id = string(stringbuf);
 	}
@@ -892,16 +892,19 @@ void LATServer::Shutdown()
 }
 
 // Add a new service from latcp
-void LATServer::add_service(char *name, char *ident)
+void LATServer::add_service(char *name, char *ident, int _rating, bool _static_rating)
 {
     // Look for it.
     list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii != servicelist.end()) return; // Already exists
+
+    // if rating is 0 then use the node default.
+    if (!_rating) _rating = rating;
     
     servicelist.push_back(serviceinfo(name, 
-				      rating,
-				      static_rating, 
+				      _rating,
+				      _static_rating, 
 				      ident));
 
     // Resend the announcement message.

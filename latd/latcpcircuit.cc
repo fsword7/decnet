@@ -127,15 +127,19 @@ bool LATCPCircuit::do_command()
     {
 	unsigned char name[255];
 	unsigned char ident[255];
-	int  ptr=0;
+	bool static_rating;
+	int  rating;
+	int  ptr=2;
 
+	static_rating = (bool)cmdbuf[0];
+	rating = cmdbuf[1];
 	get_string((unsigned char*)cmdbuf, &ptr, name);
 	get_string((unsigned char*)cmdbuf, &ptr, ident);
 
 	debuglog(("latcp: add service: %s (%s)\n",
 		  name, ident));
 
-	LATServer::Instance()->add_service((char*)name, (char*)ident);
+	LATServer::Instance()->add_service((char*)name, (char*)ident, rating, static_rating);
 	send_reply(LATCP_ACK, "", -1);
     }
     break;

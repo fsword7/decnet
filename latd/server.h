@@ -213,7 +213,7 @@ class LATServer
  public:
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
-    void add_service(char *name, char *ident);
+    void add_service(char *name, char *ident, int _rating, bool _static_rating);
     bool remove_service(char *name);
     bool remove_port(char *name);
     void set_multicast(int newtime);

@@ -78,7 +78,7 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i descript] [-r rating]\n");
+    printf ("       -A -a service [-i descript] [-r rating] [-s]\n");
     printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]\n");
     printf ("       -p ttylist -a service\n");
     printf ("       -P ttylist -a service\n");
@@ -302,11 +302,14 @@ void add_service(int argc, char *argv[])
     char opt;
     bool got_service=false;
     bool got_port=false;
-    int queued = 0;
+    bool static_rating=false;
+    int  rating = 0;
+    int  queued = 0;
+    
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:s")) != EOF)
     {
 	switch(opt) 
 	{
@@ -353,6 +356,14 @@ void add_service(int argc, char *argv[])
 	    queued = 1;
 	    break;
 
+	case 's':
+	    static_rating = true;
+	    break;
+
+	case 'r':
+	    rating = atoi(optarg);
+	    break;
+	    
 	default:
 	    fprintf(stderr, "No more service switches defined yet\n");
 	    exit(2);
@@ -368,8 +379,17 @@ void add_service(int argc, char *argv[])
 
     if (got_service)
     {
+	if (name[0] == '\0')
+	{
+	    fprintf(stderr, "No name for new service\n");
+	    exit(2);
+	}
+
+	
 	char message[520];
-	int ptr = 0;
+	int ptr = 2;
+	message[0] = (int)static_rating;
+	message[1] = rating;
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);

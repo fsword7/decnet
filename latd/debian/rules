@@ -6,7 +6,6 @@ package=latd
 
 build:
 	$(checkdir)
-	
 	make
 	touch build
 
@@ -17,6 +16,7 @@ clean:
 	-rm -f `find . -name "*~"`
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
 	-rm -f debian/*substvars
+	dh_clean -k
 
 binary-indep: checkroot build
 	$(checkdir)
@@ -26,12 +26,27 @@ binary-indep: checkroot build
 
 binary-arch: checkroot build
 	$(checkdir)
-	install -d debian/tmp
-	install -m 0644 latd.conf debian/tmp/etc/latd.conf
-	make install DESTDIR=`pwd`/debian/tmp
-	debstd NEWS README TODO 
-	dpkg-gencontrol -platd
-	dpkg --build debian/tmp ..
+	install -d debian/tmp/etc
+	install -d debian/tmp/usr/share
+	install -m 0600 latd.conf debian/tmp/etc/latd.conf
+	make install DESTDIR=`pwd`/debian/tmp RELEASE=true
+	mv debian/tmp/usr/man debian/tmp/usr/share
+	dh_testversion 2
+	dh_installdirs
+	dh_installchangelogs
+	dh_installdocs
+	dh_link
+	dh_installinit
+	dh_strip
+	dh_movefiles
+	dh_compress
+	dh_fixperms
+	dh_shlibdeps
+	dh_gencontrol
+	dh_installdeb
+	dh_md5sums
+	dh_builddeb
+
 
 define checkdir
 	test -f debian/rules

@@ -1,5 +1,7 @@
 Source: latd
-Maintainer: Patrick <patrick@debian.org>
+Section: net
+Priority: extra
+Maintainer: Patrick Caulfield <patrick@debian.org>
 Build-Depends: fakeroot, debhelper(>=2.0), libstdc++2.10-dev
 Standards-Version: 3.5.0
 

@@ -25,6 +25,7 @@ install:
 	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
 	if [ ! -f $(sysconfprefix)/etc/dnetd.conf ]; then install -m 640 dnetd.conf $(sysconfprefix)/etc; fi
+	if [ ! -f $(sysconfprefix)/etc/decnet.proxy ]; then install -m 640 ../fal/decnet.proxy $(sysconfprefix)/etc; fi
 
 dep depend:	
 	makedepend *.cc *.c 2>/dev/null

@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+#include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
 #include <netinet/in.h>

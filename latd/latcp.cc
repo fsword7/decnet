@@ -108,7 +108,7 @@ int usage(char *cmd)
     printf ("       -r retransmit limit\n");
     printf ("       -m multicast timer (100ths/sec)\n");
     printf ("       -k keepalive timer (seconds)\n");
-    printf ("       -d [ [-l [-v] ] ]\n");
+    printf ("       -d [ [-l [-v] [-n] ] ]\n");
     printf ("       -z \n");
 
     return 2;
@@ -216,7 +216,7 @@ void display(int argc, char *argv[])
 
     if (!open_socket(false)) return;
 
-    while ((opt=getopt(argc,argv,"lvd")) != EOF)
+    while ((opt=getopt(argc,argv,"lvn")) != EOF)
     {
 	switch(opt)
 	{
@@ -228,12 +228,12 @@ void display(int argc, char *argv[])
 	    verboseflag[0] = 1;
 	    break;
 
-	case 'd':
+	case 'n':
 	    show_nodes = true;
 	    break;
 
 	default:
-	    fprintf(stderr, "only -v or -l valid with -d flag\n");
+	    fprintf(stderr, "only -v, -n or -l valid with -d flag\n");
 	    exit(2);
 	}
     }

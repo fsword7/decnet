@@ -207,7 +207,9 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 	if (proxy_requested) {
 		struct sockaddr_dn sa_bind;
 		struct dn_naddr *dna = getnodeadd();
+
 		sa_bind.sdn_family = AF_DECnet;
+		sa_bind.sdn_flags = 0;
 		memcpy(&sa_bind.sdn_add, dna, sizeof(*dna));
 		if (set_object_proxy(&sa_bind))
 			return -1;

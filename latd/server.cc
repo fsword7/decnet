@@ -694,6 +694,14 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
   if (len < 46) len = 46; // Minimum packet length
   if (len%2) len++;       // Must be an even number
 
+#ifdef PACKET_LOSS
+  static int c=0;
+  if ((++c % PACKET_LOSS) == 0) {
+      debuglog(("NOT SENDING THIS MESSAGE!\n"));
+      return 0;
+  }
+#endif
+
   if (interface == 0) // Send to all
   {
       for (int i=0; i<num_interfaces;i++)
@@ -1457,11 +1465,11 @@ int LATServer::make_llogin_connection(int fd, const char *service, const char *r
     int ret;
     int connid;
 
-    debuglog(("lloginSession for %s has connid %d\n", service, connid));
-
     connid = make_connection(fd, service, rnode, port, localport, password, queued);
     if (connid < 0)
 	return connid;
+
+    debuglog(("lloginSession for %s has connid %d\n", service, connid));
 
     ret = connections[connid]->create_llogin_session(fd, service, port, localport, password);
 

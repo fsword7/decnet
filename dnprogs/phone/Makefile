@@ -68,8 +68,10 @@ install: $(INSTALLDEPS)
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
 
 install_pixmaps:
+ifndef RELEASE
 	install -d $(PIXMAPDIR)
 	install -m 0644 pixmaps/*.xpm $(PIXMAPDIR)
+endif
 
 
 dep depend:	

@@ -327,6 +327,12 @@ void fal_task::parse_vms_filespec(char *volume, char *directory, char *file)
     }
 
     char *enddir = strchr(ptr, ']');
+
+    // Don't get caught out by concatenated filespecs
+    // like dua0:[home.patrick.][test]
+    if (enddir && enddir[1] == '[')
+	enddir=strchr(enddir+1, ']');
+
     if (*ptr == '[' && enddir) // we have a directory
     {
 	char saved = *(enddir+1);

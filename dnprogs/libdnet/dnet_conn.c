@@ -120,7 +120,6 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 	sprintf(sdn->sdn_objname, "%d", uid);
 	sdn->sdn_objnum = 0;
 	sdn->sdn_objnamel = dn_htons(strlen(sdn->sdn_objname));
-	printf("setting proxy to %s\n", sdn->sdn_objname);
 	return 0;
 }
 

@@ -1094,15 +1094,19 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 	      service, portname, remnode, remport));
 
     // Make a new connection
-    // TODO: we can reuse connections here...
-    int connid = get_next_connection_number();
-    connections[connid] = new LATConnection(connid,
-					    (char *)service,
-					    (char *)remport,
-					    (char *)portname,
-					    (char *)remnode,
-					    false,
-					    true);
+    // We can reuse connections here...
+    int connid = find_connection_by_node((char *)remnode);
+    if (connid == -1)
+    {
+	connid = get_next_connection_number();
+	connections[connid] = new LATConnection(connid,
+						(char *)service,
+						(char *)remport,
+						(char *)portname,
+						(char *)remnode,
+						false,
+						true);
+    }
 
     // make a serversession and connect it.
     // make up a LAT_Start message and rem & local IDs.
@@ -1114,7 +1118,7 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 						    dn_ntohs(msg->request_id),
 						    interface, macaddr) == -1)
     {
-	// TODO Destroy connection & send error message.
+	// TODO Destroy session & send error message.
     }
 }
 
@@ -1815,7 +1819,8 @@ int LATServer::find_connection_by_node(const char *node)
     for (int i=1; i<MAX_CONNECTIONS; i++)
     {
 	if (connections[i] &&
-	    connections[i]->node_is(node))
+	    connections[i]->node_is(node) &&
+	    connections[i]->num_clients() < MAX_CONNECTIONS-1)
 	{
 	    debuglog(("Reusing connection for node %s\n", node));
 	    return i;

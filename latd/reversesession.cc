@@ -59,5 +59,7 @@ int ReverseSession::new_session(unsigned char *_remote_node,
     strcpy(remote_port, port);
 
     strcpy(remote_node, (char *)_remote_node);
+
+    // Start local command
     return create_session(_remote_node);
 }

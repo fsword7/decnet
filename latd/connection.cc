@@ -950,16 +950,19 @@ void LATConnection::remove_session(unsigned char id)
 	sessions[id] = NULL;
     }
 
+    debuglog(("---------------------------------------------------\n"));
+    debuglog(("Deleting session %d, have %d session left\n", id, num_clients()));
+
 // TODO: Disconnect & Remove connection if no sessions active...
     if (num_clients() == 0)
     {
-      LAT_Header msg;
-      msg.local_connid = remote_connid;
-      msg.remote_connid = num;
-      msg.sequence_number = ++last_sent_seq;
-      msg.ack_number = last_recv_ack;
-      LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
-      LATServer::Instance()->delete_connection(num);
+	LAT_Header msg;
+	msg.local_connid = remote_connid;
+	msg.remote_connid = num;
+	msg.sequence_number = ++last_sent_seq;
+	msg.ack_number = last_recv_ack;
+	LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+	LATServer::Instance()->delete_connection(num);
     }
 }
 
@@ -1082,17 +1085,6 @@ int LATConnection::connect(LATSession *session)
 	    add_string(buf, &ptr, remnode);
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-
- 	    // If we have a request ID then this is a connect for a
-	    // queued connection (via a COMMAND message) so we need to include
-	    // it as parameter 2 in the connect message
-	    if (request_id)
-	    {
-		buf[ptr++] = 2; // Parameter number
-		buf[ptr++] = 2; // Length of the short int
-		buf[ptr++] = request_id & 0xFF;
-		buf[ptr++] = request_id >> 8;
-	    }
 
 	    // Save the time we sent the connect so we
             // know if we got a response.
@@ -1249,7 +1241,11 @@ int LATConnection::create_reverse_session(const char *service,
     newsession->set_request_id(reqid);
 
     // Start it connecting.
-    rev_connect();
+    if (!connected && !connecting)
+	rev_connect();
+
+    if (connected)
+	newsession->connect();
     return 0;
 }
 

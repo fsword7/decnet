@@ -5,14 +5,13 @@ TODO in no particular order
   get away with sending? (and stuff like that)
 - Input flow control in case the PTY stops reading.
 - Test Service responder
-- Keep counters ? 
-- Loopback testing from DECserver
 - Get rid of all the TODOs in the code.
 - Stop putting things in this list!
 
 THINGS I MAY NOT DO
 -------------------
-- Allow /etc/issue.net files longer than 255 characters (I might allow up
-  to 1020 if I'm feeling generous)
+- Keep counters
+- Support windows larger than 1
+- Allow /etc/issue.net files longer than 255 characters
 - Support multiple client sessions in one connection
 - Put the protocol bits into the kernel.

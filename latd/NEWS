@@ -1,3 +1,10 @@
+0.9
+------------------
+- latcp now shows local ports too
+- Send group numbers with queued connect request
+- Increased maximum number of connections to 255
+
+
 0.8 25th July 2000
 ------------------
 - Don't die if a terminal server user presses ^C
@@ -6,7 +13,6 @@
   variable $LATCP to invoke latcp.
 - Added support for queued outgoing connections
 - Don't accept services until latcp has finished
-
 
 
 0.7  7th June 2000
@@ -35,7 +41,7 @@
 - latcp is now functional. It should be used to start/stop latd. see
   README.LATCP for the details
 - reverse LAT now works
-- Fixed Disconnect problem with Tru64. I hope this wil also fix a similar 
+- Fixed Disconnect problem with Tru64. I hope this will also fix a similar 
   problem with DECserver 500s
 - now binds to the requested ethernet card so it doesn't hear messages it can't
   respond to.

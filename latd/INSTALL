@@ -1,7 +1,4 @@
-Just type "make" !
-
-Don't do make install - it probably doesn't work yet and the software is not 
-nearly stable enough to warrant a permanant place on your Linux system :-)
+Just type "make; make install"
 
 There are a few things you can tweak in the Makefile:
 

@@ -1,37 +1,29 @@
-This is latd - a LAT terminal daemon for Linux
+This is latd - a LAT terminal daemon for Linux. It provides the following
+features:
 
-WARNING: This is beta software. It may not work properly and has many 
-features missing. 
-
-The daemon is purely userland code and should not crash your system but it
-might. Don't say I didn't warn you.
-
-It does not need DECnet support from the kernel nor does it need libdnet.
-However, if you have libdnet installed it will use it to get the nodename
-and default network interface.
-
+- Provides LAT login services (you can log onto Linux from a DECserver)
+- Can have multiple login services with different service ratings
+- Static and dynamic service ratings are supported
+- Provides Reverse-LAT. "devices" in /dev/lat/ can be used to connect to
+  advertised services on a DECservers or VMS/Tru64 hosts
+- Provides queueing facility for reverse LAT ports. Useful for printers
+- Can provide a node responder service for small-memory DECservers
+- Full featured latcp control program - most internal parameters can be
+  changed on the fly
+- A script is run at daemon startup to provide customisation
+- man pages for all programs and config files
+- Group codes can be used for to restrict incoming and outgoing sessions
+- User-space daemon. No kernel patching or recompiling necessary
+- Does not need DECnet support from the kernel or libraries
+	   
 You will need Packet Socket support in the kernel, but I think that's
 usually the default anyway.
 
 This software will not work on kernels 2.0 or lower.
 
-As shipped it does not currently fork into the background and it issues lots of 
-debugging messages to stderr. If you want a forking quiet daemon (say that
-carefully) remove -DNO_FORK and -DVERBOSE_DEBUG from the Makefile. See the
-file INSTALL for more detail.
-
 You should start latd with the latcp -s command. Starting latd manually
 is not supported and may result in unexpected behaviour. See the man 
 page for latcp for more information.
-
-If you can, please try this software and let me know how you get on. 
-If you encounter bad problems please send me a tcpdump file produced with the 
-following command:
-
-tcpdump -wlatlog.dmp lat
-
-I will be updating the software fairly frequently as time allows - please 
-watch the linux-decnet mailing list for announcements.
 
 This code is a clean-room reverse-engineering effort. I have no access to
 Compaq technical documentation or source code for LAT and nor do I want any.
@@ -39,42 +31,12 @@ Compaq technical documentation or source code for LAT and nor do I want any.
 This software should work on all Linux architectures. I have tested it on
 Intel and SPARC.
 
-TESTING LATD
-------------
-
-If you have access to a DECserver and a terminal the I would be very grateful
-for any/all of the following (in order of preference)
-tcpdump of the conversation between DECserver-connected terminal and
-VMS/Tru64. Please also (if possible) include a transcript.
-tcpdump of the conversation between DECserver-connected terminal and Linux
-running latd (as far as it gets!). Please also include a copy of the output
-from latd and any messages that appear on the terminal.
-Output from "SHOW SERVER" & "SHOW TERMINAL" commands issued on DECserver and
-output from "MCR LATCP SHOW NODE" on VMS or "latcp -d" on Tru64
-
-Commands to use:
-
-$ tcpdump -wlat.dmp lat 
-$ latd 2>latd.log
-
-If you have a few LAT clients/servers it may help to restrict tcpdump
-monitoring to the two boxes under test as in:
-
-$ tcpdump -wlat.dmp lat ether host aa:00:04:00:b2:04 or ether host 00:00:f8:71:5f:63
-
-of course, substitute your own machines' ethernet addresses.
-
-Then send me lat.dmp & latd.log
-
-Thank you very much.
-Patrick
-
 
 CREDITS
 -------
 I'd very much like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
-I would also like to thank Real Dupeux for sending me a DECserver 200 for
+I am also indebted to Real Dupeux for sending me a DECserver 200 for
 the project.
 

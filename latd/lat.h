@@ -7,7 +7,7 @@
 #define LAT_VERSION     5
 #define LAT_VERSION_ECO 2
 
-#define        MAX_LAT_MTU     1500            // max ethernet packet
+#define MAX_LAT_MTU     1500            // max ethernet packet
 
 // Name of the /dev/lat directory for local "ports"
 #define LAT_DIRECTORY "/dev/lat"

@@ -32,7 +32,7 @@ class rms_conn
     char *record;          // Temp storage for records that are too long
     int  dlen;             // Size of message
     char key[256];
-    
+
     rms_conn(dap_connection *c)
 	{
 	    conn = c;

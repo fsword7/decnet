@@ -15,7 +15,7 @@
 int main(int argc, char *argv[])
 {
     /* Open the file. Keep the RMSHANDLE returned */
-    RMSHANDLE h = rms_t_open("trisha::index.dat", O_RDWR, NULL);
+    RMSHANDLE h = rms_t_open("ford::index.dat", O_RDWR, NULL);
     if (h)
     {
         char b[10240];

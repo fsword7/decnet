@@ -442,7 +442,9 @@ void start_latd(int argc, char *argv[])
 	case 0: // Child
 	    // Start latd with out args (after the "-s")
 	    for (i=2; i<argc; i++)
-		newargv[i-1] = argv[1];
+		newargv[i-1] = argv[i];
+	    newargv[i-1] = NULL;
+
 	    execve(latd_bin, newargv, NULL);
 	    perror("exec of latd failed");
 	    break;

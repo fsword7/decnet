@@ -143,9 +143,9 @@ void set_exit_char(char *string)
       newchar = toupper(string[1]) - '@';
   }
   else
-      newchar = strtol(string, NULL, 0); // Just a number
+      newchar = strtol(string, NULL, 0); /* Just a number 
 
-  // Make sure it's resaonable
+  /* Make sure it's reasonable */
   if (newchar > 0 && newchar < 256) exit_char = newchar;
 
 }
@@ -252,7 +252,6 @@ static	short	ct_is_terminator(char car)
 static void ct_timeout_proc(int x)
 {       if (debug == 2) { printf(" Entered static void ct_timeout_proc...\n");}
 	ct_terminate_read(5);
-	signal(SIGALRM,ct_timeout_proc);
 }
 /*-------------------------------------------------------------------------*/
 static void ct_echo_input_char(char *c)
@@ -521,7 +520,7 @@ static void	ct_setup_link(void)
   	}
 
 
-	// Try very hard to get the local username
+	/* Try very hard to get the local username */
     	local_user = cuserid(NULL);
     	if (!local_user || local_user == (char *)0xffffffff)
       		local_user = getenv("LOGNAME");
@@ -1592,7 +1591,7 @@ static void ct_writechar_req(void)
 		   case 0x08:	/* Input count state		*/
 				p=(void *)&buf[bufptr];
 
-// SPARC machines can't handle the off alignment either...
+/* SPARC machines can't handle the off alignment either... */
 #if __BYTE_ORDER != 1234
 				swab((void *)&han_char.input_count_state, (void *)p, 4);
 #else
@@ -1790,7 +1789,7 @@ int main(int argc, char *argv[])
     char opt;
     if (debug == 2) { printf(" Entered int main...\n");}
 
-    // Deal with command-line arguments.
+    /* Deal with command-line arguments. */
     opterr = 0;
     optind = 0;
     while ((opt=getopt(argc,argv,"?Vhdte:")) != EOF)
@@ -1846,9 +1845,14 @@ int main(int argc, char *argv[])
     ct_init_term();				/* Set terminal in raw mode*/
 
     sigemptyset(&ss);
+    sa.sa_handler = ct_timeout_proc;
+    sa.sa_mask = ss;
+    sa.sa_flags = 0;
+    sigaction(SIGALRM, &sa, NULL);
+
     if (debug == 1)
     {
-    printf("Connection to %d flavor",flavor); /*ed*/
+    printf("Connection to %d flavour",flavor); /*ed*/
     }
     switch (flavor)
     {

@@ -1235,13 +1235,13 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 // TODO: Check the params in the LAT_Command message...
     debuglog(("REVLAT cmd: %d, opcode:%d request_id: %d\n", msg->cmd, msg->opcode, msg->request_id));
 
-    ptr += buf[ptr++]; // Skip past groups for now.
-    ptr += buf[ptr++]; // Skip past groups for now.
+    ptr += buf[ptr]+1; // Skip past groups for now.
+    ptr += buf[ptr]+1; // Skip past groups for now.
 
     // Get the remote node name.
     get_string(buf, &ptr, remnode);
     get_string(buf, &ptr, remport);
-    ptr+= buf[ptr++]; // Skip past greeting...
+    ptr += buf[ptr]+1; // Skip past greeting...
     get_string(buf, &ptr, service);
     get_string(buf, &ptr, portname);
 

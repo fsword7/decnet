@@ -16,4 +16,4 @@ Description: LAT (Local Area Transport) Daemon
  ports on the system that connect to other LAT services on the network.
  .
  There is also an llogin utility that allows users to login to remote 
- LAT services.
+ LAT services and a moprc utility for managing terminal servers remotely.

@@ -1,3 +1,10 @@
+latd (1.12-1) unstable; urgency=low
+
+  * llogin -r is an alias for llogin -R (easier to type!)
+  * New moprc program for remote administration of terminal servers
+
+ --
+
 latd (1.11-1) unstable; urgency=low
 
   * Added -l switch to llogin to replace LF with VT

@@ -413,18 +413,20 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
         }
     }
 
-    // See if there is any data we can send in this reply
-    add_data_slots(num_replies, reply);
-
     // If "Response Requested" set, then make sure we send one.
     if (msg->header.cmd & 1 && !replyhere)
     {
 	debuglog(("Sending response because we were told to (%x)\n", msg->header.cmd));
 	replyhere = true;
     }
-    last_ack_number = last_message_acked;
+
+    // See if there is any data we can send in this reply
+    // This doesn't work if we are a server for some reason I don't understand
+//    if (role == CLIENT)
+	//num_replies = add_data_slots(num_replies, reply);
 
     // Send any replies
+    last_ack_number = last_message_acked;
     if (replyhere || num_replies)
     {
 	debuglog(("Sending %d slots in reply\n", num_replies));
@@ -489,9 +491,7 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 
     if (type == DATA)
     {
-	last_sequence_number++;
 	retransmit_count = 0;
-	last_sent_sequence = last_sequence_number;
 	window_size++;
 	debuglog(("send_message, window_size now %d\n", window_size));
 	need_ack = true;
@@ -499,10 +499,11 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 
     if (type == REPLY)
     {
-	last_sequence_number++;
-	last_sent_sequence = last_sequence_number;
 	need_ack = false;
     }
+
+    last_sequence_number++;
+    last_sent_sequence = last_sequence_number;
 
     response->local_connid    = num;
     response->remote_connid   = remote_connid;
@@ -765,9 +766,17 @@ int LATConnection::add_data_slots(int start_slot, LAT_SlotCmd *slots[4])
 	    sessions[i]->read_pty();
     }
 
+// Overwrite any empty slot at the start
+    LAT_SlotCmd *slot_header = (LAT_SlotCmd *)slots[0];
+    if (start_slot == 1 &&
+	slot_header->length == 0 &&
+	!slots_pending.empty())
+    {
+	slot_num--;
+    }
+
     while (slot_num < max_slots_per_packet && !slots_pending.empty())
     {
-
 	slot_cmd &cmd(slots_pending.front());
 
 	memcpy((char*)slots[slot_num], cmd.get_buf(), cmd.get_len());

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ static int usage(char *cmd)
     printf ("       -b         convert input DEL to BS\n");
     printf ("       -l         convert output LF to VT\n");
     printf ("       -n <name>  Local port name\n");
-    printf ("       -w <pass>  Service password\n");
+    printf ("       -w <pass>  Service password (-w- will prompt)\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
     return 0;
@@ -185,6 +185,20 @@ int main(int argc, char *argv[])
     {
 	do_use_port(service, quit_char, crlf, bsdel, lfvt);
 	return 0;
+    }
+
+    // If password is "-" then prompt so the user doesn't have to
+    // expose it on the command line.
+    if (password[0] == '-' && password[1] == '\0' && isatty(0))
+    {
+	char *newpwd;
+	newpwd = getpass("Password: ");
+	if (newpwd == NULL || strlen(newpwd) > sizeof(password))
+	{
+	    printf("Password input cancelled");
+	    return 0;
+	}
+	strcpy(password, newpwd);
     }
 
     // Open socket to latd

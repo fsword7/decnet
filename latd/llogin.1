@@ -1,4 +1,4 @@
-.TH LLOGIN 1 "February 10 2001" "LAT utilities"
+.TH LLOGIN 1 "January 3 2002" "LAT utilities"
 
 .SH NAME
 llogin \- Connect to a LAT service
@@ -71,7 +71,9 @@ so you shouldn't need to change it.
 .TP
 .I "\-w <password>"
 Sends the password for the service. Only needed for services that require
-a password for access.
+a password for access. If the password given is "-" then you will be prompted
+for a password and it will not be echoed. This avoids having passwords
+visible on the screen.
 .TP
 .I "\-p"
 Tells llogin to connect to the device named instead of a LAT service. This

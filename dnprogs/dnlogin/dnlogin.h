@@ -17,19 +17,19 @@
 /* Foundation services routines */
 extern char *found_connerror(void);
 extern int found_getsockfd(void);
-extern int found_write(char *buf, int len);
+extern int found_write(unsigned char *buf, int len);
 extern int found_read(void);
-extern int found_setup_link(char *node, int object, int (*processor)(char *, int));
-extern int found_common_write(char *buf, int len);
+extern int found_setup_link(char *node, int object, int (*processor)(unsigned char *, int));
+extern int found_common_write(unsigned char *buf, int len);
 
 /* cterm/dterm routines */
-extern int cterm_send_input(char *buf, int len, int flags);
+extern int cterm_send_input(unsigned char *buf, int len, int flags);
 extern int cterm_send_oob(char, int);
-extern int cterm_process_network(char *buf, int len);
+extern int cterm_process_network(unsigned char *buf, int len);
 
 /* TTY routines */
-extern int  tty_write(char *buf, int len);
-extern void tty_set_terminators(char *buf, int len);
+extern int  tty_write(unsigned char *buf, int len);
+extern void tty_set_terminators(unsigned char *buf, int len);
 extern void tty_start_read(char *prompt, int len, int promptlen);
 extern void tty_set_timeout(unsigned short to);
 extern void tty_set_maxlen(unsigned short len);
@@ -39,7 +39,7 @@ extern int  tty_setup(char *name, int setup);
 extern void tty_clear_typeahead(void);
 extern void tty_set_noecho(void);
 
-extern int (*send_input)(char *buf, int len, int flags);
+extern int (*send_input)(unsigned char *buf, int len, int flags);
 extern int (*send_oob)(char, int);
 
 /* Global variables */

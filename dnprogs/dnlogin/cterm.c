@@ -125,7 +125,7 @@ static struct handler_maintained_characteristics
 unsigned char char_attr[256];
 
 /* Process incoming CTERM messages */
-static int cterm_process_initiate(char *buf, int len)
+static int cterm_process_initiate(unsigned char *buf, int len)
 {
     unsigned char initsq[] =
 	{ 0x01, 0x00, 0x01, 0x04, 0x00,
@@ -140,7 +140,7 @@ static int cterm_process_initiate(char *buf, int len)
     return len;
 }
 
-static int cterm_process_start_read(char *buf, int len)
+static int cterm_process_start_read(unsigned char *buf, int len)
 {
     unsigned int   flags;
     unsigned short maxlength;
@@ -178,22 +178,22 @@ static int cterm_process_start_read(char *buf, int len)
     return len;
 }
 
-static int cterm_process_read_data(char *buf, int len)
+static int cterm_process_read_data(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_oob(char *buf, int len)
+static int cterm_process_oob(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_unread(char *buf, int len)
+static int cterm_process_unread(unsigned char *buf, int len)
 {
     tty_send_unread();
     return len;
 }
 
-static int cterm_process_clear_input(char *buf, int len)
+static int cterm_process_clear_input(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_write(char *buf, int len)
+static int cterm_process_write(unsigned char *buf, int len)
 {
     unsigned short flags = buf[1] | buf[2]<<8;
     unsigned char  prefixdata  = buf[3];
@@ -204,13 +204,13 @@ static int cterm_process_write(char *buf, int len)
     return len;
 }
 
-static int cterm_process_write_complete(char *buf, int len)
+static int cterm_process_write_complete(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_discard_state(char *buf, int len)
+static int cterm_process_discard_state(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_read_characteristics(char *buf, int len)
+static int cterm_process_read_characteristics(unsigned char *buf, int len)
 {
     int  bufptr = 2;/* skip past flags */
     char outbuf[256];
@@ -437,20 +437,20 @@ static int cterm_process_read_characteristics(char *buf, int len)
     return len;
 }
 
-static int cterm_process_characteristics(char *buf, int len)
+static int cterm_process_characteristics(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_check_input(char *buf, int len)
+static int cterm_process_check_input(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_input_count(char *buf, int len)
+static int cterm_process_input_count(unsigned char *buf, int len)
 {return len;}
 
-static int cterm_process_input_state(char *buf, int len)
+static int cterm_process_input_state(unsigned char *buf, int len)
 {return len;}
 
 /* Process buffer from cterm host */
-int cterm_process_network(char *buf, int len)
+int cterm_process_network(unsigned char *buf, int len)
 {
     int offset = 0;
 
@@ -505,8 +505,8 @@ int cterm_process_network(char *buf, int len)
 	    break;
 
 	default:
-	    fprintf(stderr, "Unknown cterm message %d received\n",
-		    buf[offset]);
+	    fprintf(stderr, "Unknown cterm message %d received, offset=%d\n",
+		    (unsigned char)buf[offset], offset);
 	    return -1;
 	}
     }
@@ -527,7 +527,7 @@ int cterm_send_oob(char oobchar, int discard)
 
 }
 
-int cterm_send_input(char *buf, int len, int flags)
+int cterm_send_input(unsigned char *buf, int len, int flags)
 {
     char newbuf[len+9];
     if (debug & 2) fprintf(stderr, "CTERM: sending input data: len=%d\n",

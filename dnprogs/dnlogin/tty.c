@@ -54,11 +54,11 @@ static int  reading = 0;
 static int  insert_mode = 0;
 
 /* Output processors */
-int (*send_input)(char *buf, int len, int flags);
+int (*send_input)(unsigned char *buf, int len, int flags);
 int (*send_oob)(char oobchar, int discard);
 
 /* Raw write to terminal */
-int tty_write(char *buf, int len)
+int tty_write(unsigned char *buf, int len)
 {
     int i;
 
@@ -78,7 +78,7 @@ void tty_set_noecho()
 }
 
 
-void tty_set_terminators(char *buf, int len)
+void tty_set_terminators(unsigned char *buf, int len)
 {
     memset(terminators, 0, sizeof(terminators));
     memcpy(terminators, buf, len);
@@ -115,6 +115,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 
 	memcpy(input_buf+input_len, rahead_buf, copylen);
 	input_len += copylen;
+	rahead_len = 0;
     }
     reading = 1;
 }

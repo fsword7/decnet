@@ -90,7 +90,7 @@ struct common_header
 
 
 static int sockfd = -1;
-static int (*terminal_processor)(char *, int);
+static int (*terminal_processor)(unsigned char *, int);
 
 static int send_bindaccept(void)
 {
@@ -120,7 +120,7 @@ int found_getsockfd()
 }
 
 /* Write "Common data" with a foundation header */
-int found_common_write(char *buf, int len)
+int found_common_write(unsigned char *buf, int len)
 {
     struct iovec vectors[2];
     struct msghdr msg;
@@ -162,7 +162,7 @@ int found_common_write(char *buf, int len)
 int found_read()
 {
     int len;
-    char inbuf[1024];
+    unsigned char inbuf[1024];
     int ptr = 0;
 
     if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT)) <= 0)
@@ -238,7 +238,7 @@ int found_read()
 }
 
 /* Open the DECnet connection */
-int found_setup_link(char *node, int object, int (*processor)(char *, int))
+int found_setup_link(char *node, int object, int (*processor)(unsigned char *, int))
 {
     struct nodeent *np;
     struct sockaddr_dn sockaddr;

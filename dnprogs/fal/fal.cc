@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1998-1999 P.J. Caulfield             patrick@tykepenguin.cix.co.uk
-    
+    (c) 1998-2002 P.J. Caulfield             patrick@tykepenguin.cix.co.uk
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -67,6 +67,8 @@ int main(int argc, char *argv[])
     p.use_file  = false;            // Use built-in defaults
     p.use_metafiles = false;
     p.use_adf   = false;
+    p.vroot[0]  = '\0';
+    p.vroot_len = 0;
 
 #ifdef NO_FORK
     dont_fork = 1;
@@ -76,11 +78,11 @@ int main(int argc, char *argv[])
     // so we can check the version number and get help without being root.
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?vVhdmtul:a:f:")) != EOF)
+    while ((opt=getopt(argc,argv,"?vVhdmtul:a:f:r:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(argv[0], stdout);
 	    exit(0);
 
@@ -106,6 +108,15 @@ int main(int argc, char *argv[])
 
 	case 't':
 	    p.use_adf = true;
+	    break;
+
+	case 'r':
+	    strcpy(p.vroot, optarg);
+
+	    // Virtual root must end in (one) slash
+	    if (p.vroot[strlen(p.vroot)-1] != '/')
+		strcat(p.vroot, "/");
+	    p.vroot_len = strlen(p.vroot);
 	    break;
 
 	case 'V':
@@ -140,7 +151,6 @@ int main(int argc, char *argv[])
 	    realpath(optarg, p.auto_file);
 	    p.use_file = true;
 	    break;
-	    
 	}
     }
 
@@ -161,6 +171,25 @@ int main(int argc, char *argv[])
     // Initialise logging
     init_logging("fal", log_char, true);
     init_daemon_logging("fal", log_char);
+
+    // Check the vroot exists and is a directory
+    if (p.vroot_len)
+    {
+	struct stat st;
+	if (stat(p.vroot, &st) == -1)
+	{
+	    DAPLOG((LOG_ERR, "Virtual root %s does not exist. FAL won't start\n", p.vroot));
+	    exit(4);
+	}
+	if (!S_ISDIR(st.st_mode))
+	{
+	    DAPLOG((LOG_ERR, "Virtual root %s is not a directory. FAL won't start\n", p.vroot));
+	    exit(4);
+	}
+
+	if (p.verbosity)
+	    DAPLOG((LOG_INFO, "Using virtual root %s\n", p.vroot));
+    }
 
     // Be a daemon
     int sockfd = dnet_daemon(DNOBJECT_FAL,
@@ -183,11 +212,11 @@ int main(int argc, char *argv[])
 		    fclose(f);
 		    if (strncasecmp(line, "none", 4) == 0)
 			p.auto_type = fal_params::NONE;
-		    if (strncasecmp(line, "ext", 3) == 0) 
+		    if (strncasecmp(line, "ext", 3) == 0)
 			p.auto_type = fal_params::CHECK_EXT;
-		    if (strncasecmp(line, "guess", 5) == 0) 
+		    if (strncasecmp(line, "guess", 5) == 0)
 			p.auto_type = fal_params::GUESS_TYPE;
-		    
+
 		    if (verbose) DAPLOG((LOG_INFO, "Using conversion type '%s' in local file.\n", p.type_name()));
 		}
 	    }
@@ -195,7 +224,7 @@ int main(int argc, char *argv[])
 
 	dnet_accept(sockfd, 0, NULL, 0);
 	dap_connection *newone = new dap_connection(sockfd, 65535, verbose);
- 
+
 	fal_server f(*newone, p);
 	f.run();
 	f.closedown();
@@ -212,6 +241,7 @@ void usage(char *prog, FILE *f)
     fprintf(f," -a<type>  Auto file type(g:guess, e:check extension)\n");
     fprintf(f," -f<file>  File containing types for -ae\n");
     fprintf(f," -l<type>  Logging type(s:syslog, e:stderr, m:mono)\n");
+    fprintf(f," -r<dir>   base directory for FAL file operations\n");
     fprintf(f," -u        Allow users to override global auto_types\n");
     fprintf(f," -v        Verbose (repeat to increase verbosity)\n");
     fprintf(f," -m        Use meta-files to preserve file info\n");

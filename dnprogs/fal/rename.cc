@@ -70,6 +70,7 @@ bool fal_rename::process_message(dap_message *m)
 	    else
 	    {
 		strcpy(oldname, am->get_filespec());
+		add_vroot(oldname);
 	    }
 	    display = am->get_display();
 	}
@@ -96,6 +97,7 @@ bool fal_rename::process_message(dap_message *m)
 	    else
 	    {
 		strcpy(newname, nm->get_namespec());
+		add_vroot(oldname);
 	    }
 	    int status = rename(oldname, newname);
 

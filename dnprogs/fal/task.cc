@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -88,6 +88,41 @@ bool fal_task::is_vms_name(char *name)
 	return vms_format=false;
 }
 
+/* Add the virtual "root" directory to the filename */
+void fal_task::add_vroot(char *name)
+{
+    // Add in the vroot
+    if (params.vroot_len)
+    {
+	/* Security measure...if the name has ".." in it then blank the whole lot out and
+	   confuse the user.
+	   well, it stops them escaping the root
+	*/
+	if (strstr(name, ".."))
+	    name[0] = '\0';
+
+	if (verbose > 3) DAPLOG((LOG_DEBUG, "add_vroot: name is %s, vroot='%s' (len=%d)\n", name, params.vroot, params.vroot_len));
+	memmove(name + params.vroot_len, name, strlen(name));
+	memmove(name, params.vroot, params.vroot_len);
+
+	if (verbose > 3) DAPLOG((LOG_DEBUG, "add_vroot: name is now %s\n", name));
+    }
+}
+
+/* Remove the virtual "root" directory to the filename */
+void fal_task::remove_vroot(char *name)
+{
+    if (params.vroot_len)
+    {
+	if (verbose > 3) DAPLOG((LOG_INFO, "remove_vroot: name is %s\n", name));
+
+	memmove(name, name + params.vroot_len-1, strlen(name));
+
+	if (verbose > 3) DAPLOG((LOG_INFO, "remove_vroot: name is now %s\n", name));
+    }
+
+}
+
 // Splits a filename up into volume, directory and file parts.
 // The volume and directory are just for display purposes (they get sent back
 // to the client). file is the (possibly) wildcard filespec to use for
@@ -159,6 +194,9 @@ void fal_task::make_vms_filespec(const char *unixname, char *vmsname, bool full)
 
     // Resolve all relative bits and symbolic links
     realpath(unixname, fullname);
+
+    // Remove the vroot, but leave a leading slash
+    remove_vroot(fullname);
 
     // Find the last slash in the name
     lastslash = fullname + strlen(fullname);
@@ -414,6 +452,7 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
 	    if (ext) *ext = '\0';
 	}
     }
+    add_vroot(unixname);
 }
 
 // Convert VMS wildcards to Unix wildcards

@@ -118,7 +118,10 @@ bool fal_open::process_message(dap_message *m)
 	    }
 
 	    // Convert % wildcards to ?
-	    if (vms_format) convert_vms_wildcards(filespec);
+	    if (vms_format) 
+		convert_vms_wildcards(filespec);
+	    else
+		add_vroot(filespec);
 
 	    // Expand wildcards
 	    status = glob(filespec, GLOB_NOCHECK|GLOB_MARK, NULL, &gl);

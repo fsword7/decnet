@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -64,7 +64,7 @@ bool fal_erase::process_message(dap_message *m)
 	    int    status;
 	    int    pathno = 0;
 	    char   unixname[PATH_MAX];
-	    
+
 	    dap_access_message *am = (dap_access_message *)m;
 
 	    // Convert the name if necessary
@@ -75,6 +75,7 @@ bool fal_erase::process_message(dap_message *m)
 	    else
 	    {
 		strcpy(unixname, am->get_filespec());
+		add_vroot(unixname);
 	    }
 
 	    // Create the list of files
@@ -106,20 +107,20 @@ bool fal_erase::process_message(dap_message *m)
 		return false;
 	    }
 	    conn.set_blocked(true);
-	    
+
 	    if (gl.gl_pathc == 1)
 	    {
-	        if (!send_file_attributes(gl.gl_pathv[0], am->get_display(), 
+	        if (!send_file_attributes(gl.gl_pathv[0], am->get_display(),
 					  SEND_DEV))
 		    return false;
 	    }
-	    
+
 	    // Delete all the files
 	    do
 	    {
 		status = unlink(gl.gl_pathv[pathno]);
 
-		if (verbose > 1) 
+		if (verbose > 1)
 		    DAPLOG((LOG_DEBUG, "in fal_erase: unlink '%s', result = %d\n", gl.gl_pathv[pathno], status));
 
 		pathno++;

@@ -136,6 +136,7 @@ bool fal_directory::process_message(dap_message *m)
 		    filespec[0] = '.';
 		    filespec[1] = '\0';
 		}
+		add_vroot(filespec);
 
 		struct stat st;
 		stat(filespec, &st);
@@ -237,7 +238,7 @@ bool fal_directory::process_message(dap_message *m)
 // We don't use send_file_attributes from fal_task because we need
 // munge the resultant name a bit more than it, also the NAME file
 // is mandatory for directory listings (quite reasonable really!)
-bool fal_directory::send_dir_entry(const char *path, int display)
+bool fal_directory::send_dir_entry(char *path, int display)
 {
     struct stat st;
 
@@ -285,7 +286,10 @@ bool fal_directory::send_dir_entry(const char *path, int display)
     }
     else
     {
-        name_msg->set_namespec(path);
+	char publicname[PATH_MAX];
+	strcpy(publicname, path);
+	remove_vroot(publicname);
+        name_msg->set_namespec(publicname);
     }
 
     name_msg->set_nametype(dap_name_message::FILENAME);

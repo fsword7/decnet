@@ -14,5 +14,5 @@ class fal_directory: public fal_task
     dap_attrib_message     *attrib_msg;
     dap_alloc_message      *alloc_msg;
 
-    bool send_dir_entry(const char *path, int);
+    bool send_dir_entry(char *path, int);
 };

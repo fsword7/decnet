@@ -26,7 +26,7 @@ class fal_task
     void set_crc(bool);
     void calculate_crc(unsigned char *, int);
 
-  protected:  
+  protected:
     dap_connection &conn;
     int             verbose;
     bool            vms_format;
@@ -45,7 +45,7 @@ class fal_task
     virtual bool send_file_attributes(char *, int, dev_option);
     virtual bool send_file_attributes(unsigned int &, bool &, char *, int,
 				      dev_option);
-    
+
     void return_error();
     void return_error(int);
     void split_filespec(char *, char *, char *);
@@ -53,6 +53,8 @@ class fal_task
     void parse_vms_filespec(char *, char *, char *);
     void make_unix_filespec(char *, char *);
     void convert_vms_wildcards(char *);
+    void add_vroot(char *);
+    void remove_vroot(char *);
     bool is_vms_name(char *);
     bool send_ack_and_unblock();
 
@@ -76,14 +78,14 @@ class fal_task
 		  dap_attrib_message *attrib_msg);
     bool fake_file_type(const char *name, dap_attrib_message *attrib_msg);
     void create_metafile(char *name, dap_attrib_message *attrib_msg);
-    
+
     // The pseudo device name we use
     static const char *sysdisk_name;
 
  private:
     void meta_filename(const char *file, char *metafile);
     bool adf_filename(const char *file, char *metafile);
-    
+
     // auto_types structure
     class auto_types
     {
@@ -96,7 +98,7 @@ class fal_task
 	    len = strlen(ext);
 	    next = NULL;
 	}
-    
+
 	char ext[40];
 	unsigned int  block_size;
 	int len;
@@ -137,7 +139,7 @@ class fal_task
 	short ext; // Extend size
 	// The rest is a mystery to me.
     };
-    
+
     static auto_types *auto_types_list;
     static const char *default_types_file;
 };

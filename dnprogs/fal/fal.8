@@ -8,20 +8,20 @@ fal \- File Access Listener for DECnet
 .br
 Options:
 .br
-[\-dvVhmt] [\-l logtype] [\-a auto-type] [\-f <auto-file>]
+[\-dvVhmt] [\-l logtype] [\-a auto-type] [\-f <auto-file>] [\-r <virtual-root>]
 .SH DESCRIPTION
 .PP
 .B fal
 is a daemon that serves incoming DAP (Data Access protocol) connections from
 remote systems. It enables transparent file access to files from OpenVMS
-machines using standard DECnet syntax. 
+machines using standard DECnet syntax.
 It should be started at system boot time (after DECnet has been started) and
 must be run as root.
 .br
-The file names output by 
+The file names output by
 .B fal
-will adapt depending on the sytax of files that are requested 
-of it. If VMS-style filenames are requested then VMS-style filenames will 
+will adapt depending on the sytax of files that are requested
+of it. If VMS-style filenames are requested then VMS-style filenames will
 be returned. If Unix-style filenames are requested then Unix-style (native)
 filenames will be returned. Note that to force fal to diplay the contents of
 a directory with Unix-style names the name must end in a slash or have some
@@ -33,9 +33,9 @@ version number of 1.
 In addition fal will construct a volume and directory syntax for the directory
 that will look familiar to VMS users. Of course it also understands this
 syntax when files and directories are requested of it. One of the problems with
-this is that Unix filenames with non-VMS syntax (eg double dots or "funny" 
+this is that Unix filenames with non-VMS syntax (eg double dots or "funny"
 characters) or files with uppercase letter in their names will not be accessible
-from VMS using VMS syntax. You must use Unix syntax to access these files through 
+from VMS using VMS syntax. You must use Unix syntax to access these files through
 FAL.
 .br
 The options below affect the behaviour of fal. If you are using
@@ -44,7 +44,7 @@ then these options should be specified in the
 .B dnetd.conf(5)
 file.
 .br
-By default all files sent by fal will be sent in STREAMLF format. This is 
+By default all files sent by fal will be sent in STREAMLF format. This is
 configurable by the many command-line switches detailed below.
 
 .SH OPTIONS
@@ -109,14 +109,14 @@ as follows:
 .TP
 .I "\-u"
 Enable users to override the two above options with a .fal_auto file in her/his
-home directory. This file should contain a single word: 
+home directory. This file should contain a single word:
 .B guess, ext
-or 
+or
 .B none.
-Note that 
-.B -u 
+Note that
+.B -u
 and a .fal_auto file takes effect even if no
-.B -a 
+.B -a
 option is present.
 .TP
 .I "\-m"
@@ -132,13 +132,21 @@ and
 .B -a
 flags in which case a .$ADF$ takes precedence over a fal metafile or a guessed
 file type.
+.TP 
+.I "\-r <virtual root>"
+Run FAL in a "virtual root". All file accesses will be done below this directory
+rather than the normal root filesystem. ie access for "/" or "SYSDISK:[000000]"
+will start at the specified directory. Requests for ".." will be refused.
+NOTE: This is not a chroot, fal still runs in the normal filesystem. also note
+that this will lose the ability to access users home directories: all users doing
+a "DIR LINUX::*.*" from VMS will see the virtual root instead.
 .TP
 .I "\-d"
 Don't fork and run the background. Use this for debugging.
 .TP
 .I "\-v"
-Verbose. The more of these there are the more verbose fal will be. Don't use 
-more than one for normal operation because it will seriously impair 
+Verbose. The more of these there are the more verbose fal will be. Don't use
+more than one for normal operation because it will seriously impair
 performance.
 .TP
 .I \-h \-?

@@ -7,11 +7,13 @@ class fal_params
     int   verbosity;
     enum  {GUESS_TYPE, CHECK_EXT, NONE} auto_type;
     char  auto_file[PATH_MAX];
+    char  vroot[PATH_MAX];
+    int   vroot_len;
     bool  use_file;
     bool  use_metafiles;
     bool  use_adf;
     int   remote_os;
-    
+
     char *type_name()
     {
 	switch(auto_type)

@@ -40,6 +40,8 @@ struct
     char	exec_addr[6]; 
 } if_arg;
 
+int force;
+int hwaddr;
 
 int main(int argc, char *argv[])
 {
@@ -49,6 +51,20 @@ int main(int argc, char *argv[])
 
 	char	*exec_dev;
 	static  struct	dn_naddr	*binadr;
+
+	argc--;
+	argv++;
+	while (argc)
+	{
+		if (!strcmp(argv[0], "-hw"))
+			hwaddr = 1;
+		else if (!strcmp(argv[0], "-f"))
+			force = 1;
+		else
+			break;
+		argc--;
+		argv++;
+	}
 
 	if ((exec_dev=getexecdev()) == NULL)
 	{
@@ -123,9 +139,9 @@ int main(int argc, char *argv[])
 #endif
 
         // Setting the hardware address is common to both
-	if (argc > 1 && !strcmp(argv[1], "-hw"))
+	if (hwaddr)
 	{
-	    return set_hwaddr(argc-2, argv+2);
+	    return set_hwaddr(argc, argv);
 	}
 	return 0;
 }
@@ -148,63 +164,77 @@ static int use_if(char *name, int argc, char *argv[])
    interfaces */
 static int set_hwaddr(int argc, char *argv[])
 {
-    struct ifreq ifr;
-    int iindex = 1;
+    struct ifconf ifc;
+    struct ifreq *ifr;
+    int numreqs = 30;
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     /* DECnet sockets don't allow DEV ioctls...tell Steve! */
     /*int sock = socket(AF_DECnet, SOCK_STREAM, DNPROTO_NSP); */
     int ifdone = 0;
     int ret = 0;
-    int force = 0;
+    int i;
 
-    /* Don't down the interface unless we have to. */
-    if (argc > 1 && strcmp(argv[0], "-f")==0)
-	force = 1;
+    ifc.ifc_buf = NULL;
+    do
+    {
+	ifc.ifc_len = sizeof(struct ifreq) * numreqs;
+	ifc.ifc_buf = realloc(ifc.ifc_buf, ifc.ifc_len);
 
-    ifr.ifr_ifindex = iindex;
+	if (ioctl(sock, SIOCGIFCONF, &ifc) < 0)
+	{
+	    fprintf(stderr, "Error getting interface list\n");
+	    ifc.ifc_len = 0;
+	    ret = errno;		
+	    break;
+	}
 
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+	numreqs += 10;
+    }
+    while (ifc.ifc_len == sizeof(struct ifreq) * numreqs);
+    
+    ifr = ifc.ifc_req;
+    for (i = 0; i < ifc.ifc_len; i += sizeof(struct ifreq))
     {
 	/* Only use ethernet interfaces */
-	ioctl(sock, SIOCGIFHWADDR, &ifr);
-	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+	ioctl(sock, SIOCGIFHWADDR, ifr);
+	if (ifr->ifr_hwaddr.sa_family == ARPHRD_ETHER)
 	{
-	    if (use_if(ifr.ifr_name, argc, argv))
+	    if (use_if(ifr->ifr_name, argc, argv))
 	    {
 		/* Down the interface so we can change the MAC address */
-		ioctl(sock, SIOCGIFFLAGS, &ifr);
-		if (ifr.ifr_flags & IFF_UP && force)
+		ioctl(sock, SIOCGIFFLAGS, ifr);
+		if (ifr->ifr_flags & IFF_UP && force)
 		{
-		    ifr.ifr_flags &= ~IFF_UP;
-		    ioctl(sock, SIOCSIFFLAGS, &ifr);
+		    ifr->ifr_flags &= ~IFF_UP;
+		    ioctl(sock, SIOCSIFFLAGS, ifr);
 		}
 
 		/* Need to refresh this */
-		ifr.ifr_ifindex = iindex;				
-		ioctl(sock, SIOCGIFHWADDR, &ifr);
+		ioctl(sock, SIOCGIFHWADDR, ifr);
 
 		/* Only change it if necessary */
-		if (memcmp(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6))
+		if (memcmp(ifr->ifr_hwaddr.sa_data, if_arg.exec_addr, 6))
 		{
-		    memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
+		    memcpy(ifr->ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
 		    /* Do the deed */
-		    if (ioctl(sock, SIOCSIFHWADDR, &ifr) < 0)
+		    if (ioctl(sock, SIOCSIFHWADDR, ifr) < 0)
 		    {
 			fprintf(stderr, "Error setting hw address on %s: %s\n",
-				ifr.ifr_name, strerror(errno));
+				ifr->ifr_name, strerror(errno));
 			ret = errno;		
 		    }
 		}
 
 		/* "UP" the interface. Just in case TCP/IP is not running */
-		ioctl(sock, SIOCGIFFLAGS, &ifr);		    
-		ifr.ifr_flags |= IFF_UP;
-		ioctl(sock, SIOCSIFFLAGS, &ifr);
+		ioctl(sock, SIOCGIFFLAGS, ifr);		    
+		ifr->ifr_flags |= IFF_UP;
+		ioctl(sock, SIOCSIFFLAGS, ifr);
 		    
 		ifdone++;
 	    }
 	}	    
-	ifr.ifr_ifindex = ++iindex;
+
+	ifr++;
     }
 
     /* If interfaces were specified and none were done then

@@ -3,8 +3,8 @@ Name: %%PACKAGENAME%%
 Version: %%VERSION%%
 Release: 1
 Vendor: Patrick Caulfield
-Copyright: GPL
 Group: Networking/Utilities
+License: GPL
 Source: http://download.sourceforge.net/linux-decnet/%%PACKAGENAME%%-%%VERSION%%.tar.gz
 %description
 

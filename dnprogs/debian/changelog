@@ -1,4 +1,12 @@
-dnprogs (2.24-1) unstable; urgency=low
+dnprogs (2.23.2-1) unstable; urgency=low
+
+  * Always return 0 from init scripts in case someone installs DECnet
+    when they don't actually want it.
+    Closes: #192052
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue,  6 May 2003 08:14:29 +0100
+
+dnprogs (2.23.1-1) unstable; urgency=low
 
   * Add library path to dnroute link.
     Closes: #191946

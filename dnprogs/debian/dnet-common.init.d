@@ -65,7 +65,7 @@ case $1 in
      if [ ! -f /etc/decnet.conf ]
      then
        echo "DECnet not started as it is not configured."
-       exit 1
+       exit 0
      fi
 
      # If there is no DECnet in the kernel then try to load it.
@@ -75,7 +75,7 @@ case $1 in
        if [ ! -f /proc/net/decnet ]
        then
          echo "DECnet not started as it is not in the kernel."
-	 exit 1
+	 exit 0
        fi
      fi
 

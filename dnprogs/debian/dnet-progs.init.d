@@ -16,7 +16,7 @@
 # dnet-common will have taken care of those.
 if [ ! -f /etc/decnet.conf -o ! -f /proc/net/decnet ]
 then
-  exit 1
+  exit 0
 fi
 
 case $1 in

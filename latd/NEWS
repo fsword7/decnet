@@ -1,3 +1,11 @@
+1.01
+-----------------------
+- Listen on LAT multicast address so you don't need to put the interface
+  into "allmulti" mode, or have DECnet running
+- Deleting ports now works
+- Linux latd can talk to another Linux latd now (though not to itself)
+
+
 1.0 17th September 2000
 -----------------------
 - Support BREAK character

@@ -31,7 +31,6 @@ binary-arch: checkroot build
 	install -D -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
 	mkdir -p debian/tmp/etc/modutils
 	echo "alias net-pf-12 decnet" > debian/tmp/etc/modutils/decnet
-	cp NEWS debian/changelog
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
 	dh_installdebconf

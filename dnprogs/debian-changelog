@@ -2,7 +2,7 @@ dnprogs (%%VERSION%%-1) stable; urgency=medium
 
   * See below
 
- -- Patrick <patrick@tykepenguin.cix.co.uk>  %%DATE%%
+ -- Patrick Caulfield <patrick@tykepenguin.cix.co.uk>  %%DATE%%
 
 Local variables:
 mode: debian-changelog

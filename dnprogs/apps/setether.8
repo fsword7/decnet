@@ -27,6 +27,10 @@ then all interfaces name eth* will be changed,
 otherwise a list of interface names can be specified.
 setether will enable (UP) all interfaces it changes the MAC addresses of.
 .br
+(2.4 only) The first interface specified on the command-line will also be made 
+the default interface for DECnet operations (ie attempts to contact nodes not
+in the neighbour table will be done over this interface).
+.br
 This script must be run with the interface inactive, it is normally run from 
 /etc/init.d/decnet before TCP/IP starts up.
 .br

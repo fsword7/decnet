@@ -47,8 +47,14 @@ then
   CARDS=`cat /proc/net/dev|grep eth|cut -f1 -d':'`
 fi
 
+set_default=""
 for i in $CARDS
 do
   ifconfig $i hw ether $MACADDR allmulti up
+  if [ -z "$set_default" -a -f /proc/sys/net/decnet/default_device ]
+  then
+    echo $i >/proc/sys/net/decnet/default_device
+    set_default="DONE"
+  fi
 done
 

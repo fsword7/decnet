@@ -1,0 +1,65 @@
+This is a list of latcp commands currently implemented. I will do a man
+page when it is more complete.
+
+latcp -s         Start latd and runs /etc/latd.conf
+latcp -h         Halt latd killing all connections
+latcp -A         Add a service, login and reverse LAT
+latcp -D         Delete a service
+latcp -j         Enable service responder (for smaller DECservers)
+latcp -J         Disable service responder
+latcp -d         Show learned and advertised services
+
+
+DETAIL
+------
+
+latcp -s
+
+Starts the latd daemon but looking for it in  /usr/sbin/latd,
+/usr/local/sbin/latd or the same directory as latcp itself.
+It then invokes /bin/sh on the file /etc/latd.conf (if it exists). This
+file should contain latcp commands you want to initialise the service
+with but can also contain normal shell commands.
+
+
+latcp -h
+
+Unconditionally kills latd. All conencted services will be terminated
+
+
+latcp -j
+
+Enables service responder. Some smaller DECservers do not keep a list
+of learned services and need to broadcast to a responder node to find them.
+
+
+latcp -J
+
+Disables service responder.
+
+
+latcp -d
+
+Displays all advertised and learned services and their names & ratings
+
+
+
+latcp -A -a <service>
+
+Add a new login service name to this node. By default the node name
+is used as the service name.
+
+
+
+latcp -A -p /dev/lat/<name> -H<node> -V<service> [-R <remport>]
+
+Add a reverse LAT service. The <name> can be anything you like so 
+/dev/lat/vax or /dev/lat/myprinter can be used. Traditionalists can also 
+use /dev/lat/lta1 of course! These names are just symlinks to PTYs.
+
+
+
+latcp -D <service>
+
+Delete an advertised login service. You currently cannot delete a reverse LAT service.
+

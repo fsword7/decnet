@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 #include "lloginsession.h"
 #include "lat_messages.h"
 
-lloginSession::lloginSession(class LATConnection &p, 
+lloginSession::lloginSession(class LATConnection &p,
 			     unsigned char remid, unsigned char localid,
 			     char *lta, int fd):
     ClientSession(p, remid, localid, lta, clean),
@@ -50,13 +50,14 @@ lloginSession::lloginSession(class LATConnection &p,
     remote_node[0] = '\0';
 }
 
-int lloginSession::new_session(unsigned char *_remote_node, 
-			       char *service, char *port,
+int lloginSession::new_session(unsigned char *_remote_node,
+			       char *service, char *port, char *password,
 			       unsigned char c)
 {
     credit = c;
     strcpy(remote_service, service);
     strcpy(remote_port, port);
+    strcpy(remote_pass, password);
 
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
@@ -65,7 +66,7 @@ int lloginSession::new_session(unsigned char *_remote_node,
     if (!connect_parent())
     {
 	state = STARTING;
-	
+
 	// Disable reads on the PTY until we are connected (or it fails)
 	LATServer::Instance()->set_fd_state(master_fd, true);
     }
@@ -89,23 +90,30 @@ void lloginSession::connect()
     memset(buf, 0, sizeof(buf));
     LAT_SessionData *reply = (LAT_SessionData *)buf;
     int ptr = sizeof(LAT_SessionData);
-    
+
     buf[ptr++] = 0x01; // Service Class
     buf[ptr++] = 0x01; // Max Attention slot size
     buf[ptr++] = 0xfe; // Max Data slot size
-    
+
     add_string(buf, &ptr, (unsigned char *)remote_service);
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
     buf[ptr++] = 0x02; // Param Length 2
     buf[ptr++] = 0x04; // Value 1024
-    buf[ptr++] = 0x00; // 
+    buf[ptr++] = 0x00; //
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
     add_string(buf, &ptr, (unsigned char*)ltaname);
 
-    // If the user wanted a particular port number then add it 
+    // Add password if present.
+    if (remote_pass[0] != '\0')
+    {
+	buf[ptr++] = 0x07; // Param type 7 (Service password)
+	add_string(buf, &ptr, (unsigned char*)remote_pass);
+    }
+
+    // If the user wanted a particular port number then add it
     // into the message
     if (remote_port[0] != '\0')
     {
@@ -139,7 +147,7 @@ void lloginSession::disconnect_sock()
 void lloginSession::disconnect_session(int reason)
 {
     debuglog(("lloginSession::disconnect_session()\n"));
-    // If the reason was some sort of error then send it to 
+    // If the reason was some sort of error then send it to
     // the user.
     if (reason > 1)
     {
@@ -161,7 +169,7 @@ lloginSession::~lloginSession()
 
 void lloginSession::do_read()
 {
-    read_pty();    
+    read_pty();
 }
 
 void lloginSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
@@ -171,7 +179,7 @@ void lloginSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
 
     len = snprintf(buffer, sizeof(buffer), "LAT: You are queued for node %s, position %d\n",
 		   node, entry->max_que_pos);
-    
+
     write(master_fd, buffer, len);
     have_been_queued = true;
 }

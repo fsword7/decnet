@@ -76,6 +76,7 @@ static int usage(char *cmd)
     printf ("       -b         convert input DEL to BS\n");
     printf ("       -l         convert output LF to VT\n");
     printf ("       -n <name>  Local port name\n");
+    printf ("       -w <pass>  Service password\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
     return 0;
@@ -88,6 +89,7 @@ int main(int argc, char *argv[])
     char service[256] = {'\0'};
     char port[256] = {'\0'};
     char localport[256] = {'\0'};
+    char password[256] = {'\0'};
     signed char opt;
     int verbose = 0;
     int crlf = 1;
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:r:q:n:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:r:q:n:w:")) != EOF)
     {
 	switch(opt)
 	{
@@ -147,6 +149,10 @@ int main(int argc, char *argv[])
 
 	case 'H':
 	    strcpy(node, optarg);
+	    break;
+
+	case 'w':
+	    strcpy(password, optarg);
 	    break;
 
 	case 'R':
@@ -214,6 +220,7 @@ int main(int argc, char *argv[])
     add_string((unsigned char*)msg, &ptr, (unsigned char*)node);
     add_string((unsigned char*)msg, &ptr, (unsigned char*)port);
     add_string((unsigned char*)msg, &ptr, (unsigned char*)localport);
+    add_string((unsigned char*)msg, &ptr, (unsigned char*)password);
 
     send_msg(latcp_socket, LATCP_TERMINALSESSION, msg, ptr);
 

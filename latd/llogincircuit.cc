@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,11 +53,11 @@ bool LLOGINCircuit::do_command()
     int ptr;
 
     debuglog(("llogin: do_command on fd %d\n", fd));
-    
+
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
 	return false; // Bad header
-    
+
     int len = head[1] * 256 + head[2];
     unsigned char *cmdbuf = new unsigned char[len];
 
@@ -68,16 +68,16 @@ bool LLOGINCircuit::do_command()
 	return false; // Bad message
     }
 
-    // Have we completed negotiation? 
+    // Have we completed negotiation?
     if (head[0] != LATCP_VERSION &&
 	state != RUNNING)
     {
 	delete[] cmdbuf;
 	return false;
     }
-    
+
     debuglog(("llogin: do_command %d\n", head[0]));
-    
+
     // Do the command
     switch (head[0])
     {
@@ -117,16 +117,18 @@ bool LLOGINCircuit::do_command()
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)node);
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)port);
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)localport);
+	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)password);
 
 	debuglog(("Terminal session for S:%s, N:%s, P:%s\n",
 		  service, node, port));
 
 	// Do the biz
 	if (LATServer::Instance()->make_llogin_connection(fd,
-							  service, 
+							  service,
 							  node,
 							  port,
 							  localport,
+							  password,
 							  queued) < 0)
 	{
 	    debuglog(("sending failure back to llogin\n"));

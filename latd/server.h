@@ -272,7 +272,7 @@ class LATServer
     bool show_characteristics(bool verbose, std::ostrstream &output);
     int  create_local_port(unsigned char *, unsigned char *,
 			   unsigned char *, unsigned char *, bool, bool);
-    int  make_llogin_connection(int fd, char *, char *,	char *, char *, bool);
+    int  make_llogin_connection(int fd, char *, char *,	char *, char *, char *, bool);
     int  make_port_connection(int fd, LocalPort *, const char *, const char *, const char *,
 			      const char *, bool);
     int  set_servergroups(unsigned char *bitmap);

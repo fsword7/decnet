@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ class lloginSession: public ClientSession
 
   virtual ~lloginSession();
   virtual int new_session(unsigned char *remote_node,
-			  char *service, char *port, unsigned char c);
+			  char *service, char *port, char *password, unsigned char c);
   virtual void do_read();
   virtual void disconnect_session(int reason);
 
@@ -33,5 +33,5 @@ class lloginSession: public ClientSession
   void disconnect_sock();
 
   bool have_been_queued;
-
+  char remote_pass[256];
 };

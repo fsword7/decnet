@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1498,7 +1498,7 @@ void LATServer::unlock()
 
 
 int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *port,
-				      char *localport, bool queued)
+				      char *localport, char *password, bool queued)
 {
     int ret;
     unsigned char macaddr[6];
@@ -1554,7 +1554,7 @@ int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *
     }
 
     debuglog(("lloginSession for %s has connid %d\n", service, connid));
-    ret = connections[connid]->create_llogin_session(fd, service, port, localport);
+    ret = connections[connid]->create_llogin_session(fd, service, port, localport, password);
 
     // Remove LLOGIN socket from the list as it's now been
     // added as a PTY (honest!)

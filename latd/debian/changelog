@@ -2,6 +2,7 @@ latd (1.12-1) unstable; urgency=low
 
   * llogin -r is an alias for llogin -R (easier to type!)
   * New moprc program for remote administration of terminal servers
+  * llogin can now connect to passworded services using llogin -w
 
  --
 

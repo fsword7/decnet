@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,9 +16,9 @@ class LLOGINCircuit: public Circuit
 {
     public:
     LLOGINCircuit(int _fd);
-    
+
     virtual ~LLOGINCircuit();
-    
+
     virtual bool do_command();
 
  private:
@@ -27,5 +27,6 @@ class LLOGINCircuit: public Circuit
     char node[256];
     char service[256];
     char port[256];
-    char localport[256];    
+    char localport[256];
+    char password[256];
 };

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -942,14 +942,15 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
     }
 }
 
-int LATConnection::create_llogin_session(int fd, char *service, char *port, char *localport)
+int LATConnection::create_llogin_session(int fd, char *service, char *port, char *localport, 
+					 char *password)
 {
 // Create an lloginSession
     int newsessionnum = next_session_number();
 
-    LATSession *newsession = new lloginSession(*this, 0, newsessionnum,
+    lloginSession *newsession = new lloginSession(*this, 0, newsessionnum,
 					       localport, fd);
-    if (newsession->new_session(remnode, service, port, 0) == -1)
+    if (newsession->new_session(remnode, service, port, password, 0) == -1)
     {
 	delete newsession;
 	return -1;

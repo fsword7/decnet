@@ -414,16 +414,18 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     tcgetattr(termfd, &old_term);
     new_term = old_term;
 
-// Set local terminal characteristics
-    new_term.c_iflag &= ~BRKINT;
+    // Set local terminal characteristics
+    new_term.c_iflag &= ~(BRKINT | ICRNL);
     new_term.c_iflag |= IGNBRK;
     new_term.c_lflag &= ~ISIG;
+    new_term.c_oflag &= ~OCRNL;
     new_term.c_cc[VMIN] = 1;
     new_term.c_cc[VTIME] = 0;
     new_term.c_lflag &= ~ICANON;
     new_term.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
     tcsetattr(termfd, TCSANOW, &new_term);
 
+    // Be a terminal
     terminal(termfd, quit_char, crlf, bsdel, lfvt);
     
     // Reset terminal attributes

@@ -88,19 +88,16 @@ class LATConnection
 	len(_len),
         need_ack(_need_ack)
 	{
-	    buf = new unsigned char[len];
 	    memcpy(buf, _buf, len);
 	}
       pending_msg(const pending_msg &msg):
 	len(msg.len),
 	need_ack(msg.need_ack)  
 	{
-	    buf = new unsigned char[len];
 	    memcpy(buf, msg.buf, len);
 	}
       ~pending_msg()
 	{
-	  delete[] buf;
 	}
 
       pending_msg &operator=(const pending_msg &a)
@@ -109,7 +106,6 @@ class LATConnection
 	  {
 	      len = a.len;
 	      need_ack = a.need_ack;
-	      buf = new unsigned char[len];
 	      memcpy(buf, a.buf, len);
 	  }
 	  return *this;
@@ -126,7 +122,7 @@ class LATConnection
       bool needs_ack() { return need_ack;}
       
     private:
-      unsigned char *buf;
+      unsigned char buf[1600];
       int   len;
       bool  need_ack;
     };
@@ -141,19 +137,16 @@ class LATConnection
       slot_cmd(unsigned char *_buf, int _len):
 	len(_len)
 	{
-	    buf = new unsigned char[len];
 	    memcpy(buf, _buf, len);
 	}
       slot_cmd(const slot_cmd &cmd)
 	{
 	    len = cmd.len;
-	    buf = new unsigned char[len];
 	    memcpy(buf, cmd.buf, len);
 	}
 	
       ~slot_cmd()
 	{
-	  delete[] buf;
 	}
 
       int   get_len(){return len;}
@@ -161,7 +154,7 @@ class LATConnection
       LAT_SlotCmd   *get_cmd(){return (LAT_SlotCmd *)buf;}
       
     private:
-        unsigned char *buf;
+        unsigned char  buf[300];
         int            len;    
     };
 

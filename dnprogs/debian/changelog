@@ -1,7 +1,32 @@
+dnprogs (2.19-1) unstable; urgency=low
+
+  * Suggests: iproute
+  * dnet-progs.init.d doesn't give errors when stopping on a
+    system with no DECnet in the kernel
+  * Remove node_address setting from modutils into init.d so
+    it works when DECnet is compiled into the kernel
+  * Makefile fixes
+  * startnet fixes to arg parsing
+  * phone uses pixmap directory properly
+  * ctermd now responds to DEL, ^X etc (hooray!)
+  * dnetd task_server now won't run arbitrary programs.
+  * dntask prints error messages if the connection fails.
+  * setether uses "ip" command if available rather than ifconfig
+  * Added timeout switch to dnping
+  * FAL no longer eats directories starting with '0'
+    Thanks to Matjaz Godec
+  * Add virtual-root feature to FAL
+  * Change to libdnet_daemon to allow RSX to connect
+  * Fixed truncate option in FAL
+  * Fixed wildard fetching in FAL so it works with dncopy
+  * Changes to FAL to allow RSX file transfers
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 17 Jul 2002 16:38:52 +0100
+
 dnprogs (2.18-1) unstable; urgency=low
 
   * Fix dependancies in dnet-progs so libdnet gets pulled in too even when
-    build by the autobuilders. Closes: bug#122893
+    built by the autobuilders. Closes: bug#122893
   * Fix sending of binary files by FAL by block.
   * Add .html, .tgz & .bz2 file types to FAL types list
 

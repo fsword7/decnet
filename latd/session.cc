@@ -152,7 +152,9 @@ int LATSession::read_pty()
 	add_slot(buf, ptr, 0xd1, slotbuf, 0);
 	local_session=s; // Restore it for our benefit.
 
-	parent.queue_message(buf, ptr);
+	// Must send this now or the connection could get deleted
+	// before the circuit timer goes off.
+	parent.send_message(buf, ptr, LATConnection::DATA);
 	
 	disconnect_session(1); // User requested
 	return 0;

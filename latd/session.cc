@@ -78,7 +78,7 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 
 	// Replace LF/CR with LF if we are a server.
         // TODO There MUST be an option for this...
-	if (!parent.isClient())
+	if (!parent.isClient() && !clean)
 	{
 	    char newbuf[len+1];
 	    int newlen = 0;
@@ -171,7 +171,7 @@ int LATSession::read_pty()
     }
 
     // Got break!
-    if (msglen == 1 && buf[0] == '\0')
+    if (msglen == 1 && buf[0] == '\0' && !clean)
 	return send_break();
     else
 	return send_data(buf, msglen, command);
@@ -184,7 +184,6 @@ int LATSession::send_break()
     int  ptr = 0;
     int command = 0xA0;
 
-    syslog(LOG_INFO, "Sending BREAK\n");
     if (remote_credit <= 1)
     {
 	debuglog(("Sending more remote credit with break\n"));

@@ -35,8 +35,8 @@
 
 ClientSession::ClientSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
-			     char *ttyname):
-  LATSession(p, remid, localid),
+			     char *ttyname, bool clean):
+  LATSession(p, remid, localid, clean),
   slave_fd_open(false)
 {
     debuglog(("new client session: localid %d, remote id %d\n",

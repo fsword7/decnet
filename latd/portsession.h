@@ -18,7 +18,7 @@ class PortSession: public ServerSession
   PortSession(class LATConnection &p,
 	      LAT_SessionStartCmd *cmd,
 	      ClientSession *_client,
-	      unsigned char remid, unsigned char localid);
+	      unsigned char remid, unsigned char localid, bool clean);
   virtual ~PortSession();
 
   virtual int new_session(unsigned char *remote_node, unsigned char c);

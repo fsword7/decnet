@@ -246,7 +246,7 @@ class LATServer
     void unlock();
     bool show_characteristics(bool verbose, ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,
-				unsigned char *, unsigned char *, bool);
+				unsigned char *, unsigned char *, bool, bool);
     int  set_servergroups(unsigned char *bitmap);
     int  unset_servergroups(unsigned char *bitmap);
     int  set_usergroups(unsigned char *bitmap);

@@ -2,12 +2,14 @@
 class LATSession
 {
  public:
-    LATSession(class LATConnection &p, unsigned char remid, unsigned char localid):
+    LATSession(class LATConnection &p,
+	       unsigned char remid, unsigned char localid, bool _clean):
 	pid(-1),
 	parent(p),
 	remote_session(remid),
 	local_session(localid),
 	max_read_size(255),
+	clean(_clean),
 	credit(0),
 	stopped(false),
 	remote_credit(0)
@@ -40,6 +42,7 @@ class LATSession
     unsigned char  remote_session;
     unsigned char  local_session;
     int            max_read_size;
+    bool           clean; // Connection should be 8bit clean
     
     // Flow control
     int            credit;

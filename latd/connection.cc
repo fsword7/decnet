@@ -49,6 +49,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     last_sequence_number(_ack),
     last_ack_number(_seq),
     queued_slave(false),
+    eightbitclean(false),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -84,13 +85,14 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 // Create a client connection
 LATConnection::LATConnection(int _num, const char *_service,
 			     const char *_portname, const char *_lta, 
-			     const char *_remnode, bool queued):
+			     const char *_remnode, bool queued, bool clean):
     num(_num),
     keepalive_timer(0),
     last_sequence_number(0xff),
     last_ack_number(0xff),
     queued(queued),
     queued_slave(false),
+    eightbitclean(clean),
     role(CLIENT)
 {
     debuglog(("New client connection for %s created\n", _remnode));
@@ -103,7 +105,6 @@ LATConnection::LATConnection(int _num, const char *_service,
     max_slots_per_packet = 1; // TODO: Calculate
     max_window_size = 1;      // Gets overridden later on.
     next_session = 1;
-
 }
 
 
@@ -250,7 +251,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							 (LAT_SessionStartCmd *)buf,
 							 cs,
 							 slotcmd->remote_session, 
-							 newsessionnum);
+							 newsessionnum, 
+							 eightbitclean);
 			    if (newsession->new_session(remnode, 
 							credits) == -1)
 			    {
@@ -283,7 +285,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    newsession = new ServerSession(*this,
 							   (LAT_SessionStartCmd *)buf,
 							   slotcmd->remote_session, 
-							   newsessionnum);
+							   newsessionnum, false);
 			    if (newsession->new_session(remnode, 
 							credits) == -1)
 			    {
@@ -816,7 +818,8 @@ int LATConnection::create_client_session()
 
     int newsessionnum = 1;
     LATSession *newsession = new ClientSession(*this, 0,
-					       newsessionnum, lta_name);
+					       newsessionnum, lta_name, 
+					       eightbitclean);
     if (newsession->new_session(remnode, 0) == -1)
     {
 	delete newsession;
@@ -916,5 +919,6 @@ void LATConnection::show_client_info(ostrstream &output)
     output << lta_name << setw(24-strlen((char*)lta_name)) << " " << servicename
 	   << setw(16-strlen((char*)servicename)) << " " 
 	   << remnode << setw(16-strlen((char*)remnode)) << " " << portname
-	   << setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No") << endl;
+	   << setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No ") 
+	   << (eightbitclean?" 8":" ") << endl;
 }

@@ -90,7 +90,7 @@ int usage(char *cmd)
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
     printf ("       -A -a service [-i descript] [-r rating] [-s]\n");
-    printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]\n");
+    printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-8]\n");
     printf ("       -D {-a service | -p tty}\n");
     printf ("       -i descript -a service\n");
     printf ("       -g list\n");
@@ -524,11 +524,12 @@ void add_service(int argc, char *argv[])
     bool static_rating=false;
     int  rating = 0;
     int  queued = 0;
+    int  clean = 0;
     
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8")) != EOF)
     {
 	switch(opt) 
 	{
@@ -580,6 +581,11 @@ void add_service(int argc, char *argv[])
 	    static_rating = true;
 	    break;
 
+	case '8':
+	    clean = true;
+	    break;
+
+
 	case 'r':
 	    rating = atoi(optarg);
 	    break;
@@ -627,6 +633,7 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)localport);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)remnode);
 	message[ptr++] = queued;
+	message[ptr++] = clean;
 	send_msg(latcp_socket, LATCP_ADDPORT, message, ptr);
 
 	// Wait for ACK or error

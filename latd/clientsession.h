@@ -16,7 +16,7 @@ class ClientSession: public LATSession
 {
  public:
   ClientSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *);
+		unsigned char remid, unsigned char localid, char *, bool clean);
 
   virtual ~ClientSession();
   virtual int new_session(unsigned char *remote_node, unsigned char c);

@@ -37,7 +37,8 @@ class LATConnection
     // Client session routines
     LATConnection(int _num,
 		  const char *_service, const char *_portname,
-		  const char *_lta, const char *remnode, bool queued);
+		  const char *_lta, const char *remnode,
+		  bool queued, bool clean);
     int connect();
     int create_client_session();
     int disconnect_client();              // From LATServer
@@ -65,6 +66,7 @@ class LATConnection
     bool           need_ack;
     bool           queued;             // Client for queued connection.
     bool           queued_slave;       // We are a slave connection for a queued client
+    bool           eightbitclean;
     LATConnection *master_conn;        // Client connection we a re slave to
     
     int next_session_number();

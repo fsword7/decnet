@@ -37,8 +37,9 @@
 
 PortSession::PortSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 			 ClientSession *_client,
-			 unsigned char remid, unsigned char localid):
-    ServerSession(p, cmd, remid, localid),
+			 unsigned char remid, unsigned char localid, 
+			 bool clean):
+    ServerSession(p, cmd, remid, localid, clean),
     client_session(_client)
 {
     max_read_size = cmd->dataslotsize;

@@ -33,8 +33,9 @@
 #include "serversession.h"
 
 ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
-			     unsigned char remid, unsigned char localid):
-  LATSession(p, remid, localid)
+			     unsigned char remid, 
+			     unsigned char localid, bool clean):
+  LATSession(p, remid, localid, clean)
 {
     max_read_size = cmd->dataslotsize;
     

@@ -1290,7 +1290,9 @@ void LATServer::unlock()
 int LATServer::make_client_connection(unsigned char *service, 
 				      unsigned char *portname,
 				      unsigned char *devname,
-				      unsigned char *remnode, bool queued)
+				      unsigned char *remnode,
+				      bool queued,
+				      bool clean)
 {
     int connid = get_next_connection_number();
     if (connid == -1)
@@ -1304,7 +1306,8 @@ int LATServer::make_client_connection(unsigned char *service,
 					    (char *)portname,
 					    (char *)devname, 
 					    (char *)remnode,
-					    queued);
+					    queued,
+					    clean);
     connections[connid]->create_client_session();
     debuglog(("ClientSession for %s has connid %d\n", portname, connid));    
     return 0;

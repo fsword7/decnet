@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.02
+VERSION=1.03
 PKGNAME=latd
 
 
@@ -74,7 +74,7 @@ dep depend: .depend
 
 clean:
 	makedepend
-	rm -f $(PROG1) $(PROG2) *.o *.bak .depend 
+	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend 
 	rm -rf debian/tmp
 
 dist:

@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -76,7 +76,7 @@ void exec_daemon(int sockfd, char *daemon_name)
     int   err;
     int   i;
     char  name[PATH_MAX];
-	    
+
     // Split the daemon command into a command and its args
     argp = strtok(daemon_name, " ");
     while (argp && argc < MAX_ARGS)
@@ -169,16 +169,16 @@ int main(int argc, char *argv[])
     // make default binaries directory name
     strcpy(binary_dir, BINARY_PREFIX);
     strcat(binary_dir, "/sbin");
-    
+
     // Deal with command-line arguments. Do these before the check for root
     // so we can check the version number and get help without being root.
     opterr = 0;
     optind = 0;
     while ((opt=getopt(argc,argv,"?vVhp:sdl:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(argv[0], stdout);
 	    exit(0);
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 	    printf("\ntaskd from dnprogs version %s\n\n", VERSION);
 	    exit(1);
 	    break;
-	    
+
 	case 'p':
 	    if (stat(optarg, &st) < 0)
 	    {
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 	    }
 	    strcpy(binary_dir, optarg);
 	    break;
-	    
+
 	case 'l':
 	    if (optarg[0] != 's' &&
 		optarg[0] != 'm' &&
@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
     // Needed for dnetd on Eduardo's kernel to
     // be able to do MIRROR
     dnet_set_optdata(condata, sizeof(condata));
-    
+
     fd = dnet_daemon(0, NULL, verbosity, debug?0:1);
     if (fd > -1)
     {
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 	    exec_daemon(fd, daemon_name);
 	    return 0;
 	}
-	
+
 	// Dispatch the object internally
 	// If it's a named object then run a task script
 	getsockname(fd, (struct sockaddr *)&sockaddr, &namlen);

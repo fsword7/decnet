@@ -54,6 +54,7 @@ int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
     if (!client_session) return -1;
 
+    debuglog(("starting port session: credit = %d\n", c));
     credit = c;
     strcpy(remote_node, (char *)_remote_node);
 
@@ -63,6 +64,7 @@ int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
 	connected = true;
 
 	send_login_response();
+	client_session->start_port();
     }
     else
     {

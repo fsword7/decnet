@@ -72,7 +72,7 @@
 
 
 // Get all ethernet interfaces
-void LATServer::get_all_interfaces(char *macaddr)
+void LATServer::get_all_interfaces()
 {
     struct ifreq ifr;
     int iindex = 1;
@@ -88,7 +88,6 @@ void LATServer::get_all_interfaces(char *macaddr)
 	ioctl(sock, SIOCGIFHWADDR, &ifr);		    
 	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
 	{
-	    memcpy(macaddr, &ifr.ifr_hwaddr.sa_data, 6);
 	    debuglog(("interface %d: %d\n", num_interfaces, iindex));
 	    interface_num[num_interfaces++] = iindex;
 	}	    
@@ -124,7 +123,7 @@ string LATServer::print_interfaces()
    Also save the MAC address in <macaddr>.
    Return -1 if we didn't find it or it's not ethernet,
 */
-int LATServer::find_interface(char *ifname, char *macaddr)
+int LATServer::find_interface(char *ifname)
 {
     struct ifreq ifr;
     int iindex = 1;
@@ -136,10 +135,8 @@ int LATServer::find_interface(char *ifname, char *macaddr)
     {
 	if (strcmp(ifr.ifr_name, ifname) == 0)
 	{
-	    /* And also get the MAC address and check it's ethernet
-	       while we are here */
+	    // Also check it's ethernet while we are here
 	    ioctl(sock, SIOCGIFHWADDR, &ifr);
-	    memcpy(macaddr, &ifr.ifr_hwaddr.sa_data, 6);
 	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
 	    {
 		fprintf(stderr, "Device %s is not ethernet\n", ifname);
@@ -304,10 +301,12 @@ void LATServer::send_service_announcement(int sig)
 	ptr += id.length();
 
 	// Make sure the service table knows about all our services
+	unsigned char dummy_macaddr[6];
+	memset(dummy_macaddr, 0, sizeof(dummy_macaddr));
 	if (!do_shutdown)
 	    LATServices::Instance()->add_service(string((char*)get_local_node()),
 	  				         name,
-					         id, real_rating, 0, our_macaddr);
+					         id, real_rating, 0, dummy_macaddr);
     }
     
 
@@ -691,8 +690,7 @@ void LATServer::read_lat(int sock)
 	break;
 
     case LAT_CCMD_STATUS:
-	debuglog(("got STATUS message\n"));
-	// TODO something with this...but what?
+	forward_status_messages(buf, len);
 	break;
     }
 }
@@ -779,6 +777,32 @@ float LATServer::get_loadavg(void)
     fclose(f);
     
     return b;
+}
+
+// Forward status messages to their recipient connection objects.
+void LATServer::forward_status_messages(unsigned char *inbuf, int len)
+{
+    int ptr = sizeof(LAT_Status);
+    unsigned char node[256];
+    
+    get_string(inbuf, &ptr, node);
+
+    // Forward all the StatusEntry messages
+    while (ptr <= len)
+    {
+	if (ptr%2) ptr++; // Word aligned
+
+	LAT_StatusEntry *entry = (LAT_StatusEntry *)&inbuf[ptr];
+	if (entry->length == 0) break;
+
+	if (connections[entry->request_id])
+	    connections[entry->request_id]->got_status(node, entry);
+
+	ptr += sizeof(LAT_StatusEntry);
+	ptr += inbuf[ptr]+1; // Past service name
+	ptr += inbuf[ptr]+1; // Past port name
+	ptr += inbuf[ptr]+1; // Past service description
+    }
 }
 
 /* Reply to an ENQUIRE message with our MAC address & service name */
@@ -879,13 +903,13 @@ void LATServer::init(bool _static_rating, int _rating,
     strcpy((char *)greeting, _greeting);
     verbosity = _verbosity;
 
-/* Convert all the interface names to numbers and check they are usable */
+    // Convert all the interface names to numbers and check they are usable 
     if (_interfaces[0])
     {
 	int i=0;
 	while (_interfaces[i])
 	{
-	    interface_num[num_interfaces] = find_interface(_interfaces[i], (char*)our_macaddr);
+	    interface_num[num_interfaces] = find_interface(_interfaces[i]);
 	    if (interface_num[num_interfaces] == -1)
 	    {
 		syslog(LOG_ERR, "Can't use interface %s: ignored\n", _interfaces[i]);
@@ -901,11 +925,10 @@ void LATServer::init(bool _static_rating, int _rating,
 	    syslog(LOG_ERR, "No usable interfaces, latd exiting.\n");
 	    exit(9);
 	}
-
     }
     else
     {
-	get_all_interfaces((char *)our_macaddr);
+	get_all_interfaces();
     }
 
     // Remove any old /dev/lat symlinks
@@ -961,7 +984,7 @@ int LATServer::make_new_connection(unsigned char *buf, int len,
     return i;
 }
 
-void LATServer::delete_session(LATConnection *conn, unsigned char id, int fd)
+void LATServer::delete_session(int conn, unsigned char id, int fd)
 {
     // Add this to the list and delete them later
     deleted_session s(LOCAL_PTY, conn, id, fd);
@@ -1098,7 +1121,7 @@ void LATServer::read_latcp(int fd)
     if (!latcp_circuits[fd]->do_command())
     {
 	// Mark the FD for removal
-	deleted_session s(LATCP_SOCKET, NULL, 0, fd);
+	deleted_session s(LATCP_SOCKET, 0, 0, fd);
 	dead_session_list.push_back(s);
     }
 }
@@ -1111,7 +1134,7 @@ void LATServer::read_llogin(int fd)
     if (!latcp_circuits[fd]->do_command())
     {
 	// Mark the FD for removal
-	deleted_session s(LLOGIN_SOCKET, NULL, 0, fd);
+	deleted_session s(LLOGIN_SOCKET, 0, 0, fd);
 	dead_session_list.push_back(s);
     }
 }
@@ -1139,8 +1162,9 @@ void LATServer::delete_entry(deleted_session &dsl)
 
     case LOCAL_PTY:
     case DISABLED_PTY:
-	remove_fd(dsl.get_fd());	
-	dsl.get_conn()->remove_session(dsl.get_id());
+	remove_fd(dsl.get_fd());
+	if (connections[dsl.get_conn()])
+	    connections[dsl.get_conn()]->remove_session(dsl.get_id());
 	break;
     }
 }
@@ -1378,7 +1402,7 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
 
     // Remove LLOGIN socket from the list as it's now been
     // added as a PTY (honest!)
-    deleted_session s(LLOGIN_SOCKET, NULL, 0, fd);
+    deleted_session s(LLOGIN_SOCKET, 0, 0, fd);
     dead_session_list.push_back(s);    
 
     return ret;

@@ -826,6 +826,19 @@ int LATConnection::create_client_session()
     return 0;
 }
 
+void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
+{
+    debuglog(("Got status %d from node %s, queue pos = %d,%d. session: %d\n", 
+	      entry->status, node, entry->max_que_pos, entry->min_que_pos,
+	      entry->session_id));
+
+    if (role == CLIENT && sessions[1])
+    {
+	ClientSession *s = (ClientSession *)sessions[1];
+	s->show_status(node, entry);
+    }
+}
+
 int LATConnection::create_llogin_session(int fd)
 {
 // Create a ClientSession

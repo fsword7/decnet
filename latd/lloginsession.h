@@ -25,9 +25,12 @@ class lloginSession: public ClientSession
     
   virtual void connect(char *service, char *port);
   virtual void restart_pty() {disconnect_sock();};
-
+  virtual void show_status(unsigned char *node, LAT_StatusEntry *entry);
+  virtual void start_port();
 
  private:
   void disconnect_sock();
+
+  bool have_been_queued;
 
 };

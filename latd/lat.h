@@ -151,8 +151,8 @@ typedef struct
 // A Status message can contain one or more of these entries.
 typedef struct
 {
-    unsigned char  length        __attribute__ ((packed));
-    unsigned char  status        __attribute__ ((packed));
+    unsigned short length        __attribute__ ((packed));
+    unsigned short status        __attribute__ ((packed));
     unsigned short request_id    __attribute__ ((packed));
     unsigned short session_id    __attribute__ ((packed));
     unsigned short elapsed_time  __attribute__ ((packed)); // set to -1? seconds
@@ -174,7 +174,7 @@ typedef struct
     unsigned char  latver_eco    __attribute__ ((packed)); // LAT version No. (LSB)
     unsigned short maxsize       __attribute__ ((packed));
     unsigned short retrans_timer __attribute__ ((packed));
-    unsigned short entry_count   __attribute__ ((packed));
+    unsigned char  entry_count   __attribute__ ((packed));
     //ASCIC Subject node name
     // Array of LAT_StatusEntry structs
 

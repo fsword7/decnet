@@ -99,17 +99,19 @@ int ServerSession::send_login_response()
     slotptr = 0;
 
     // Send a data_b slot
-    slotbuf[slotptr++] = 0x26; // Flags
-    slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
-    slotbuf[slotptr++] = 0x11; // Start output char XON
-    slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
-    slotbuf[slotptr++] = 0x11; // Start input char  XON
-
-    // data_b slots count against credit
     if (credit)
     {
-	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
-	credit--;
+	slotbuf[slotptr++] = 0x26; // Flags
+	slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
+	slotbuf[slotptr++] = 0x11; // Start output char XON
+	slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
+	slotbuf[slotptr++] = 0x11; // Start input char  XON
+	
+        // data_b slots count against credit
+
+// Hmm, this credit-starves queued connections 
+//	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
+//	credit--;
     }
     slotptr = 0;
 

@@ -69,6 +69,7 @@ static int usage(char *cmd)
     printf ("       -p         connect to a local port rather than a service\n");
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
+    printf ("       -Q         connect to a queued service\n");
     printf ("       -c         convert CR to LF\n");
     printf ("       -b         convert DEL to BS\n");
     printf ("       -q <char>  quit character\n");
@@ -206,6 +207,9 @@ int main(int argc, char *argv[])
 
     // If the reply was good then go into terminal mode.
     terminal(latcp_socket, quit_char, crlf, bsdel);
+
+    shutdown(latcp_socket, 3);
+    close(latcp_socket);
     return 0;
 }
 

@@ -281,3 +281,16 @@ int ClientSession::get_port_fd()
     close(slave_fd);
     return master_fd;
 }
+
+// Normal client sessions don't provide feedback on status (though maybe we should
+// check for other status types....
+void ClientSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
+{
+    return;
+}
+
+// Called when a PortSession connects to us
+void ClientSession::start_port()
+{
+    return;
+}

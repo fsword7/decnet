@@ -38,7 +38,8 @@
 lloginSession::lloginSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
 			     int fd):
-  ClientSession(p, remid, localid, "", clean)
+    ClientSession(p, remid, localid, "", clean),
+    have_been_queued(false)
 {
     master_fd = dup(fd);
     // This is the socket FD - we dup it because the original
@@ -161,3 +162,23 @@ void lloginSession::do_read()
 	read_pty();
     }
 }
+
+void lloginSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
+{
+    char buffer[1024];
+    int len;
+
+    len = snprintf(buffer, sizeof(buffer), "LAT: You are queued for node %s, position %d\n",
+		   node, entry->max_que_pos);
+    
+    write(master_fd, buffer, len);
+    have_been_queued = true;
+}
+
+
+// Called when a PortSession connects to us
+void lloginSession::start_port()
+{
+    if (have_been_queued) write(master_fd, "LAT: Connected\n", 15);
+}
+

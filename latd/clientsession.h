@@ -27,6 +27,8 @@ class ClientSession: public LATSession
   virtual int  connect_parent();
   virtual void got_connection(unsigned char);
   virtual void restart_pty();
+  virtual void show_status(unsigned char *node, LAT_StatusEntry *entry);
+  virtual void start_port();
   int get_port_fd();
 
   

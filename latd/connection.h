@@ -48,6 +48,7 @@ class LATConnection
     const char *getLocalPortName() { return lta_name; }
     void show_client_info(ostrstream &);
     int get_connection_id() { return num;}
+    void got_status(unsigned char *node, LAT_StatusEntry *entry);
     
  private:
     int            num;           // Local connection ID

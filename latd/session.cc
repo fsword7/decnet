@@ -243,7 +243,7 @@ void LATSession::disconnect_session(int reason)
 {
     // Get the server to delete us when we are off the stack.
     if (connected)
-	LATServer::Instance()->delete_session(&parent, local_session, master_fd);
+	LATServer::Instance()->delete_session(parent.get_connection_id(), local_session, master_fd);
     connected = false;
     return;
 }

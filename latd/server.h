@@ -38,7 +38,7 @@ class LATServer
     void add_pty(LATSession *session, int fd);
     void set_fd_state(int fd, bool disabled);
     int  send_message(unsigned char *buf, int len, int interface, unsigned char *macaddr);
-    void delete_session(LATConnection *, unsigned char, int);
+    void delete_session(int, unsigned char, int);
     void delete_connection(int);
     unsigned char *get_local_node();
     int   get_circuit_timer()         { return circuit_timer; }
@@ -67,7 +67,6 @@ class LATServer
     int  rating;
 
     unsigned char greeting[255];
-    unsigned char our_macaddr[6];
     unsigned char local_name[256]; //  Node name
     int  interface_num[MAX_INTERFACES];
     int  num_interfaces;
@@ -81,13 +80,14 @@ class LATServer
     int  next_connection;
     gid_t lat_group;
 
-    void  get_all_interfaces(char *macaddr);
+    void  get_all_interfaces();
     string print_interfaces();
-    int   find_interface(char *ifname, char *macaddr);
+    int   find_interface(char *ifname);
     void  read_lat(int sock);
     float get_loadavg();
     void  reply_to_enq(unsigned char *inbuf, int len, int interface,
 		      unsigned char *remote_mac);
+    void  forward_status_messages(unsigned char *inbuf, int len);
     void  send_service_announcement(int sig);
     int   make_new_connection(unsigned char *buf, int len, int interface,
 			      LAT_Header *header, unsigned char *macaddr);
@@ -159,18 +159,18 @@ class LATServer
     {
       private:
 	fd_type type;
-        LATConnection *connection;
+        int connection;
 	unsigned char local_id;
 	int fd;
 
       public:
-	deleted_session(fd_type t, LATConnection *c, unsigned char i, int f):
+	deleted_session(fd_type t, int c, unsigned char i, int f):
           type(t),
 	  connection(c),
 	  local_id(i),
 	  fd(f)
 	  {}
-	LATConnection* get_conn(){return connection;}
+	int            get_conn(){return connection;}
 	unsigned char  get_id()  {return local_id;}
 	int            get_fd()  {return fd;}
 	fd_type        get_type(){return type;}

@@ -374,7 +374,7 @@ static void print_ascic(char *buf, int len)
 static int show_system_info(unsigned char *info, int len)
 {
     int index=0;
-    int functions;
+    int functions = 0;
 
     while (index < len)
     {

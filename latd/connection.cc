@@ -255,11 +255,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		// Deliberate fall-through.
 
 	    case 0xd0:  // Disconnect
-		// TODO: something not quite right here.
 		if (session) session->disconnect_session(credits);
-		retcmd = 0xd0;
-		replyhere=true;
-		
 		break;	  
 
 	    default:

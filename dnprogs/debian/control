@@ -2,7 +2,7 @@ Source: dnprogs
 Section: net
 Priority: optional
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: debmake, fakeroot, kernel-headers-2.4.0, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
+Build-Depends: debmake, fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
 Standards-Version: 3.5.0
 
 Package: dnet-common

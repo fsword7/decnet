@@ -137,9 +137,6 @@ int main(int argc, char *argv[])
 	}
     }
 
-    // Needed for free-running daemon on Eduardo's kernel
-    dnet_set_optdata(optdata_bytes, sizeof(optdata_bytes));
-
     // Wait for something to happen (or check to see if it already has)
     insock = dnet_daemon(DNOBJECT_MAIL11, NULL, verbosity, !debug);
  

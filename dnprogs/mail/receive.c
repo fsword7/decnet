@@ -128,12 +128,18 @@ void receive_mail(int sock)
     // See if we are being sent binary data.
     // We classify binary data as anything with fixed length records
     // or an undefined record type.
-    getsockopt(sock, DNPROTO_NSP, SO_CONDATA, &optdata, &optlen);
+
+#ifdef DSO_CONDATA
     config=(struct config_data *)optdata.opt_data;
+    getsockopt(sock, DNPROTO_NSP, DSO_CONDATA, &optdata, &optlen);
     if (config->rfm == FB$FIX || config->rfm == FB$UDF)
     {
+	fprintf(stderr, "rfm=%d, rat=%d\n", config->rfm, config->rat);
 	is_binary = 1;
     }
+#else
+    config->rfm=FB$VAR;
+#endif
 
     
     // Get the remote host name
@@ -208,11 +214,15 @@ void receive_mail(int sock)
 	return;
     }
     full_user[stat] = '\0';
-    
+   
+#ifdef DSO_CONDATA 
     stat = read(sock, cc_addressees, sizeof(cc_addressees));
     cc_addressees[stat] = '\0';
     for (i=0; i<strlen(cc_addressees); i++)
 	cc_addressees[i] = tolower(cc_addressees[i]);
+#else
+    cc_addressees[0] = '\0';
+#endif
 
     // Get the subject
     stat = read(sock, subject, sizeof(subject));

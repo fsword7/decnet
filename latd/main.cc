@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
     struct utsname uts;
     uname(&uts);
 
-    snprintf(greeting, sizeof(greeting), "LATD for %s\n", uts.sysname);
+    snprintf(greeting, sizeof(greeting), "LATD for %s", uts.sysname);
     interface[0] = '\0';
     memset(interfaces, 0, sizeof(interfaces));
 

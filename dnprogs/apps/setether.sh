@@ -49,5 +49,5 @@ fi
 
 for i in $CARDS
 do
-  echo ifconfig $i hw ether $MACADDR up
+  ifconfig $i hw ether $MACADDR up
 done

@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
+#include <mcheck.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <stdio.h>
@@ -84,6 +85,11 @@ int main(int argc, char *argv[])
     int  static_rating = 0;
     char *interfaces[256];
     int num_interfaces = 0;
+
+#ifdef DEBUG_MALLOC
+    putenv("MALLOC_TRACE=/tmp/mtrace.log");
+    mtrace();
+#endif
 
     strcpy(greeting,  "A Linux box");
     interface[0] = '\0';

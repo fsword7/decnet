@@ -10,7 +10,7 @@
 #
 # and you should link to it from the relevant runlevel startup directory
 # eg: (Debian)
-#      ln -s /etc/init.d/decnet.sh /etc/rcS.d/S39decnet.sh
+#      update-rc.d start 39 S .  stop 11 1 .
 #
 #     (RedHat)
 #      ln -s /etc/rc.d/init.d/decnet /etc/rc.d/rc3.d/S09decnet
@@ -35,11 +35,16 @@ daemons="dnetd phoned"
 # Interfaces to set the MAC address of. If empty all available
 # ethernet interfaces will have their MAC address set the the DECnet
 # address. If you do not want to do that (or don't want to do it here)
-# then remove the -hw switch from the command
+# then remove the -hw switch from the command.
 #
-interfaces="-hw "
+# If running on Caldera OpenLinux you may need to add the -f switch to
+# startnet to force it to change the MAC address because that 
+# distribution's startup scripts UP all the interfaces before calling any
+# other scripts :-(
+#
+interfaces=""
 
-startnet="$prefix/sbin/startnet $interfaces"
+startnet="$prefix/sbin/startnet -hw $interfaces"
 
 #
 # See which distribution we are using and customise the start/stop 

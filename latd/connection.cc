@@ -215,11 +215,14 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		    // but still increment the remote credit if the other end
 		    // has run out.
 		    debuglog(("Remote credit is %d\n", session->get_remote_credit()));
-		    if (session->get_remote_credit() <= 1)
+		    if (session->get_remote_credit() <= 2)
 		    {
 			replyhere = true;
 			retcmd |= 15;
 			session->inc_remote_credit(15);
+// TODO BUG: This will fail if more than one slot needs more credit
+			msg->slot.remote_session = slotcmd->remote_session;
+			msg->slot.local_session  = slotcmd->local_session;
 		    }
                 }
                 else
@@ -309,8 +312,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		else // CLIENT
 		{
 		    if (session)
-			((ClientSession *)session)->got_connection(
-			    slotcmd->remote_session);
+			((ClientSession *)session)->got_connection(slotcmd->remote_session);
 		}    
 		break;
 
@@ -337,9 +339,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		{
 		    queued_slave = false;
 		}
+#if 0
 		retcmd = 0xd0;
 		replyslots = 1;
 		replyhere = true;
+#endif
 		break;	  
 
 	    default:

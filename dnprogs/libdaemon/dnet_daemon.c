@@ -49,13 +49,16 @@
 #define MAX_FORKS 10
 typedef int bool;
 
+#define NODE_LENGTH 20
+#define USERNAME_LENGTH 65
+
 // Structure of an item in the DECnet proxy database
 // These lengths are generous to allow for regular expressions
 struct proxy
 {
-    char node[20];
-    char remuser[65];
-    char localuser[65];
+    char node[NODE_LENGTH];
+    char remuser[USERNAME_LENGTH];
+    char localuser[USERNAME_LENGTH];
 
     regex_t node_r;
     regex_t remuser_r;
@@ -66,11 +69,11 @@ struct proxy
 // Object definition from dnetd.conf
 struct object
 {
-    char  name[65];         // Object name
-    unsigned int   number;  // Object number
-    bool  proxy;            // Whether to use proxies
-    char  user[34];         // User to use if proxies not used
-    char  daemon[256];      // Name of daemon
+    char  name[USERNAME_LENGTH]; // Object name
+    unsigned int number;         // Object number
+    bool  proxy;                 // Whether to use proxies
+    char  user[USERNAME_LENGTH]; // User to use if proxies not used
+    char  daemon[PATH_MAX];      // Name of daemon
 
     struct object *next;
 };
@@ -260,7 +263,7 @@ static void free_proxy(void)
 // Always returns false. Sets the error string to strerror(errno)
 static bool error_return(char *txt)
 {
-    sprintf(errstring, "%s: %s", txt, strerror(errno));
+    snprintf(errstring, sizeof(errstring), "%s: %s", txt, strerror(errno));
     lasterror = errstring;
     return FALSE;
 }
@@ -324,7 +327,8 @@ static int waitfor(int sockfd)
 	status = listen(sockfd, 5);
 	if (status)
 	{
-	    sprintf(errstring, "listen failed: %s", strerror(errno));
+	    snprintf(errstring, sizeof(errstring),
+		     "listen failed: %s", strerror(errno));
 	    lasterror = errstring;
 	    return -1;
 	}
@@ -337,7 +341,8 @@ static int waitfor(int sockfd)
     newsock = accept(sockfd, (struct sockaddr *)&sockaddr, &len);
     if (newsock < 0 && errno != EINTR)
     {
-        sprintf(errstring, "accept failed: %s", strerror(errno));
+        snprintf(errstring, sizeof(errstring),
+		 "accept failed: %s", strerror(errno));
 	lasterror = errstring;
 	return -1;
     }
@@ -357,10 +362,10 @@ static int fork_and_setuid(int sockfd)
 {
     struct  accessdata_dn accessdata;
     char   *cryptpass;
-    char    username[50];
-    char    password[50];
-    char    remote_user[50];
-    char    nodename[50];
+    char    username[USERNAME_LENGTH];
+    char    password[USERNAME_LENGTH];
+    char    remote_user[USERNAME_LENGTH];
+    char    nodename[NODE_LENGTH];
     struct  sockaddr_dn  sockaddr;
     unsigned int len = sizeof(accessdata);
     int      er;
@@ -383,7 +388,7 @@ static int fork_and_setuid(int sockfd)
     }
     else
     {
-	sprintf(nodename, "%d.%d", 
+	snprintf(nodename, sizeof(nodename), "%d.%d", 
 		(sockaddr.sdn_add.a_addr[1] >> 2),
 		(((sockaddr.sdn_add.a_addr[1] & 0x03) << 8) |
 		 sockaddr.sdn_add.a_addr[0]));
@@ -416,7 +421,8 @@ static int fork_and_setuid(int sockfd)
     if (getsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
 		   &len) < 0) 
     {
-        sprintf(errstring, "getsockopt failed: %s", strerror(errno));
+        snprintf(errstring, sizeof(errstring),
+		 "getsockopt failed: %s", strerror(errno));
 	lasterror = errstring;
 	return -1;
     }
@@ -493,7 +499,8 @@ static int fork_and_setuid(int sockfd)
     pw = getpwnam(username);
     if (!pw)
     {
-	sprintf(errstring, "Unknown username '%s' - access denied", username);
+	snprintf(errstring, sizeof(errstring),
+		 "Unknown username '%s' - access denied", username);
 	lasterror=errstring;
 	dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
 	return -1;
@@ -520,8 +527,9 @@ static int fork_and_setuid(int sockfd)
 	    struct spwd *spw = getspnam(username);
 	    if (!spw)
 	    {
-		sprintf(errstring, "Error reading /etc/shadow entry for %s: %s", 
-			username, strerror(errno));
+		snprintf(errstring, sizeof(errstring),
+			 "Error reading /etc/shadow entry for %s: %s", 
+			 username, strerror(errno));
 		lasterror=errstring;
 		if (verbose) DNETLOG((LOG_DEBUG, "UID is %d\n", getuid()));
 		dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
@@ -533,7 +541,8 @@ static int fork_and_setuid(int sockfd)
 	    cryptpass = crypt(password, spw->sp_pwdp);
 	    if (strcmp(cryptpass, spw->sp_pwdp))
 	    {
-		sprintf(errstring, "Incorrect password for %s", username);
+		snprintf(errstring, sizeof(errstring),
+			 "Incorrect password for %s", username);
 		lasterror=errstring;
 		dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
 		return -1;
@@ -546,7 +555,8 @@ static int fork_and_setuid(int sockfd)
  	    cryptpass = crypt(password, pw->pw_passwd);
 	    if (strcmp(cryptpass, pw->pw_passwd))
 	    {
-		sprintf(errstring, "Incorrect password for %s", username);
+		snprintf(errstring, sizeof(errstring),
+			 "Incorrect password for %s", username);
 		lasterror=errstring;
 		dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
 		return -1;
@@ -565,7 +575,8 @@ static int fork_and_setuid(int sockfd)
     switch (newpid)
     {
     case -1:
-	sprintf(errstring, "fork failed: %s", strerror(errno));
+	snprintf(errstring, sizeof(errstring),
+		 "fork failed: %s", strerror(errno));
 	lasterror = errstring;
 	break;
 
@@ -587,7 +598,11 @@ static int fork_and_setuid(int sockfd)
 	    return -1;
 	}
 #endif
-	chdir(pw->pw_dir);
+	if (chdir(pw->pw_dir))
+	{
+	    DNETLOG((LOG_WARNING, "Cannot chdir to %s : %m\n"));
+	    chdir("/");
+	}
 	break;
 
     default: // Parent
@@ -715,7 +730,8 @@ bool bind_number(int sockfd, int object)
 		  sizeof(bind_sockaddr));
     if (status)
     {
-	sprintf(errstring, "bind failed: %s\n", strerror(errno));
+	snprintf(errstring, sizeof(errstring),
+		 "bind failed: %s\n", strerror(errno));
 	lasterror=errstring;
 	return FALSE;
     }
@@ -739,7 +755,8 @@ bool bind_name(int sockfd, char *object)
 			sizeof(bind_sockaddr));
     if (status)
     {
-	sprintf(errstring, "bind failed: %s", strerror(errno));
+	snprintf(errstring, sizeof(errstring),
+		"bind failed: %s", strerror(errno));
 	lasterror=errstring;
 	return FALSE;
     }
@@ -762,7 +779,8 @@ bool bind_wild(int sockfd)
 			sizeof(bind_sockaddr));
     if (status)
     {
-	sprintf(errstring, "bind failed: %s", strerror(errno));
+	snprintf(errstring, sizeof(errstring),
+		 "bind failed: %s", strerror(errno));
 	lasterror=errstring;
 	return FALSE;
     }
@@ -860,7 +878,7 @@ int dnet_daemon(int object, char *named_object,
     // Create the socket
     if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
     {
-        sprintf(errstring, "socket failed: %s", strerror(errno));
+        snprintf(errstring, sizeof(errstring), "socket failed: %s", strerror(errno));
 	lasterror = errstring;
 	return -1;
     }

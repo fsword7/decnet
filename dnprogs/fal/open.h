@@ -13,7 +13,7 @@ class fal_open: public fal_task
   protected:
 
     glob_t        gl;
-    int           glob_entry; // file entry in the glob structure
+    unsigned int  glob_entry; // file entry in the glob structure
 
     int           display;
     FILE         *stream;

@@ -86,6 +86,7 @@ instructions on how to apply it.
 %%LIBPREFIX%%/lib/librms.so.%%MAJOR_VERSION%%
 %%LIBPREFIX%%/lib/librms.so.%%VERSION%%
 /usr/include/netdnet/dnetdb.h
+/usr/include/netdnet/dn.h
 /usr/include/rms.h
 /usr/include/rabdef.h
 /usr/include/fabdef.h

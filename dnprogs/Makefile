@@ -38,6 +38,7 @@ backup:
 clean:
 	rm -rf debian/tmp
 	rm -rf rpmbuild
+	rm -rf RPMS
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 #
@@ -47,7 +48,7 @@ dist:
 	for i in $(SUBDIRS); do cd $$i; makedepend; cd ..; done
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
-	cd ..; tar -czvhf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz -X$(PKGNAME)-$(VERSION)/excludes-dist $(PKGNAME)-$(VERSION);
+	cd ..; tar -czvhf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz -X$(PKGNAME)-$(VERSION)/excludes-dist $(PKGNAME)-$(VERSION)/;
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 
 #

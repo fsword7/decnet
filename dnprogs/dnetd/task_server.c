@@ -38,6 +38,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pwd.h>
+#ifdef DNETUSE_DEVPTS
+#include <pty.h>
+#endif
 
 static void execute_file(char *name, int newsock, int verbose);
 static void copy (int pty, int sock, pid_t pid);

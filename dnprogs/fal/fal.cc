@@ -219,24 +219,3 @@ void usage(char *prog, FILE *f)
     fprintf(f," -V        Show version\n");
     fprintf(f," -h        Help\n");
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

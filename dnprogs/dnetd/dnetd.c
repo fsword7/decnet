@@ -41,6 +41,8 @@
 #define SDF_WILD 1
 #endif
 
+#define MAX_ARGS 256
+
 void sigchild(int s);
 void sigterm(int s);
 int  open_server_socket(void);
@@ -67,7 +69,7 @@ void usage(char *prog, FILE *f)
 // Run a pre-defined daemon
 void exec_daemon(int sockfd, char *daemon_name)
 {
-    char *argv[256];
+    char *argv[MAX_ARGS];
     int   argc = 0;
     char *argp;
     int   err;
@@ -76,7 +78,7 @@ void exec_daemon(int sockfd, char *daemon_name)
 	    
     // Split the daemon command into a command and its args
     argp = strtok(daemon_name, " ");
-    while (argp)
+    while (argp && argc < MAX_ARGS)
     {
 	argv[argc++] = argp;
 	argp = strtok(NULL, " ");
@@ -101,12 +103,22 @@ void exec_daemon(int sockfd, char *daemon_name)
     // Look for the daemon in $(prefix) if the name is not absolute
     if (daemon_name[0] != '/')
     {
+	if (strlen(binary_dir)+strlen(daemon_name)+1 > PATH_MAX)
+	{
+	    DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
+	    return;
+	}
 	strcpy(name, binary_dir);
 	strcat(name, "/");
 	strcat(name, daemon_name);
     }
     else
     {
+	if (strlen(daemon_name) > PATH_MAX)
+	{
+	    DNETLOG((LOG_ERR, "Can't exec daemon %s. Name too long ", daemon_name));
+	    return;
+	}
 	strcpy(name, daemon_name);
     }
 

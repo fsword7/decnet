@@ -463,7 +463,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 		   ETHER_ADDR_LEN)) {
       /* silently ignore packets from us: */
       _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
-      return 0;
+      continue;
     }
     debuglog(("bpf: packet from %02x:%02x:%02x:%02x:%02x:%02x\n",
 	      ((struct ether_header *) (_latd_bpf_buffer + _latd_bpf_buffer_offset))->ether_shost[0],

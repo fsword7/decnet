@@ -1,0 +1,11 @@
+Source: dnprogs
+Section: net
+Priority: optional
+Maintainer: Patrick <patrick@pandh.demon.co.uk>
+Standards-Version: 2.4.1
+
+Package: dnprogs
+Architecture: i386
+Depends: ${shlibs:Depends}
+Description: DECnet programs for Linux.
+

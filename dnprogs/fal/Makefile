@@ -1,0 +1,33 @@
+# Makefile for FAL
+
+include ../Makefile.common
+
+PROG1=fal
+
+MANPAGES=fal.8 decnet.proxy.5
+
+PROG1OBJS=fal.o server.o task.o directory.o open.o create.o erase.o rename.o \
+          submit.o
+
+all: $(PROG1)
+
+$(PROG1): $(PROG1OBJS) $(DEPLIBS) $(DEPLIBDAEMON)
+	$(CXX) -o $@ $(CXXFLAGS) $(PROG1OBJS) $(LIBS) $(LIBDAEMON) $(LIBDNET)
+
+install:
+	install -d $(prefix)/sbin
+	install -d $(prefix)/man/man8
+	install -d $(prefix)/man/man5
+	install -m 0755 -s $(PROG1) $(prefix)/sbin
+	install -m 0644 fal.8 $(prefix)/man/man8
+	install -m 0644 decnet.proxy.5 $(prefix)/man/man5
+
+dep depend:	
+	makedepend *.cc *.c 2>/dev/null
+
+clean:
+	makedepend
+	rm -f $(PROG1) *.o *.bak
+
+
+# DO NOT DELETE THIS LINE -- make  depend  depends  on it.

@@ -1,0 +1,19 @@
+Begin3
+Title:          User programs for DECnet
+Version:        2.0
+Entered-date:   11JUL99
+Description:    User-level tools for Linux/DECnet. Includes file access
+                programs and daemon and terminal access programs and daemon.
+	        See http://linux.dreamtime.org/decnet for more info.
+Keywords:       DECnet network VMS VAX
+Author:         patrick@pandh.demon.co.uk (Patrick J Caulfield)
+                emserrat@hotmail.com (Eduardo M Serrat)
+Maintained-by:  patrick@pandh.demon.co.uk (Patrick J Caulfield)
+Primary-site:   metalab.unc.edu /pub/Linux/system/network
+                299882 dnprogs-2.0.tar.gz
+                832    dnprogs-2.0.lsm
+Alternate-site: ftp.dreamtime.org /pub/linux/decnet/dnprogs-2.0.tar.gz
+Original-site:  
+Platform:       Linux with DECnet kernel patch applied
+Copying-policy: GPL
+End

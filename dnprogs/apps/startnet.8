@@ -1,0 +1,53 @@
+.TH STARTNET 8 "July 27 1998" "DECnet utilities"
+
+.SH NAME
+startnet \- Start the DECnet protocol on Linux
+
+.SH SYNOPSIS
+.B startnet
+[options]
+.br
+Options:
+.br
+[\-hw]
+.br
+.SH DESCRIPTION
+.PP
+Starts the DECnet protocol.
+.br
+ 
+.br
+This utility must be run before any DECnet operation take place. It will 
+assign the multicast addresses needed to function as a DECnet endnode.
+Preferably, it must be included in one of the rc.d init scripts for automatic
+startup.
+
+.SS OPTIONS
+.TP
+.I "\-hw"
+Sets the hardware address of the ethernet card to the DECnet node address.
+This can only happen if 
+.B startnet
+is run before TCP/IP is started.
+.SS EXAMPLES
+.br
+Start the DECnet protocol on this Linux box.
+.br
+
+.br
+.PP
+    # startnet  -hw
+.br
+
+.SS HELPFUL HINTS
+Unfortunately, DECnet uses multiple physical addresses to deal with the routing
+layer. The only Ethernet Card that responds to multiple addresses is the DEC 
+TULIP. The other cards can only do this in "promiscous" mode, but it is not
+desirable to set your card in this mode. If you have not a DEC TULIP card 
+installed, you can still use DECnet to communicate with other DECnet nodes
+on the same LAN segment. Nevertheless, you will have to hard configure the
+DECnet node address in your Ethernet Card adapter. Please consult the README
+file that comes with the distribution.
+ 
+.SS SEE ALSO
+.BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnping "(1)" 

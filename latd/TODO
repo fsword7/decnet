@@ -1,5 +1,6 @@
 TODO in no particular order
 ----
+
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
 - Input flow control in case the PTY stops reading.
@@ -13,10 +14,7 @@ TODO in no particular order
 
 THINGS I MAY NOT DO
 -------------------
-
 - Allow /etc/issue.net files longer than 255 characters (I might allow up
   to 1020 if I'm feeling generous)
-- CR/LF conversion when printing /etc/issue.net - maybe force you
-  to use a different file instead.
 - Support multiple client sessions in one connection
 - Put the protocol bits into the kernel.

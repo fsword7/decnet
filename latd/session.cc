@@ -246,23 +246,39 @@ LATSession::~LATSession()
 
 
 // Send the issue.net greeting file
-// TODO maybe make this configurable?
 void LATSession::send_issue()
 {
     // Send /etc/issue.net
     int f = open("/etc/issue.net", O_RDONLY);
     if (f >= 0)
     {
-        struct stat st;
-	fstat(f, &st);
-	unsigned char *issue = new unsigned char[st.st_size];
-	read(f, issue, st.st_size);
-	if (st.st_size > 255) st.st_size = 255;
+	unsigned char *issue = new unsigned char[255];
+	unsigned char *newissue = new unsigned char[255];
+	
+	size_t len = read(f, issue, 255);
+	close(f);
+	
+	size_t newlen = 0;	
+	if (len > 255) len = 255;
+
+	// Start with a new line
+	newissue[newlen++] = '\r';
+	newissue[newlen++] = '\n';
+
+	// Add CR to all the LFs
+	for (unsigned int i=0; i<len && newlen<255; )
+	{
+	    if (issue[i] == '\n')
+		newissue[newlen++] = '\r';
+
+	    newissue[newlen++] = issue[i++];
+	}	
+	
 	echo_expected = false;
 
-	send_data(issue, st.st_size, 0x01);
+	send_data(newissue, newlen, 0x01);
 	delete[] issue;
-	close(f);
+	delete[] newissue;
     }
 }
 

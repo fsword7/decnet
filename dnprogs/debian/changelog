@@ -1,3 +1,13 @@
+dnprogs (2.15-1) unstable; urgency=low
+
+  * in librms/parse.cc pass va_list in a wrapper struct so that it works on 
+    powerpc systems.  Closes: bug#111680   
+  * add set -e to Makefile so it gives up on error. I never was any good at 
+    writing Makefiles.
+  * Minor manpage changes.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 15 Sep 2001 13:26:46 +0100
+
 dnprogs (2.14-1) unstable; urgency=low
 
   * Fixed random failures of dnet_conn caused by uninitialised structure member.

@@ -83,7 +83,7 @@ void LocalPort::init_port()
     // For ports with no service name (ie on DS90L servers)
     // send a request for the service if we are queued so that
     // by the time the user comes to use this port, we know about it.
-     if (service == "") 
+     if (service == "")
      {
          debuglog(("Dummy service NODE: %s\n", remnode.c_str()));
          LATServer::Instance()->add_slave_node(remnode.c_str());
@@ -143,7 +143,7 @@ LocalPort::~LocalPort()
 
 void LocalPort::close_and_delete()
 {
-    if (slave_fd_open) 
+    if (slave_fd_open)
     {
 	close (slave_fd);
 	slave_fd = -1;

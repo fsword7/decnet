@@ -265,11 +265,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                         // No echo.
                         if (role == SERVER)
 			{
-			    reply[num_replies]->remote_session = slotcmd->local_session;
-			    reply[num_replies]->local_session = slotcmd->remote_session;
-			    reply[num_replies]->length = 0;
-			    reply[num_replies]->cmd = 0;
-//			    num_replies++;
 			    replyhere = true;
 			}
                     }
@@ -763,7 +758,7 @@ void LATConnection::circuit_timer(void)
 		    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 		    buf[ptr++] = 0; // ASCIC source port
 		    buf[ptr++] = 0; // add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-		    add_string(buf, &ptr, remnode);
+		    add_string(buf, &ptr, servicename);
 		    add_string(buf, &ptr, portname);
 
 		    // Send it raw.
@@ -1085,7 +1080,7 @@ int LATConnection::connect(LATSession *session)
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    buf[ptr++] = 0; // ASCIC source port
 	    buf[ptr++] = 0; // add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-	    add_string(buf, &ptr, remnode); // woz servicename
+	    add_string(buf, &ptr, servicename);
 	    add_string(buf, &ptr, portname);
 
 	    // Save the time we sent the connect so we
@@ -1201,6 +1196,9 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 	ClientSession *s = (ClientSession *)sessions[1];
 	s->show_status(node, entry);
     }
+
+// TODO: mark this session (connection?) as waiting for connect so 
+// that, if the user quits, we can tell the server. (TODODO: what message ??)
 }
 
 int LATConnection::create_llogin_session(int fd, const char *service, const char *port, const char *localport,

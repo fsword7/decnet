@@ -1,4 +1,23 @@
-latd (1.19-1) unstable; urgency=low
+latd (1.20) unstable; urgency=low
+
+  * Loads of protocol fixes and speed enhancements, so many I've forgotten
+    them all now. Importantly I hope this version should be generally more
+    reliable and faster than previous ones.
+    NOTE: There are known problems with DECserver 90L terminal servers and
+          this release.
+  * Don't kill a circuit with outstanding data
+  * Add -b switch to moprc
+  * Add better support for DS90L servers reverse LAT
+    (belated) thanks to Dmitri Popov for this.
+  * (non-debian) Don't clobber /etc/latd.conf on "make install"
+  * Add --disable-defservice to ./configure
+  * Don't send out service multicasts if we have no services to advertise
+  * Don't keep retrying connects for ever
+  * Reduce delay between EOF and deleting a connection.
+  
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 19 Jan 2004 11:59:29 +0000
+
+latd (1.19) unstable; urgency=low
 
   * Some Darwin bpf interface fixes.
   * fix lat group on /dev/lat/ devices that was broken by my autoconf changes
@@ -6,8 +25,16 @@ latd (1.19-1) unstable; urgency=low
   * Fix memory leak caused by latcp -d & llogin -d
     (thanks to Sergei Gorbatov)
 
- --
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 20 Dec 2003 15:16:21 +0000
 
+latd (1.18.1-1) unstable; urgency=low
+  
+  * include <cassert>
+    Closes: #195153
+  
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 10 Jun 2003 08:21:04 +0100
+  
+  
 latd (1.18-1) unstable; urgency=low
 
   * Fix configure --enable-debug

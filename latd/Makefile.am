@@ -33,7 +33,7 @@ latcp_SOURCES = latcp.h latcp.cc utils.h utils.cc \
 	 dn_endian.h lat.h
 llogin_SOURCES = llogin.cc utils.cc
 moprc_SOURCES = moprc.h moprc.cc interfaces.cc utils.cc
-EXTRA_DIST = $(man_MANS) WARRANTY latd.conf lat.html \
+EXTRA_DIST = $(man_MANS) WARRANTY latd.conf.sample lat.html \
 	interfaces-linux.cc interfaces-linux.h \
 	interfaces-bpf.cc interfaces-bpf.h \
 	mkrpm.sh rpm.spec startlat.sh

@@ -26,7 +26,7 @@ class LATSession
     void inc_remote_credit(int inc) { remote_credit+=inc; }
     bool isConnected() { return connected; }
     bool waiting_start() { return state == STARTING; }
-    
+
     virtual void disconnect_session(int reason);
     virtual int new_session(unsigned char *_remote_node,
 			    char *service, char *port, unsigned char c)=0;

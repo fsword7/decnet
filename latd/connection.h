@@ -46,7 +46,7 @@ class LATConnection
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
     const char *getLocalPortName() { return lta_name; }
-    void show_client_info(bool verbose, ostrstream &);
+    void show_client_info(bool verbose, std::ostrstream &);
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
     bool node_is(char *node) { return strcmp(node, (char *)remnode)==0;}
@@ -131,7 +131,7 @@ class LATConnection
       bool  need_ack;
     };
 
-    queue<pending_msg> pending;
+    std::queue<pending_msg> pending;
 
     // This class & queue is for the slot messages. we coalesce these
     // into a "real" message when the crcuit timer triggers.
@@ -162,7 +162,7 @@ class LATConnection
         int            len;    
     };
 
-    queue<slot_cmd> slots_pending;
+    std::queue<slot_cmd> slots_pending;
     
     int max_window_size;  // As set by the client.
     int window_size;      // Current window size

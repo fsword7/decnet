@@ -628,7 +628,7 @@ void LATConnection::circuit_timer(void)
 	    LATServer::Instance()->delete_connection(num);
 	    
 	    // Mark this node as unavailable in the service list
-	    LATServices::Instance()->remove_node(string((char *)remnode));
+	    LATServices::Instance()->remove_node(std::string((char *)remnode));
 	    return;
 	}	
 	debuglog(("Last message not ACKed: RESEND\n"));
@@ -743,7 +743,7 @@ void LATConnection::remove_session(unsigned char id)
 int LATConnection::connect(ClientSession *session)
 {
    // Look up the service name.
-    string node;
+    std::string node;
     int  this_int=0;
 
     // Are we in the middle of actually connecting ?
@@ -756,7 +756,7 @@ int LATConnection::connect(ClientSession *session)
 	// If no node was specified then just use the highest rated one
 	if (remnode[0] == '\0')
 	{
-	    if (!LATServices::Instance()->get_highest(string((char*)servicename),
+	    if (!LATServices::Instance()->get_highest(std::string((char*)servicename),
 						      node, macaddr, &this_int))
 	    {
 		debuglog(("Can't find service %s\n", servicename));
@@ -769,8 +769,8 @@ int LATConnection::connect(ClientSession *session)
 	else
 	{
 	    // Try to find the node
-	    if (!LATServices::Instance()->get_node(string((char*)servicename),
-						   string((char*)remnode), macaddr, &this_int))
+	    if (!LATServices::Instance()->get_node(std::string((char*)servicename),
+						   std::string((char*)remnode), macaddr, &this_int))
 	    {
 		debuglog(("Can't find node %s in service\n", remnode, servicename));
 		
@@ -1007,16 +1007,16 @@ int LATConnection::num_clients()
 }
 
 
-void LATConnection::show_client_info(bool verbose, ostrstream &output)
+void LATConnection::show_client_info(bool verbose, std::ostrstream &output)
 {
     if (role == SERVER) return; // No client info for servers!
 
     // Only show llogin ports if verbose is requested.
     if (!verbose && strcmp(lta_name, "llogin")==0) return;
 
-    output << lta_name << setw(24-strlen((char*)lta_name)) << " " << servicename
-	   << setw(16-strlen((char*)servicename)) << " " 
-	   << remnode << setw(16-strlen((char*)remnode)) << " " << portname
-	   << setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No ") 
-	   << (eightbitclean?" 8":" ") << endl;
+    output << lta_name << std::setw(24-strlen((char*)lta_name)) << " " << servicename
+	   << std::setw(16-strlen((char*)servicename)) << " " 
+	   << remnode << std::setw(16-strlen((char*)remnode)) << " " << portname
+	   << std::setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No ") 
+	   << (eightbitclean?" 8":" ") << std::endl;
 }

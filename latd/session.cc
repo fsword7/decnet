@@ -355,10 +355,10 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
     // Increment the number of slots.
     LAT_Header *header = (LAT_Header *)buf;
     header->num_slots++;
-    if (parent.isClient())
+//    if (parent.isClient())
 	header->cmd = LAT_CCMD_SESSION;
-    else
-	header->cmd = LAT_CCMD_SDATA;
+//    else
+//	header->cmd = LAT_CCMD_SDATA;
 }
 
 void LATSession::crlf_to_lf(unsigned char *buf, int len, 

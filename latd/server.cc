@@ -54,7 +54,6 @@
 #include <string>
 #include <algo.h>
 #include <iterator>
-#include <string>
 #include <strstream>
 #include <iomanip>
 
@@ -97,10 +96,10 @@ void LATServer::get_all_interfaces()
     close(sock);
 }
 
-string LATServer::print_interfaces()
+std::string LATServer::print_interfaces()
 {
     struct ifreq ifr;
-    string str;
+    std::string str;
     int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     for (int i=0; i<num_interfaces;i++)
@@ -269,7 +268,7 @@ void LATServer::send_service_announcement(int sig)
 
     // Number of services
     packet[ptr++] = servicelist.size();
-    list<serviceinfo>::iterator i(servicelist.begin());    
+    std::list<serviceinfo>::iterator i(servicelist.begin());    
     for (; i != servicelist.end(); i++)
     {
 	// Service rating
@@ -287,19 +286,19 @@ void LATServer::send_service_announcement(int sig)
 	packet[ptr++] = real_rating;
 
 	// Service name
-	const string name = i->get_name();
+	const std::string name = i->get_name();
 	packet[ptr++]     = name.length();
 	strcpy((char *)packet+ptr, i->get_name().c_str());
 	ptr += name.length();
 
 	// Service Identification
-	string id = i->get_id();
+	std::string id = i->get_id();
 	if (id.length() == 0)
 	{
 	    // Default service identification string
 	    char stringbuf[1024];
 	    sprintf(stringbuf, "%s %s", uinfo.sysname, uinfo.release);
-	    id = string(stringbuf);
+	    id = std::string(stringbuf);
 	}
 
 	packet[ptr++] = id.length();
@@ -310,7 +309,7 @@ void LATServer::send_service_announcement(int sig)
 	unsigned char dummy_macaddr[6];
 	memset(dummy_macaddr, 0, sizeof(dummy_macaddr));
 	if (!do_shutdown)
-	    LATServices::Instance()->add_service(string((char*)get_local_node()),
+	    LATServices::Instance()->add_service(std::string((char*)get_local_node()),
 	  				         name,
 					         id, real_rating, 0, dummy_macaddr);
     }
@@ -531,7 +530,7 @@ void LATServer::run()
 	fd_set fds;    
 	FD_ZERO(&fds);
 
-	list<fdinfo>::iterator i(fdlist.begin());
+	std::list<fdinfo>::iterator i(fdlist.begin());
 	for (; i != fdlist.end(); i++)
 	{
 	    if (i->active())
@@ -560,7 +559,7 @@ void LATServer::run()
 	    }
 	    
 	    // Unix will never scale while this is necessary
-	    list<fdinfo>::iterator fdl(fdlist.begin());
+	    std::list<fdinfo>::iterator fdl(fdlist.begin());
 	    for (; fdl != fdlist.end(); fdl++)
 	    {
 		if (fdl->active() &&
@@ -574,7 +573,7 @@ void LATServer::run()
 	// Tidy deleted sessions
 	if (!dead_session_list.empty())
 	{
-	    list<deleted_session>::iterator dsl(dead_session_list.begin());
+	    std::list<deleted_session>::iterator dsl(dead_session_list.begin());
 	    for (; dsl != dead_session_list.end(); dsl++)
 	    {
 		delete_entry(*dsl);
@@ -585,7 +584,7 @@ void LATServer::run()
 	// Tidy deleted connections
 	if (!dead_connection_list.empty())
 	{
-	    list<int>::iterator dcl(dead_connection_list.begin());
+	    std::list<int>::iterator dcl(dead_connection_list.begin());
 	    for (; dcl != dead_connection_list.end(); dcl++)
 	    {
 		if (connections[*dcl])
@@ -768,7 +767,7 @@ void LATServer::read_lat(int sock)
 // Add an FD to the list of FDs to listen to
 void LATServer::add_fd(int fd, fd_type type)
 {
-    list<fdinfo>::iterator fdi;
+    std::list<fdinfo>::iterator fdi;
 
     debuglog(("Add_fd: %d\n", fd));
 
@@ -782,7 +781,7 @@ void LATServer::add_fd(int fd, fd_type type)
 // Remove FD from the FD list
 void LATServer::remove_fd(int fd)
 {
-    list<fdinfo>::iterator fdi;
+    std::list<fdinfo>::iterator fdi;
     debuglog(("remove_fd: %d\n", fd));
 
     fdi = find(fdlist.begin(), fdlist.end(), fd);
@@ -794,7 +793,7 @@ void LATServer::remove_fd(int fd)
 // Change the DISABLED state of a PTY fd
 void LATServer::set_fd_state(int fd, bool disabled)
 {
-    list<fdinfo>::iterator fdi;
+    std::list<fdinfo>::iterator fdi;
     debuglog(("set_fd_state: %d, %d\n", fd, disabled));
 
     fdi = find(fdlist.begin(), fdlist.end(), fd);
@@ -923,13 +922,13 @@ void LATServer::reply_to_enq(unsigned char *inbuf, int len, int interface,
     // See if it is for us if we're not doing responder work.
     if (!responder)
     {
-	list<serviceinfo>::iterator sii;
+	std::list<serviceinfo>::iterator sii;
 	sii = find(servicelist.begin(), servicelist.end(), (char *)req_service);
 	if (sii == servicelist.end()) return; // Not ours
     }
     
-    string node;
-    if (LATServices::Instance()->get_highest(string((char *)req_service), 
+    std::string node;
+    if (LATServices::Instance()->get_highest(std::string((char *)req_service), 
 					     node, reply_macaddr, &interface))
     {
 	reply_node = (unsigned char *)node.c_str();
@@ -1149,15 +1148,15 @@ void LATServer::add_services(unsigned char *buf, int len, int interface, unsigne
 
 	if ( announce->node_status%1 == 0)
 	{
-	    LATServices::Instance()->add_service(string((char*)nodename), 
-						 string((char*)service),
-						 string((char*)ident), 
+	    LATServices::Instance()->add_service(std::string((char*)nodename), 
+						 std::string((char*)service),
+						 std::string((char*)ident), 
 						 rating, 
 						 interface, macaddr);
 	}
 	else
 	{
-	    LATServices::Instance()->remove_node(string((char*)nodename));
+	    LATServices::Instance()->remove_node(std::string((char*)nodename));
 	}
     }
 }
@@ -1331,7 +1330,7 @@ void LATServer::Shutdown()
 bool LATServer::is_local_service(char *name)
 {
     // Look for it.
-    list<serviceinfo>::iterator sii;
+    std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii != servicelist.end()) return true;
 
@@ -1342,7 +1341,7 @@ bool LATServer::is_local_service(char *name)
 bool LATServer::add_service(char *name, char *ident, int _rating, bool _static_rating)
 {
     // Look for it.
-    list<serviceinfo>::iterator sii;
+    std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii != servicelist.end()) return false; // Already exists
 
@@ -1365,7 +1364,7 @@ bool LATServer::add_service(char *name, char *ident, int _rating, bool _static_r
 bool LATServer::set_rating(char *name, int _rating, bool _static_rating)
 {
     // Look for it.
-    list<serviceinfo>::iterator sii;
+    std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii == servicelist.end()) return false; // Not found it
     
@@ -1380,7 +1379,7 @@ bool LATServer::set_rating(char *name, int _rating, bool _static_rating)
 bool LATServer::set_ident(char *name, char *ident)
 {
     // Look for it.
-    list<serviceinfo>::iterator sii;
+    std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii == servicelist.end()) return false; // Not found it
 
@@ -1420,7 +1419,7 @@ bool LATServer::remove_port(char *name)
 bool LATServer::remove_service(char *name)
 {
     // Only add the service if it does not already exist.
-    list<serviceinfo>::iterator sii;
+    std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
     if (sii == servicelist.end()) return false; // Does not exist
     
@@ -1428,7 +1427,7 @@ bool LATServer::remove_service(char *name)
 
     // This is overkill but it gets rid of the service in the known
     // services table.
-    LATServices::Instance()->remove_node(string((char*)get_local_node()));
+    LATServices::Instance()->remove_node(std::string((char*)get_local_node()));
     
     // Resend the announcement message -- this will re-add our node
     // services back into the known services list.
@@ -1453,7 +1452,7 @@ void LATServer::set_nodename(unsigned char *name)
     debuglog(("New node name is %s\n", name));
 
     // Remove all existing node services
-    LATServices::Instance()->remove_node(string((char*)get_local_node()));
+    LATServices::Instance()->remove_node(std::string((char*)get_local_node()));
 
     // Set the new name
     strcpy((char *)local_name, (char *)name);
@@ -1476,13 +1475,13 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
 {
     int ret;
     unsigned char macaddr[6];
-    string servicenode;
+    std::string servicenode;
     int this_int;
 
     // If no node was specified then use the highest rated one    
     if (node[0] == '\0')
     {
-	if (!LATServices::Instance()->get_highest(string((char*)service),
+	if (!LATServices::Instance()->get_highest(std::string((char*)service),
 						  servicenode, macaddr, 
 						  &this_int))
 	{
@@ -1494,8 +1493,8 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
     else
     {
 	// Try to find the node
-	if (!LATServices::Instance()->get_node(string((char*)service),
-					       string((char*)node), macaddr, 
+	if (!LATServices::Instance()->get_node(std::string((char*)service),
+					       std::string((char*)node), macaddr, 
 					       &this_int))
 	{
 	    debuglog(("Can't find node %s in service\n", node, service));
@@ -1545,13 +1544,13 @@ int LATServer::make_client_connection(unsigned char *service,
 {
 #if 0
     unsigned char macaddr[6];
-    string servicenode;
+    std::string servicenode;
     int this_int;
 
     // If no node was specified then use the highest rated one    
     if (remnode[0] == '\0')
     {
-	if (!LATServices::Instance()->get_highest(string((char*)service),
+	if (!LATServices::Instance()->get_highest(std::string((char*)service),
 						  servicenode, macaddr, 
 						  &this_int))
 	{
@@ -1563,8 +1562,8 @@ int LATServer::make_client_connection(unsigned char *service,
     else
     {
 	// Try to find the node
-	if (!LATServices::Instance()->get_node(string((char*)service),
-					       string((char*)remnode), 
+	if (!LATServices::Instance()->get_node(std::string((char*)service),
+					       std::string((char*)remnode), 
 					       macaddr, 
 					       &this_int))
 	{
@@ -1594,40 +1593,40 @@ int LATServer::make_client_connection(unsigned char *service,
 
 
 // Make this as much like VMS LATCP SHOW NODE as possible.
-bool LATServer::show_characteristics(bool verbose, ostrstream &output)
+bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
 {
-    output <<endl;
-    output << "Node Name:  " << get_local_node() << setw(16-strlen((char*)get_local_node())) << " " << "    LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << endl;
-    output << "Node State: On " << "                 LATD Version:               " << VERSION << endl;
-    output << "Node Ident: " << greeting << endl;
-    output << endl;
+    output <<std::endl;
+    output << "Node Name:  " << get_local_node() << std::setw(16-strlen((char*)get_local_node())) << " " << "    LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << std::endl;
+    output << "Node State: On " << "                 LATD Version:               " << VERSION << std::endl;
+    output << "Node Ident: " << greeting << std::endl;
+    output << std::endl;
 
-    output << "Service Responder : " << (responder?"Enabled":"Disabled") << endl;
-    output << "Interfaces        : " << print_interfaces() << endl;
-    output << endl;
+    output << "Service Responder : " << (responder?"Enabled":"Disabled") << std::endl;
+    output << "Interfaces        : " << print_interfaces() << std::endl;
+    output << std::endl;
 
-    output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;
-    output << "Retransmit Limit:     " << setw(6) << retransmit_limit << endl;
-    output << "Multicast Timer (sec):" << setw(6) << multicast_timer << endl;
-    output << endl;
+    output << "Circuit Timer (msec): " << std::setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << std::setw(6) << keepalive_timer << std::endl;
+    output << "Retransmit Limit:     " << std::setw(6) << retransmit_limit << std::endl;
+    output << "Multicast Timer (sec):" << std::setw(6) << multicast_timer << std::endl;
+    output << std::endl;
 
     // Show groups
     output << "User Groups:     ";
     print_bitmap(output, true, user_groups);
     output << "Service Groups:  ";
     print_bitmap(output, groups_set, groups);
-    output << endl;
+    output << std::endl;
 
     // Show services we are accepting for.
-    output << "Service Name   Status   Rating  Identification" << endl;
-    list<serviceinfo>::iterator i(servicelist.begin());    
+    output << "Service Name   Status   Rating  Identification" << std::endl;
+    std::list<serviceinfo>::iterator i(servicelist.begin());    
     for (; i != servicelist.end(); i++)
     {
-	output << setw(16) << i->get_name() << setw(15-i->get_name().size()) << " " << "Enabled" << setw(6) << i->get_rating() <<
-	    (i->get_static()?"    ":" D  ") << i->get_id() << endl;
+	output << std::setw(16) << i->get_name() << std::setw(15-i->get_name().size()) << " " << "Enabled" << std::setw(6) << i->get_rating() <<
+	    (i->get_static()?"    ":" D  ") << i->get_id() << std::endl;
     }
 
-    output << endl << "Port                    Service         Node            Remote Port     Queued" << endl;
+    output << std::endl << "Port                    Service         Node            Remote Port     Queued" << std::endl;
     
     // Show allocated ports
     for (int i=1; i< MAX_CONNECTIONS; i++)
@@ -1636,7 +1635,7 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
     }	
     
     // NUL-terminate it.
-    output << endl << ends;
+    output << std::endl << ends;
 
     return true;
 }
@@ -1736,11 +1735,11 @@ int LATServer::find_connection_by_node(char *node)
 
 // Print a groups bitmap
 // TODO: print x-y format like we accept in latcp.
-void LATServer::print_bitmap(ostrstream &output, bool isset, unsigned char *bitmap)
+void LATServer::print_bitmap(std::ostrstream &output, bool isset, unsigned char *bitmap)
 {
     if (!isset)
     {
-	output << "0" << endl;
+	output << "0" << std::endl;
 	return;
     }
     
@@ -1761,7 +1760,7 @@ void LATServer::print_bitmap(ostrstream &output, bool isset, unsigned char *bitm
 	    thebyte = thebyte>>1;
 	}
     }
-    output << endl;
+    output << std::endl;
 }
 
 LATServer *LATServer::instance = NULL;

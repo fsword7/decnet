@@ -82,7 +82,7 @@ class LATServer
     gid_t lat_group;
 
     void  get_all_interfaces();
-    string print_interfaces();
+    std::string print_interfaces();
     int   find_interface(char *ifname);
     void  read_lat(int sock);
     float get_loadavg();
@@ -99,7 +99,7 @@ class LATServer
     void  accept_llogin(int);
     void  read_latcp(int);
     void  read_llogin(int);
-    void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);
+    void  print_bitmap(std::ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
     int   find_connection_by_node(char *node);
     
@@ -182,29 +182,29 @@ class LATServer
     class serviceinfo
     {
     public:
-	serviceinfo(string n, int r, bool s, string i = string("") ):
+	serviceinfo(std::string n, int r, bool s, std::string i = std::string("") ):
 	    name(n),
 	    id(i),
 	    rating(r),
 	    static_rating(s)
 	    {}
-	const string &get_name() {return name;}
-	const string &get_id() {return id;}
-	int           get_rating() {return rating;}
-	bool          get_static() {return static_rating;}
-	void          set_rating(int _new_rating, bool _static)
+	const std::string &get_name() {return name;}
+	const std::string &get_id() {return id;}
+	int                get_rating() {return rating;}
+	bool               get_static() {return static_rating;}
+	void              set_rating(int _new_rating, bool _static)
 	    { rating = _new_rating; static_rating = _static; }
 	void          set_ident(char *_ident)
-	    { id = string(_ident);}
+	    { id = std::string(_ident);}
 	
 	const bool operator==(serviceinfo &si)  { return (si == name);}
-	const bool operator==(const string &nm) { return (nm == name);}
+	const bool operator==(const std::string &nm) { return (nm == name);}
 	const bool operator!=(serviceinfo &si)  { return (si != name);}
-	const bool operator!=(const string &nm) { return (nm != name);}
+	const bool operator!=(const std::string &nm) { return (nm != name);}
 
     private:
-	string name;
-	string id;
+	std::string name;
+	std::string id;
 	int rating;
 	bool static_rating;
     };
@@ -217,16 +217,16 @@ class LATServer
     static const int MAX_CONNECTIONS = 255;
 
     // Collections
-    list<fdinfo>          fdlist;
-    list<deleted_session> dead_session_list;
-    list<int>             dead_connection_list;
-    list<serviceinfo>     servicelist;
+    std::list<fdinfo>          fdlist;
+    std::list<deleted_session> dead_session_list;
+    std::list<int>             dead_connection_list;
+    std::list<serviceinfo>     servicelist;
     
     // Connections indexed by ID
     LATConnection *connections[MAX_CONNECTIONS];
 
     // LATCP connections
-    map<int, Circuit*> latcp_circuits;
+    std::map<int, Circuit*> latcp_circuits;
 
     // LATCP configurable parameters
     int           circuit_timer;   // Default 8 (=80 ms)
@@ -250,7 +250,7 @@ class LATServer
     void set_multicast(int newtime);
     void set_nodename(unsigned char *);
     void unlock();
-    bool show_characteristics(bool verbose, ostrstream &output);
+    bool show_characteristics(bool verbose, std::ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,
 				unsigned char *, unsigned char *, bool, bool);
     int  make_llogin_connection(int fd, char *, char *,	char *, char *, bool);

@@ -95,7 +95,7 @@ bool LATCPCircuit::do_command()
     case LATCP_SHOWSERVICE:
     {
 	int verbose = cmdbuf[0];
-	ostrstream st;
+	std::ostrstream st;
 
 	debuglog(("latcp: show_services(verbose=%d)\n", verbose));
 
@@ -107,7 +107,7 @@ bool LATCPCircuit::do_command()
     case LATCP_SHOWCHAR:
     {
 	int verbose = cmdbuf[0];
-	ostrstream st;
+	std::ostrstream st;
 
 	debuglog(("latcp: show_characteristics(verbose=%d)\n", verbose));
 

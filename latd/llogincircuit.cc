@@ -97,7 +97,7 @@ bool LLOGINCircuit::do_command()
     case LATCP_SHOWSERVICE:
     {
 	int verbose = cmdbuf[0];
-	ostrstream st;
+	std::ostrstream st;
 
 	debuglog(("llogin: show_services(verbose=%d)\n", verbose));
 

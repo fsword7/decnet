@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     int   show_stats = 0;
     char  opt;
     struct timeval start_tv;
-    unsigned long bytes_copied = 0;
+    unsigned long long bytes_copied = 0;
 
     if (argc < 2)
     {
@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
 	show_secs = (double)centi_seconds/100.0;
 
 	rate = (double)(bytes_copied/1024) / (double)centi_seconds * 100.0;
-	printf("Sent %ld bytes in %1.2f seconds: %4.2fK/s\n",
+	printf("Sent %lld bytes in %1.2f seconds: %4.2fK/s\n",
 	       bytes_copied, show_secs, rate);
     }
 }

@@ -47,6 +47,9 @@
 #include <sys/time.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
+#ifdef DNETUSE_DEVPTS
+#include <pty.h>
+#endif
 
 #include "dn_endian.h"
 
@@ -193,7 +196,7 @@ void doit  (void)
 
 	rmterm_bind();
 
-#ifdef HAVE_DEVPTS
+#ifdef DNETUSE_DEVPTS
  	if (openpty(&pty, &t,NULL, NULL, NULL) == 0)
 		gotpty = 1;
 	else

@@ -53,7 +53,7 @@ DFLAGS=-g
 #------------------------------------------------------------------------------
 
 MAJOR_VERSION=2
-MINOR_VERSION=21
+MINOR_VERSION=22
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #
@@ -95,7 +95,12 @@ endif
 
 ifeq (/dev/pts,$(wildcard /dev/pts))
 ifeq (/usr/lib/libutil.a,$(wildcard /usr/lib/libutil.a))
-CFLAGS += -DDNETUSE_DEVPTS
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+endif
+
+ifeq (/usr/lib/libutil.so,$(wildcard /usr/lib/libutil.so))
+PTSDEFS=-DDNETUSE_DEVPTS
 PTSLIBS=-lutil
 endif
 endif
@@ -106,8 +111,8 @@ endif
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE
 INCLUDES=-I../libdap -I../include
-CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
-CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
+CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
 
 # Conditional for shared/static libs
 ifdef LINKSTATIC

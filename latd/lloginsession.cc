@@ -45,6 +45,7 @@ lloginSession::lloginSession(class LATConnection &p,
     // will be closed when it changes from a LLOGIN_FD to a PTY
     debuglog(("new llogin session: localid %d, remote id %d\n",
 	    localid, remid));
+    remote_node[0] = '\0';
 }
 
 int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
@@ -66,7 +67,7 @@ int lloginSession::connect_parent()
 
 void lloginSession::connect(char *service, char *port)
 {
-    debuglog(("connecting client session to '%s'\n", remote_node));
+    debuglog(("connecting llogin session to '%s'\n", remote_node));
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
@@ -113,9 +114,8 @@ void lloginSession::connect(char *service, char *port)
 // Disconnect the local socket
 void lloginSession::disconnect_sock()
 {
-// TODO THIS!!
     LATServer::Instance()->set_fd_state(master_fd, false);
-    LATServer::Instance()->delete_session(&parent, local_session, master_fd);
+    LATServer::Instance()->delete_connection(parent.get_connection_id());
 }
 
 

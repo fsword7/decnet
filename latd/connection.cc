@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -707,19 +707,11 @@ int LATConnection::connect()
 	if (!LATServices::Instance()->get_highest(string((char*)servicename),
 						  node, macaddr, &this_int))
 	{
-	    debuglog(("Can't find service %s, checking for node %s\n", 
-		      servicename, remnode));
-	    // Can't find service: look up by node name
-	    if (!LATServices::Instance()->get_highest(string((char*)remnode), 
-						      node, macaddr, &this_int))
-	    {
-		debuglog(("Can't find node %s\n", remnode));	
-
-		// Tell the user
-		ClientSession *cs = (ClientSession *)sessions[1];
-		cs->disconnect_session(7);
-		return -2; // Never eard of it!
-	    }
+	    debuglog(("Can't find service %s\n", servicename));
+	    // Tell the user
+	    ClientSession *cs = (ClientSession *)sessions[1];
+	    cs->disconnect_session(7);
+	    return -2; // Never eard of it!
 	}
 	strcpy((char *)remnode, node.c_str());
     }

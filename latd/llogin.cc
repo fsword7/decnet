@@ -59,7 +59,7 @@ static void make_upper(char *str);
 static int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 static bool send_msg(int fd, int cmd, char *buf, int len);
 static bool open_socket(bool);
-static int terminal(int latfd, char, int);
+static int terminal(int latfd, int, int, int);
 
 static int usage(char *cmd)
 {
@@ -70,6 +70,7 @@ static int usage(char *cmd)
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
     printf ("       -c         convert CR to LF\n");
+    printf ("       -b         convert DEL to BS\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
     return 0;
@@ -84,6 +85,7 @@ int main(int argc, char *argv[])
     signed char opt;
     int verbose = 0;
     int crlf = 0;
+    int bsdel = 0;
     int show_services = 0;
     int use_port = 0;
     int is_queued = 0;
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 	exit(usage(argv[0]));
     }  
 
-    while ((opt=getopt(argc,argv,"dpcvhQH:R:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhbQH:R:q:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -106,12 +108,19 @@ int main(int argc, char *argv[])
 	    crlf = 1;
 	    break;
 
+	case 'b':
+	    bsdel = 1;
+	    break;
+
 	case 'p':
 	    use_port = 1;
 	    break;
 
 	case 'q':
-	    quit_char = toupper(optarg[0]) - 'A' + 1;
+	    if (optarg[0] == '0')
+		quit_char = -1;
+	    else
+		quit_char = toupper(optarg[0]) - 'A' + 1;
 	    break;
 
 	case 'Q':
@@ -126,7 +135,7 @@ int main(int argc, char *argv[])
 	    strcpy(node, optarg);
 	    break;
 
-	case 'V':
+	case 'R':
 	    strcpy(port, optarg);
 	    break;
 
@@ -193,7 +202,7 @@ int main(int argc, char *argv[])
     if (ret) return ret;
 
     // If the reply was good then go into terminal mode.
-    terminal(latcp_socket, quit_char, crlf);
+    terminal(latcp_socket, quit_char, crlf, bsdel);
     return 0;
 }
 
@@ -281,18 +290,18 @@ static bool send_msg(int fd, int cmd, char *buf, int len)
     return true;
 }
 
-
-static int terminal(int latfd, char endchar, int crlf)
+// TODO: Make this nicer and more robust.
+static int terminal(int latfd, int endchar, int crlf, int bsdel)
 {
     int termfd = STDIN_FILENO;
     bool done = false;
-    char cr = '\r';
     struct termios old_term;
     struct termios new_term;
 
     tcgetattr(termfd, &old_term);
     new_term = old_term;
 
+// Set local terminal characteristics
     new_term.c_iflag &= ~BRKINT;
     new_term.c_iflag |= IGNBRK;
     new_term.c_lflag &= ~ISIG;
@@ -305,32 +314,44 @@ static int terminal(int latfd, char endchar, int crlf)
     while(!done)
     {
 	char inchar;
+	char inbuf[1024];
 	fd_set in_set;
 	FD_ZERO(&in_set);
 	FD_SET(termfd, &in_set);
 	FD_SET(latfd, &in_set);
 
 	if (select(FD_SETSIZE, &in_set, NULL, NULL, NULL) < 0)
-	    done = true;
-	if (FD_ISSET(termfd, &in_set))
 	{
-	    if (read(termfd, &inchar, 1) < 1)
-		done = true;
-	    else
-		write(latfd, &inchar, 1);
-
-	    if (inchar == endchar) done = true;
-
-	    if (inchar == '\r' && crlf)
-		write(latfd, &cr, 1);
+	    break;
 	}
 
+	// Read from keyboard. One at a time
+	if (FD_ISSET(termfd, &in_set))
+	{
+	    if ((read(termfd, &inchar, 1) < 1) ||
+		(endchar>0 && inchar == endchar))
+	    {
+		break;
+	    }
+
+	    if (inchar == '\n' && crlf)
+		inchar = '\r';
+
+	    if (inchar == '\177' && bsdel)
+		inchar = '\010';
+
+	    write(latfd, &inchar, 1);
+
+	}
+
+	// Read from LAT socket. buffered.
 	if (FD_ISSET(latfd, &in_set))
 	{
-	    if (read(latfd, &inchar, 1) < 1)
-		done = true;
+	    int len;
+	    if ( (len = read(latfd, &inbuf, sizeof(inbuf))) < 1)
+		break;
 	    else
-		write(termfd, &inchar, 1);
+		write(termfd, inbuf, len);
 	}
     }
     

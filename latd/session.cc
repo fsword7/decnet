@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2000 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -131,8 +131,6 @@ int LATSession::read_pty()
     }
 #endif
 
-    
-	
     // EOF or error on PTY - tell remote end to disconnect
     if (msglen <= 0)
     {

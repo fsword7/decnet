@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2000 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ class LATConnection
     bool isClient() { return role==CLIENT;}
     const char *getLocalPortName() { return lta_name; }
     void show_client_info(ostrstream &);
+    int get_connection_id() { return num;}
     
  private:
     int            num;           // Local connection ID

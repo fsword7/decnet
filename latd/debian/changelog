@@ -1,3 +1,13 @@
+latd (1.19-1) unstable; urgency=low
+
+  * Some Darwin bpf interface fixes.
+  * fix lat group on /dev/lat/ devices that was broken by my autoconf changes
+    in 1.17
+  * Fix memory leak caused by latcp -d & llogin -d
+    (thanks to Sergei Gorbatov)
+
+ --
+
 latd (1.18-1) unstable; urgency=low
 
   * Fix configure --enable-debug

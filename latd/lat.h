@@ -7,6 +7,8 @@
 #define LAT_VERSION     5
 #define LAT_VERSION_ECO 2
 
+#define        MAX_LAT_MTU     1500            // max ethernet packet
+
 // Name of the /dev/lat directory for local "ports"
 #define LAT_DIRECTORY "/dev/lat"
 
@@ -51,6 +53,21 @@ typedef struct
   unsigned short retrans_timer   __attribute__ ((packed));
 
 } LAT_Enquiry;
+
+typedef struct
+{
+    unsigned char  cmd             __attribute__ ((packed));
+    unsigned char  dummy           __attribute__ ((packed));
+    unsigned char  hiver           __attribute__ ((packed)); // Highest protocol version
+    unsigned char  lover           __attribute__ ((packed)); // Lowest protocol version
+    unsigned char  latver          __attribute__ ((packed)); // LAT version No. (5)
+    unsigned char  latver_eco      __attribute__ ((packed)); // LAT version No. (LSB)
+    unsigned short mtu             __attribute__ ((packed)); // 1500
+    unsigned short id              __attribute__ ((packed));
+    unsigned short retrans_timer   __attribute__ ((packed));
+
+} LAT_Enqreply;
+
 
 // Service Announcement message
 typedef struct

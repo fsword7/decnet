@@ -93,7 +93,7 @@ int ServerSession::send_login_response()
     reply->slot.cmd         = 0x0;
     reply->slot.local_session = 0;
     reply->slot.remote_session = 0;
-    parent.send_message(buf,sizeof(LAT_Header),LATConnection::REPLY);
+    parent.send_message(buf,sizeof(LAT_Header), LATConnection::REPLY);
 
 
     slotbuf[slotptr++] = 0x01; // Service Class

@@ -464,7 +464,7 @@ void LATSession::connect()
     reply->slot.length         = ptr - sizeof(LAT_SessionData);
     reply->slot.cmd            = 0x9f;
 
-    parent.send_message(buf, ptr, LATConnection::DATA);
+    parent.queue_message(buf, ptr);
 }
 
 
@@ -505,10 +505,7 @@ void LATSession::got_connection(unsigned char _remid)
 	credit--;
     }
 
-    if (parent.isClient())
-	parent.queue_message(buf, ptr);
-    else
-	parent.send_message(buf, ptr, LATConnection::REPLY);
+    parent.queue_message(buf, ptr);
 
     connected = true;
 }

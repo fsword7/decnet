@@ -13,7 +13,8 @@ class LATSession
 	credit(0),
 	request_id(0),
 	stopped(false),
-	remote_credit(0)
+	remote_credit(0),
+	master_conn(NULL)
       {}
     virtual ~LATSession();
 
@@ -35,6 +36,19 @@ class LATSession
     virtual void do_read() {}
     virtual void connect();
 
+    // These two are for queuedsession really, but we don't
+    // know what type of session we have in the connection dtor
+    void set_master_conn(LATConnection **master)
+	{
+	    master_conn = master;
+	}
+    LATConnection *get_master_conn()
+	{
+	    if (master_conn)
+	        return *master_conn;
+	    else
+		return NULL;
+	}
 
  protected:
     enum {NEW, STARTING, RUNNING, STOPPED} state;
@@ -58,7 +72,7 @@ class LATSession
     int            credit;
     bool           stopped;
     int            remote_credit;
-
+    LATConnection  **master_conn;
 
 
  protected:

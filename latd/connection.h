@@ -76,12 +76,10 @@ class LATConnection
     unsigned long  last_time;
     LATSession    *sessions[256];
 
-    bool           need_ack;
+    bool           need_ack;           // The message we last sent requires an ACK
     bool           queued;             // Client for queued connection.
-    bool           queued_slave;       // We are a slave connection for a queued client
     bool           eightbitclean;
     bool           connected;
-    LATConnection **master_conn;       // Client connection we are slave to
     bool           connecting;
     unsigned short request_id;         // For incoming reverse-LATs
 
@@ -90,7 +88,6 @@ class LATConnection
     int            last_msg_type;
 
     int next_session_number();
-    void send_a_reply(unsigned char local_session, unsigned char remote_session);
     bool is_queued_reconnect(unsigned char *buf, int len, int *conn);
 
     static const unsigned int MAX_SESSIONS = 254;
@@ -145,7 +142,8 @@ class LATConnection
       bool  need_ack;
     };
 
-    std::queue<pending_msg> pending;
+    // Queue of pending DATA messages
+    std::queue<pending_msg> pending_data;
 
     // This class & queue is for the slot messages. we coalesce these
     // into a "real" message when the crcuit timer triggers.
@@ -188,4 +186,8 @@ class LATConnection
 
     // name of client device to create
     char lta_name[255];
+
+    // Whether we need to send an ACK if there are no data messages
+    // available at the next circuit timer tick
+    bool send_ack;
 };

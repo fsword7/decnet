@@ -129,33 +129,32 @@ void LATServer::alarm_signal(int sig)
 void LATServer::send_enq(unsigned char *node)
 {
     unsigned char packet[1600];
+    static unsigned char id = 1;
     LAT_Enquiry *enqmsg = (LAT_Enquiry *)packet;
     int ptr = sizeof(LAT_Enquiry);
 
     enqmsg->cmd = LAT_CCMD_ENQUIRE;
     enqmsg->dummy = 0;
-    enqmsg->hiver = 5;
-    enqmsg->lover = 5;
-    enqmsg->latver = 5;
-    enqmsg->latver_eco = 2;
+    enqmsg->hiver = LAT_VERSION;
+    enqmsg->lover = LAT_VERSION;
+    enqmsg->latver = LAT_VERSION;
+    enqmsg->latver_eco = LAT_VERSION_ECO;
     enqmsg->mtu = dn_htons(1500);
-    enqmsg->id  = 1; /* Something here */
-    enqmsg->retrans_timer = 2;
+    enqmsg->id  = id++;
+    enqmsg->retrans_timer = 75; // * 10ms - give it more time to respond
 
     add_string(packet, &ptr, node);
     packet[ptr++] = 1; /* Length of group data */
     packet[ptr++] = 1; /* Group mask */
 
     add_string(packet, &ptr, local_name);
+    packet[ptr++] = 0x00;
+    packet[ptr++] = 0x00;
+    packet[ptr++] = 0x00;
+    packet[ptr++] = 0x00;
 
-    unsigned char addr[6];
     /* This is the LAT multicast address */
-    addr[0]  = 0x09;
-    addr[1]  = 0x00;
-    addr[2]  = 0x2b;
-    addr[3]  = 0x00;
-    addr[4]  = 0x00;
-    addr[5]  = 0x0f;
+    static unsigned char addr[6] = { 0x09, 0x00, 0x2b, 0x00, 0x00, 0x0f };
 
     for (int i=0; i<num_interfaces;i++)
     {
@@ -592,7 +591,7 @@ void LATServer::read_lat(int sock)
 	// Not listening yet, but we must read the message otherwise we
 	// we will spin until latcp unlocks us.
 	if (locked)
-	       continue;	
+	       continue;
 
 	// Parse & dispatch it.
 	switch(header->cmd)

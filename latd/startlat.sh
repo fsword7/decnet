@@ -9,11 +9,11 @@
 # processname: latd
 # config: /etc/latd.conf
 #
-# This script should go in /etc/rc.d/init.d
+# This script should go in /etc/rc.d/init.d/lat
 #
-# Yu can install it on a Red Hat system with:
+# You can install it on a Red Hat system with:
 #
-# chkconfig --level 345 latd on
+# chkconfig --level 345 lat on
 # -----------------------------------------------------------------------------
 #
 

@@ -3,16 +3,20 @@
 # Make an RPM
 #
 
-# Get the package and version from the configure script
-eval `grep ^PACKAGE= configure`
-eval `grep ^VERSION= configure`
-ARCH=`uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/`
-export PACKAGE VERSION ARCH
 
 echo "%_topdir `pwd`" > .rpmmacros
 echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 rm -rf rpmbuild BUILD RPMS config.cache
 ./configure --prefix=/usr --sysconfdir=/
+
+
+# Get the package and version from the configure script
+eval `grep "^ PACKAGE=" configure`
+eval `grep "^ VERSION=" configure`
+ARCH=`uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/`
+export PACKAGE VERSION ARCH
+
+
 make clean
 make
 make DESTDIR=`pwd`/rpmbuild install

@@ -68,7 +68,9 @@ flag indicates that connections to the service is queued. If you
 connect to a queued service and it is busy then your connection
 will be forced to wait until it is available. You must use this flag
 for printer services on DECserver 90L terminal servers, and in this case
-the service name must also be empty.
+the service name must also be empty. NOTE that the
+.B -Q
+flag is the opposite way round to that on Tru64 Unix(r).
 .br
 The
 .B -8

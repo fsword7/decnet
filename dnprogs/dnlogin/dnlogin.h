@@ -32,7 +32,10 @@ extern void tty_set_terminators(char *buf, int len);
 extern void tty_start_read(char *prompt, int len, int promptlen);
 extern void tty_set_timeout(unsigned short to);
 extern void tty_set_maxlen(unsigned short len);
+extern int  tty_process_terminal(char *inbuf, int len);
+extern int  tty_setup(char *name, int setup);
 
+extern int (*send_input)(char *buf, int len, int flags);
 
 /* Global variables */
 extern int debug;

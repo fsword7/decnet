@@ -8,7 +8,7 @@ PROG1=dnlogin
 
 MANPAGES=dnlogin.1
 
-PROG1OBJS=dnlogin.o found.o cterm.o
+PROG1OBJS=dnlogin.o found.o cterm.o tty.o
 
 all: $(PROG1)
 
@@ -21,7 +21,7 @@ install:
 	install -m 0755 -s $(PROG1) $(prefix)/bin
 	install -m 0644 $(MANPAGES) $(prefix)/man/man1
 
-dep depend:	
+dep depend:
 	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:

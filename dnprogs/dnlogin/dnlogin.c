@@ -34,140 +34,10 @@
 
 /* The global state */
 static int termfd = -1;
-static int exit_char = 035; /* Default to ^] */
+int exit_char = 035; /* Default to ^] */
 static int finished = 0;    /* terminate mainloop */
 
 int debug = 0;
-
-
-/* Input state buffers & variables */
-static unsigned char terminators[32];
-static char input_buf[1024];
-static int  input_len;
-static char prompt_buf[1024];
-static char prompt_len;
-static char esc_buf[132];
-static int  esc_len;
-static int  max_read_len = sizeof(input_buf);
-static int  echo = 1;
-
-/* Output processor */
-int (*send_input)(char *buf, int len, int flags);
-
-/* Raw write to terminal */
-int tty_write(char *buf, int len)
-{
-    return (write(termfd, buf, len) == len);
-}
-
-void tty_set_terminators(char *buf, int len)
-{
-    memset(terminators, 0, sizeof(terminators));
-    memcpy(terminators, buf, len);
-}
-
-void tty_start_read(char *prompt, int len, int promptlen)
-{
-    write(termfd, prompt, len);
-
-    /* Save the actual prompt in one buffer and the prefilled
-       data in th input buffer */
-    memcpy(prompt_buf, prompt, promptlen);
-    prompt_len = promptlen;
-
-    memcpy(input_buf, prompt+promptlen, len-promptlen);
-    input_len = len-promptlen;
-}
-
-void tty_set_timeout(unsigned short to)
-{
-    // TODO:
-}
-
-void tty_set_maxlen(unsigned short len)
-{
-    max_read_len = len;
-}
-
-/* Set/Reset the local TTY mode */
-static int setup_tty(char *name, int setup)
-{
-    struct termios new_term;
-    static struct termios old_term;
-
-    if (setup)
-    {
-	termfd = open(name, O_RDWR);
-
-	tcgetattr(termfd, &old_term);
-	new_term = old_term;
-
-	new_term.c_iflag &= ~BRKINT;
-	new_term.c_iflag |= IGNBRK;
-	new_term.c_lflag &= ~ISIG;
-	new_term.c_cc[VMIN] = 1;
-	new_term.c_cc[VTIME] = 0;
-	new_term.c_lflag &= ~ICANON;
-	new_term.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
-	tcsetattr(termfd, TCSANOW, &new_term);
-    }
-    else
-    {
-	tcsetattr(termfd, TCSANOW, &old_term);
-	close(termfd);
-    }
-
-    return 0;
-}
-
-static short is_terminator(char c)
-{
-    short termind, msk, aux;
-
-    termind = c / 8;
-    aux = c - (termind * 8);
-    msk = (1 << aux);
-
-    if (terminators[termind] && msk)
-    {
-	return 1;
-    }
-    return 0;
-}
-
-/* Input from keyboard */
-static int process_terminal(char *buf, int len)
-{
-    int i;
-
-    for (i=0; i<len; i++)
-    {
-	if (buf[i] == exit_char)
-	{
-	    finished = 1;
-	    return 0;
-	}
-
-	if (echo)
-	    write(termfd, &buf[i], 1);
-
-	if (is_terminator(buf[i]))
-	{
-	    send_input(&buf[i], 1, 0);
-	    return 0;
-	}
-
-	// TODO: process line-editting keys & flags
-	input_buf[input_len++] = buf[i];
-	if (input_len == max_read_len)
-	{
-	    send_input(input_buf, input_len, 0);
-	}
-
-	// TODO: Loads more.
-    }
-    return 0;
-}
 
 static int mainloop(void)
 {
@@ -195,7 +65,7 @@ static int mainloop(void)
 		perror("read tty");
 		break;
 	    }
-	    process_terminal(inbuf, len);
+	    tty_process_terminal(inbuf, len);
 	}
 
 	if (found_read() == -1)
@@ -281,9 +151,9 @@ int main(int argc, char *argv[])
     send_input = cterm_send_input;
     if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
     {
-	setup_tty("/dev/tty", 1);
+	tty_setup("/dev/tty", 1);
 	mainloop();
-	setup_tty(NULL, 0);
+	tty_setup(NULL, 0);
     }
     else
     {

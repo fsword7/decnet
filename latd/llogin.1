@@ -9,7 +9,7 @@ llogin \- Connect to a LAT service
 .br
 Options:
 .br
-[\-cbhQ] [\-H node] [\-R port] [\-q quit char]
+[\-cpbhQ] [\-H node] [\-R port] [\-q quit char]
 .SH DESCRIPTION
 .PP
 llogin connects your terminal to a LAT service via latd, the service name
@@ -23,14 +23,15 @@ Remote nodename. If the service is advertised by more than one node and you
 want to connect to a particular node then use this switch. By default
 you will be connected to the node with the highest rating.
 .TP
-.I "\-P"
+.I "\-R"
 Connect to a specific port on (usually) a terminal server. This is the port 
 NAME on the server and not the port number.
 .TP
 .I "\-c"
-Convert LF to CR. By default all characters entered at the keyboard will be
-send unaltered to the remote system. This switch will cause the CR key to send
-LF instead. Useful for connecting to VMS consoles.
+Do not convert LF to CR. By default the enter key generates LF and this
+gets converted to CR as this is the most generically useful translation.
+This switch will cause the enter key to send LF instead. Occasionally 
+useful for connecting to Unix consoles.
 .TP
 .I "\-b"
 Convert DEL to BS. By default all characters entered at the keyboard will be
@@ -38,14 +39,22 @@ send unaltered to the remote system. This switch will cause the DEL key to send
 BS instead. Useful for some Unix systems connected via terminal servers.
 .TP
 .I "\-q <char>"
-Change the quit character. By default z NUL (shift-@) will quit the terminal 
-session, entering a character after -q will cause CTRL-<char> to be the quit 
+Change the quit character. By default shift-] will quit the terminal 
+session. Entering a character after -q will cause CTRL-<char> to be the quit 
 character for that session. -q0 will disable the quit character. If you use 
 this make sure you are connected to a service that will disconnect you when 
 you log out!
+.TP
 .I "\-Q"
 Tells latd that the service you are connecting to is queued service and not a
 normal login service.
+.TP
+.I "\-p"
+Tells llogin to connect to the device named instead of a LAT service. This 
+would usually be a /dev/lat pseudo-terminal but could be any other device
+you like really. This does not make the program useful as a terminal program
+because there is no way to set any serial parameters, nor am I going to
+add them.
 
 .SS SEE ALSO
 .BR latcp "(8), " latd "(8)"

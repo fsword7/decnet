@@ -252,7 +252,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							 cs,
 							 slotcmd->remote_session, 
 							 newsessionnum, 
-							 eightbitclean);
+							 master_conn->eightbitclean);
 			    if (newsession->new_session(remnode, 
 							credits) == -1)
 			    {

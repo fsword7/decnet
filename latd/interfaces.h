@@ -59,4 +59,7 @@ class LATinterfaces
 
     // Close an interface.
     virtual int close_connection(int ifn)=0;
+
+    // Creates a platform-specifc interfaces class
+    static LATinterfaces *Create();
 };

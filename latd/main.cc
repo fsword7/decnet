@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     mtrace();
 #endif
 
-    strcpy(greeting,  "A Linux box");
+    strcpy(greeting,  "GPL LATD by Patrick Caulfield");
     interface[0] = '\0';
     memset(interfaces, 0, sizeof(interfaces));
 

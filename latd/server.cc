@@ -56,8 +56,6 @@
 #include "llogincircuit.h"
 #include "server.h"
 #include "services.h"
-//#include "interfaces.h"
-#include "interfaces-linux.h"
 #include "lat_messages.h"
 #include "dn_endian.h"
 
@@ -367,7 +365,7 @@ void LATServer::run()
     // Don't start sending service announcements
     // until we get an UNLOCK message from latcp.
 
-    // We rely on Linux's select() behaviour in that we use the
+    // We rely on POSIX's select() behaviour in that we use the
     // time left in the timeval parameter to make sure the circuit timer
     // goes off at a reasonably predictable interval.
     struct timeval tv = {0, circuit_timer*10000};
@@ -801,7 +799,7 @@ void LATServer::init(bool _static_rating, int _rating,
     locked = true;
 
     /* Initialise the platform-specific interface code */
-    iface = new LinuxInterfaces();
+    iface = LATinterfaces::Create();
     if (iface->Start() == -1)
     {
 	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");

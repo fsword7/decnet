@@ -797,12 +797,16 @@ void start_latd(int argc, char *argv[])
 // we get the full path of the current executable by doing a readlink.
 // /proc/<pid>/exe
 
+#ifdef __linux__
 	sprintf(latcp_proc, "/proc/%d/exe", getpid());
 	if ( (i=readlink(latcp_proc, latcp_bin, sizeof(latcp_bin))) == -1)
 	{
 	    fprintf(stderr, "readlink in /proc failed. Make sure the the proc filesystem is mounted on /proc\n");
 	    exit(2);
 	}
+#else
+#error OK, a bit more porting work needed here too.
+#endif
 	sprintf(latcp_env, "LATCP=%s", latcp_bin);
 
 	newargv[0] = latd_bin;

@@ -6,7 +6,7 @@ package=latd
 
 build:
 	$(checkdir)
-	./configure --prefix=/usr --sysconfdir=/
+	./configure --prefix=/usr --sysconfdir=/etc
 	make
 	touch build
 
@@ -31,7 +31,6 @@ binary-arch: checkroot build
 	$(checkdir)
 	install -d debian/tmp/etc
 	install -d debian/tmp/usr/share
-	install -m 0600 latd.conf debian/tmp/etc/latd.conf
 	make install DESTDIR=`pwd`/debian/tmp
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	dh_installdirs

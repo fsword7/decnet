@@ -597,17 +597,18 @@ void LATServer::run()
 #ifndef __linux__
 	      next_circuit_time.tv_sec = 0;
 #endif
-	      continue;
 	    }
-
-	    // Unix will never scale while this is necessary
-	    std::list<fdinfo>::iterator fdl(fdlist.begin());
-	    for (; fdl != fdlist.end(); fdl++)
+	    else
 	    {
-		if (fdl->active() &&
-		    FD_ISSET(fdl->get_fd(), &fds))
+		// Unix will never scale while this is necessary
+		std::list<fdinfo>::iterator fdl(fdlist.begin());
+		for (; fdl != fdlist.end(); fdl++)
 		{
-		    process_data(*fdl);
+		    if (fdl->active() &&
+			FD_ISSET(fdl->get_fd(), &fds))
+		    {
+			process_data(*fdl);
+		    }
 		}
 	    }
 	}

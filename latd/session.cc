@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001,2005 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -467,7 +467,6 @@ void LATSession::connect()
     // Add in the request ID for reverse connections
     if (request_id)
     {
-	if (ptr & 1) ptr++;
 	debuglog(("Sending request id %d, and port %s\n", request_id, ptyname));
 	buf[ptr++] = 2; // Parameter number
 	buf[ptr++] = 2; // Length of the short int

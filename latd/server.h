@@ -102,6 +102,7 @@ class LATServer
     void  read_llogin(int);
     void  print_bitmap(std::ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
+    int   make_connection(int fd, const char *, const char *, const char *, const char *, const char *, bool);
 
     static void alarm_signal(int sig);
 
@@ -273,7 +274,7 @@ class LATServer
     int  create_local_port(unsigned char *, unsigned char *,
 			   unsigned char *, unsigned char *, bool, bool,
 			   unsigned char *);
-    int  make_llogin_connection(int fd, char *, char *,	char *, char *, char *, bool);
+    int  make_llogin_connection(int fd, const char *, const char *, const char *, const char *, const char *, bool);
     int  make_port_connection(int fd, LocalPort *, const char *, const char *, const char *,
 			      const char *, const char *, bool);
     int  set_servergroups(unsigned char *bitmap);

@@ -172,7 +172,7 @@ typedef struct
     unsigned short elapsed_time  __attribute__ ((packed)); // set to -1? seconds
     unsigned short min_que_pos   __attribute__ ((packed));
     unsigned short max_que_pos   __attribute__ ((packed));
-    // ASCIC Service Name (usually NUL)
+    // ASCIC Service Name
     // ASCIC Port Name
     // ASCIC Service description
 

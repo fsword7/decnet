@@ -41,7 +41,7 @@ class LATConnection
 		  const char *_lta, const char *remnode,
 		  bool queued, bool clean);
     int connect(class ClientSession *);
-    int create_llogin_session(int, char *service, char *port, char *localport, char *password);
+    int create_llogin_session(int, const char *service, const char *port, const char *localport, const char *password);
     int create_localport_session(int, class LocalPort *, const char *service,
 				 const char *port, const char *localport,
 				 const char *password);

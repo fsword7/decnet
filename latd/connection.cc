@@ -942,15 +942,15 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
     }
 }
 
-int LATConnection::create_llogin_session(int fd, char *service, char *port, char *localport, 
-					 char *password)
+int LATConnection::create_llogin_session(int fd, const char *service, const char *port, const char *localport,
+					 const char *password)
 {
 // Create an lloginSession
     int newsessionnum = next_session_number();
 
     lloginSession *newsession = new lloginSession(*this, 0, newsessionnum,
-					       localport, fd);
-    if (newsession->new_session(remnode, service, port, password, 0) == -1)
+						  (char *)localport, fd);
+    if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, (char *)password, 0) == -1)
     {
 	delete newsession;
 	return -1;

@@ -35,6 +35,7 @@
 #include "clientsession.h"
 #include "lloginsession.h"
 #include "lat_messages.h"
+#include "dn_endian.h"
 
 lloginSession::lloginSession(class LATConnection &p,
 			     unsigned char remid, unsigned char localid,
@@ -179,17 +180,21 @@ void lloginSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
     char buffer[1024];
     int len;
 
-    len = snprintf(buffer, sizeof(buffer), "LAT: You are queued for node %s, position %d\n",
-		   node, entry->max_que_pos);
+    if (entry->max_que_pos != 0)
+    {
+	len = snprintf(buffer, sizeof(buffer), "LAT: You are queued for %s, position %d\n",
+		       node, dn_ntohs(entry->max_que_pos));
 
-    write(master_fd, buffer, len);
-    have_been_queued = true;
+	write(master_fd, buffer, len);
+	have_been_queued = true;
+    }
 }
 
 
 // Called when a PortSession connects to us
 void lloginSession::start_port()
 {
-    if (have_been_queued) write(master_fd, "LAT: Connected\n", 15);
+    if (have_been_queued)
+	write(master_fd, "LAT: Connected\n", 15);
 }
 

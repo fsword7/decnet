@@ -110,9 +110,9 @@ void LATServer::alarm_signal(int sig)
 }
 
 
-// Send ENQUIRY for a service - mainly needed for DS90L servers that
+// Send ENQUIRY for a node - mainly needed for DS90L servers that
 // don't advertise.
-void LATServer::send_enq(unsigned char *service)
+void LATServer::send_enq(unsigned char *node)
 {
     unsigned char packet[1600];
     LAT_Enquiry *enqmsg = (LAT_Enquiry *)packet;
@@ -128,7 +128,7 @@ void LATServer::send_enq(unsigned char *service)
     enqmsg->id  = 1; /* Something here */
     enqmsg->retrans_timer = 2;
 
-    add_string(packet, &ptr, service);
+    add_string(packet, &ptr, node);
     packet[ptr++] = 1; /* Length of group data */
     packet[ptr++] = 1; /* Group mask */
 
@@ -754,13 +754,14 @@ void LATServer::forward_status_messages(unsigned char *inbuf, int len)
 	LAT_StatusEntry *entry = (LAT_StatusEntry *)&inbuf[ptr];
 	if (entry->length == 0) break;
 
+	ptr += sizeof(LAT_StatusEntry);
+	get_string(inbuf, &ptr, node); // Service name
+	ptr += inbuf[ptr]+1; // Past port name
+	ptr += inbuf[ptr]+1; // Past service description
+
 	if (connections[entry->request_id])
 	    connections[entry->request_id]->got_status(node, entry);
 
-	ptr += sizeof(LAT_StatusEntry);
-	ptr += inbuf[ptr]+1; // Past service name
-	ptr += inbuf[ptr]+1; // Past port name
-	ptr += inbuf[ptr]+1; // Past service description
     }
 }
 
@@ -968,23 +969,22 @@ void LATServer::delete_connection(int conn)
     dead_connection_list.push_back(conn);
 }
 
-// Got a reply from a DS90L - add it to the services list
+// Got a reply from a DS90L - add it to the services list in a dummy service
 void LATServer::got_enqreply(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
     int ptr = 23;
 
-/* Don't know the format of this packet before this... */
+// Don't know the format of this packet before this...
 
     ptr += buf[ptr++]; /* Skip group codes; */
 
     unsigned char nodename[32];
     get_string(buf, &ptr, nodename);
 
-/* Add it as a service. This is, technically, wrong but it will
-   do for the mo. */
+// Add it to the dummy service.
     LATServices::Instance()->add_service(std::string((char*)nodename),
-					 std::string((char*)nodename),
-					 std::string((char*)"DS90L"),
+					 std::string((char*)""), // Dummy service name
+					 std::string((char*)"Dummy Service for DS90L servers"),
 					 0,
 					 interface, macaddr);
 }
@@ -1326,6 +1326,7 @@ bool LATServer::remove_port(char *name)
     {
 	if (strcmp(p->get_devname().c_str(), name) == 0)
 	{
+	    p->close_and_delete();
 	    portlist.erase(p);
 	    return true;
 	}
@@ -1391,11 +1392,10 @@ void LATServer::unlock()
     alarm_signal(SIGALRM);
 }
 
-
-int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *port,
-				      char *localport, char *password, bool queued)
+// Generic make_connection code for llogin & port sessions.
+int LATServer::make_connection(int fd, const char *service, const char *rnode, const char *port,
+			       const char *localport, const char *password, bool queued)
 {
-    int ret;
     unsigned char macaddr[6];
     std::string servicenode;
     int this_int;
@@ -1429,8 +1429,11 @@ int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *
 	}
     }
 
-/* Look for a connection that's already in use for this node */
-    int connid = find_connection_by_node(node);
+// Look for a connection that's already in use for this node, unless we
+// are queued in which case we need to allocate a new connection for
+// initiating the connection and receiving status requests on.
+    int connid = -1;
+    if (!queued) connid = find_connection_by_node(node);
     if (connid == -1)
     {
 	// None: create a new one
@@ -1443,12 +1446,23 @@ int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *
 						queued,
 						false);
     }
-    if (connid == -1)
-    {
-	return -1; // Failed
-    }
+
+    return connid;
+}
+
+
+int LATServer::make_llogin_connection(int fd, const char *service, const char *rnode, const char *port,
+				      const char *localport, const char *password, bool queued)
+{
+    int ret;
+    int connid;
 
     debuglog(("lloginSession for %s has connid %d\n", service, connid));
+
+    connid = make_connection(fd, service, rnode, port, localport, password, queued);
+    if (connid < 0)
+	return connid;
+
     ret = connections[connid]->create_llogin_session(fd, service, port, localport, password);
 
     // Remove LLOGIN socket from the list as it's now been
@@ -1470,61 +1484,14 @@ int LATServer::make_port_connection(int fd, LocalPort *lport,
 				    bool queued)
 {
     int ret;
-    unsigned char macaddr[6];
-    std::string servicenode;
-    int this_int;
-    char node[255];
+    int connid;
 
-    // Take a local copy of the node so we can overwrite it.
-    strcpy(node, rnode);
-
-    // If no node was specified then use the highest rated one
-    if (node[0] == '\0')
-    {
-	if (!LATServices::Instance()->get_highest(std::string((char*)service),
-						  servicenode, macaddr,
-						  &this_int))
-	{
-	    debuglog(("Can't find service %s\n", service));
-	    return -2; // Never eard of it!
-	}
-	strcpy((char *)node, servicenode.c_str());
-    }
-    else
-    {
-	// Try to find the node
-	if (!LATServices::Instance()->get_node(std::string((char*)service),
-					       std::string((char*)node), macaddr,
-					       &this_int))
-	{
-	    debuglog(("Can't find node %s in service\n", node, service));
-
-	    return -2;
-	}
-    }
-
-/* Look for a connection that's already in use for this node */
-    int connid = find_connection_by_node(node);
-    if (connid == -1)
-    {
-	// None: create a new one
-	connid = get_next_connection_number();
-	connections[connid] = new LATConnection(connid,
-						(char *)service,
-						(char *)port,
-						(char *)localport,
-						(char *)node,
-						queued,
-						false);
-    }
-    if (connid == -1)
-    {
-	return -1; // Failed
-    }
+    connid = make_connection(fd, service, rnode, port, localport, password, queued);
+    if (connid < 0)
+	return connid;
 
     debuglog(("localport for %s has connid %d\n", service, connid));
 
-    // TODO: Different call into Connection()
     ret = connections[connid]->create_localport_session(fd, lport, service,
 							port, localport, password);
 

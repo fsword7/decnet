@@ -25,6 +25,7 @@
 #include <netdnet/dnetdb.h>
 #include <fcntl.h>
 #include <ctype.h>
+#include "dn_endian.h"
 
 struct	sockaddr_dn		sockaddr;
 static  struct	nodeent		*np;
@@ -193,7 +194,7 @@ int setup_link(void)
     sockaddr.sdn_flags	  = 0x00;
     sockaddr.sdn_objnum	  = 0x00;
     memcpy(sockaddr.sdn_objname, filename, strlen(filename));
-    sockaddr.sdn_objnamel = strlen(filename);
+    sockaddr.sdn_objnamel = dn_htons(strlen(filename));
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
     sockaddr.sdn_add.a_len = 2;
 

@@ -143,7 +143,7 @@ bool dap_connection::connect(char *node, char *user, char *password,
 	return false;
     }
     memcpy(sockaddr.sdn_objname, object, strlen(object));
-    sockaddr.sdn_objnamel = strlen(object);
+    sockaddr.sdn_objnamel = dn_htons(strlen(object));
 
     return do_connect(node, user, password, sockaddr);
 }
@@ -205,7 +205,7 @@ bool dap_connection::connect(char *fspec, char *object, char *tailspec)
 	return false;
     }
     memcpy(sockaddr.sdn_objname, object, strlen(object));
-    sockaddr.sdn_objnamel = strlen(object);
+    sockaddr.sdn_objnamel = dn_htons(strlen(object));
     
     return do_connect(node, 
 		      (char *)accessdata.acc_user, 
@@ -606,7 +606,7 @@ bool dap_connection::bind(char *object)
 	return false;
     }
     memcpy(bind_sockaddr.sdn_objname, object, strlen(object));
-    bind_sockaddr.sdn_objnamel	= strlen(object);
+    bind_sockaddr.sdn_objnamel	= dn_htons(strlen(object));
 
     int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
 			sizeof(bind_sockaddr));

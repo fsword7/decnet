@@ -42,6 +42,7 @@
 #ifdef SHADOW_PWD
 #include <shadow.h>
 #endif
+#include "dn_endian.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -431,8 +432,8 @@ static int fork_and_setuid(int sockfd)
     memcpy(password, accessdata.acc_pass, accessdata.acc_passl);
     password[accessdata.acc_passl] = '\0';
 #ifdef SDF_UICPROXY // Steve's kernel
-    memcpy(remote_user, sockaddr.sdn_objname, sockaddr.sdn_objnamel);
-    remote_user[sockaddr.sdn_objnamel] = '\0';
+    memcpy(remote_user, sockaddr.sdn_objname, dn_ntohs(sockaddr.sdn_objnamel));
+    remote_user[dn_ntohs(sockaddr.sdn_objnamel)] = '\0';
 #else // Eduardo's kernel
     memcpy(remote_user, accessdata.acc_acc, accessdata.acc_accl);
     remote_user[accessdata.acc_accl] = '\0';
@@ -747,7 +748,7 @@ bool bind_name(int sockfd, char *object)
     bind_sockaddr.sdn_family    = AF_DECnet;
     bind_sockaddr.sdn_flags	= 0;
     bind_sockaddr.sdn_objnum	= 0;
-    bind_sockaddr.sdn_objnamel	= strlen(object);
+    bind_sockaddr.sdn_objnamel	= dn_htons(strlen(object));
     strcpy(bind_sockaddr.sdn_objname, object);
 
     status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 

@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
+#include "dn_endian.h"
 
 char proxy_requested = 1;
 
@@ -107,7 +108,7 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 
 		if (len <= DN_MAXOBJL) {
 			strncpy(sdn->sdn_objname, uname, len);
-			sdn->sdn_objnamel = len;
+			sdn->sdn_objnamel = dn_htons(len);
 			return 0;
 		}
 	}
@@ -118,7 +119,7 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 	 */
 	sprintf(sdn->sdn_objname, "%d", uid);
 	sdn->sdn_objnum = 0;
-	sdn->sdn_objnamel = strlen(sdn->sdn_objname);
+	sdn->sdn_objnamel = dn_htons(strlen(sdn->sdn_objname));
 	printf("setting proxy to %s\n", sdn->sdn_objname);
 	return 0;
 }
@@ -136,7 +137,7 @@ static int set_object_name(struct sockaddr_dn *sdn, char *name)
 	if (len > DN_MAXOBJL)
 		return -1;
 	strncpy(sdn->sdn_objname, name, len);
-	sdn->sdn_objnamel = len;
+	sdn->sdn_objnamel = dn_htons(len);
 	return 0;
 }
 

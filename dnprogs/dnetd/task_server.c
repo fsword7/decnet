@@ -41,6 +41,7 @@
 #ifdef DNETUSE_DEVPTS
 #include <pty.h>
 #endif
+#include "dn_endian.h"
 
 static void execute_file(char *name, int newsock, int verbose);
 static void copy (int pty, int sock, pid_t pid);
@@ -60,8 +61,8 @@ void task_server(int newsock, int verbosity, int secure)
     if (sockaddr.sdn_objnamel)
     {
 
-	strncpy(name,sockaddr.sdn_objname ,sockaddr.sdn_objnamel);
-	name[sockaddr.sdn_objnamel] = '\0';
+	strncpy(name,sockaddr.sdn_objname, dn_ntohs(sockaddr.sdn_objnamel));
+	name[dn_ntohs(sockaddr.sdn_objnamel)] = '\0';
     }
     else
     {

@@ -97,15 +97,14 @@ rpm:
 	rm -f $(PKGNAME).spec  .rpmrc .rpmmacros
 
 #
-# Make Debian package. It's best to do this immediately after 'make rpm'
+# Make Debian package.
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
 	make clean
-	make dist
-	cd /tmp; tar -xzvf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz
-	cd /tmp/$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
-	rm -rf /tmp/$(PKGNAME)-$(VERSION)
+	cd $TMPDIR; tar -xzvf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz
+	cd $TMPDIR$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
+	rm -rf $TMPDIR/$(PKGNAME)-$(VERSION)
 
 #
 # Copy binaries to the web preload directory.

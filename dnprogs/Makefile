@@ -72,9 +72,9 @@ snap:
 #
 rpm:
 	rm -rf rpmbuild BUILD RPMS
+	make clean
 	echo "%_topdir `pwd`" > .rpmmacros
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
-	make clean
 	make prefix=/usr RELEASE=true -j
 	make DESTDIR=`pwd`/rpmbuild install
 	make dist

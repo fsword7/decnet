@@ -62,7 +62,7 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr)
 {
   int                  highest_rating=0;
   string               highest_node;
-  const unsigned char *highest_macaddr;
+  const unsigned char *highest_macaddr = NULL;
   
   map<string, nodeinfo, less<string> >::iterator i;
   for (i=nodes.begin(); i != nodes.end(); i++)
@@ -75,11 +75,17 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr)
 	  highest_macaddr = nodes[i->first].get_macaddr();
       }
   }
-  
-  // OK copy it now.
-  memcpy(macaddr, highest_macaddr, 6);
 
-  return true;
+  if (highest_macaddr)
+  {
+      // OK copy it now.
+      memcpy(macaddr, highest_macaddr, 6);
+      return true;
+  }
+  else
+  {
+      return false;
+  }
 }
 
 // Remove node from all services...

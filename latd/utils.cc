@@ -56,9 +56,9 @@ int pjc_openpty(int *master, int *slave, char *a, char *b, char *d)
 {    
     char ptyname[] = "/dev/ptyCP";
     char c;
-    char *line;
+    char *line=NULL;
     int i;
-    int pty, t;
+    int pty=-1, t;
     int gotpty=0;
     struct stat stb;
 

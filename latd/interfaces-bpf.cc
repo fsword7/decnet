@@ -430,7 +430,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 	> _latd_bpf_buffer_end) {
       debuglog(("bpf: flushed garbage BPF header bytes\n"));
       _latd_bpf_buffer_end = 0;
-      continue;
+      return 0;
     }
 
     /* get the BPF header and check it: */
@@ -450,7 +450,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 		the_bpf_header.bh_caplen, the_bpf_header.bh_datalen,
 		_latd_bpf_buffer_offset, _latd_bpf_buffer_end));
       _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
-      continue;
+      return 0;
     }
 
     /* silently ignore packets that don't even have Ethernet headers,
@@ -463,7 +463,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 		   ETHER_ADDR_LEN)) {
       /* silently ignore packets from us: */
       _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
-      continue;
+      return 0;
     }
     debuglog(("bpf: packet from %02x:%02x:%02x:%02x:%02x:%02x\n",
 	      ((struct ether_header *) (_latd_bpf_buffer + _latd_bpf_buffer_offset))->ether_shost[0],

@@ -1,3 +1,17 @@
+dnprogs (2.20-1) unstable; urgency=low
+
+  * Fix vroot not NUL-terminating names properly
+  * Fix sethost on 2.4.19+ kernels.
+  * FAL fix overrun when sending binary files in record mode - OK you
+    shouldn't do that anyway, but FAL shouldn't fail on you either.
+  * Fix dncopy -mblock when copying file from VMS.
+    Thanks to Zdenek Cermak for reporting this.
+  * dncopy blocks ATTRIB & ACCESS messages for efficiency.
+  * Mention libdumbnet in package description in case people are looking
+    for libdnet.sf.net software.
+
+ --
+
 dnprogs (2.19-1) unstable; urgency=low
 
   * Suggests: iproute

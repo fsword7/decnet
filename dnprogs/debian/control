@@ -49,6 +49,10 @@ Description: DECnet Libraries
  libdap         - DAP (Data Access Protocol) C++ classes
  librms         - High level library for programmatic access VMS files
                   from Linux.
+ .
+ If you're looking for libdnet, the "dumb" networking library from
+ libdnet.sf.net by Dug Song then you should install libdumbnet instead.
+ Sorry for any confusion caused!
 
 Package: libdnet-dev
 Architecture: any

@@ -32,6 +32,7 @@
 */apps/dnmount
 */dncopy/dncopy
 */dncopy/dntype
+*/dnlogin/dnlogin
 */mail/vmsmaild
 */mail/sendvmsmail
 */phone/phone

@@ -94,12 +94,18 @@ if test "x$enable_openpty" = "xyes"; then
   fi
 fi
 
-dnl Configuring for the login program
-if test -f /bin/login; then
-  AC_DEFINE_UNQUOTED(LOGIN_BIN, "/bin/login")
-elif test -f /usr/bin/login; then
-  AC_DEFINE_UNQUOTED(LOGIN_BIN, "/usr/bin/login")
+dnl Configuring the login program
+withval=
+AC_ARG_WITH(login,
+[  --with-login            program to use for logins (defaults to local "login")	])
+if test "x$withval" = "x"; then
+  if test -f /bin/login; then
+    withval="/bin/login"
+  elif test -f /usr/bin/login; then
+    withval="/usr/bin/login"
+  fi
 fi
+AC_DEFINE_UNQUOTED(LOGIN_BIN, "$withval")
 
 dnl Configure "llogin -p" locking
 AC_CHECK_HEADER(lockdev.h)

@@ -70,6 +70,11 @@ There are several things you can tweak in the configuration process:
 
 --enable-debug   Build a debug binary that does not daemonise itself
                  and issues lots of loggin messages to stderr
+--with-login     Sets the login program to use for incoming connections. This
+                 defaults to the local login program (/bin/login or 
+                 /usr/bin/login). If you want to disable logins you can either
+                 use --with-login=/bin/false or add "$LATCP -D -a `uname -n`"
+                 to latd.conf
 --prefix         Sets where the binaries are installed 
                 (default /usr/local)
 --sysconfdir     Sets where the config file is kept 

@@ -58,7 +58,7 @@ Package: libdnet-dev
 Architecture: any
 Depends: libdnet(>=${Source-Version})
 Priority: extra
-Section: devel
+Section: libdevel
 Description: DECnet development libraries & Headers
  Theses are the development libraries for Linux DECnet. This package contains
  the static libraries, header files and man pages for DECnet development

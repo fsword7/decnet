@@ -1,15 +1,13 @@
 TODO in no particular order
 ----
 
-- Check multiple sessions on the same connection. How many slots can I
-  get away with sending? (and stuff like that)
-- Test service responder - can someone do this for me please??
+- Test service responder.
+- Allow reverse-LAT to DECserver 90L+
+- Find out we send so many more packets than Tru64
 
 THINGS I MAY NOT DO
 -------------------
 - Keep counters
 - Support windows larger than 1
 - Allow /etc/issue.net files longer than 255 characters
-- Support multiple client sessions in one connection
-  (see BUGS for implications of this)
 - Put the protocol bits into the kernel.

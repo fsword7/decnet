@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.11
+VERSION=1.12
 PKGNAME=latd
 
 
@@ -29,6 +29,7 @@ LATCPSOCK="/var/run/latcp"
 LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++ 
+CC=gcc
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
 CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
 
@@ -63,7 +64,7 @@ $(PROG3): depend $(PROG3OBJS)
 	$(CXX) -o $@ $(PROG3OBJS)
 
 $(PROG4): depend $(PROG4OBJS)
-	$(CC) -o $@ $(PROG4OBJS)
+	$(CC) $(CFLAGS) -o $@ $(PROG4OBJS)
 
 install:
 	install -d $(prefix)/sbin
@@ -92,7 +93,7 @@ debclean:
 dist:
 	rm  -f .depend
 	rm -rf debian/tmp
-	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc \
+	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc latd/*.c \
 		latd/BUGS latd/README latd/NEWS latd/Makefile \
                 latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
 		latd/*.[1-8] latd/latd.conf latd/startlat.sh \

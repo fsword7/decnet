@@ -56,16 +56,18 @@
 static int  mop_socket;
 static char last_message[1500];
 static int  last_message_len;
+static int  show_info = 0;
 static int  do_moprc(char *, int);
 
 static int usage(FILE *f, char *cmd)
 {
-    fprintf(f, "\nUsage: %s [?hV] [-i <interface>] <node name>|<macaddr>\n", cmd);
+    fprintf(f, "\nUsage: %s [?hVv] [-i <interface>] <node name>|<macaddr>\n", cmd);
 
     fprintf(f, "   -?         Show this usage message\n");
     fprintf(f, "   -h         Show this usage message\n");
     fprintf(f, "   -V         Show the version of moprc\n");
     fprintf(f, "   -i         Ethernet interface to use (default eth0)\n");
+    fprintf(f, "   -v         Show target information\n");
     fprintf(f, "\n");
     fprintf(f, "Node names are read from /etc/ethers\n");
     fprintf(f, "MAC addresses in colon-seperated form. eg:\n");
@@ -186,7 +188,7 @@ int main(int argc, char *argv[])
 /* Get command-line options */
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hVi:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hVvi:")) != EOF)
     {
 	switch(opt)
 	{
@@ -195,6 +197,10 @@ int main(int argc, char *argv[])
 
 	case '?':
 	    return usage(stdout, argv[0]);
+
+	case 'v':
+	    show_info++;
+	    break;
 
 	case 'i':
 	    interface = find_interface(optarg);
@@ -325,6 +331,85 @@ static int send_data(char *data, int len, char *macaddr, int interface)
     return send_message(buf, len+4, interface, macaddr);
 }
 
+static void print_ascic(char *buf, int len)
+{
+    int i;
+
+    for (i=0; i <len; i++)
+    {
+	if (isprint(buf[i]))
+	    printf("%c", buf[i]);
+	else
+	    printf(".");
+    }
+    printf("\n");
+}
+
+static int show_system_info(unsigned char *info, int len)
+{
+    int index=0;
+    int functions;
+
+    while (index < len)
+    {
+	int type = info[index] | info[index+1]<<8;
+	int infolen = info[index+2];
+
+	index += 3;
+	if (show_info || type == 2)
+	{
+	    switch (type)
+	    {
+	    case 1: /* Maintenance version */
+		printf("Maintenance Version: %d.%d.%d\n",
+		       info[index],info[index+1],info[index+2]);
+		break;
+	    case 2: /* Functions */
+		functions = info[index];
+		break;
+
+		/* These are sent by terminal servers */
+	    case 102:
+		printf("ROM version:         ");
+		print_ascic(&info[index], infolen);
+		break;
+	    case 103:
+		printf("S/W version:         ");
+		print_ascic(&info[index], infolen);
+		break;
+	    case 105:
+		printf("Node Name:           ");
+		print_ascic(&info[index], infolen);
+		break;
+	    case 106:
+		printf("Identification:      ");
+		print_ascic(&info[index], infolen);
+		break;
+
+		/* Other stuff */
+	    case 201:
+		printf("Operating Syetem:    ");
+		print_ascic(&info[index], infolen);
+		break;
+	    case 202:
+		printf("Software Version:    ");
+		print_ascic(&info[index], infolen);
+		break;
+	    case 203:
+		printf("Node Name:           ");
+		print_ascic(&info[index], infolen);
+		break;
+
+	    default:
+		break;
+	    }
+	    index += infolen;
+	}
+    }
+    if (show_info) printf("\n");
+    return functions & 0x20; /* Do we do CCP? */
+}
+
 static int do_moprc(char *macaddr, int interface)
 {
     enum {STARTING, CONNECTED} state=STARTING;
@@ -421,10 +506,7 @@ static int do_moprc(char *macaddr, int interface)
 		    int i;
 		    for (i=0; i<datalen-2; i++)
 		    {
-			if ( (buf[4+i] >= 32 && buf[4+i] < 127) ||
-			    buf[4+i]=='\r' || buf[4+i] == '\n')
-			    printf("%c", buf[4+i]);
-
+		        fputc(buf[4+i], stdout);
 		    }
 		    fflush(stdout);
 		}
@@ -435,11 +517,16 @@ static int do_moprc(char *macaddr, int interface)
 	    case MOPRC_CMD_SYSTEMID:
 		if (state == STARTING)
 		{
+		    if (show_system_info(&buf[6], datalen-1) == 0)
+		    {
+			printf("target does not support remote console\n");
+			goto finished;
+		    }
+
 		    if (isatty(STDIN_FILENO))
 			printf("Console connected (press CTRL/D when finished)\n");
 
 		    state = CONNECTED;
-		    // TODO Check response & print server info.
 		}
 		break;
 	    default:

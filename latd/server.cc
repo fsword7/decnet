@@ -423,6 +423,12 @@ void LATServer::run()
     // We rely on POSIX's select() behaviour in that we use the
     // time left in the timeval parameter to make sure the circuit timer
     // goes off at a reasonably predictable interval.
+
+#ifndef __linux__
+    struct timeval next_circuit_time;
+    next_circuit_time.tv_sec = 0;
+#endif
+
     struct timeval tv = {0, circuit_timer*10000};
     time_t last_node_expiry = time(NULL);
     do_shutdown = false;
@@ -437,6 +443,39 @@ void LATServer::run()
 	    if (i->active())
 	        FD_SET(i->get_fd(), &fds);
 	}
+
+// Only Linux seems to have this select behaviour...
+// for BSDs we need to work our for ourselves the delay
+// until the next circuit timer tick.
+#ifndef __linux__
+	struct timeval now;
+
+	gettimeofday(&now, NULL);
+	if (next_circuit_time.tv_sec == 0)
+	{
+	    next_circuit_time = now;
+	}
+	next_circuit_time.tv_usec += circuit_timer*10000;
+	next_circuit_time.tv_sec += (next_circuit_time.tv_usec / 1000000);
+	next_circuit_time.tv_usec = (next_circuit_time.tv_usec % 1000000);
+
+	tv = next_circuit_time;
+	if (tv.tv_sec < now.tv_sec
+	    || (tv.tv_sec == now.tv_sec
+		&& tv.tv_usec <= now.tv_usec))
+	{
+	    tv.tv_sec = tv.tv_usec = 0;
+	}
+	else
+	{
+	    tv.tv_sec -= now.tv_sec;
+	    if ((tv.tv_usec -= now.tv_usec) < 0)
+	    {
+		tv.tv_sec--;
+		tv.tv_usec += 1000000;
+	    }
+	}
+#endif
 
 	status = select(FD_SETSIZE, &fds, NULL, NULL, &tv);
 	if (status < 0)
@@ -552,7 +591,7 @@ void LATServer::read_lat(int sock)
             {
                 conn = connections[header->remote_connid];
             }
-            
+
 	    if (conn)
 	    {
 	        conn->process_session_cmd(buf, len, macaddr);

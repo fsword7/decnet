@@ -1,5 +1,5 @@
-This is latd - a LAT terminal daemon for Linux. It provides the following
-features:
+This is latd - a LAT terminal daemon for Linux and BSD. It provides the 
+following features:
 
 - Provides LAT login services (you can log onto Linux from a DECserver)
 - Can have multiple login services with different service ratings
@@ -16,12 +16,13 @@ features:
 - User-space daemon. No kernel patching or recompiling necessary
 - Does not need DECnet support from the kernel or libraries
 - Supports a group called "lat" to restrict users of reverse-LAT ports
-- llogin program so users can log into LAT services from Linux
+- llogin program so users can log into LAT services
 - moprc for remote management for terminal servers.
 - To send BREAK to a remote server in a reverse-LAT session press ^@
 
 For Linux you will need Packet Socket support in the kernel, but I think that's
-usually the default anyway. BSD systems use the Berkeley Packet Filter.
+usually the default anyway. BSD systems use the Berkeley Packet Filter. 
+Although Linux also has a BPF, latd cannot use it.
 
 This software will not work on Linux kernels 2.0 or lower.
 

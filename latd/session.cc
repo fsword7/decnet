@@ -121,9 +121,12 @@ int LATSession::read_pty()
     if (credit <= 0)
     {
 	// Disable the FD so we don't start looping
-	LATServer::Instance()->set_fd_state(master_fd, true);
-	stopped = true;
-	tcflow(master_fd, TCOOFF);
+	if (!stopped) 
+        {
+            LATServer::Instance()->set_fd_state(master_fd, true);
+	    stopped = true;
+	    tcflow(master_fd, TCOOFF);
+        }
 	return 0; // Not allowed!
     }
     msglen = read(master_fd, buf, max_read_size);

@@ -34,7 +34,8 @@
 ClientSession::ClientSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
 			     char *ttyname):
-  LATSession(p, remid, localid)
+  LATSession(p, remid, localid),
+  slave_fd_open(false)
 {
     debuglog(("new client session: localid %d, remote id %d\n",
 	    localid, remid));
@@ -44,6 +45,13 @@ ClientSession::ClientSession(class LATConnection &p,
 int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
     credit = c;
+
+// A quick word of explanation here.
+// We keep the slave fd open after openpty because otherwise
+// the master would go away too (EOF). When the user connects to
+// the port we then close the slave fd so that we get EOF when she
+// disconnects. got that?
+
     if (openpty(&master_fd,
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return -1; /* REJECT */
@@ -52,6 +60,7 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     strcpy(ptyname, ttyname(slave_fd));
     strcpy(mastername, ttyname(master_fd));
     state = STARTING;
+    slave_fd_open = true;
     
     // Check for /dev/lat & create it if necessary
     struct stat st;
@@ -127,28 +136,33 @@ void ClientSession::connect(char *service, char *port)
 
 }
 
-void ClientSession::disconnect()
+// Disconnect the local PTY
+void ClientSession::restart_pty()
 {
+    debuglog(("ClientSession::restart_pty()\n"));
     connected = false;
-
+    remote_session = 0;
+    
     // Close it all down so the local side gets EOF
     unlink(ltaname);
     
-    close (slave_fd);
+    if (slave_fd_open) close (slave_fd);
     close (master_fd);
+    LATServer::Instance()->set_fd_state(master_fd, true);
     LATServer::Instance()->remove_fd(master_fd);
     
     // Now open it all up again ready for a new connection
-    new_session((unsigned char *)remote_node, 0);    
+    new_session((unsigned char *)remote_node, 0);
+
 }
 
 
-// Remote end disconnects
+// Remote end disconnects or EOF on local PTY
 void ClientSession::disconnect_session(int reason)
 {
+    debuglog(("ClientSession::disconnect_session()\n"));
     // If the reason was some sort of error then send it to 
     // the PTY
-
     if (reason > 1)
     {
 	char *msg = lat_messages::session_disconnect_msg(reason);
@@ -156,10 +170,7 @@ void ClientSession::disconnect_session(int reason)
 	write(master_fd, "\n", 1);
     }
 
-
-    // Get the server to delete us when we are off the stack.
-    if (connected)
-	LATServer::Instance()->delete_session(&parent, local_session, master_fd);
+    LATServer::Instance()->set_fd_state(master_fd, true);
     connected = false;
     return;
 }
@@ -169,14 +180,14 @@ ClientSession::~ClientSession()
 {
     unlink(ltaname);
     
-    close (slave_fd);
+    if (slave_fd_open) close (slave_fd);
     close (master_fd);
     LATServer::Instance()->remove_fd(master_fd);
 }
 
 void ClientSession::do_read()
 {
-    debuglog(("ClientSession::do_read()\n"));
+    debuglog(("ClientSession::do_read(), connected: %d\n", connected));
     if (!connected)
     {
 	if (!connect_parent())
@@ -185,11 +196,14 @@ void ClientSession::do_read()
 	    
 	    // Disable reads on the PTY until we are connected (or it fails)
 	    LATServer::Instance()->set_fd_state(master_fd, true);
+
+	    close(slave_fd);
+	    slave_fd_open = false;
 	}
 	else
 	{
 	    // Service does not exist or we haven't heard of it yet.
-	    disconnect();
+	    restart_pty();
 	}
     }
 

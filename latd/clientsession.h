@@ -24,12 +24,13 @@ class ClientSession: public LATSession
   virtual void disconnect_session(int reason);
     
   void connect(char *service, char *port);
-  void disconnect();
+  void restart_pty();
   int  connect_parent();
   void got_connection(unsigned char);
   
  private:
   int slave_fd;
+  bool slave_fd_open;
   char mastername[255];
   char ltaname[255];
 };

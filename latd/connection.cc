@@ -482,12 +482,14 @@ void LATConnection::circuit_timer(void)
     }
 
     // Poll our sessions
-    for (unsigned int i=0; i<MAX_SESSIONS; i++)
+    if (role == SERVER)
     {
-	if (sessions[i])
-	    sessions[i]->read_pty();
+	for (unsigned int i=0; i<MAX_SESSIONS; i++)
+	{
+	    if (sessions[i])
+		sessions[i]->read_pty();
+	}
     }
-
     
     // Coalesce pending messages and queue them
     while (!slots_pending.empty())
@@ -613,6 +615,11 @@ int LATConnection::connect()
 	}
     }
 
+    // Reset the sequence & ack numbers
+    last_sequence_number = 0xff;
+    last_ack_number = 0xff;
+    remote_connid = 0;
+    
     // TODO queued connections
 
     int ptr;
@@ -695,7 +702,7 @@ int LATConnection::disconnect_client()
     ClientSession *cs = (ClientSession *)sessions[1];
     if (cs)
     {
-	cs->disconnect();
+	cs->restart_pty();
     }
     return 0;
 }

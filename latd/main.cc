@@ -274,13 +274,14 @@ int main(int argc, char *argv[])
     // Make sure we shut down tidily
     siga.sa_handler=sigterm;
     sigaction(SIGTERM, &siga, NULL);
-    sigaction(SIGINT,  &siga, NULL);
-    sigaction(SIGQUIT, &siga, NULL);
 
     siga.sa_handler=sighup;
     sigaction(SIGHUP, &siga, NULL);
 
+    // Ignore these.
     signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT,  SIG_IGN);
+    signal(SIGQUIT, SIG_IGN);
     
     // Find network interface & our MAC address
     char macaddr[6];

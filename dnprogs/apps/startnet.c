@@ -18,9 +18,11 @@
 #include <netdnet/dnetdb.h>
 #include <netinet/in.h>
 #include <features.h>    /* for the glibc version number */
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
 #include <net/ethernet.h>     /* the L2 protocols */
+#include <net/if_arp.h>
+#include <linux/if.h>
 #else
 #include <asm/types.h>
 #include <linux/if.h>

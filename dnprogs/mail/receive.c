@@ -26,13 +26,13 @@
 #include <string.h>
 #include <errno.h>
 // Horrible hack for glibc 2.1+ which defines getnodebyname
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #define getnodebyname ipv6_getnodebyname
 #endif
 
 #include <netdb.h>
 
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #undef getnodebyname 
 #endif
 

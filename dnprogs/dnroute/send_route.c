@@ -24,7 +24,7 @@
 #include <linux/netfilter_decnet.h>
 #include <netdnet/dnetdb.h>
 #include <features.h>    /* for the glibc version number */
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
 #include <net/ethernet.h>     /* the L2 protocols */
 #else

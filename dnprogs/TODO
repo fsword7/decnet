@@ -1,21 +1,13 @@
 BUGS
 ----
-librms
-  General problems with "hangs" and "unexpected message" errors. If you have
-  evidence of these bugs please let me know.
 
 fal
   Reports of problems with FAL on DECnet/E. I'm sending too many ACKS again.
-  "unknown message" errors and file corruption on 2.3 kernels.
 
 phone:
   Race condition in ANSWER where you can get the message "no-one is calling
   you now" when there is. Only happens with "phone answer" on the shell
-  command line.
-
-  You can't call someone by node number: eg dial 1.2::patrick works but
-  patrick can't answer. (phoned needs to convert numbers to names when this
-  happens).
+  command line. Only happens rarely (to me!)
 
 ctermd: 
   DEL key not recognised.

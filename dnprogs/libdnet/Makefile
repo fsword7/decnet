@@ -2,8 +2,8 @@
 # Makefile for libdnet
 #--------------------------------------------------------------------------
 include ../Makefile.common
-LD=ld 
-LDFLAGS=-O -g3 -shared
+LD=gcc
+LDFLAGS=-O -shared
 AR=ar
 ARFLAGS=rcs
 MANPAGES3=dnet_htoa.3 dnet_ntoa.3 dnet_addr.3 dnet_conn.3 \

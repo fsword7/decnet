@@ -1,14 +1,11 @@
 #!/bin/sh
 #
-
 set -e
 
 if [ "$1" != "configure" ]
 then
   exit 0
 fi
-
-
 
 . /usr/share/debconf/confmodule
 
@@ -17,6 +14,8 @@ db_get dnprogs/nodename
 name=$RET
 db_get dnprogs/nodeaddr
 addr=$RET
+
+db_stop
 
 # Update /etc/decnet.conf
 
@@ -40,9 +39,9 @@ INTERFACE=`cat /etc/decnet.conf|grep executor|awk '{print $6}'`
 COMMAADDR=`echo $addr|tr '.' ','`
 TMPFILE=`tempfile`
 
-head -1 /etc/modutils/decnet > $TMPFILE
-echo "options decnet node=$COMMAADDR device=$INTERFACE" >> $TMPFILE
-cp $TMPFILE /etc/modutils/decnet
+#head -1 /etc/modutils/decnet > $TMPFILE
+#echo "options decnet node=$COMMAADDR device=$INTERFACE" >> $TMPFILE
+#cp $TMPFILE /etc/modutils/decnet
 
 rm -f $TMPFILE
 

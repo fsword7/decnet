@@ -242,7 +242,7 @@ void display(int argc, char *argv[])
 	send_msg(latcp_socket, LATCP_SHOWCHAR, verboseflag, 1);
     }
 
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
     read_reply(latcp_socket, cmd, result, len);
@@ -302,7 +302,7 @@ void set_rating(int argc, char *argv[])
     send_msg(latcp_socket, LATCP_SETRATING, message, ptr);
 
     // Wait for ACK or error
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
 
@@ -347,7 +347,7 @@ void set_ident(int argc, char *argv[])
     send_msg(latcp_socket, LATCP_SETIDENT, message, ptr);
 
     // Wait for ACK or error
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
     exit(read_reply(latcp_socket, cmd, result, len));
@@ -388,7 +388,7 @@ void set_server_groups(int argc, char *argv[])
     send_msg(latcp_socket, cmd, bitmap, 32);
 
     // Wait for ACK or error
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     exit(read_reply(latcp_socket, cmd, result, len));
 
@@ -428,7 +428,7 @@ void set_user_groups(int argc, char *argv[])
     send_msg(latcp_socket, cmd, bitmap, 32);
 
     // Wait for ACK or error
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     exit(read_reply(latcp_socket, cmd, result, len));
 
@@ -627,7 +627,7 @@ void add_service(int argc, char *argv[])
     if (!open_socket(false)) return;
 
     // Variables for ACK message
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
 
@@ -723,7 +723,7 @@ void del_service(int argc, char *argv[])
     else
 	send_msg(latcp_socket, LATCP_REMPORT, message, ptr);
 
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
     exit(read_reply(latcp_socket, cmd, result, len));
@@ -906,6 +906,8 @@ int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
     len = head[1] * 256 + head[2];
     cmd = head[0];
     cmdbuf = new unsigned char[len];
+    if (cmdbuf == NULL)
+	return -1;
 
     // Read the message buffer
     if (read(fd, cmdbuf, len) != len)
@@ -942,13 +944,14 @@ bool open_socket(bool quiet)
 	return false;
     }
 
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
 
     // Send our version
     send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
+    delete[] result;
 
     return true;
 }

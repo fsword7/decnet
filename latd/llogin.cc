@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 	// This is the same as latcp -d -l
 	send_msg(latcp_socket, LATCP_SHOWSERVICE, verboseflag, 1);
 
-	unsigned char *result;
+	unsigned char *result = NULL;
 	int len;
 	int cmd;
 	read_reply(latcp_socket, cmd, result, len);
@@ -254,13 +254,15 @@ int main(int argc, char *argv[])
 
     send_msg(latcp_socket, LATCP_TERMINALSESSION, msg, ptr);
 
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
     int ret;
     ret = read_reply(latcp_socket, cmd, result, len);
     if (ret)
 	return ret;
+
+    delete[] result;
 
     // If the reply was good then go into terminal mode.
     terminal(latcp_socket, quit_char, crlf, bsdel, lfvt);
@@ -283,7 +285,8 @@ static int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
     len = head[1] * 256 + head[2];
     cmd = head[0];
     cmdbuf = new unsigned char[len];
-
+    if (cmdbuf == NULL)
+	return -1;
     // Read the message buffer
     if (read(fd, cmdbuf, len) != len)
     {
@@ -319,7 +322,7 @@ static bool open_socket(bool quiet)
 	return false;
     }
 
-    unsigned char *result;
+    unsigned char *result = NULL;
     int len;
     int cmd;
 
@@ -327,6 +330,7 @@ static bool open_socket(bool quiet)
     send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
 
+    delete[] result;
     return true;
 }
 

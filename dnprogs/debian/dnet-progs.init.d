@@ -27,31 +27,32 @@ case $1 in
      do
        if [ -f /usr/sbin/$i ]
        then
-         start-stop-daemon --start --quiet --exec /usr/sbin/$i
          echo -n " $i"
+         start-stop-daemon --start --quiet --exec /usr/sbin/$i         
        fi
      done
      echo "."
      ;;
 
    stop)
-     echo -n "Stopping DECnet... "
+     echo -n "Stopping DECnet daemons: "
      for i in $DNET_DAEMONS
      do
+       echo -n " $i"
        start-stop-daemon --stop --quiet --exec /usr/sbin/$i
      done
      echo "done."
      ;;
 
    restart|force-reload)
-     echo -n "Restarting DECnet: "
+     echo -n "Restarting DECnet daemons: "
      for i in $DNET_DAEMONS
      do
+       echo -n " $i"
        start-stop-daemon --stop --quiet --exec /usr/sbin/$i
        start-stop-daemon --start --quiet --exec /usr/sbin/$i
-       echo -n " $i"
      done
-     echo " done."
+     echo "."
      ;;
 
    *)

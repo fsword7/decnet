@@ -11,7 +11,7 @@
 FLAGS="start 39 S .  stop 11 1 ."
 
 #
-# Interfaces to set the MAC address of are specified in /etec/default/decnet
+# Interfaces to set the MAC address of are specified in /etc/default/decnet
 # The variable DNET_INTERFACES should be either set to a list of interfaces
 # or "all". If it is empty then no interfaces will be modified.
 #
@@ -48,8 +48,9 @@ case $1 in
        fi
      fi
 
-     echo -n "Starting DECnet: "
+     echo -n "Starting DECnet..."
      $setether
+     echo "done."
      ;;
 
    stop)

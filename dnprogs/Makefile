@@ -11,7 +11,7 @@ SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask mail phone dnetd scripts
 
 all: 	
-	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
+#	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
 	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 install:
@@ -90,7 +90,7 @@ rpm:
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
-	rpm -bb --target=$(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
+	rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
 	rm -f $(PKGNAME).spec  .rpmrc .rpmmacros
 
 #

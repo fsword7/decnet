@@ -11,6 +11,7 @@ SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask mail phone dnetd scripts
 
 all: 	
+#	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 install:
@@ -40,11 +41,13 @@ clean:
 	rm -f core
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
 
+debclean:
+	debian/rules clean
 #
 # Make the distribution tar file
 #
 dist:	
-	for i in $(SUBDIRS); do cd $$i; makedepend; cd ..; done
+	for i in $(SUBDIRS); do cd $$i; rm -f .depend; cd ..; done
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
 	cd ..; tar -czvhf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz -X$(PKGNAME)-$(VERSION)/excludes-dist $(PKGNAME)-$(VERSION)/;
@@ -55,7 +58,7 @@ dist:
 #
 snap:	DATE = $(shell date +'%Y%m%d')
 snap:
-	for i in $(SUBDIRS); do cd $$i; makedepend; cd ..; done	
+	for i in $(SUBDIRS); do cd $$i; rm -f .depend; cd ..; done	
 	if [ -L ../$(PKGNAME)-$(DATE) ]; then rm ../$(PKGNAME)-$(DATE); fi
 	if [ ! -d ../$(PKGNAME)-$(DATE) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(DATE); fi
 	cd ..; tar -czvhf /var/tmp/$(PKGNAME)-$(DATE).tar.gz -X$(PKGNAME)-$(DATE)/excludes-dist $(PKGNAME)-$(DATE);

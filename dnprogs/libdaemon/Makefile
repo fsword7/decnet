@@ -27,11 +27,10 @@ $(SHAREDLIB): $(PICOBJS)
 	$(CC) $(CFLAGS) $(SYSCONF_PREFIX) -fPIC -c -o $@ $<
 
 dep depend:	
-	makedepend *.cc *.c 2>/dev/null
+	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
-	makedepend
-	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so*
+	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so* .depend
 
 install:
 	install -m 0644 -s $(SHAREDLIB) $(libprefix)/lib
@@ -45,4 +44,7 @@ install:
 
 .SUFFIXES: .po
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+

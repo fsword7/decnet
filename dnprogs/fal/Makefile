@@ -23,11 +23,12 @@ install:
 	install -m 0644 decnet.proxy.5 $(prefix)/man/man5
 
 dep depend:	
-	makedepend *.cc *.c 2>/dev/null
+	$(CXX) $(CXXFLAGS) -MM *.cc >.depend 2>/dev/null
 
 clean:
-	makedepend
-	rm -f $(PROG1) *.o *.bak
+	rm -f $(PROG1) *.o *.bak .depend
 
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif

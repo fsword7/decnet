@@ -55,11 +55,11 @@ $(PROG7): $(PROG7OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON)
 	$(CC) -o $@ $(CFLAGS) $(PROG7OBJS) $(LIBDAEMON) $(LIBDNET) $(PTSLIBS)
 
 dep:	
-	makedepend *.c 2>/dev/null
+	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
 	rm -f $(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG6) $(PROG7) \
-	*.o *.a *.so *~
+	*.o *.a *.so *~ .depend
 
 install:
 	install -d $(prefix)/sbin
@@ -81,4 +81,7 @@ install:
 		install -m 0644 decnet.conf $(sysconfprefix)/etc/decnet.conf.sample; \
 	fi
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+

@@ -28,11 +28,13 @@ install:
 	if [ ! -f $(sysconfprefix)/etc/decnet.proxy ]; then install -m 640 ../fal/decnet.proxy $(sysconfprefix)/etc; fi
 
 dep depend:	
-	makedepend *.cc *.c 2>/dev/null
+	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
-	makedepend
-	rm -f $(PROG1) *.o *.bak
+	rm -f $(PROG1) *.o *.bak .depend
 
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+

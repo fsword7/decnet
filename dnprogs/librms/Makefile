@@ -40,11 +40,10 @@ $(EXAMPLE2): $(EXAMPLE2OBJS) $(SHAREDLIB)
 	$(CXX) $(CXXFLAGS) -fPIC -c -o $@ $<
 
 dep depend:	
-	makedepend *.cc *.c 2>/dev/null
+	$(CC) $(CFLAGS) -MM *.cc *.c >.depend 2>/dev/null
 
 clean:
-	makedepend
-	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so* $(EXAMPLES)
+	rm -f *.o *.po *.bak .depend $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so* $(EXAMPLES)
 
 install:
 	install -d $(prefix)/lib
@@ -57,4 +56,7 @@ install:
 
 .SUFFIXES: .po
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif
+

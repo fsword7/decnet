@@ -334,6 +334,8 @@ int dap_message::send_long_header(dap_connection &c)
 // the message length (used mainly for data messages)
 int dap_message::get_header(dap_connection &c)
 {
+    c.check_length(1); // Ensure we have the start of a header
+
     char *b = c.getbytes(1);
     if (!b) return false;
 

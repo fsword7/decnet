@@ -52,11 +52,6 @@ case $1 in
      if [ -z "$EXEC" -o "$EXEC" = "0.0" ]
      then
        $startnet
-       if [ $? != 0 ]
-       then
-         echo error starting socket layer.
-         exit 1
-       fi
      fi
 
      for i in $daemons

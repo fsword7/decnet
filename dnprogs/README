@@ -35,24 +35,34 @@ It will also install a startup script appropriate to your distribution. You
 will need to set up your system so that this script is run at system startup
 time. 
 
-Debian: 
+Debian 
 ------
 The startup script is "/etc/init.d/decnet.sh"
-This should be linked to "/etc/rcS.d/S39decnet.sh"
+Then run the command:
 
-Redhat:
--------
+# update-rc.d start 39 S .  stop 11 1 .
+
+Redhat
+------
 The startup script is "/etc/rc.d/init.d/decnet"
 It should be linked to "/etc/rc.d/rc3.d/S09decnet"
 You can use control-panel or tksysv to do this.
+
+Caldera
+-------
+The startup script is "/etc/rc.d/init.d/decnet"
+It should be linked to "/etc/rc.d/rc5.d/S01decnet"
+
+You should also add the -f switch to the startnet command.
+See the comments in the file for more detail.
 
 Slackware   
 ---------
 The startup script is "/etc/rc.decnet"
 Put a call to this very near the start of your /etc/rc.d/rc.inet1 file.
 
-S.u.S.E.
---------
+SuSE
+----
 The startup script is "/sbin/init.d/decnet"
 It should be linked to "/sbin/init.d/rc2.d/S05decnet"
 
@@ -161,7 +171,7 @@ a complete, working example of a daemon that will run standalone or from
 dnetd.
 
 It's also worth visiting Steve Whitehouse's web site for information on
-the more advanced calls.
+the more advanced calls. http://www.chygwyn.com/DECnet/
 
 Plus...You have the source to many client and server programs in this very
 package so peruse them and learn!
@@ -213,6 +223,7 @@ Kenn Humborg (patch for dntask)
 Maciej Rozycki (patch for Makefiles)
 Frank Pilhofer (for uulib) see above.
 And to everyone who has submitted bug reports - please don't stop.
+
 
 SUPPORT
 -------

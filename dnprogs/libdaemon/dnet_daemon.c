@@ -613,7 +613,7 @@ static int fork_and_setuid(int sockfd)
 #endif
 	if (chdir(pw->pw_dir))
 	{
-	    DNETLOG((LOG_WARNING, "Cannot chdir to %s : %m\n"));
+	    DNETLOG((LOG_WARNING, "Cannot chdir to %s : %m\n", pw->pw_dir));
 	    chdir("/");
 	}
 	break;

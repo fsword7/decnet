@@ -416,6 +416,7 @@ void LATServer::run()
     // time left in the timeval parameter to make sure the circuit timer
     // goes off at a reasonably predictable interval.
     struct timeval tv = {0, circuit_timer*10000};
+    time_t last_node_expiry = time(NULL);
     do_shutdown = false;
     do
     {
@@ -447,6 +448,10 @@ void LATServer::run()
 		if (connections[i])
 		  connections[i]->circuit_timer();
 	      tv.tv_usec = circuit_timer*10000;
+
+	      // Is it time we expired some more nodes ?
+	      if (time(NULL) - last_node_expiry > 15)
+		  LATServices::Instance()->expire_nodes();
 	      continue;
 	    }
 

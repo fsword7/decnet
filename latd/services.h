@@ -40,6 +40,7 @@ class LATServices
     bool remove_node(const std::string &node);
     bool list_services(bool verbose, std::ostrstream &output);
     void purge() {servicelist.clear(); }
+    void expire_nodes();
 
  private:
     LATServices()
@@ -71,6 +72,7 @@ class LATServices
       bool         is_available();
       bool         remove_node(const std::string &node);
       void         serviceinfo::list_service(std::ostrstream &output);
+      void         expire_nodes(time_t);
 
     private:
       class nodeinfo
@@ -84,7 +86,13 @@ class LATServices
 	    {
 	      memcpy(macaddr, _macaddr, 6);
 	      ident = _ident;
+	      updated = time(NULL);
 	    }
+	  bool has_expired(time_t current_time)
+	      {
+		  return ( (current_time - updated) > 60);
+	      }
+
 	  int                  get_rating()          { return rating; }
 	  int                  get_interface()       { return interface; }
 	  const unsigned char *get_macaddr()         { return macaddr; }
@@ -98,6 +106,7 @@ class LATServices
 	  int           interface;
 	  bool          available;
 	  std::string   ident;
+	  time_t        updated;
 	};// class LATServices::service::nodeinfo
 
       std::map<std::string, nodeinfo, std::less<std::string> > nodes;

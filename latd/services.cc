@@ -162,6 +162,34 @@ bool LATServices::serviceinfo::is_available()
     return avail;
 }
 
+
+void LATServices::serviceinfo::expire_nodes(time_t current_time)
+{
+    std::map<std::string, nodeinfo, std::less<std::string> >::iterator n(nodes.begin());
+
+    for (; n != nodes.end(); n++)
+    {
+	if (nodes[n->first].has_expired(current_time))
+	    nodes[n->first].set_available(false);
+    }
+}
+
+void LATServices::expire_nodes()
+{
+    std::map<std::string, serviceinfo, std::less<std::string> >::iterator s(servicelist.begin());
+    time_t current_time = time(NULL);
+
+    for (; s != servicelist.end(); s++)
+    {
+	// Skip dummy service
+	if (s->first != "")
+	{
+	    servicelist[s->first].expire_nodes(current_time);
+	}
+    }
+}
+
+
 // Verbose listing of nodes in this service
 void LATServices::serviceinfo::list_service(std::ostrstream &output)
 {
@@ -197,7 +225,7 @@ bool LATServices::list_services(bool verbose, std::ostrstream &output)
 	      output << "Service Name:    " << s->first << std::endl;
 	      output << "Service Status:  " << (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " << std::endl;
 	      output << "Service Ident:   " << servicelist[s->first].get_ident() << std::endl << std::endl;
-                        servicelist[s->first].list_service(output);
+	      servicelist[s->first].list_service(output);
 	      output << "--------------------------------------------------------------------------------" << std::endl;
 
 	  }

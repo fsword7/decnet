@@ -743,10 +743,9 @@ bool send_msg(int fd, int cmd, char *buf, int len)
     outhead[0] = cmd;
     outhead[1] = len/256;
     outhead[2] = len%256;
-    write(fd, outhead, 3);
-    write(fd, buf, len);
+    if (write(fd, outhead, 3) != 3) return false;
+    if (write(fd, buf, len) != len) return false;
 
-    // TODO Error checking.
     return true;
 }
 

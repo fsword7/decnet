@@ -45,6 +45,8 @@ class LATServer
     void  set_retransmit_limit(int r) { retransmit_limit=r; }
     int   get_keepalive_timer()       { return keepalive_timer; }
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
+    void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
+    bool  is_local_service(char *);
     
  private:
     LATServer():
@@ -82,7 +84,6 @@ class LATServer
     void  add_services(unsigned char *, int, unsigned char *);
     void  accept_latcp(int);
     void  read_latcp(int);
-    void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
  
     static void alarm_signal(int sig);
 

@@ -126,9 +126,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     unsigned char saved_last_sequence_number = last_sequence_number;
     unsigned char saved_last_message_acked   = last_message_acked;
 
-//    last_sequence_number = msg->header.sequence_number;
-//    last_message_acked   = msg->header.ack_number;
-
     last_sequence_number = msg->header.ack_number;
     last_message_acked   = msg->header.sequence_number;
   
@@ -215,20 +212,35 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	    case 0x90:
 		if (role == SERVER)
 		{
-		    newsessionnum = next_session_number();
-		    newsession = new ServerSession(*this,
-						   (LAT_SessionStartCmd *)buf,
-						   slotcmd->remote_session, 
-						   newsessionnum);
-		    if (newsession->new_session(remnode, 
-						credits) == -1)
+		    //  Check service name is one we recognise.
+		    ptr = sizeof(LAT_SessionStartCmd);
+		    unsigned char name[256];
+		    get_string(buf, &ptr, name);
+
+		    if (!LATServer::Instance()->is_local_service((char *)name))
 		    {
-			newsession->send_disabled_message();
-			delete newsession;
+			// Not us mate...
+			retcmd = 0xd7;  // No such service
+			replyslots = 1;
+			replyhere = true;
 		    }
 		    else
 		    {
-			sessions[newsessionnum] = newsession;
+			newsessionnum = next_session_number();
+			newsession = new ServerSession(*this,
+						       (LAT_SessionStartCmd *)buf,
+						       slotcmd->remote_session, 
+						       newsessionnum);
+			if (newsession->new_session(remnode, 
+						    credits) == -1)
+			{
+			    newsession->send_disabled_message();
+			    delete newsession;
+			}
+			else
+			{
+			    sessions[newsessionnum] = newsession;
+			}
 		    }
 		}
 		else // CLIENT
@@ -729,12 +741,11 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     }
     else
     {
-	// TODO Disconnect
+	LATServer::Instance()->send_connect_error(2, &reply->header, macaddr);
     }
 
     return 0;
 }
-
 
 // Called when the client needs disconnecting
 int LATConnection::disconnect_client()

@@ -284,7 +284,6 @@ void LATSession::send_issue()
 
 void LATSession::set_port(unsigned char *inbuf)
 {
-    LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(inbuf);
     int ptr = sizeof(LAT_SlotCmd);
     
     // Set port characteristics
@@ -293,29 +292,8 @@ void LATSession::set_port(unsigned char *inbuf)
     debuglog(("Start output %x\n",   inbuf[ptr+2]));
     debuglog(("Stop  input  %x\n",   inbuf[ptr+3]));
     debuglog(("Start input  %x\n",   inbuf[ptr+4]));
-    // TODO: Do we need to set ixon/ixoff on the terminal here
-    // or is it just for info?????
 
-
-    // TODO: Should we only reply to this if bit 6 of the map is set: B01000000
-    unsigned char buf[1600];
-    LAT_SessionReply *reply = (LAT_SessionReply *)buf;
-    
-    reply->header.cmd          = LAT_CCMD_SREPLY;
-    reply->header.num_slots    = 1;
-    reply->slot.remote_session = slotcmd->local_session;
-    reply->slot.local_session  = slotcmd->remote_session;
-    reply->slot.length         = ptr - sizeof(LAT_SessionReply);
-    reply->slot.cmd            = 0xA1;
-
-    ptr  = sizeof(LAT_SessionReply);
-    buf[ptr++] = 0x26; // Flags
-    buf[ptr++] = 0x13; // Stop  output char XOFF
-    buf[ptr++] = 0x11; // Start output char XON
-    buf[ptr++] = 0x13; // Stop  input char  XOFF
-    buf[ptr++] = 0x11; // Start input char  XON
-    
-//    parent.send_message(buf, ptr, LATConnection::REPLY);
+    // Still not really sure what we do with this information.
 }
 
 // Add a slot to an existing message

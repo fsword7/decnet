@@ -424,12 +424,29 @@ void LATServer::read_lat(int sock)
 	break;
 
     case LAT_CCMD_CONNECT:
-	// Make a new connection
-        // TODO: Check that the connection is really for one of our services
-        if ( ((i=make_new_connection(buf, len, header, (unsigned char *)&sock_info.sll_addr) )) > 0)
-	{
-	    debuglog(("Made new connection: %d\n", i));
-	    connections[i]->send_connect_ack();
+        {
+	    // Make a new connection
+	    
+	    //  Check that the connection is really for one of our services
+	    unsigned char name[256];
+	    int ptr = sizeof(LAT_Start);
+	    get_string(buf, &ptr, name);
+	    
+	    debuglog(("got connect for node %s\n", name));
+		     
+	    if (strcmp((char *)name, (char *)get_local_node()))
+	    {
+		// How the &?* did that happen?
+		send_connect_error(2, header, (unsigned char *)&sock_info.sll_addr);
+		return;
+	    }
+	    
+     	    // Make a new connection.
+	    if ( ((i=make_new_connection(buf, len, header, (unsigned char *)&sock_info.sll_addr) )) > 0)
+	    {
+		debuglog(("Made new connection: %d\n", i));
+		connections[i]->send_connect_ack();
+	    }
 	}
 	break;
 
@@ -882,13 +899,23 @@ void LATServer::Shutdown()
     // Shutdown all the connections first
     for (int i=1; i<MAX_CONNECTIONS; i++)
     {
-	// TODO: Send any shutdown messages first??
 	if (connections[i])
 	    dead_connection_list.push_back(i);
     }
 
     // Exit the main loop.
     do_shutdown = true;
+}
+
+// Return true if 'name' is a local service
+bool LATServer::is_local_service(char *name)
+{
+    // Look for it.
+    list<serviceinfo>::iterator sii;
+    sii = find(servicelist.begin(), servicelist.end(), name);
+    if (sii != servicelist.end()) return true;
+
+    return false;
 }
 
 // Add a new service from latcp

@@ -14,6 +14,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <syslog.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -166,15 +167,15 @@ int ServerSession::create_session(unsigned char *remote_node)
 #else
 	execlp("/bin/login", "login", "-h", remote_node, (char *)0);
 #endif
-	// TODO Error message... but where to?	
-	perror("exec");
+	// Argh!
+	syslog(LOG_ERR, "Error in starting /bin/login: %m");
 
 	// Exit now so that the parent will get EOF on the channel
 	exit(-1);
     }
       
     case -1: // Failed
-	// TODO Error message
+	syslog(LOG_ERR, "Error forking for /bin/login: %m");
       	perror("fork");
 	close(master_fd);
 	close(slave_fd);

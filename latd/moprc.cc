@@ -93,6 +93,9 @@ static int send_message(unsigned char *buf, int len, int interface, u_int8_t *ma
     status = iface->send_packet(interface, macaddr, buf, len);
     if (status < 0)
 	    perror("send message");
+
+    memmove(last_message, buf, len);
+    last_message_len = len;
     return status;
 }
 

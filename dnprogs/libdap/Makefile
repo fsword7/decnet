@@ -15,7 +15,7 @@ $(STATICLIB): $(LIBOBJS)
 	ar -rv $@ $^
 
 $(SHAREDLIB): $(PICOBJS)
-	$(CXX) $(CXXFLAGS) -Wl,-shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $^
+	$(CXX) $(CXXFLAGS) -shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $^
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 
@@ -33,7 +33,7 @@ clean:
 	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so*
 
 install:
-	install -m 0755 -s $(SHAREDLIB) $(libprefix)/lib
+	install -m 0644 -s $(SHAREDLIB) $(libprefix)/lib
 	install -m 0644 $(STATICLIB) $(libprefix)/lib
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(libprefix)/lib/$(LIBNAME).so

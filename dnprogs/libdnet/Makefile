@@ -29,7 +29,7 @@ libdnet.a: ${LIBOBJS}
 	${AR} ${ARFLAGS} libdnet.a ${LIBOBJS}
   
 $(SHAREDLIB): ${PICOBJS}
-	${LD} ${LDFLAGS} -o $@ ${PICOBJS} -soname=libdnet.so.$(MAJOR_VERSION)
+	${LD} ${LDFLAGS} -o $@ ${PICOBJS} -soname=libdnet.so.$(MAJOR_VERSION) -lc
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 
@@ -37,12 +37,12 @@ $(SHAREDLIB): ${PICOBJS}
 	$(CC) $(CFLAGS) $(SYSCONF_PREFIX) -c -o $@ $<
 
 .c.po:
-	$(CC) $(CFLAGS) -fPIC $(SYSCONF_PREFIX) -c -o $@ $<
+	$(CC) $(CFLAGS) -fPIC -shared $(SYSCONF_PREFIX) -c -o $@ $<
 
 install: libdnet.a $(SHAREDLIB)
 	install -d $(libprefix)/lib
-	install -m 0444 libdnet.a $(libprefix)/lib/libdnet.a
-	install -m 0555 -s $(SHAREDLIB) $(libprefix)/lib/$(SHAREDLIB)
+	install -m 0644 libdnet.a $(libprefix)/lib/libdnet.a
+	install -m 0644 -s $(SHAREDLIB) $(libprefix)/lib/$(SHAREDLIB)
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(libprefix)/lib/$(LIBNAME).so

@@ -17,6 +17,8 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <pwd.h>
 #include <termios.h>
 #include <list>
 #include <queue>
@@ -27,6 +29,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -34,11 +37,17 @@
 #include "serversession.h"
 
 ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
+			     std::string shellcmd,
+			     uid_t uid, gid_t gid,
 			     unsigned char remid, 
 			     unsigned char localid, bool clean):
-  LATSession(p, remid, localid, clean)
+    LATSession(p, remid, localid, clean),
+    command(shellcmd),
+    cmd_uid(uid),
+    cmd_gid(gid)
 {
     max_read_size = cmd->dataslotsize;
+    
     
     debuglog(("new server session: localid %d, remote id %d, data slot size: %d\n",
 	    localid, remid, max_read_size));
@@ -46,16 +55,21 @@ ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 
 }
 
-int ServerSession::new_session(unsigned char *_remote_node, unsigned char c)
+int ServerSession::new_session(unsigned char *_remote_node, 
+			       char *service, char *port,
+			       unsigned char c)
 {
     credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
+
+    strcpy(remote_node, (char *)_remote_node);
     int status = create_session(_remote_node);
     if (status == 0)
     {
 	status = send_login_response();
 	if (credit) send_issue();
     }
-    strcpy(remote_node, (char *)_remote_node);
     return status;
 }
 
@@ -165,14 +179,19 @@ int ServerSession::create_session(unsigned char *remote_node)
 	
 	setsid();
 
-	// Older login programs don't take the -h flag
-#ifdef SET_LOGIN_HOST
-	execlp("/bin/login", "login", "-h", remote_node, (char *)0);
-#else
-	execlp("/bin/login", "login", (char *)0);
-#endif
-	// Argh!
-	syslog(LOG_ERR, "Error in starting /bin/login: %m");
+	// Become the requested user.
+	struct passwd *user_pwd = getpwuid(cmd_uid);
+	if (user_pwd)
+	    initgroups(user_pwd->pw_name, cmd_gid);
+	setgid(cmd_gid);
+	setuid(cmd_uid);
+
+	// Get the command to run
+	// and do it.
+	execute_command(command.c_str());
+
+	// Argh! It returned.
+	syslog(LOG_ERR, "Error in starting %s: %m", command.c_str());
 
 	// Exit now so that the parent will get EOF on the channel
 	exit(-1);
@@ -193,4 +212,60 @@ int ServerSession::create_session(unsigned char *remote_node)
 	break;
     }
     return 0;
+}
+
+void ServerSession::execute_command(const char *command)
+{
+    char cmd[strlen(command)+1];
+    strcpy(cmd, command);
+
+    // Count the args
+    int num_args = 0;
+    strtok(cmd, " ");
+    while (strtok(NULL, " ")) num_args++;
+
+    // Make sure we have a clean copy of the command
+    strcpy(cmd, command);
+
+    char *argv[num_args+1];
+    int   argc = 0;
+    const char *cmdname;
+    const char *thisarg;
+    
+    // Gather the args
+    thisarg = strtok(cmd, " ");
+
+    // Keep the path for the first arg to execvp
+    char fullcmd[strlen(thisarg)+1];
+    strcpy(fullcmd, thisarg);
+
+    // For the first arg, remove the path if there is one.
+    cmdname = strrchr(thisarg, '/')+1;
+    if (cmdname == (char *)1) cmdname = thisarg;
+
+    // We can man malloc all we like here because exec() will
+    // "free" it for us !
+    do
+    {
+	if (argc == 0) thisarg = cmdname;
+
+	argv[argc] = (char *)malloc(strlen(thisarg)+1);
+	strcpy(argv[argc], thisarg);
+
+	thisarg = strtok(NULL, " ");
+	argc++;
+    } while (thisarg);
+
+    // Need a NULL at the end of the list
+    argv[argc++] = NULL;
+
+    // Set some environment variables. 
+    // login will clear these it's true but other 
+    // services may find them useful.
+    setenv("LAT_LOCAL_SERVICE", parent.get_servicename(), 1);
+    setenv("LAT_REMOTE_NODE", remote_node, 1);
+    setenv("LAT_REMOTE_PORT", remote_port, 1);
+
+    // Run it.
+    execvp(fullcmd, argv);
 }

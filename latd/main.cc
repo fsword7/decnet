@@ -44,6 +44,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -183,6 +184,8 @@ int main(int argc, char *argv[])
 	exit(2);
     }
 
+    // Unset it so our children don't inherit it.
+    unsetenv("LATCP_STARTED");
     
 #ifndef NO_FORK
     if (!debug) // Also available at run-time

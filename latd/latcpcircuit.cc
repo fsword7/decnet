@@ -27,6 +27,7 @@
 #include "utils.h"
 #include "services.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -223,19 +224,29 @@ bool LATCPCircuit::do_command()
     {
 	unsigned char name[255];
 	unsigned char ident[255];
+	unsigned char command[1024];
 	bool static_rating;
 	int  rating;
 	int  ptr=2;
+	int  max_connections;
+	uid_t target_uid;
+	gid_t target_gid;
 
 	static_rating = (bool)cmdbuf[0];
 	rating = cmdbuf[1];
 	get_string((unsigned char*)cmdbuf, &ptr, name);
 	get_string((unsigned char*)cmdbuf, &ptr, ident);
+	max_connections = cmdbuf[ptr++];
+	target_uid = *(uid_t *)(cmdbuf+ptr); ptr += sizeof(uid_t);
+	target_gid = *(gid_t *)(cmdbuf+ptr); ptr += sizeof(gid_t);
+	get_string((unsigned char*)cmdbuf, &ptr, command);
 
 	debuglog(("latcp: add service: %s (%s)\n",
 		  name, ident));
 
-	if (LATServer::Instance()->add_service((char*)name, (char*)ident, rating, static_rating))
+	if (LATServer::Instance()->add_service((char*)name, (char*)ident, (char*)command,
+					       max_connections, target_uid, target_gid, 
+					       rating, static_rating))
 	    send_reply(LATCP_ACK, "", -1);
 	else
 	    send_reply(LATCP_ERRORMSG, "Local service already exists", -1);
@@ -337,12 +348,12 @@ bool LATCPCircuit::do_command()
 	debuglog(("latcp: add port: %s:%s (%s)\n",
 		  service, remport, localport));
 
-	if (LATServer::Instance()->make_client_connection(service, 
-							  remport,
-							  localport,
-							  remnode,
-							  queued,
-							  clean) < 0)
+	if (LATServer::Instance()->create_local_port(service, 
+						     remport,
+						     localport,
+						     remnode,
+						     queued,
+						     clean) < 0)
 	{
 	    debuglog(("sending failure back to LATCP\n"));
 	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);

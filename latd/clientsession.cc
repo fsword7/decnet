@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -34,7 +35,7 @@
 #include "clientsession.h"
 #include "lat_messages.h"
 
-ClientSession::ClientSession(class LATConnection &p, 
+ClientSession::ClientSession(class LATConnection &p,
 			     unsigned char remid, unsigned char localid,
 			     char *ttyname, bool clean):
   LATSession(p, remid, localid, clean),
@@ -45,9 +46,19 @@ ClientSession::ClientSession(class LATConnection &p,
     if (ttyname) strcpy(ltaname, ttyname);
 }
 
-int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
+// This should never be called now as it is overridden
+// by all self-respecting superclasses.
+int ClientSession::new_session(unsigned char *_remote_node,
+			       char *service, char *port,
+			       unsigned char c)
 {
+
+    assert(!"Should never get here!!");
+
+
     credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
 
 // A quick word of explanation here.
 // We keep the slave fd open after openpty because otherwise
@@ -58,7 +69,7 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     if (openpty(&master_fd,
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return -1; /* REJECT */
-  
+
 
     // Set terminal characteristics
     struct termios tio;
@@ -69,9 +80,9 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     strcpy(remote_node, (char *)_remote_node);
     strcpy(ptyname, ttyname(slave_fd));
     strcpy(mastername, ttyname(master_fd));
-    state = STARTING;
+    state = NEW;
     slave_fd_open = true;
-    
+
     // Check for /dev/lat & create it if necessary
     struct stat st;
     if (stat(LAT_DIRECTORY, &st) == -1)
@@ -102,50 +113,51 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 #endif
 
     debuglog(("made symlink %s to %s\n", ltaname, ptyname));
-    LATServer::Instance()->add_pty(this, master_fd);
+//    LATServer::Instance()->add_pty(this, master_fd);
     return 0;
 }
 
 int ClientSession::connect_parent()
 {
     debuglog(("connecting parent for %s\n", ltaname));
-    return parent.connect();
+    return parent.connect(this);
 }
 
-void ClientSession::connect(char *service, char *port)
+void ClientSession::connect()
 {
-    debuglog(("connecting client session to '%s'\n", remote_node));
+    state = RUNNING;
+    debuglog(("connecting client session to '%s'\n", remote_service));
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
     memset(buf, 0, sizeof(buf));
     LAT_SessionData *reply = (LAT_SessionData *)buf;
     int ptr = sizeof(LAT_SessionData);
-    
+
     buf[ptr++] = 0x01; // Service Class
     buf[ptr++] = 0x01; // Max Attention slot size..
     buf[ptr++] = 0xfe; // Max Data slot size
-    
-    add_string(buf, &ptr, (unsigned char *)service);
+
+    add_string(buf, &ptr, (unsigned char *)remote_service);
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
     buf[ptr++] = 0x02; // Param Length 2
     buf[ptr++] = 0x04; // Value 1024
-    buf[ptr++] = 0x00; // 
+    buf[ptr++] = 0x00; //
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
     add_string(buf, &ptr, (unsigned char *)ltaname);
 
-    // If the user wanted a particular port number then add it 
+    // If the user wanted a particular port number then add it
     // into the message
-    if (port[0] != '\0')
+    if (remote_port[0] != '\0')
     {
 	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
-	add_string(buf, &ptr, (unsigned char *)port);
+	add_string(buf, &ptr, (unsigned char *)remote_port);
 	buf[ptr++] = 0x00; // NUL terminated (??)
     }
- 
+
     // Send message...
     reply->header.cmd          = LAT_CCMD_SESSION;
     reply->header.num_slots    = 1;
@@ -161,21 +173,20 @@ void ClientSession::connect(char *service, char *port)
 // Disconnect the local PTY
 void ClientSession::restart_pty()
 {
-    debuglog(("ClientSession::restart_pty()\n"));
+    assert(!"ClientSession::restart_pty()\n");
     connected = false;
     remote_session = 0;
-    
+
     // Close it all down so the local side gets EOF
     unlink(ltaname);
-    
+
     if (slave_fd_open) close (slave_fd);
     close (master_fd);
     LATServer::Instance()->set_fd_state(master_fd, true);
     LATServer::Instance()->remove_fd(master_fd);
-    
-    // Now open it all up again ready for a new connection
-    new_session((unsigned char *)remote_node, 0);
 
+    // Now open it all up again ready for a new connection
+    new_session((unsigned char *)remote_node, remote_service, remote_port, 0);
 }
 
 
@@ -183,7 +194,7 @@ void ClientSession::restart_pty()
 void ClientSession::disconnect_session(int reason)
 {
     debuglog(("ClientSession::disconnect_session()\n"));
-    // If the reason was some sort of error then send it to 
+    // If the reason was some sort of error then send it to
     // the PTY
     if (reason > 1)
     {
@@ -200,11 +211,12 @@ void ClientSession::disconnect_session(int reason)
 
 ClientSession::~ClientSession()
 {
-    if (ltaname[0]) unlink(ltaname);
-    
     if (slave_fd_open) close (slave_fd);
-    close (master_fd);
-    LATServer::Instance()->remove_fd(master_fd);
+    if (master_fd > -1)
+    {
+	close (master_fd);
+	LATServer::Instance()->remove_fd(master_fd);
+    }
 }
 
 void ClientSession::do_read()
@@ -215,7 +227,7 @@ void ClientSession::do_read()
 	if (!connect_parent())
 	{
 	    state = STARTING;
-	    
+
 	    // Disable reads on the PTY until we are connected (or it fails)
 	    LATServer::Instance()->set_fd_state(master_fd, true);
 
@@ -264,7 +276,7 @@ void ClientSession::got_connection(unsigned char _remid)
 	slotbuf[slotptr++] = 0x11; // Start output char XON
 	slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
 	slotbuf[slotptr++] = 0x11; // Start input char  XON
-	
+
 	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
 	credit--;
     }
@@ -273,7 +285,7 @@ void ClientSession::got_connection(unsigned char _remid)
     connected = true;
 }
 
-// Called from the slave connection - return the master fd so it can 
+// Called from the slave connection - return the master fd so it can
 // can do I/O on it and close the slave so it gets EOF notification.
 int ClientSession::get_port_fd()
 {
@@ -281,8 +293,8 @@ int ClientSession::get_port_fd()
     return master_fd;
 }
 
-// Normal client sessions don't provide feedback on status (though maybe we should
-// check for other status types....
+// Normal client sessions don't provide feedback on status (though maybe we
+// should check for other status types....
 void ClientSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
 {
     return;

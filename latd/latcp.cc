@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <utmp.h>
+#include <pwd.h>
 #include <signal.h>
 #include <limits.h>
 #include <assert.h>
@@ -89,9 +90,10 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i description] [-r rating] [-s]\n");
+    printf ("       -A -a service [-i description] [-r rating] [-s] [-C command] [-u user] [-m max conn]\n");
     printf ("       -A -p tty -V learned_service [-R rem_port] [-H rem_node] [-Q] [-8]\n");
     printf ("       -D {-a service | -p tty}\n");
+    printf ("       -C service command}\n");
     printf ("       -i description -a service\n");
     printf ("       -g list\n");
     printf ("       -G list\n");
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
 
 // Parse the command.
 // because the args vary so much for each command I just check argv[1]
-// for the command switch and the command processors call getopt themselves    
+// for the command switch and the command processors call getopt themselves
 
     if (argc == 1)
     {
@@ -199,22 +201,22 @@ int main(int argc, char *argv[])
     default:
 	exit(usage(argv[0]));
 	break;
-    } 
+    }
 }
 
 
 // Display latd characteristics or learned services
 void display(int argc, char *argv[])
-{   
+{
     char verboseflag[1] = {'\0'};
     signed char opt;
     bool show_services = false;
-    
+
     if (!open_socket(false)) return;
 
     while ((opt=getopt(argc,argv,"lv")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'l':
 	    show_services=true;
@@ -247,7 +249,7 @@ void display(int argc, char *argv[])
 
     cout << result;
 
-    delete[] result;  
+    delete[] result;
 }
 
 
@@ -258,12 +260,12 @@ void set_rating(int argc, char *argv[])
     bool static_rating = false;
     char service[256];
     signed char opt;
-    
+
     if (!open_socket(false)) return;
 
     while ((opt=getopt(argc,argv,"x:sa:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'x':
 	    new_rating = atoi(optarg);
@@ -291,7 +293,7 @@ void set_rating(int argc, char *argv[])
     }
 
     make_upper(service);
-    
+
     char message[520];
     int ptr = 2;
     message[0] = (int)static_rating;
@@ -305,7 +307,7 @@ void set_rating(int argc, char *argv[])
     int cmd;
 
     exit (read_reply(latcp_socket, cmd, result, len));
-    
+
 }
 
 
@@ -315,12 +317,12 @@ void set_ident(int argc, char *argv[])
     char service[256];
     char ident[256];
     signed char opt;
-    
+
     if (!open_socket(false)) return;
 
     while ((opt=getopt(argc,argv,"i:a:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'a':
 	    strcpy(service, optarg);
@@ -337,7 +339,7 @@ void set_ident(int argc, char *argv[])
     }
 
     make_upper(service);
-    
+
     char message[1024];
     int ptr = 0;
     add_string((unsigned char*)message, &ptr, (unsigned char*)service);
@@ -357,10 +359,10 @@ void set_server_groups(int argc, char *argv[])
     signed char opt;
     int  cmd;
     char groups[256];
-    
+
     while ((opt=getopt(argc,argv,"G:g:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'G':
 	    cmd = LATCP_SETSERVERGROUPS;
@@ -382,7 +384,7 @@ void set_server_groups(int argc, char *argv[])
 
     char bitmap[32]; // 256 bits
     make_bitmap(bitmap, groups);
-    
+
     send_msg(latcp_socket, cmd, bitmap, 32);
 
     // Wait for ACK or error
@@ -397,10 +399,10 @@ void set_user_groups(int argc, char *argv[])
     signed char opt;
     int  cmd;
     char groups[256];
-    
+
     while ((opt=getopt(argc,argv,"u:U:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'U':
 	    cmd = LATCP_SETUSERGROUPS;
@@ -422,7 +424,7 @@ void set_user_groups(int argc, char *argv[])
 
     char bitmap[32]; // 256 bits
     make_bitmap(bitmap, groups);
-    
+
     send_msg(latcp_socket, cmd, bitmap, 32);
 
     // Wait for ACK or error
@@ -439,7 +441,7 @@ void set_responder(int onoff)
 
     char flag[1];
     flag[0] = onoff;
-    send_msg(latcp_socket, LATCP_SETRESPONDER, flag, 1);    
+    send_msg(latcp_socket, LATCP_SETRESPONDER, flag, 1);
 }
 
 // Shutdown latd
@@ -501,11 +503,11 @@ void set_node(char *name)
     if (!open_socket(false)) return;
 
     make_upper(name);
-    
+
     char message[520];
     int ptr = 0;
     add_string((unsigned char*)message, &ptr, (unsigned char*)name);
-    
+
     send_msg(latcp_socket, LATCP_SETNODENAME, message, ptr);
     return;
 }
@@ -518,6 +520,7 @@ void add_service(int argc, char *argv[])
     char localport[255] = {'\0'};
     char remnode[255] = {'\0'};
     char remservice[255] = {'\0'};
+    char command[1024] = {'\0'};
     signed char opt;
     bool got_service=false;
     bool got_port=false;
@@ -525,13 +528,18 @@ void add_service(int argc, char *argv[])
     int  rating = 0;
     int  queued = 0;
     int  clean = 0;
-    
+    int  max_connections = 0;
+    uid_t target_uid = 0;
+    gid_t target_gid = 0;
+    struct passwd *target_user;
+
+
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8C:m:u:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'a':
 	    got_service=true;
@@ -585,15 +593,33 @@ void add_service(int argc, char *argv[])
 	    clean = true;
 	    break;
 
+	case 'C':
+	    strcpy(command, optarg);
+	    break;
+
+	case 'u':
+	    target_user = getpwnam(optarg);
+	    if (target_user == NULL)
+	    {
+		fprintf(stderr, "Unknown username '%s'\n", optarg);
+		exit(99);
+	    }
+	    target_uid = target_user->pw_uid;
+	    target_gid = target_user->pw_gid;
+	    break;
+
+	case 'm':
+	    max_connections = atoi(optarg);
+	    break;
 
 	case 'r':
 	    rating = atoi(optarg);
 	    break;
-	    
+
 	default:
 	    fprintf(stderr, "No more service switches defined yet\n");
 	    exit(2);
-	}    
+	}
     }
 
     if (!open_socket(false)) return;
@@ -611,13 +637,17 @@ void add_service(int argc, char *argv[])
 	    exit(2);
 	}
 
-	
 	char message[520];
 	int ptr = 2;
 	message[0] = (int)static_rating;
 	message[1] = rating;
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
+	message[ptr++] = max_connections;
+	*(uid_t *)(message+ptr) = target_uid; ptr += sizeof(uid_t);
+	*(gid_t *)(message+ptr) = target_gid; ptr += sizeof(gid_t);
+	add_string((unsigned char*)message, &ptr, (unsigned char*)command);
+
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);
 
 	// Wait for ACK or error
@@ -654,14 +684,14 @@ void del_service(int argc, char *argv[])
 
     while ((opt=getopt(argc,argv,"a:p:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'a':
 	    got_service = true;
 	    strcpy(name, optarg);
 	    make_upper(name);
 	    break;
-	    
+
 	case 'p':
 	    got_port = true;
 	    strcpy(name, optarg);
@@ -670,7 +700,7 @@ void del_service(int argc, char *argv[])
 	default:
 	    fprintf(stderr, "No more service switches defined yet\n");
 	    exit(2);
-	}    
+	}
     }
 
     if ((got_port && got_service) ||
@@ -680,7 +710,7 @@ void del_service(int argc, char *argv[])
 	return;
     }
 
-    
+
     if (!open_socket(false)) return;
 
     char message[520];
@@ -690,7 +720,7 @@ void del_service(int argc, char *argv[])
 	send_msg(latcp_socket, LATCP_REMSERVICE, message, ptr);
     else
 	send_msg(latcp_socket, LATCP_REMPORT, message, ptr);
-    
+
     unsigned char *result;
     int len;
     int cmd;
@@ -712,13 +742,31 @@ void start_latd(int argc, char *argv[])
 	fprintf(stderr, "LAT is already running\n");
 	return;
     }
-    
+
     // Look for latd in well-known places
     struct stat st;
     char *latd_bin = NULL;
     char *latd_path = NULL;
 
-    if (!stat("/usr/sbin/latd", &st))
+    // Look for latd in the same place as latcp
+    char *name = (char *)malloc(strlen(argv[0])+1);
+    char *path = (char *)malloc(strlen(argv[0])+1);
+    strcpy(name, argv[0]);
+
+    char *slash = rindex(name, '/');
+    if (slash)
+    {
+	*slash='\0';
+	strcpy(path, name);
+	strcat(name, "/latd");
+	if (!stat(name, &st))
+	{
+	    latd_bin = name;
+	    latd_path = path;
+	}
+    }
+    // Otherwise look in some well-known places
+    else if (!stat("/usr/sbin/latd", &st))
     {
 	latd_bin = "/usr/sbin/latd";
 	latd_path = "/usr/sbin";
@@ -727,25 +775,6 @@ void start_latd(int argc, char *argv[])
     {
 	latd_bin = "/usr/local/sbin/latd";
 	latd_path = "/usr/local/sbin";
-    }
-    else
-    {
-	char *name = (char *)malloc(strlen(argv[0])+1);
-	char *path = (char *)malloc(strlen(argv[0])+1);
-	strcpy(name, argv[0]);
-
-	char *slash = rindex(name, '/');
-	if (slash)
-	{
-	    *slash='\0';
-	    strcpy(path, name);
-	    strcat(name, "/latd");
-	    if (!stat(name, &st))
-	    {
-		latd_bin = name;
-		latd_path = path;
-	    }
-	}
     }
 
     // Did we find it?
@@ -758,7 +787,7 @@ void start_latd(int argc, char *argv[])
 	char  latcp_bin[PATH_MAX];
 	char  latcp_env[PATH_MAX+7];
 
-// This is VERY Linux specific and need /proc mounted. 
+// This is VERY Linux specific and needs /proc mounted.
 // we get the full path of the current executable by doing a readlink.
 // /proc/<pid>/exe
 
@@ -806,8 +835,8 @@ void start_latd(int argc, char *argv[])
 		    fprintf(stderr, "latd did not start\n");
 		    exit(2);
 		}
-		
-		
+
+
 		// Run startup script if there is one.
 		if (!stat("/etc/latd.conf", &st))
 		{
@@ -821,11 +850,11 @@ void start_latd(int argc, char *argv[])
 			execve("/bin/sh", newargv, newenv);
 			perror("exec of /bin/sh failed");
 			exit(0);
-			
+
 		    case -1:
 			perror("Fork failed");
 			exit(0);
-			
+
 		    default: // Parent. Wait for child to finish
 			waitpid(shell_pid, NULL, 0);
 		    }
@@ -849,7 +878,7 @@ void start_latd(int argc, char *argv[])
 bool send_msg(int fd, int cmd, char *buf, int len)
 {
     unsigned char outhead[3];
-    
+
     outhead[0] = cmd;
     outhead[1] = len/256;
     outhead[2] = len%256;
@@ -864,11 +893,11 @@ bool send_msg(int fd, int cmd, char *buf, int len)
 int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 {
     unsigned char head[3];
-    
+
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
 	return -1; // Bad header
-    
+
     len = head[1] * 256 + head[2];
     cmd = head[0];
     cmdbuf = new unsigned char[len];
@@ -884,17 +913,17 @@ int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 	fprintf(stderr, "%s\n", cmdbuf);
 	return -1;
     }
-    
+
     return 0;
 }
 
 bool open_socket(bool quiet)
 {
     struct sockaddr_un sockaddr;
-    
+
     latcp_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
     if (latcp_socket == -1)
-    {	
+    {
 	if (!quiet) perror("Can't create socket");
 	return false; /* arggh ! */
     }
@@ -907,13 +936,13 @@ bool open_socket(bool quiet)
 	close(latcp_socket);
 	return false;
     }
-    
+
     unsigned char *result;
     int len;
     int cmd;
 
     // Send our version
-    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1); 
+    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
 
     return true;
@@ -936,7 +965,7 @@ static inline void set_in_bitmap(char *bits, int entry)
     {
 	unsigned int  intnum;
 	unsigned int  bitnum;
-    
+
 	intnum = entry / 8;
 	bitnum = entry % 8;
 	bits[intnum] |= 1<<bitnum;
@@ -954,7 +983,7 @@ static void make_bitmap(char *bitmap, char *cmdline)
 
     memset(bitmap, 0, 32);
     delimiter = strpbrk(cmdline, ",-");
-    
+
     do
     {
 	if (delimiter == NULL)
@@ -968,13 +997,13 @@ static void make_bitmap(char *bitmap, char *cmdline)
 	}
 	firstnum = atoi(cmdline);
 	if (delimiter != NULL) delimiter[0] = delimchar;
-	
-	/* Found a comma -- mark the number preceding it as read */	
+
+	/* Found a comma -- mark the number preceding it as read */
 	if ((delimchar == ',') || (delimiter == NULL))
 	{
 	    set_in_bitmap(bitmap, firstnum);
 	}
-	
+
 	/* Found a hyphen -- mark the range as read */
 	if (delimchar == '-')
 	{
@@ -988,14 +1017,14 @@ static void make_bitmap(char *bitmap, char *cmdline)
 	    }
 	    secondnum = atoi(cmdline);
 	    if (delimiter != NULL) delimiter[0] = delimchar;
-	    
+
 	    for (i=firstnum; i<=secondnum; i++)
 	    {
 		set_in_bitmap(bitmap, i);
 	    }
 	}
 	if (delimiter == NULL) finished = true;
-	
+
 	cmdline = delimiter+1;
 	if (delimiter != NULL) delimiter = strpbrk(cmdline, ",-");
     } while (!finished);

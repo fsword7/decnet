@@ -28,8 +28,7 @@
 #include "dn_endian.h"
 
 // Add or replace a node in the service table
-bool LATServices::add_service(const std::string &node, const std::string &service, 
-			      const std::string &ident,
+bool LATServices::add_service(const std::string &node, const std::string &service, const std::string &ident,
 			      int rating, int interface, unsigned char *macaddr)
 {
     debuglog(("Got service. Node: %s, service %s, rating: %d\n",
@@ -48,8 +47,8 @@ bool LATServices::add_service(const std::string &node, const std::string &servic
 }
 
 // Return the highest rated node providing a named service
-bool LATServices::get_highest(const std::string &service, std::string &node, 
-			      unsigned char *macaddr, int *interface)
+bool LATServices::get_highest(const std::string &service, std::string &node, unsigned char *macaddr, 
+			      int *interface)
 {
   std::map<std::string, serviceinfo, std::less<std::string> >::iterator test = servicelist.find(service);
   if (test != servicelist.end())
@@ -60,8 +59,7 @@ bool LATServices::get_highest(const std::string &service, std::string &node,
 }
 
 // Return the highest rated node providing this service
-bool LATServices::serviceinfo::get_highest(std::string &node, unsigned char *macaddr, 
-					   int *interface)
+bool LATServices::serviceinfo::get_highest(std::string &node, unsigned char *macaddr, int *interface)
 {
   int                  highest_rating=0;
   std::string          highest_node;
@@ -210,43 +208,3 @@ bool LATServices::list_services(bool verbose, std::ostrstream &output)
 }
 
 LATServices *LATServices::instance = NULL;
-
-
-/* SERVICE LIST EXAMPLES (VMS):
-/FULL:
-
-
-Service Name:    BACON                    Service Type:  General
-Service Status:  Available
-Service Ident:   .Welcome to VAX/VMS V5.5    
-
-Node Name            Status      Rating   Identification
-BACON                On            83 D   .Welcome to VAX/VMS V5.5    
-
---------------------------------------------------------------------------------
-
-Service Name:    BALTI            
-Service Status:  Available
-Service Ident:   Digital UNIX Version V4.0 LAT SERVICE
-
-Node Name            Status      Rating   Identification
-BALTI                Reachable    126     Digital UNIX Version V4.0 LAT SERVICE
-
---------------------------------------------------------------------------------
-
-Service Name:    GROT                     Service Type:  General
-Service Status:  Available
-Service Ident:   Perrin
-
-Node Name            Status      Rating   Identification
-BACON                On           100 S   Perrin
-
---------------------------------------------------------------------------------
-
-Service Name:    PATRIK           
-Service Status:  Available
-Service Ident:   Linux 2.2.14
-
-Node Name            Status      Rating   Identification
-PATRIK               Reachable      5     Linux 2.2.14
-*/

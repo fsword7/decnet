@@ -59,19 +59,22 @@ static void make_upper(char *str);
 static int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 static bool send_msg(int fd, int cmd, char *buf, int len);
 static bool open_socket(bool);
-static int  terminal(int latfd, int, int, int);
-static int  do_use_port(char *service, int quit_char, int crlf, int bsdel);
+static int  terminal(int latfd, int, int, int, int);
+static int  do_use_port(char *service, int quit_char, int crlf, int bsdel, int lfvt);
 static int usage(char *cmd)
 {
     printf ("Usage: llogin [<option>] <service>\n");
     printf ("     where option is one of the following:\n");
     printf ("       -d         show learned services\n");
+    printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local port rather than a service\n");
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
+    printf ("       -r <port>  remote port name\n");
     printf ("       -Q         connect to a queued service\n");
-    printf ("       -c         convert CR to LF\n");
-    printf ("       -b         convert DEL to BS\n");
+    printf ("       -c         convert input CR to LF\n");
+    printf ("       -b         convert input DEL to BS\n");
+    printf ("       -l         convert output LF to VT\n");
     printf ("       -n <name>  Local port name\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
@@ -89,6 +92,7 @@ int main(int argc, char *argv[])
     int verbose = 0;
     int crlf = 1;
     int bsdel = 0;
+    int lfvt = 0;
     int show_services = 0;
     int use_port = 0;
     int is_queued = 0;
@@ -97,14 +101,14 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
 	exit(usage(argv[0]));
-    }  
+    }
 
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhbQH:R:q:n:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:r:q:n:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'd':
 	    show_services = 1;
@@ -116,6 +120,10 @@ int main(int argc, char *argv[])
 
 	case 'b':
 	    bsdel = 1;
+	    break;
+
+	case 'l':
+	    lfvt = 1;
 	    break;
 
 	case 'p':
@@ -142,6 +150,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'R':
+	case 'r':
 	    strcpy(port, optarg);
 	    break;
 
@@ -168,7 +177,7 @@ int main(int argc, char *argv[])
     // This is just a bit like microcom...
     if (use_port)
     {
-	do_use_port(service, quit_char, crlf, bsdel);
+	do_use_port(service, quit_char, crlf, bsdel, lfvt);
 	return 0;
     }
 
@@ -182,17 +191,17 @@ int main(int argc, char *argv[])
 
 	// This is the same as latcp -d -l
 	send_msg(latcp_socket, LATCP_SHOWSERVICE, verboseflag, 1);
-	
+
 	unsigned char *result;
 	int len;
 	int cmd;
 	read_reply(latcp_socket, cmd, result, len);
-	
+
 	cout << result;
-	
-	delete[] result;  
+
+	delete[] result;
 	return 0;
-    }   
+    }
 
     make_upper(node);
     make_upper(service);
@@ -216,7 +225,7 @@ int main(int argc, char *argv[])
     if (ret) return ret;
 
     // If the reply was good then go into terminal mode.
-    terminal(latcp_socket, quit_char, crlf, bsdel);
+    terminal(latcp_socket, quit_char, crlf, bsdel, lfvt);
 
     shutdown(latcp_socket, 3);
     close(latcp_socket);
@@ -228,11 +237,11 @@ int main(int argc, char *argv[])
 static int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 {
     unsigned char head[3];
-    
+
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
 	return -1; // Bad header
-    
+
     len = head[1] * 256 + head[2];
     cmd = head[0];
     cmdbuf = new unsigned char[len];
@@ -248,17 +257,17 @@ static int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 	fprintf(stderr, "%s\n", cmdbuf);
 	return -1;
     }
-    
+
     return 0;
 }
 
 static bool open_socket(bool quiet)
 {
     struct sockaddr_un sockaddr;
-    
+
     latcp_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
     if (latcp_socket == -1)
-    {	
+    {
 	if (!quiet) perror("Can't create socket");
 	return false; /* arggh ! */
     }
@@ -271,13 +280,13 @@ static bool open_socket(bool quiet)
 	close(latcp_socket);
 	return false;
     }
-    
+
     unsigned char *result;
     int len;
     int cmd;
 
     // Send our version
-    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1); 
+    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
 
     return true;
@@ -297,7 +306,7 @@ static void make_upper(char *str)
 static bool send_msg(int fd, int cmd, char *buf, int len)
 {
     unsigned char outhead[3];
-    
+
     outhead[0] = cmd;
     outhead[1] = len/256;
     outhead[2] = len%256;
@@ -308,7 +317,7 @@ static bool send_msg(int fd, int cmd, char *buf, int len)
 }
 
 // Pretend to be a terminal connected to a LAT service
-static int terminal(int latfd, int endchar, int crlf, int bsdel)
+static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 {
     int termfd = STDIN_FILENO;
     struct termios old_term;
@@ -355,15 +364,14 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
 	    {
 		if (endchar >0 && inbuf[i] == endchar)
 		    goto quit;
-		
+
 		if (inbuf[i] == '\n' && crlf)
 		    inbuf[i] = '\r';
-		
+
 		if (inbuf[i] == '\177' && bsdel)
 		    inbuf[i] = '\010';
 	    }
 	    write(latfd, inbuf, len);
-
 	}
 
 	// Read from LAT socket. buffered.
@@ -373,10 +381,18 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
 	    if ( (len = read(latfd, &inbuf, sizeof(inbuf))) < 1)
 		break;
 	    else
+	    {
+		if (lfvt)
+		{
+		    for (int i=0; i<len; i++)
+			if (inbuf[i] == '\n')
+			    inbuf[i] = '\v';
+		}
 		write(termfd, inbuf, len);
+	    }
 	}
     }
- quit:    
+ quit:
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
     printf("\n");
@@ -384,7 +400,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
     return 0;
 }
 
-static int do_use_port(char *portname, int quit_char, int crlf, int bsdel)
+static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt)
 {
     int termfd;
     struct termios old_term;
@@ -400,18 +416,20 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel)
     tcgetattr(termfd, &old_term);
     new_term = old_term;
 
-// Set local terminal characteristics
-    new_term.c_iflag &= ~BRKINT;
+    // Set local terminal characteristics
+    new_term.c_iflag &= ~(BRKINT | ICRNL);
     new_term.c_iflag |= IGNBRK;
     new_term.c_lflag &= ~ISIG;
+    new_term.c_oflag &= ~OCRNL;
     new_term.c_cc[VMIN] = 1;
     new_term.c_cc[VTIME] = 0;
     new_term.c_lflag &= ~ICANON;
     new_term.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
     tcsetattr(termfd, TCSANOW, &new_term);
 
-    terminal(termfd, quit_char, crlf, bsdel);
-    
+    // Be a terminal
+    terminal(termfd, quit_char, crlf, bsdel, lfvt);
+
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
     close(termfd);

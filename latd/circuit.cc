@@ -27,6 +27,7 @@
 #include "utils.h"
 #include "services.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"

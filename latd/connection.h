@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@ class LATConnection
  public:
 
     typedef enum {REPLY, DATA, CONTINUATION} send_type;
-  
+
     LATConnection(int _num, unsigned char *buf, int len,
 		  int _interface,
 		  unsigned char _seq,
@@ -29,6 +29,7 @@ class LATConnection
     void send_connect_ack();
     int  send_message(unsigned char *, int, send_type);
     int  queue_message(unsigned char *, int);
+    int  add_data_slots(int start_slot, LAT_SlotCmd *slots[4]);
     void send_slot_message(unsigned char *, int);
     void circuit_timer();
     void remove_session(unsigned char);
@@ -39,17 +40,20 @@ class LATConnection
 		  const char *_service, const char *_portname,
 		  const char *_lta, const char *remnode,
 		  bool queued, bool clean);
-    int connect();
-    int create_client_session();
-    int create_llogin_session(int);
+    int connect(class ClientSession *);
+    int create_llogin_session(int, char *service, char *port, char *localport);
+    int create_localport_session(int, class LocalPort *, const char *service,
+				 const char *port, const char *localport);
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
     const char *getLocalPortName() { return lta_name; }
-    void show_client_info(bool verbose, std::ostrstream &);
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
-    
+    bool node_is(const char *node) { return strcmp(node, (char *)remnode)==0;}
+    int  num_clients();
+    const char *get_servicename() { return (const char *)servicename; }
+
  private:
     int            num;           // Local connection ID
     int            interface;     // Ethernet i/f we are using
@@ -58,6 +62,7 @@ class LATConnection
     unsigned char  last_sequence_number;
     unsigned char  last_ack_number;
     unsigned int   next_session;
+    unsigned int   highest_session;
     unsigned char  macaddr[6];
     unsigned char  servicename[255];
     unsigned char  portname[255];
@@ -70,12 +75,14 @@ class LATConnection
     bool           queued;             // Client for queued connection.
     bool           queued_slave;       // We are a slave connection for a queued client
     bool           eightbitclean;
-    LATConnection *master_conn;        // Client connection we a re slave to
-    
+    bool           connected;
+    LATConnection *master_conn;        // Client connection we are slave to
+    bool           connecting;
+
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);
     bool is_queued_reconnect(unsigned char *buf, int len, int *conn);
-	
+
     static const unsigned int MAX_SESSIONS = 254;
     enum {CLIENT, SERVER} role;
 
@@ -83,7 +90,7 @@ class LATConnection
     class pending_msg
     {
     public:
-      pending_msg() {}	
+      pending_msg() {}
       pending_msg(unsigned char *_buf, int _len, bool _need_ack):
 	len(_len),
         need_ack(_need_ack)
@@ -92,7 +99,7 @@ class LATConnection
 	}
       pending_msg(const pending_msg &msg):
 	len(msg.len),
-	need_ack(msg.need_ack)  
+	need_ack(msg.need_ack)
 	{
 	    memcpy(buf, msg.buf, len);
 	}
@@ -110,7 +117,7 @@ class LATConnection
 	  }
 	  return *this;
       }
-      
+
       int send(int interface, unsigned char *macaddr);
       int send(int interface, unsigned char seq, unsigned char *macaddr)
       {
@@ -120,7 +127,7 @@ class LATConnection
       }
       LAT_Header *get_header() { return (LAT_Header *)buf;}
       bool needs_ack() { return need_ack;}
-      
+
     private:
       unsigned char buf[1600];
       int   len;
@@ -144,7 +151,7 @@ class LATConnection
 	    len = cmd.len;
 	    memcpy(buf, cmd.buf, len);
 	}
-	
+
       ~slot_cmd()
 	{
 	}
@@ -152,14 +159,14 @@ class LATConnection
       int   get_len(){return len;}
       unsigned char *get_buf(){return buf;}
       LAT_SlotCmd   *get_cmd(){return (LAT_SlotCmd *)buf;}
-      
+
     private:
         unsigned char  buf[300];
-        int            len;    
+        int            len;
     };
 
     std::queue<slot_cmd> slots_pending;
-    
+
     int max_window_size;  // As set by the client.
     int window_size;      // Current window size
     int lat_eco;          // Remote end's LAT ECO version

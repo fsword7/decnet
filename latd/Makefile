@@ -1,31 +1,37 @@
 # Makefile for LAT server
 
-VERSION=1.04
+VERSION=1.12
 PKGNAME=latd
 
 
 PROG1=latd
 PROG2=latcp
 PROG3=llogin
+PROG4=moprc
 MANPAGES1=llogin.1
 MANPAGES5=latd.conf.5
-MANPAGES8=latd.8 latcp.8
+MANPAGES8=latd.8 latcp.8 moprc.8
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
-	  serversession.o clientsession.o portsession.o services.o \
-	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o circuit.o
+	  serversession.o clientsession.o queuedsession.o services.o \
+	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o \
+	  circuit.o localport.o localportsession.o
 PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
+PROG4OBJS=moprc.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
 DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
 #DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC
+#DEFS+=-DREALLY_VERBOSE_DEBUGLOG
 
 prefix=/usr/local
 LATCPSOCK="/var/run/latcp"
 LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++ 
+CC=gcc
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
+CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
 
 # ARCH code taken from the Linux kernel sources.
 #
@@ -46,7 +52,7 @@ endif
 #
 # Targets:
 #
-all: $(PROG1) $(PROG2) $(PROG3)
+all: $(PROG1) $(PROG2) $(PROG3) $(PROG4)
 
 $(PROG1): depend $(PROG1OBJS) 
 	$(CXX) -o $@ $(PROG1OBJS) -lutil
@@ -57,6 +63,9 @@ $(PROG2): depend $(PROG2OBJS)
 $(PROG3): depend $(PROG3OBJS) 
 	$(CXX) -o $@ $(PROG3OBJS)
 
+$(PROG4): depend $(PROG4OBJS)
+	$(CC) $(CFLAGS) -o $@ $(PROG4OBJS)
+
 install:
 	install -d $(prefix)/sbin
 	install -d $(prefix)/bin
@@ -66,6 +75,7 @@ install:
 	install -m 0750 -s $(PROG1) $(prefix)/sbin
 	install -m 0750 -s $(PROG2) $(prefix)/sbin
 	install -m 0755 -s $(PROG3) $(prefix)/bin
+	install -m 0750 -s $(PROG4) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(prefix)/man/man1
 	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
@@ -75,13 +85,15 @@ dep depend:
 
 clean:
 	rm -f .depend
-	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend 
+	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend core
 	rm -rf debian/tmp
 
+debclean:
+	debian/rules clean
 dist:
 	rm  -f .depend
 	rm -rf debian/tmp
-	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc \
+	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc latd/*.c \
 		latd/BUGS latd/README latd/NEWS latd/Makefile \
                 latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
 		latd/*.[1-8] latd/latd.conf latd/startlat.sh \

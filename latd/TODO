@@ -8,6 +8,8 @@ TODO in no particular order
 THINGS I MAY NOT DO
 -------------------
 - Keep counters
+- Allow applications to change the serial characteristics
+  (probably too hard because of the port actually being PTYs)
 - Support windows larger than 1
 - Allow /etc/issue.net files longer than 255 characters
 - Put the protocol bits into the kernel.

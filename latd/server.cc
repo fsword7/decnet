@@ -454,10 +454,10 @@ void LATServer::run()
 	if (next_circuit_time.tv_sec == 0)
 	{
 	    next_circuit_time = now;
+	    next_circuit_time.tv_usec += circuit_timer*10000;
+	    next_circuit_time.tv_sec += (next_circuit_time.tv_usec / 1000000);
+	    next_circuit_time.tv_usec = (next_circuit_time.tv_usec % 1000000);
 	}
-	next_circuit_time.tv_usec += circuit_timer*10000;
-	next_circuit_time.tv_sec += (next_circuit_time.tv_usec / 1000000);
-	next_circuit_time.tv_usec = (next_circuit_time.tv_usec % 1000000);
 
 	tv = next_circuit_time;
 	if (tv.tv_sec < now.tv_sec
@@ -499,6 +499,9 @@ void LATServer::run()
 	      // Is it time we expired some more nodes ?
 	      if (time(NULL) - last_node_expiry > 15)
 		  LATServices::Instance()->expire_nodes();
+#ifndef __linux__
+	      next_circuit_time.tv_sec = 0;
+#endif
 	      continue;
 	    }
 

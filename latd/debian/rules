@@ -30,7 +30,7 @@ binary-arch: checkroot build
 	install -d debian/tmp/etc
 	install -d debian/tmp/usr/share
 	install -m 0600 latd.conf debian/tmp/etc/latd.conf
-	make install DESTDIR=`pwd`/debian/tmp RELEASE=true
+	make install DESTDIR=`pwd`/debian/tmp
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	dh_installdirs
 	dh_installchangelogs

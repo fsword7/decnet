@@ -1,3 +1,9 @@
+2.07
+------------------
+- Fix VMS errors sending block-structured files
+- Added support for Ultrix DATE DAP message (another undocumented extension).
+- Cope better with VMS errors when sending files (eg. disk full)
+
 2.06 28th Oct 2000
 ------------------
 - Fix build of phone on Debian Potato systems

@@ -446,7 +446,6 @@ void shutdown()
 
     char dummy[1];
     send_msg(latcp_socket, LATCP_SHUTDOWN, dummy, 0);
-    printf("LAT stopped\n");
 }
 
 // Purge learned services
@@ -823,7 +822,6 @@ void start_latd(int argc, char *argv[])
 		// Now "unlock" latd. ie tell it we have finished initialisation
 		char dummy[1];
 		send_msg(latcp_socket, LATCP_UNLOCK, dummy, 0);
-		printf("LAT Started\n");
 	    }
 	    break;
 	}

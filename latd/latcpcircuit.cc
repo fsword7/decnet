@@ -120,6 +120,19 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+    case LATCP_SHOWNODES:
+    {
+	int verbose = cmdbuf[0];
+	std::ostrstream st;
+
+	debuglog(("latcp: shownodes\n"));
+
+	LATServer::Instance()->show_nodes(verbose?true:false, st);
+	send_reply(LATCP_SHOWNODES, st.str(), st.pcount());
+	st.freeze(false);
+    }
+    break;
+
 
     case LATCP_SETRESPONDER:
     {

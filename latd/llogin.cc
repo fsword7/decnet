@@ -70,6 +70,7 @@ static int usage(char *cmd)
     printf ("       -p         connect to a local port rather than a service\n");
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
+    printf ("       -r <port>  remote port name\n");
     printf ("       -Q         connect to a queued service\n");
     printf ("       -c         convert input CR to LF\n");
     printf ("       -b         convert input DEL to BS\n");
@@ -100,14 +101,14 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
 	exit(usage(argv[0]));
-    }  
+    }
 
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
     while ((opt=getopt(argc,argv,"dpcvhlbQH:R:q:n:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
 	case 'd':
 	    show_services = 1;
@@ -149,6 +150,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'R':
+	case 'r':
 	    strcpy(port, optarg);
 	    break;
 
@@ -189,17 +191,17 @@ int main(int argc, char *argv[])
 
 	// This is the same as latcp -d -l
 	send_msg(latcp_socket, LATCP_SHOWSERVICE, verboseflag, 1);
-	
+
 	unsigned char *result;
 	int len;
 	int cmd;
 	read_reply(latcp_socket, cmd, result, len);
-	
+
 	cout << result;
-	
-	delete[] result;  
+
+	delete[] result;
 	return 0;
-    }   
+    }
 
     make_upper(node);
     make_upper(service);
@@ -235,11 +237,11 @@ int main(int argc, char *argv[])
 static int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 {
     unsigned char head[3];
-    
+
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
 	return -1; // Bad header
-    
+
     len = head[1] * 256 + head[2];
     cmd = head[0];
     cmdbuf = new unsigned char[len];
@@ -255,17 +257,17 @@ static int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 	fprintf(stderr, "%s\n", cmdbuf);
 	return -1;
     }
-    
+
     return 0;
 }
 
 static bool open_socket(bool quiet)
 {
     struct sockaddr_un sockaddr;
-    
+
     latcp_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
     if (latcp_socket == -1)
-    {	
+    {
 	if (!quiet) perror("Can't create socket");
 	return false; /* arggh ! */
     }
@@ -278,13 +280,13 @@ static bool open_socket(bool quiet)
 	close(latcp_socket);
 	return false;
     }
-    
+
     unsigned char *result;
     int len;
     int cmd;
 
     // Send our version
-    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1); 
+    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
 
     return true;
@@ -304,7 +306,7 @@ static void make_upper(char *str)
 static bool send_msg(int fd, int cmd, char *buf, int len)
 {
     unsigned char outhead[3];
-    
+
     outhead[0] = cmd;
     outhead[1] = len/256;
     outhead[2] = len%256;
@@ -362,10 +364,10 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 	    {
 		if (endchar >0 && inbuf[i] == endchar)
 		    goto quit;
-		
+
 		if (inbuf[i] == '\n' && crlf)
 		    inbuf[i] = '\r';
-				
+
 		if (inbuf[i] == '\177' && bsdel)
 		    inbuf[i] = '\010';
 	    }
@@ -390,7 +392,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 	    }
 	}
     }
- quit:    
+ quit:
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
     printf("\n");
@@ -427,7 +429,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
 
     // Be a terminal
     terminal(termfd, quit_char, crlf, bsdel, lfvt);
-    
+
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
     close(termfd);

@@ -17,6 +17,7 @@ dnetd uses the SDF_WILD flag in the kernel - this means that is answers
 connections for any objects not already listening so you can set up any
 combination of always-running daemons and occasionally running daemons you
 like without changing the configuration file. If you kill a standalone daemon
-then dnetd will automatically take over.
+then dnetd will automatically take over you do not need to restart it or change
+its config file...much easier than inetd!
 
-See the man pages dnete(1) and dnetd.conf(5) for more information.
+See the man pages dnetd(1) and dnetd.conf(5) for more information.

@@ -79,9 +79,9 @@ static int usage(char *cmd)
 int main(int argc, char *argv[])
 {
     char msg[1024];
-    char node[256];
-    char service[256];
-    char port[256];
+    char node[256] = {'\0'};
+    char service[256] = {'\0'};
+    char port[256] = {'\0'};
     signed char opt;
     int verbose = 0;
     int crlf = 1;
@@ -356,6 +356,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
     
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
+    printf("\n");
 
     return 0;
 }

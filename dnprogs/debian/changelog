@@ -1,4 +1,15 @@
-dnprogs (2.13-1potato) unstable; urgency=low
+dnprogs (2.14-1) unstable; urgency=low
+
+  * Fixed random failures of dnet_conn caused by uninitialised structure member.
+  * Added printf-style variable arg lists to librms rms_t_* functions
+  * Made rpm generate sensible arch codes.
+  * setether puts the card in "allmulti" mode. Some cards need this to
+    collect the hello messages.
+  * added -s (show stats) option to dncopy.
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  3 Sep 2001 15:53:48 +0100
+
+dnprogs (2.13-1) unstable; urgency=low
 
   * Fix use of __GLIBC__ macro
   * Allow binary keys in librms

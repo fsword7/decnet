@@ -510,7 +510,10 @@ void LATServer::read_lat(int sock)
     LAT_Header *header = (LAT_Header *)buf;
 
     len = iface->recv_packet(sock, ifn, macaddr, buf, sizeof(buf));
-    if (len <= 0)
+    if (len == 0)
+	return; // Probably a rogue packet
+
+    if (len < 0)
     {
 	if (errno != EINTR && errno != EAGAIN)
 	{

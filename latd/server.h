@@ -199,7 +199,7 @@ class LATServer
     void delete_entry(deleted_session &);
     
     // Constants
-    static const int MAX_CONNECTIONS = 5;
+    static const int MAX_CONNECTIONS = 255;
 
     // Collections
     list<fdinfo>          fdlist;

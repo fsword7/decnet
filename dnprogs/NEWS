@@ -1,3 +1,30 @@
+dnprogs (2.10-1potato) unstable; urgency=low
+
+  * Fix crash in libdap if the first byte of a message is the last
+    byte of a packet.
+  * Add man page symlinks for dnet_accet/dnet_reject and 
+    dnet_endnode/dnet_nextnode.   Closes: bug#99611
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat,  2 Jun 2001 11:03:54 +0100
+
+dnprogs (2.09-1) unstable; urgency=low
+
+  * Fix config script to allow node numbers > 63
+  * Fix compiling on latest libc
+  * dnet-common is arch independant
+  * Tidy depends and build-depends
+  * Changed use of debconf isdefault to seen
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 24 Feb 2001 13:33:42 +0000
+
+dnprogs (2.08-1) unstable; urgency=low
+
+  * First Debian upload.  Closes: bug#83642
+  * Split into 4 packages.
+  * FAL now correctly uses metadata for block-structured files. 
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun,  4 Feb 2001 14:23:07 +0000
+
 dnprogs (2.07-1) stable; urgency=low
 
   * Fix VMS errors sending block-structured files from fal

@@ -31,7 +31,7 @@ int dnrt_open(struct rtnl_handle *rth, unsigned subscriptions)
 
 	memset(rth, 0, sizeof(rth));
 
-	rth->fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_DNRTMSG);
+	rth->fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
 	if (rth->fd < 0) {
 		perror("Cannot open netlink socket");
 		return -1;

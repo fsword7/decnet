@@ -54,24 +54,53 @@ char *if_index_to_name(int ifindex)
     {
 	sprintf(buf, "if%d", ifindex);
     }
-    
+
     close(sock);
     return buf;
 }
 
-/* Dump a routing message to stdout */
-static int dump_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
+
+static int dump_neigh_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
     struct nf_dn_rtmsg *rtm;
     unsigned short *ptr2;
     unsigned char  *ptr1;
     int            len, i;
     unsigned int   sum=1;
-	
+
     rtm = (struct nf_dn_rtmsg *)NLMSG_DATA(n);
     ptr2 = (unsigned short *)NFDN_RTMSG(rtm);
     ptr1 = (unsigned char *)NFDN_RTMSG(rtm);
-    len = n->nlmsg_len - sizeof(*n) - sizeof(*rtm);   
+    len = n->nlmsg_len - sizeof(*n) - sizeof(*rtm);
+
+    printf("PJC: got rtnetlink message, len = %d\n", len);
+
+#define DUMP_PACKET
+#ifdef DUMP_PACKET
+    for (i=0; i<len/2; i++)
+    {
+	if (!(i&0xf)) fprintf(stderr, "\n");
+	fprintf(stderr, "%04x ", *(ptr2+i));
+    }
+    fprintf(stderr, "\n");
+#endif
+
+    return 0;
+}
+
+/* Dump a routing message to stdout */
+static int dump_rtg_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
+{
+    struct nf_dn_rtmsg *rtm;
+    unsigned short *ptr2;
+    unsigned char  *ptr1;
+    int            len, i;
+    unsigned int   sum=1;
+
+    rtm = (struct nf_dn_rtmsg *)NLMSG_DATA(n);
+    ptr2 = (unsigned short *)NFDN_RTMSG(rtm);
+    ptr1 = (unsigned char *)NFDN_RTMSG(rtm);
+    len = n->nlmsg_len - sizeof(*n) - sizeof(*rtm);
 
 #ifdef DUMP_PACKET
     for (i=0; i<len/2; i++)
@@ -93,14 +122,14 @@ static int dump_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	int    entry;
 
 	i = 4; /* Start of segments */
-	
+
 	add.a_len = 2;
 	add.a_addr[0] = ptr1[1];
 	add.a_addr[1] = ptr1[2];
 	dnet_ntop(AF_DECnet, &add, node, sizeof(node));
-       
+
 	printf("Level 1 routing message from %s on %s, len = %d\n",
-	       node, if_index_to_name(rtm->nfdn_ifindex), len);	
+	       node, if_index_to_name(rtm->nfdn_ifindex), len);
 
 	while (i < len-4)
 	{
@@ -108,9 +137,9 @@ static int dump_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	    i+=2;
 	    start_id = ptr1[i] | ptr1[i+1]<<8;
 	    i+=2; /* Start of entries */
-	    
+
 	    for (num = 0; num<num_ids; num++)
-	    {	    
+	    {
 		entry = ptr1[i] | ptr1[i+1]<<8;
 		if (entry != 0x7fff)
 		{
@@ -121,7 +150,7 @@ static int dump_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	    }
 	}
     }
-    
+
     /* Level 2 Routing Message */
     if ( (ptr1[0] & 0xE)>>1 == 4)
     {
@@ -133,58 +162,40 @@ static int dump_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	int    entry;
 
 	i = 4; /* Start of segments */
-	
+
 	add.a_len = 2;
 	add.a_addr[0] = ptr1[1];
 	add.a_addr[1] = ptr1[2];
 	dnet_ntop(AF_DECnet, &add, node, sizeof(node));
-	
+
 	printf("Level 2 routing message from %s on %s, len = %d\n",
-	       node, if_index_to_name(rtm->nfdn_ifindex), len);	
+	       node, if_index_to_name(rtm->nfdn_ifindex), len);
 	while (i < len-4)
 	{
 	    num_ids = ptr1[i] | ptr1[i+1]<<8;
 	    i+=2;
 	    start_id = ptr1[i] | ptr1[i+1]<<8;
 	    i+=2; /* Start of entries */
-		
+
 	    for (num = 0; num<num_ids; num++)
-	    {	    
+	    {
 		entry = ptr1[i] | ptr1[i+1]<<8;
 		if (entry != 0x7fff)
 		{
 		    printf("  Area %d reachable. Hops %d, cost %d\n",
 			   num+start_id, (entry&0x7E00)>>9, entry&0x1FF);
 		}
-		i+=2;		
+		i+=2;
 	    }
 	}
-	
+
     }
 
     /* Check the checksum */
     sum = route_csum(ptr1, 4, i);
-    
+
     printf("Calc sum=%x, got sum: %x\n", sum, *(unsigned short *)(ptr1+i));
 
     return 0;
 }
 
-int
-main(int argc, char **argv)
-{
-    struct rtnl_handle rth;
-    unsigned groups = DNRMG_L1_GROUP | DNRMG_L2_GROUP;
-    
-    signal(SIGALRM, send_route_msg);
-    
-    alarm(routing_multicast_timer);
-    
-    if (dnrt_open(&rth, groups) < 0)
-	exit(1);
-    
-    if (dnrt_listen(&rth, dump_msg, (void*)0) < 0)
-	exit(2);
-    
-    exit(0);
-}

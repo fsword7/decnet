@@ -105,6 +105,7 @@ bool LLOGINCircuit::do_command()
 
 	LATServices::Instance()->list_services(verbose?true:false, st);
 	send_reply(LATCP_SHOWSERVICE, st.str(), st.pcount());
+	st.freeze(false);
     }
     break;
 

@@ -103,6 +103,7 @@ bool LATCPCircuit::do_command()
 
 	LATServices::Instance()->list_services(verbose?true:false, st);
 	send_reply(LATCP_SHOWSERVICE, st.str(), st.pcount());
+	st.freeze(false);
     }
     break;
 
@@ -115,6 +116,7 @@ bool LATCPCircuit::do_command()
 
 	LATServer::Instance()->show_characteristics(verbose?true:false, st);
 	send_reply(LATCP_SHOWCHAR, st.str(), st.pcount());
+	st.freeze(false);
     }
     break;
 

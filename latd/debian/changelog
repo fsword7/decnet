@@ -1,3 +1,19 @@
+latd (1.13-1) unstable; urgency=low
+
+  * Fail attempts to create /dev/lat ports twice
+  * Delete /dev/lat ports when latcp -D -p is run
+    (thanks to Denis Komissaro)	for those two.
+  * Use local name in ENQ message for DS90L servers instead of the
+    stupid one I left in there after testing.
+  * Get rid of spurious "Queued" status messages and put the
+    service name in there.
+  * Fix multiple queued connections to the same server that I broke in 1.11
+  * Don't make queued connection queries interfere with existing services table
+  * Restrict data slots to 250 bytes so as not to break DECserver 200s
+  * Made the keepalive timer less susceptible to drift on busy systems.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 16 Feb 2002 16:25:52 +0000
+
 latd (1.12-1) unstable; urgency=low
 
   * llogin -r is an alias for llogin -R (easier to type!)
@@ -21,7 +37,7 @@ latd (1.11-1) unstable; urgency=low
 
 latd (1.10-1) unstable; urgency=low
 
-  * Can now handle multiple reverse-LAT connections via the same connection 
+  * Can now handle multiple reverse-LAT connections via the same connection
     (llogin only)
   * Can specify a command to run (and user to run it under) for a named service.
 
@@ -31,7 +47,7 @@ latd (1.03-1) unstable; urgency=low
 
   * Use std:: namespace so it compiles with GCC 3.0
   * Don't use makedepend for dependancy management.
-  * Don't depend on libstdc++2.10-dev. 
+  * Don't depend on libstdc++2.10-dev.
     Closes: bug#104954
   * Fix includes in server.cc that depend for GLIBC version
 
@@ -48,7 +64,7 @@ latd (1.02-1) unstable; urgency=low
   * Move sockets into /var/run as per FHS
   * Fixed EOF trapping on local ports
   * Fixed latcp -d display of local ports (node & service were swapped)
-  * Changed example latd.conf to show we can connect to services without 
+  * Changed example latd.conf to show we can connect to services without
     specifying a node name now
   * Closes: bug#85288
 
@@ -75,7 +91,7 @@ latd (1.00-1) unstable; urgency=low
     in /etc/groups then users with that group can connect to reverse-LAT
     ports with no other privileges
   * Added startup script
-  * Remove "LAT started", "LAT stopped" messages from latcp as they interfere 
+  * Remove "LAT started", "LAT stopped" messages from latcp as they interfere
     with the startup script and it's "not the Unix way"
   * Added RPM build target
   * Added DEB build target

@@ -18,7 +18,7 @@ features:
 - Supports a group called "lat" to restrict users of reverse-LAT ports
 - llogin program so users can log into LAT services from Linux
 - moprc for remote management for terminal servers.
-- To send BREAK to a remote server in a revsese-LAT session press ^@
+- To send BREAK to a remote server in a reverse-LAT session press ^@
 
 You will need Packet Socket support in the kernel, but I think that's
 usually the default anyway.

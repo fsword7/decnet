@@ -240,6 +240,7 @@ static void load_proxy_database(void)
 	    continue;
 	}
     }
+    fclose(f);
 }
 
 
@@ -278,11 +279,8 @@ static bool check_proxy_database(char *nodename,
     struct proxy *p;
     
 // Re-read the proxy database 'cos it has changed.
-    if (!proxy_db)
-    {
-	free_proxy();
-	load_proxy_database();
-    }
+    free_proxy();
+    load_proxy_database();
 
     // Look for the user and nodename in the list
     p = proxy_db;
@@ -633,7 +631,7 @@ static void load_dnetd_conf(void)
 	char tmpbuf[1024];
 	char *bufp;
 	char *comment;
-	struct object *newobj = malloc(sizeof(struct object));
+	struct object *newobj;
 	int    state = 1;
 		
 	line++;
@@ -924,7 +922,7 @@ int dnet_daemon(int object, char *named_object,
 	newone = waitfor(sockfd);
 	if (newone > -1)
 	{
-	    load_dnetd_conf();
+	    if (!object_db) load_dnetd_conf();
 	    switch (fork_and_setuid(newone))
 	    {
 	    case -1:

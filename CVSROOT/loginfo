@@ -24,3 +24,10 @@
 #DEFAULT (echo ""; id; echo %s; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
+
+# Send commit mails - taken from the sourceforge doc at:
+# http://sourceforge.net/docman/display_doc.php?docid=772&group_id=1
+CVSROOT $CVSROOT/CVSROOT/syncmail %{sVv} patrick@users.sourceforge.net
+DEFAULT $CVSROOT/CVSROOT/syncmail %{sVv} linux-decnet-commit@lists.sourceforge.net
+
+

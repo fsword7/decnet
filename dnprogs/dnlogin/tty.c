@@ -59,8 +59,23 @@ int (*send_input)(char *buf, int len, int flags);
 /* Raw write to terminal */
 int tty_write(char *buf, int len)
 {
-    return (write(termfd, buf, len) == len);
+    int i;
+
+    for (i=0; i<len; i++)
+    {
+	if (buf[i] == '\r')
+	    write(termfd, "\r\n", 2);
+	else
+	    write(termfd, &buf[i], 1);
+    }
+    return len;
 }
+
+void tty_set_noecho()
+{
+    echo = 0;
+}
+
 
 void tty_set_terminators(char *buf, int len)
 {
@@ -105,6 +120,11 @@ void tty_start_read(char *prompt, int len, int promptlen)
 void tty_set_timeout(unsigned short to)
 {
     // TODO:
+}
+
+void tty_clear_typeahead()
+{
+    rahead_len = 0;
 }
 
 void tty_set_maxlen(unsigned short len)
@@ -173,6 +193,18 @@ static void move_cursor_abs(int hpos)
     write(termfd, buf, strlen(buf));
 }
 
+static void send_input_buffer(int flags)
+{
+    char buf[1024];
+
+    memcpy(buf, input_buf, input_len);
+
+    send_input(buf, input_len, flags);
+    input_len = input_pos = 0;
+    reading = 0;
+    echo = 1;
+}
+
 /* Input from keyboard */
 int tty_process_terminal(unsigned char *buf, int len)
 {
@@ -190,7 +222,7 @@ int tty_process_terminal(unsigned char *buf, int len)
 	// TODO: flag for echoing terminators
 	if (is_terminator(buf[i]))
 	{
-	    send_input(&buf[i], 1, 0);
+	    send_input(&buf[i], 1, 1); /* last "1" is "terminator" */
 	    reading = 0;
 	    return 0;
 	}
@@ -208,8 +240,6 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    continue;
 	}
 
-	fprintf(stderr, "input_pos=%d, input_len = %d\n", input_pos, input_len);
-
 	/* Still processing escape sequence */
 	if (esc_len)
 	{
@@ -222,7 +252,7 @@ int tty_process_terminal(unsigned char *buf, int len)
 		    if (input_pos < input_len)
 		    {
 			input_pos++;
-			write(termfd, esc_buf, esc_len);
+			if (echo) write(termfd, esc_buf, esc_len);
 		    }
 		}
 		if (strncmp(esc_buf, "\033[C", 3)) /* Cursor LEFT */
@@ -230,7 +260,7 @@ int tty_process_terminal(unsigned char *buf, int len)
 		    if (input_pos > 0)
 		    {
 			input_pos--;
-			write(termfd, esc_buf, esc_len);
+			if (echo) write(termfd, esc_buf, esc_len);
 		    }
 		}
 		esc_len = 0;
@@ -248,18 +278,19 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    case CTRL_X: // delete input line
 	    case CTRL_U: // delete input line
 		move_cursor_abs(prompt_len);
-		erase_eol();
+		if (echo) erase_eol();
 		input_pos = input_len = 0;
 		break;
 	    case CTRL_H: // back to start of line
-		move_cursor_abs(prompt_len);
+		if (echo) move_cursor_abs(prompt_len);
 		input_pos = 0;
 		break;
 	    case CTRL_A: /* switch overstrike/insert mode */
 		insert_mode = 1-insert_mode;
 		break;
 	    case CTRL_M:
-		send_input(input_buf, input_len, 0);
+		input_buf[input_len++] = buf[i];
+		send_input_buffer(1);
 		input_len = input_pos = 0;
 		reading = 0;
 		break;
@@ -268,13 +299,12 @@ int tty_process_terminal(unsigned char *buf, int len)
 		{
 		    input_pos--;
 		    input_len = input_pos;
-		    write(termfd, "\033[D \033[D", 7);
+		     if (echo) write(termfd, "\033[D \033[D", 7);
 		}
 		break;
 	    }
 	    continue;
 	}
-
 
 	/* Read not active, store in the read ahead buffer */
 	if (!reading)
@@ -284,28 +314,18 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    continue;
 	}
 
-
+	/* echo if req'd */
 	if (echo)
-	{
 	    write(termfd, &buf[i], 1);
-	}
 
-	if (debug & 4) fprintf(stderr, "TTY: input_len=%d, pos=%d\n",
-			       input_len, input_pos);
-
+	/* Check for buffer overflow */
 	input_buf[input_pos++] = buf[i];
 	if (input_len < input_pos)
 	    input_len = input_pos;
 
 	if (input_len >= max_read_len)
 	{
-	    char buf[1024];
-	    memcpy(buf, prompt_buf, prompt_len);
-	    memcpy(buf+prompt_len, input_buf, input_len);
-
-	    send_input(buf, input_len+prompt_len, 0);
-	    input_len = input_pos = 0;
-	    reading = 0;
+	    send_input_buffer(4);
 	}
     }
     return 0;

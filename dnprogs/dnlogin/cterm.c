@@ -142,21 +142,41 @@ static int cterm_process_initiate(char *buf, int len)
 
 static int cterm_process_start_read(char *buf, int len)
 {
-    unsigned short flags     = buf[1] | buf[2]<<8;
-    unsigned short maxlength = buf[3] | buf[4]<<8;
-    unsigned short eodata    = buf[5] | buf[6]<<8;
-    unsigned short timeout   = buf[7] | buf[8]<<8;
-    unsigned short eoprompt  = buf[9] | buf[10]<<8;
-    unsigned short sodisplay = buf[11]| buf[12]<<8;
-    unsigned short lowwater  = buf[13]| buf[14]<<8;
-    unsigned char  term_len  = buf[15];
+    unsigned int   flags;
+    unsigned short maxlength;
+    unsigned short eodata;
+    unsigned short timeout;
+    unsigned short eoprompt;
+    unsigned short sodisplay;
+    unsigned short lowwater;
+    unsigned char  term_len;
+    int ptr = 0;
 
-// TODO flags
+    flags = buf[1] | buf[2] << 8;
+    ptr = 3;
+    if (flags & 0x8000)
+    {
+	flags |= buf[ptr++] << 16;
+    }
+
+    maxlength = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    eodata    = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    timeout   = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    eoprompt  = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    sodisplay = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    lowwater  = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    term_len  = buf[ptr++];
+
+// TODO more flags
+    if (debug & 2) fprintf(stderr, "CTERM: flags = %x\n",flags);
+    if (flags & 4) tty_clear_typeahead();
+//    if (flags & 8) tty_write("\n", 1);
+    if (flags & 0x800) tty_set_noecho();
 
     if (debug & 2) fprintf(stderr, "term_len = %d\n", term_len);
 
-    tty_set_terminators(buf+16, term_len);
-    tty_start_read(buf+16+term_len, len-term_len-16, eoprompt);
+    tty_set_terminators(buf+ptr, term_len);
+    tty_start_read(buf+ptr+term_len+1, len-term_len-ptr-1, eoprompt-1);
     tty_set_timeout(timeout);
     tty_set_maxlen(maxlength);
 
@@ -182,7 +202,7 @@ static int cterm_process_write(char *buf, int len)
     unsigned char  postfixdata = buf[4];
 
     // TODO: flags...
-    tty_write(buf+5, len-5);
+    tty_write(buf+4, len-4);
     return len;
 }
 
@@ -447,7 +467,7 @@ int cterm_process_network(char *buf, int len)
 	    offset += cterm_process_initiate(buf+offset, len-offset);
 	    break;
 	case CTERM_MSG_START_READ:
-	    offset += cterm_process_start_read(buf+offset+1, len-offset);
+	    offset += cterm_process_start_read(buf+offset, len-offset);
 	    break;
 	case CTERM_MSG_READ_DATA:
 	    offset += cterm_process_read_data(buf+offset, len-offset);
@@ -508,8 +528,8 @@ int cterm_send_input(char *buf, int len, int flags)
     newbuf[3] = 0; // low-water 2
     newbuf[4] = 0; // vert pos
     newbuf[5] = 0; // horiz pos
-    newbuf[6] = 0; // term pos 1
-    newbuf[7] = 0; // term pos 2
+    newbuf[6] = len-1; // term pos 1
+    newbuf[7] = (len-1) << 8; // term pos 2
 
     memcpy(newbuf+8, buf, len);
 

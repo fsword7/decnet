@@ -126,6 +126,17 @@ int found_common_write(char *buf, int len)
     struct msghdr msg;
     struct common_header header;
 
+    if (debug) fprintf(stderr, "FOUND: snding %d bytes\n", len);
+    if (debug & 8)
+    {
+	int i;
+
+	for (i=0; i<len; i++)
+	    fprintf(stderr, "%02x  ", (unsigned char)buf[i]);
+	fprintf(stderr, "\n\n");
+    }
+
+    
     memset(&msg, 0, sizeof(msg));
     vectors[0].iov_base = (void *)&header;
     vectors[0].iov_len  = sizeof(header);

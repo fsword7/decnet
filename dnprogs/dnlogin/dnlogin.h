@@ -34,6 +34,8 @@ extern void tty_set_timeout(unsigned short to);
 extern void tty_set_maxlen(unsigned short len);
 extern int  tty_process_terminal(unsigned char *inbuf, int len);
 extern int  tty_setup(char *name, int setup);
+extern void tty_clear_typeahead(void);
+extern void tty_set_noecho(void);
 
 extern int (*send_input)(char *buf, int len, int flags);
 

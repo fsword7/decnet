@@ -107,7 +107,7 @@ static int send_bindaccept(void)
     wrote = write(sockfd, bindacc_msg, sizeof(bindacc_msg));
     if (wrote != sizeof(bindacc_msg))
     {
-	fprintf(stderr, "%s\n", found_connerror("read error"));
+	fprintf(stderr, "%s\n", found_connerror());
 	return -1;
     }
     return 0;
@@ -159,7 +159,7 @@ int found_read()
 	if (len == -1 && errno == EAGAIN)
 	    return 0;
 
-	fprintf(stderr, "%s\n", found_connerror("read sock"));
+	fprintf(stderr, "%s\n", found_connerror());
 	return -1;
     }
 
@@ -234,8 +234,9 @@ int found_setup_link(char *node, int object, int (*processor)(char *, int))
 
 
 /* Return the text of a connection error */
-char *found_connerror(char *default_msg)
+char *found_connerror()
 {
+    int saved_errno = errno;
 #ifdef DSO_DISDATA
     struct optdata_dn optdata;
     unsigned int len = sizeof(optdata);
@@ -244,7 +245,7 @@ char *found_connerror(char *default_msg)
     if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
 		   &optdata, &len) == -1)
     {
-	return default_msg;
+	return strerror(saved_errno);
     }
 
     // Turn the rejection reason into text
@@ -286,11 +287,11 @@ char *found_connerror(char *default_msg)
 	break;
     case DNSTAT_TOOLONG: msg="A field in the access control message was too long";
 	break;
-    default: msg=default_msg;
+    default: msg=strerror(saved_errno);
 	break;
     }
     return msg;
 #else
-    return strerror(errno);
+    return strerror(saved_errno);
 #endif
 }

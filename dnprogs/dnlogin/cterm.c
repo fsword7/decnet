@@ -199,10 +199,10 @@ int cterm_send_input(char *buf, int len, int flags)
 {
     char newbuf[len+9];
 
-    newbuf[0] =0;
-    newbuf[1] =0;
-    newbuf[2] =0;
-    newbuf[3] =0;
+    newbuf[0] = 0;
+    newbuf[1] = 0;
+    newbuf[2] = 0;
+    newbuf[3] = 0;
     memcpy(newbuf+4, buf, len);
 
     return found_common_write(newbuf, len+4);

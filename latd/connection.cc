@@ -959,6 +959,18 @@ int LATConnection::pending_msg::send(int interface, unsigned char *macaddr)
     return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
+int LATConnection::num_clients()
+{
+    unsigned int i;
+    int num = 0;
+    
+    for (i=1; i<MAX_SESSIONS; i++)
+	if (sessions[i]) num++;
+
+    return num;
+}
+
+
 void LATConnection::show_client_info(bool verbose, ostrstream &output)
 {
     if (role == SERVER) return; // No client info for servers!

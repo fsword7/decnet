@@ -728,10 +728,12 @@ void LATServer::read_lat(int sock)
 		    // We don't delete clients, we just quiesce them.
 		    if (conn->isClient())
 		    {
-//			conn->disconnect_client();
-			delete conn;
-			connections[header->remote_connid] = NULL;
-
+			conn->disconnect_client();
+			if (conn->num_clients() == 0)
+			{
+			    delete conn;
+			    connections[header->remote_connid] = NULL;
+			}
 		    }
 		    else
 		    {
@@ -1541,6 +1543,37 @@ int LATServer::make_client_connection(unsigned char *service,
 				      bool queued,
 				      bool clean)
 {
+#if 0
+    unsigned char macaddr[6];
+    string servicenode;
+    int this_int;
+
+    // If no node was specified then use the highest rated one    
+    if (remnode[0] == '\0')
+    {
+	if (!LATServices::Instance()->get_highest(string((char*)service),
+						  servicenode, macaddr, 
+						  &this_int))
+	{
+	    debuglog(("Can't find service %s\n", service));
+	    return -2; // Never eard of it!
+	}
+	strcpy((char *)remnode, servicenode.c_str());
+    }
+    else
+    {
+	// Try to find the node
+	if (!LATServices::Instance()->get_node(string((char*)service),
+					       string((char*)remnode), 
+					       macaddr, 
+					       &this_int))
+	{
+	    debuglog(("Can't find node %s in service\n", remnode, service));
+	    
+	    return -2;
+	}
+    }
+#endif
     int connid = get_next_connection_number();
     if (connid == -1)
     {

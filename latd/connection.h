@@ -50,6 +50,7 @@ class LATConnection
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
     bool node_is(char *node) { return strcmp(node, (char *)remnode)==0;}
+    int  num_clients();
     
  private:
     int            num;           // Local connection ID

@@ -119,7 +119,7 @@ int ClientSession::connect_parent()
 void ClientSession::connect()
 {
     state = RUNNING;
-    debuglog(("connecting client session to '%s'\n", remote_node));
+    debuglog(("connecting client session to '%s'\n", remote_service));
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
@@ -285,8 +285,8 @@ int ClientSession::get_port_fd()
     return master_fd;
 }
 
-// Normal client sessions don't provide feedback on status (though maybe we should
-// check for other status types....
+// Normal client sessions don't provide feedback on status (though maybe we 
+// should check for other status types....
 void ClientSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
 {
     return;

@@ -14,12 +14,3 @@ ctermd:
   In fact line-editting doesn't work at all. This is quite a large problem
   ...I need volunteers for this.
 
-Debian Package
---------------
-Check startup messages
-Split setting MAC address from daemon startup (and do all I/Fs)
-Split into three packages:
-   libs
-   progs
-   dev
-   ..maybe just phone too(with gtk support)

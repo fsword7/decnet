@@ -729,7 +729,7 @@ void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr
 {
     LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)buf;
     int ptr = sizeof(LAT_ServiceAnnounce);
-    unsigned char nodename[16];
+    unsigned char nodename[32];
     unsigned char greeting[255];
     unsigned char service[255];
     unsigned char ident[255];

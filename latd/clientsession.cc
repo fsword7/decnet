@@ -75,12 +75,12 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     return 0;
 }
 
-void ClientSession::connect_parent()
+int ClientSession::connect_parent()
 {
-    parent.connect();
+    return parent.connect();
 }
 
-void ClientSession::connect(char *port)
+void ClientSession::connect(char *service, char *port)
 {
     debuglog(("connecting client session to '%s'\n", remote_node));
 
@@ -94,7 +94,7 @@ void ClientSession::connect(char *port)
     buf[ptr++] = 0x01; // Max Attention slot size
     buf[ptr++] = 0xfe; // Max Data slot size
     
-    add_string(buf, &ptr, (unsigned char *)remote_node); 
+    add_string(buf, &ptr, (unsigned char *)service);
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
@@ -129,7 +129,8 @@ void ClientSession::connect(char *port)
 
 void ClientSession::disconnect()
 {
-    
+    connected = false;
+
     // Close it all down so the local side gets EOF
     unlink(ltaname);
     
@@ -178,11 +179,18 @@ void ClientSession::do_read()
     debuglog(("ClientSession::do_read()\n"));
     if (!connected)
     {
-	connect_parent();
-	state = STARTING;
-
-	// Disable reads on the PTY until we are connected (or it failed)
-	LATServer::Instance()->set_fd_state(master_fd, true);
+	if (!connect_parent())
+	{
+	    state = STARTING;
+	    
+	    // Disable reads on the PTY until we are connected (or it fails)
+	    LATServer::Instance()->set_fd_state(master_fd, true);
+	}
+	else
+	{
+	    // Service does not exist or we haven't heard of it yet.
+	    disconnect();
+	}
     }
 
     if (connected)

@@ -29,7 +29,7 @@ class LATSession
     
  protected:
     enum {STARTING, LOGIN, RUNNING, STOPPED} state;
-    char           remote_node[7]; // DECnet name
+    char           remote_node[32]; // Node name
     char           ptyname[256];
     int            master_fd;
     pid_t          pid;

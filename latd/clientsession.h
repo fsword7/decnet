@@ -23,9 +23,9 @@ class ClientSession: public LATSession
   virtual void do_read();
   virtual void disconnect_session(int reason);
     
-  void connect(char *port);
+  void connect(char *service, char *port);
   void disconnect();
-  void connect_parent();
+  int  connect_parent();
   void got_connection(unsigned char);
   
  private:

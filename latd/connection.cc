@@ -31,6 +31,7 @@
 #include "latcpcircuit.h"
 #include "server.h"
 #include "services.h"
+#include "lat_messages.h"
 #include "dn_endian.h"
 
 
@@ -249,7 +250,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		
 
 	    case 0xc0:  // Reject - we will get disconnected
-		debuglog(("Reject code %d\n", credits));
+		debuglog(("Reject code %d: %s\n", credits,
+			  lat_messages::session_disconnect_msg(credits)));
 		// Deliberate fall-through.
 
 	    case 0xd0:  // Disconnect
@@ -572,16 +574,41 @@ int LATConnection::connect()
 {
    // Look up the service name.
     string node;
-    if (!LATServices::Instance()->get_highest(string((char*)servicename),
-					      node, macaddr))
+
+    // If no node was specified then just use the highest rated one
+    if (remnode[0] == '\0')
     {
-	debuglog(("Can't find service %s, checking for node %s\n", 
-		  servicename, remnode));
-	// Can't find service: look up by node name
-	if (!LATServices::Instance()->get_highest(string((char*)remnode), 
+	if (!LATServices::Instance()->get_highest(string((char*)servicename),
 						  node, macaddr))
 	{
-	    debuglog(("Can't find node %s\n", remnode));
+	    debuglog(("Can't find service %s, checking for node %s\n", 
+		      servicename, remnode));
+	    // Can't find service: look up by node name
+	    if (!LATServices::Instance()->get_highest(string((char*)remnode), 
+						      node, macaddr))
+	    {
+		debuglog(("Can't find node %s\n", remnode));	
+
+		// Tell the user
+		ClientSession *cs = (ClientSession *)sessions[1];
+		cs->disconnect_session(7);
+		return -2; // Never eard of it!
+	    }
+	}
+	strcpy((char *)remnode, node.c_str());
+    }
+    else
+    {
+	// Try to find the node
+	if (!LATServices::Instance()->get_node(string((char*)servicename),
+					       string((char*)remnode), macaddr))
+	{
+	    debuglog(("Can't find node %s in service\n", remnode, servicename));
+	    
+            // Tell the user
+	    ClientSession *cs = (ClientSession *)sessions[1];
+	    cs->disconnect_session(7);
+
 	    return -2; // Never eard of it!
 	}
     }
@@ -619,7 +646,7 @@ int LATConnection::create_client_session()
 {
 // Create a ClientSession
 
-    int newsessionnum = next_session_number();
+    int newsessionnum = 1;
     LATSession *newsession = new ClientSession(*this, 0,
 					       newsessionnum, lta_name);
     if (newsession->new_session(remnode, 0) == -1)
@@ -651,7 +678,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     ClientSession *cs = (ClientSession *)sessions[1];
     if (cs)
     {
-	cs->connect((char *)portname);
+	cs->connect((char *)servicename, (char *)portname);
     }
     else
     {

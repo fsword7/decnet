@@ -97,6 +97,10 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
     struct ndmsg *r = NLMSG_DATA(n);
     struct rtattr * tb[NDA_MAX+1];
+    struct dn_naddr *exec_addr;
+
+    /* Get our node address */
+    exec_addr = getnodeadd();
 
     memset(tb, 0, sizeof(tb));
     parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof(*r)));
@@ -145,9 +149,13 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 
 	    /* TODO remove old nodes */
 
-	    /* Set route using netlink */
-	    if (add_route(faddr, interface) < 0)
-		printf("Add route failed\n");
+
+	    /* Set route using netlink for other nodes, not us */
+	    if ( (addr[0] != exec_addr->a_addr[0]) ||
+	         (addr[1] != exec_addr->a_addr[1]))
+	    {
+		add_route(faddr, interface);
+	    }
 	}
     }
 

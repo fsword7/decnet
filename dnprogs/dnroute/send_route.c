@@ -154,7 +154,7 @@ void send_route_msg(char *node_table)
     struct rtnl_handle rth;
     struct dn_naddr *addr;
 
-    /* Get out node address */
+    /* Get our node address */
     addr = getnodeadd();
     dnet_socket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_DNA_RT));
 

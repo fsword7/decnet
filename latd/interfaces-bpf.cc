@@ -381,7 +381,7 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
   ether_packet.ether_type = htons(protocol);
 
   /* write this packet: */
-  iov[0].iov_base = (char* )&ether_packet;
+  iov[0].iov_base = (unsigned char* )&ether_packet;
   iov[0].iov_len = sizeof(ether_packet);
   iov[1].iov_base = data;
   iov[1].iov_len = len;
@@ -394,6 +394,12 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
 }
 
 
+#define CONT_OR_RET() \
+    if (_latd_bpf_buffer_offset < _latd_bpf_buffer_end) \
+        continue;\
+    else \
+        return 0;
+
 // Receive a packet from a given interface
 int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen)
 {
@@ -404,7 +410,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
   /* loop until we have something to return: */
   for(;;) {
 
-      debuglog(("PJC: buffer_offset=%d, buffer_end=%d\n", _latd_bpf_buffer_offset,_latd_bpf_buffer_end));
+      debuglog(("buffer_offset=%d, buffer_end=%d\n", _latd_bpf_buffer_offset,_latd_bpf_buffer_end));
     /* if the buffer is empty, fill it: */
     if (_latd_bpf_buffer_offset
 	>= _latd_bpf_buffer_end) {
@@ -430,7 +436,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 	> _latd_bpf_buffer_end) {
       debuglog(("bpf: flushed garbage BPF header bytes\n"));
       _latd_bpf_buffer_end = 0;
-      return 0;
+      CONT_OR_RET();
     }
 
     /* get the BPF header and check it: */
@@ -450,7 +456,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 		the_bpf_header.bh_caplen, the_bpf_header.bh_datalen,
 		_latd_bpf_buffer_offset, _latd_bpf_buffer_end));
       _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
-      return 0;
+      CONT_OR_RET();
     }
 
     /* silently ignore packets that don't even have Ethernet headers,
@@ -462,8 +468,12 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 		   _latd_bpf_interface_addr,
 		   ETHER_ADDR_LEN)) {
       /* silently ignore packets from us: */
+	if (the_bpf_header.bh_datalen < sizeof(struct ether_header))
+	    debuglog(("ignoring short packet of %d bytes\n", the_bpf_header.bh_datalen));
+	else
+	    debuglog(("ignoring packet from us\n"));
       _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
-      continue;
+      CONT_OR_RET();
     }
     debuglog(("bpf: packet from %02x:%02x:%02x:%02x:%02x:%02x\n",
 	      ((struct ether_header *) (_latd_bpf_buffer + _latd_bpf_buffer_offset))->ether_shost[0],

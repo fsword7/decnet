@@ -47,6 +47,7 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
     bool  is_local_service(char *);
+    gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
     
@@ -75,6 +76,7 @@ class LATServer
     bool do_shutdown;
     bool locked;
     int  next_connection;
+    gid_t lat_group;
 
     void  read_lat(int sock);
     float get_loadavg();

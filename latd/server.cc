@@ -31,6 +31,7 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <utmp.h>
+#include <grp.h>
 #include <signal.h>
 #include <assert.h>
 #include <netinet/in.h>
@@ -728,6 +729,13 @@ void LATServer::init(bool _static_rating, int _rating,
     // Enable user group 0
     memset(user_groups, 0, 32);
     user_groups[0] = 1;
+
+    // Look in /etc/group for a group called "lat"
+    struct group *gr = getgrnam("lat");
+    if (gr)
+	lat_group = gr->gr_gid;
+    else
+	lat_group = 0;
 
 }
 

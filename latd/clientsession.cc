@@ -86,7 +86,19 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     unlink(ltaname);
     symlink(ptyname, ltaname);
 
+    // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
+
+#ifdef USE_OPENPTY
+    // Set it owned by "lat" if it exists. We only do this for
+    // /dev/pts PTYs.
+    gid_t lat_group = LATServer::Instance()->get_lat_group();
+    if (lat_group)
+    {
+	chown(ptyname, 0, lat_group);
+	chmod(ptyname, 0660);
+    }
+#endif
 
     debuglog(("made symlink %s to %s\n", ltaname, ptyname));
     LATServer::Instance()->add_pty(this, master_fd);

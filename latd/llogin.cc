@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:q:n:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:r:q:n:")) != EOF)
     {
 	switch(opt)
 	{

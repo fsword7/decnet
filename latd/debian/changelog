@@ -1,3 +1,17 @@
+latd (1.18-1) unstable; urgency=low
+
+  * Fix configure --enable-debug
+  * Fix configure --sysconfdir
+  * Don't send issue file if it exists but is empty.
+  * Add support for reverse-LAT services. you can now use LATSYM
+    to print to LAT printers on Linux (and probably many other things too!)
+  * Make sure node names are truncated at 16 characters
+  * Fix shell job control problems when connecting to some systems
+  * Send remote credit a little earlier in an attempt to avoid those
+    annoying pauses.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 20 Apr 2003 10:59:36 +0100
+
 latd (1.17-1) unstable; urgency=low
 
   * Add support for a MOPRC_INTERFACE env variable.

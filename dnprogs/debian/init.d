@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# decnet.sh NO_RESTART_ON_UPGRADE
+# decnet.sh
 #
 # Starts/Stops DECnet processes
 #
@@ -13,7 +13,7 @@
 #      ln -s /etc/init.d/decnet.sh /etc/rcS.d/S39decnet.sh
 #
 #     (RedHat)
-#      ln -s /etc/rc.d/init.d/decnet.sh /etc/rc.d/rc3.d/S10decnet
+#      ln -s /etc/rc.d/init.d/decnet /etc/rc.d/rc3.d/S09decnet
 #
 #     (SuSE)
 #      ln -s /sbin/init.d/decnet.sh /sbin/init.d/rc2.d/S05decnet
@@ -25,8 +25,8 @@
 #
 # Daemons to start. You may remove the ones you don't want
 #
-prefix=/usr
-daemons="fal ctermd dnmirror"
+prefix=/usr/local
+daemons="dnetd phoned"
 
 #
 # the -hw flag to startnet tells it to set the hardware address of the ethernet
@@ -36,6 +36,7 @@ daemons="fal ctermd dnmirror"
 #
 startnet="$prefix/sbin/startnet -hw"
 
+#
 # See which distribution we are using and customise the start/stop 
 # commands and the console display.
 #
@@ -66,21 +67,31 @@ fi
 
 case $1 in
    start)
-     echo -n "Starting DECnet: "
-
-     $startnet
-     if [ $? != 0 ]
+     if [ -f /etc/decnet.conf ]
      then
-       echo error starting socket layer.
-       exit 1
-     fi
+       echo -n "Starting DECnet: "
+ 
+       # Run startnet only if we need to
+       EXEC=`cat /proc/net/decnet | sed -n '2s/ *\([0-9]\.[0-9]\).*[0-9]\.[0-9]/\1/p'`
+       if [ ! -f /proc/net/decnet_neigh -a "$EXEC" = "0.0" ]
+       then
+         $startnet
+         if [ $? != 0 ]
+         then
+           echo error starting socket layer.
+           exit 1
+         fi
+       fi
 
-     for i in $daemons
-     do
-       $startcmd $prefix/sbin/$i
-       echo -n " `eval echo $startecho`"
-     done
-     echo "$startendecho"
+       for i in $daemons
+       do
+         $startcmd $prefix/sbin/$i
+         echo -n " `eval echo $startecho`"
+       done
+       echo "$startendecho"
+     else
+       echo "DECnet not started as it is not configured."
+     fi
      ;;
 
    stop)
@@ -104,7 +115,7 @@ case $1 in
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restart}"
+     echo "Usage $0 {start|stop|restartforce-reload}"
      ;;
 esac
 

@@ -1,11 +1,18 @@
 Source: dnprogs
 Section: net
 Priority: optional
-Maintainer: Patrick <patrick@tykepenguin.cix.co.uk>
-Standards-Version: 2.4.1
+Maintainer: Patrick Caulfield <patrick@tykepenguin.cix.co.uk>
 
 Package: dnprogs
 Architecture: i386
-Depends: ${shlibs:Depends}
+Depends: debianutils (>= 1.16), ${shlibs:Depends}
+Priority: optional
+Section: net
 Description: DECnet programs for Linux.
-
+ These tools are the application layer interface for DECnet on Linux systems.
+ They provide file/terminal access facilities between OpenVMS and Linux and 
+ remote execution of commands.
+ .
+ To use them you will need to have DECnet built into your kernel.
+ If you are not using a 2.4 kernel you will need to get a kernel patch
+ from http://linux-decnet.sourceforge.net.

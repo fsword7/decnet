@@ -1,6 +1,9 @@
-This package was debianized by Patrick patrick@tykepenguin.cix.co.uk on
-Mon, 16 Nov 1998 14:26:12 +0000.
+Copyright: 
 
-Latest versions can always be found at http://linux-decnet.sourceforge.net
+You are free to distribute this software under the terms of
+the GNU General Public License (for binaries) and the
+GNU Lesser General Public Licence (for libraries).
+The full text of these licenses
+can be found in the files /usr/share/common-licenses/GPL and
+/usr/share/common-licenses/LGPL
 
-Copyright: Most recent version of the GPL.

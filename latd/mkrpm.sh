@@ -7,7 +7,7 @@
 echo "%_topdir `pwd`" > .rpmmacros
 echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 rm -rf rpmbuild BUILD RPMS config.cache
-./configure --prefix=/usr --sysconfdir=/
+./configure --prefix=/usr --sysconfdir=/etc
 
 
 # Get the package and version from the configure script

@@ -208,6 +208,8 @@ int main(int argc, char *argv[])
 	close(1);
 	close(2);
 	setsid();
+	dup2(devnull, 0);
+	dup2(devnull, 1);
 	dup2(devnull, 2);
 	chdir("/");
     }

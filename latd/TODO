@@ -5,8 +5,6 @@ TODO in no particular order
   get away with sending? (and stuff like that)
 - Input flow control in case the PTY stops reading.
 - Test Service responder
-- Reverse LAT queueing
-- Groups incoming & outgoing
 - Keep counters ? 
 - Loopback testing from DECserver
 - Get rid of all the TODOs in the code.

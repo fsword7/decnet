@@ -45,6 +45,10 @@ case $1 in
      echo "."
      ;;
 
+   # DECnet daemons all automatically reconfigure.
+   reload)
+     ;;
+
    restart|force-reload)
      echo -n "Restarting DECnet daemons:"
      for i in $DNET_DAEMONS
@@ -57,7 +61,7 @@ case $1 in
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restart|force-reload}"
+     echo "Usage $0 {start|stop|restart|reload|force-reload}"
      ;;
 esac
 

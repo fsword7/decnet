@@ -57,11 +57,11 @@ case $1 in
    stop)
      ;;
 
-   restart|force-reload)
+   restart|reload|force-reload)
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restart|force-reload}"
+     echo "Usage $0 {start|stop|restart|reload|force-reload}"
      ;;
 esac
 

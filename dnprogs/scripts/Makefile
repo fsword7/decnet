@@ -12,12 +12,12 @@ all:
 
 install:
 	if [ -d /var/lib/dpkg ]; then \
-	  install -m 0700 decnet.sh /etc/init.d/decnet.sh; \
+	  install -Dm 0700 decnet.sh $(DESTDIR)/etc/init.d/decnet.sh; \
 	elif [ -d /var/lib/YaST ]; then \
-	  install -m 0700 decnet.sh /sbin/init.d/decnet; \
+	  install -Dm 0700 decnet.sh $(DESTDIR)/sbin/init.d/decnet; \
 	elif [ -d /var/lib/rpm ]; then \
-	  install -m 0700 decnet.sh /etc/rc.d/init.d/decnet; \
-	else install -m 0700 rc.decnet /etc/rc.d/rc.decnet; \
+	  install -Dm 0700 decnet.sh $(DESTDIR)/etc/rc.d/init.d/decnet; \
+	else install -Dm 0700 rc.decnet $(DESTDIR)/etc/rc.d/rc.decnet; \
 	fi
 	install -m 0755 setup.sh $(prefix)/sbin/decnetconf
 

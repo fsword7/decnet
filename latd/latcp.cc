@@ -89,10 +89,10 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i descript] [-r rating] [-s]\n");
-    printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-8]\n");
+    printf ("       -A -a service [-i description] [-r rating] [-s]\n");
+    printf ("       -A -p tty -V learned_service [-R rem_port] [-H rem_node] [-Q] [-8]\n");
     printf ("       -D {-a service | -p tty}\n");
-    printf ("       -i descript -a service\n");
+    printf ("       -i description -a service\n");
     printf ("       -g list\n");
     printf ("       -G list\n");
     printf ("       -u list\n");

@@ -51,7 +51,7 @@ the the load average of the machine.
 .br
 The syntax for creating a reverse LAT port is:
 .br
-latcp -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-8]
+latcp -A -p tty -V learned_service [-R rem_port] [-H rem_node] [-Q] [-8]
 .br
 The tty name should start /dev/lat and must not exist. The 
 .B -Q
@@ -61,8 +61,7 @@ will be forced to wait until it is available.
 .br
 The
 .B -8
-flag tells latd not to muck about with the data. Normally latd tries to
-to CRLF/LF conversion to make life easier for interactive users and also will
+flag tells latd not to muck about with the data. Normally latd will
 transmit a BREAK if a NUL character is sent,
 .B -8
 disables this behaviour for ports with (eg) printers or modems attached.

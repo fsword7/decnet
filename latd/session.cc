@@ -123,6 +123,7 @@ int LATSession::read_pty()
 	// Disable the FD so we don't start looping
 	LATServer::Instance()->set_fd_state(master_fd, true);
 	stopped = true;
+	tcflow(master_fd, TCOOFF);
 	return 0; // Not allowed!
     }
     msglen = read(master_fd, buf, max_read_size);
@@ -137,6 +138,8 @@ int LATSession::read_pty()
 		  buf, (msglen>10)?"...":""));
 	buf[10] = tmp;
     }
+#else
+    debuglog(("Session %d From PTY(%d)\n", local_session, msglen));
 #endif
 
     // EOF or error on PTY - tell remote end to disconnect

@@ -8,7 +8,7 @@ class LATSession
 	parent(p),
 	remote_session(remid),
 	local_session(localid),
-	max_read_size(255),
+	max_read_size(250),
 	clean(_clean),
 	credit(0),
 	stopped(false),

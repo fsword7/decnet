@@ -29,13 +29,12 @@ binary-arch: checkroot build
 	-rm -rf debian/tmp `find debian/* -type d`
 	install -d debian/tmp
 	cd debian/tmp && install -d `cat ../dirs`
-	install -m 0755 scripts/setup.sh debian/postinst
 	install -m 0644 include/netdnet/dn.h debian/tmp/usr/include/netdnet
 	install -m 0644 include/netdnet/dnetdb.h debian/tmp/usr/include/netdnet
 	install -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
-	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true
+	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
-	debstd NEWS README TODO Documentation/*
+	debstd -p 
 	dpkg-gencontrol -pdnprogs -isp
 	chown -R root.root debian/tmp
 	chmod -R go=rX debian/tmp

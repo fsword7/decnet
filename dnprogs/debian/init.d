@@ -1,73 +1,29 @@
 #!/bin/sh
 #
-# decnet.sh
+# dnprogs.sh 
 #
 # Starts/Stops DECnet processes
 #
-# This script should go in /etc/init.d      (Debian)
-#                          /etc/rc.d/init.d (RedHat)
-#                          /sbin/init.d     (SuSE)
-#
-# and you should link to it from the relevant runlevel startup directory
-# eg: (Debian)
-#      ln -s /etc/init.d/decnet.sh /etc/rcS.d/S39decnet.sh
-#
-#     (RedHat)
-#      ln -s /etc/rc.d/init.d/decnet /etc/rc.d/rc3.d/S09decnet
-#
-#     (SuSE)
-#      ln -s /sbin/init.d/decnet.sh /sbin/init.d/rc2.d/S05decnet
-#
-# This script MUST be run before TCP/IP is started unless you have a DEC
-# TULIP based ethernet card.
+# This script MUST be run before TCP/IP is started.
 #
 # -----------------------------------------------------------------------------
 #
+FLAGS="start 39 S .  stop 11 1 ."
+#
 # Daemons to start. You may remove the ones you don't want
 #
-prefix=/usr/local
+prefix=/usr
 daemons="dnetd phoned"
 
 #
 # the -hw flag to startnet tells it to set the hardware address of the ethernet
-# card to match the DECnet node address. You probably don't need this if you
-# are using the tulip or de4x5 drivers for your ethernet card. If you are
-# unsure just leave it as it is.
+# card to match the DECnet node address. 
 #
 startnet="$prefix/sbin/startnet -hw"
 
-#
-# See which distribution we are using and customise the start/stop 
-# commands and the console display.
-#
-if [ -d /var/lib/dpkg ]
-then
-  # Debian
-  startcmd="start-stop-daemon --start --quiet --exec"
-  stopcmd="start-stop-daemon --stop --quiet --exec"
-  startecho="\$i"
-  startendecho="."
-  stopendecho="done."
-elif [ -d /var/lib/YaST ]
-then
-  # SuSE
-  . /etc/rc.config
-  startcmd=""
-  stopcmd="killproc -TERM"
-  startendecho=""
-  stopendecho="done."
-else
-  # Assume RedHat
-  . /etc/rc.d/init.d/functions
-  startcmd="daemon"
-  stopcmd="killproc"
-  startendecho=""
-  stopendecho="done."
-fi
-
 case $1 in
    start)
-     if [ -f /etc/decnet.conf ]
+     if [ -f /etc/decnet.conf -a -f /proc/net/decnet ]
      then
        echo -n "Starting DECnet: "
  
@@ -85,10 +41,10 @@ case $1 in
 
        for i in $daemons
        do
-         $startcmd $prefix/sbin/$i
-         echo -n " `eval echo $startecho`"
+         start-stop-daemon --start --quiet --exec $prefix/sbin/$i
+         echo -n " $i"
        done
-       echo "$startendecho"
+       echo "."
      else
        echo "DECnet not started as it is not configured."
      fi
@@ -98,24 +54,24 @@ case $1 in
      echo -n "Stopping DECnet... "
      for i in $daemons
      do
-       $stopcmd $prefix/sbin/$i
+       start-stop-daemon --stop --quiet --exec $prefix/sbin/$i
      done
-     echo "$stopendecho"
+     echo "done."
      ;;
 
-   restart|reload)
+   restart|reload|force-reload)
      echo -n "Restarting DECnet: "
      for i in $daemons
      do
-       $stopcmd $prefix/sbin/$i
-       $startcmd $prefix/sbin/$i
-       echo -n "$startecho"
+       start-stop-daemon --stop --quiet --exec $prefix/sbin/$i
+       start-stop-daemon --start --quiet --exec $prefix/sbin/$i
+       echo -n " $i"
      done
-     echo "$stopendecho"
+     echo " done."
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restartforce-reload}"
+     echo "Usage $0 {start|stop|restart|force-reload}"
      ;;
 esac
 

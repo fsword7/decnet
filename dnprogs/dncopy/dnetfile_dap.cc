@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,6 +69,8 @@ int dnetfile::dap_send_access()
     dap_access_message acc;
     acc.set_accfunc(dap_access_message::OPEN);
 
+    conn.set_blocked(true);
+
     if (transfer_mode == MODE_BLOCK)
     {
 	acc.set_fac( (1<<dap_access_message::FB$GET) |
@@ -88,16 +90,16 @@ int dnetfile::dap_send_access()
 	att.set_fop_bit(dap_attrib_message::FB$SQO);
 	att.set_org(dap_attrib_message::FB$SEQ);
 	att.set_rfm(dap_attrib_message::FB$VAR);
-	att.set_rat(dap_attrib_message::FB$PRN);
 	att.set_mrs(0);
-	att.set_datatype(1);
+	att.set_datatype(dap_attrib_message::IMAGE);
 	att.write(conn);
     }
     acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |
 		    dap_access_message::DISPLAY_PROT_MASK |
 		    dap_access_message::DISPLAY_NAME_MASK);
     acc.set_filespec(filname);
-    return !acc.write(conn);
+    acc.write(conn);
+    return !conn.set_blocked(false);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -222,7 +224,7 @@ int dnetfile::dap_send_accomp()
     dap_accomp_message accomp;
     accomp.set_cmpfunc(dap_accomp_message::CLOSE);
     if (!accomp.write(conn)) return -1;
-    conn.set_blocked(false); //PJC
+    conn.set_blocked(false);
 
     if (writing)
 	return dap_get_reply();

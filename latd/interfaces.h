@@ -23,13 +23,18 @@
 
 class LATinterfaces
 {
+ protected:
+
+    // Save a copy of the protocol
+    int protocol;
+
  public:
 
     LATinterfaces();
     virtual ~LATinterfaces();
 
     // Initialise the LAT protocol
-    virtual int Start()=0;
+    virtual int Start(int proto)=0;
 
     // Return a list of valid interface numbers and the count
     virtual void get_all_interfaces(int ifs[], int &num)=0;
@@ -54,12 +59,19 @@ class LATinterfaces
     // Receive a packet from a given FD (note FD not iface)
     virtual int recv_packet(int fd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen)=0;
 
-    // Open a connection on an interface
-    virtual int open_connection(int ifn)=0;
+    // Enable reception of LAT multicast messages
+    virtual int set_lat_multicast(int ifn)=0;
 
-    // Close an interface.
-    virtual int close_connection(int ifn)=0;
+    // Finished listening for LAT multicasts
+    virtual int remove_lat_multicast(int ifn)=0;
+
+    // Bind a socket to an interface
+    virtual int bind_socket(int interface)=0;
 
     // Creates a platform-specifc interfaces class
     static LATinterfaces *Create();
+
+    // Protocols we can Start()
+    static int ProtoLAT;
+    static int ProtoMOP;
 };

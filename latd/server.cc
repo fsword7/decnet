@@ -344,7 +344,7 @@ void LATServer::run()
     // Bind interfaces
     for (int i=0; i<num_interfaces;i++)
     {
-	iface->open_connection(interface_num[i]);
+	iface->set_lat_multicast(interface_num[i]);
     }
 
     // Add it/them to the sockets list
@@ -877,7 +877,7 @@ void LATServer::init(bool _static_rating, int _rating,
 
     /* Initialise the platform-specific interface code */
     iface = LATinterfaces::Create();
-    if (iface->Start() == -1)
+    if (iface->Start(LATinterfaces::ProtoLAT) == -1)
     {
 	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
 	exit(1);

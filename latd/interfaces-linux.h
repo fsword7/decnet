@@ -22,7 +22,7 @@ class LinuxInterfaces : public LATinterfaces
     ~LinuxInterfaces() {};
 
     // Initialise
-    virtual int Start();
+    virtual int Start(int proto);
 
     // Return a list of valid interface numbers and the count
     virtual void get_all_interfaces(int *ifs, int &num);
@@ -47,11 +47,14 @@ class LinuxInterfaces : public LATinterfaces
     // Receive a packet from a given interface
     virtual int recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen);
 
-    // Open a connection on an interface
-    virtual int open_connection(int ifn);
+    // Enable reception of LAT multicast messages
+    virtual int set_lat_multicast(int ifn);
 
-    // Close an interface.
-    virtual int close_connection(int ifn);
+    // Finished listening for LAT multicasts
+    virtual int remove_lat_multicast(int ifn);
+
+    // Bind a socket to an interface
+    virtual int bind_socket(int interface);
 
  private:
     int fd;

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2002-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,14 +63,18 @@
 #include "interfaces.h"
 #include "interfaces-linux.h"
 
+int LATinterfaces::ProtoLAT = ETH_P_LAT;
+int LATinterfaces::ProtoMOP = ETH_P_DNA_RC;
 
-int LinuxInterfaces::Start()
+int LinuxInterfaces::Start(int proto)
 {
-    // Open LAT protocol socket
-    fd = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_LAT));
+    protocol = proto;
+
+    // Open raw socket on specified protocol
+    fd = socket(PF_PACKET, SOCK_DGRAM, htons(protocol));
     if (fd < 0)
     {
-	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
+	syslog(LOG_ERR, "Can't create protocol socket: %m\n");
 	return -1;
     }
     return 0;
@@ -119,6 +123,23 @@ std::string LinuxInterfaces::ifname(int ifn)
     // Didn't find it
     close(sock);
     return std::string("");
+}
+
+// Bind a socket to an interface
+int LinuxInterfaces::bind_socket(int interface)
+{
+    struct sockaddr_ll sock_info;
+
+    sock_info.sll_family   = AF_PACKET;
+    sock_info.sll_protocol = htons(protocol);
+
+    sock_info.sll_ifindex  = interface;
+    if (bind(fd, (struct sockaddr *)&sock_info, sizeof(sock_info)))
+    {
+        perror("can't bind socket to i/f %m\n");
+        return -1;
+    }
+    return 0;
 }
 
 // Find an interface number by name
@@ -172,7 +193,7 @@ int LinuxInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char
 
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
-    sock_info.sll_protocol = htons(ETH_P_LAT);
+    sock_info.sll_protocol = htons(protocol);
     sock_info.sll_ifindex  = ifn;
     sock_info.sll_hatype   = 0;//ARPHRD_ETHER;
     sock_info.sll_pkttype  = PACKET_MULTICAST;
@@ -213,7 +234,8 @@ int LinuxInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], 
 }
 
 // Open a connection on an interface
-int LinuxInterfaces::open_connection(int ifn)
+// Only necessary for LAT sockets.
+int LinuxInterfaces::set_lat_multicast(int ifn)
 {
     // Add Multicast membership for LAT on socket
     struct packet_mreq pack_info;
@@ -243,7 +265,7 @@ int LinuxInterfaces::open_connection(int ifn)
 }
 
 // Close an interface.
-int LinuxInterfaces::close_connection(int ifn)
+int LinuxInterfaces::remove_lat_multicast(int ifn)
 {
     // Add Multicast membership for LAT on socket
     struct packet_mreq pack_info;

@@ -1,7 +1,10 @@
 latd (1.03-1) unstable; urgency=low
 
   * Use std:: namespace so it compiles with GCC 3.0
-  * Don't depend on libstdc++2.10-dev. Closes: bug#104954
+  * Don't use makedepend for dependancy management.
+  * Don't depend on libstdc++2.10-dev. 
+    Closes: bug#104954
+  * Fix includes in server.cc that depend for GLIBC version
 
  -- Patrick Caulfield <patrick@debian.org>  Sun, 15 Jul 2001 19:44:36 +0100
 

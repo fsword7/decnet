@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.03
+VERSION=1.04
 PKGNAME=latd
 
 
@@ -26,6 +26,10 @@ LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++ 
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
+
+# ARCH code taken from the Linux kernel sources.
+#
+ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
 
 #
 # For DEB builds
@@ -107,7 +111,7 @@ rpm:
 	mkdir BUILD
 	install README NEWS BUILD
 	mkdir -p RPMS
-	rpm -bb --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
+	rpm -bb --target=$(ARCH) --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
 #

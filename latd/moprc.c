@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -446,7 +446,7 @@ static int do_moprc(char *macaddr, int interface)
     struct termios new_term;
     int            len;
     int            status;
-    int            timeout = 160000; /* Poll interval */
+    int            timeout = 200000; /* Poll interval */
     int            waiting_ack;
     int            resends = 0;
     int            termfd = STDIN_FILENO;

@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = 1.4 foreign
 
-AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wstrict-prototypes -Wno-unused
+AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wno-unused
 
 INCLUDES = -DLATD_CONF=\"$(sysconfdir)/latd.conf\" -DSBINDIR=\"$(sbindir)\" -DBINDIR=\"$(bindir)\"
 
@@ -36,7 +36,7 @@ moprc_SOURCES = moprc.h moprc.cc interfaces.cc utils.cc
 EXTRA_DIST = $(man_MANS) WARRANTY latd.conf.sample lat.html \
 	interfaces-linux.cc interfaces-linux.h \
 	interfaces-bpf.cc interfaces-bpf.h \
-	mkrpm.sh rpm.spec startlat.sh
+	mkrpm.sh rpm.spec startlat.sh latprint.sh
 
 latd_DEPENDENCIES = @INTERFACE@
 latd_LDADD = $(latd_DEPENDENCIES) @LIBUTIL@

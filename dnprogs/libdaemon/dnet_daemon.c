@@ -28,6 +28,7 @@
 #include <signal.h>
 #include <string.h>
 #include <syslog.h>
+#include <limits.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -81,11 +81,34 @@ bool fal_directory::process_message(dap_message *m)
 	    int    status;
 	    int    pathno = 0;
 	    char   *dirdir = NULL;
-	    
+	    bool   double_wildcard = false;
+
 	    dap_access_message *am = (dap_access_message *)m;
 
 	    strcpy(filespec, am->get_filespec());
 	    split_filespec(volume, directory, filespec);
+
+	    // If there are two wildcards then we need to be prepared
+	    // to send multiple DIRECTORY name records as we change
+	    // directories.
+	    // We don't want to do this normally because glob() follows
+	    // symlinks to the output can get confusing.
+	    if (strchr(filespec, '*') != strrchr(filespec, '*'))
+	    {
+		double_wildcard = true;
+	    }
+	    else
+	    {
+		// Send the one-and-only VOLUME/DIRECTORY info
+		name_msg->set_nametype(dap_name_message::VOLUME);
+		name_msg->set_namespec(volume);
+		if (!name_msg->write(conn)) return false;
+
+		name_msg->set_nametype(dap_name_message::DIRECTORY);
+		name_msg->set_namespec(directory);
+		if (!name_msg->write(conn)) return false;
+	    }
+
 
             // if the remote end asked for *.DIR then remove the .DIR bit
 	    // but only spit out directories (see below)
@@ -112,11 +135,11 @@ bool fal_directory::process_message(dap_message *m)
 
 		if (S_ISDIR(st.st_mode))
 		{
-		    if (verbose > 2) DAPLOG((LOG_INFO, "Adding * to Unix dir name.\n"));		
+		    if (verbose > 2) DAPLOG((LOG_INFO, "Adding * to Unix dir name.\n"));
 		    strcat(filespec, "/*");
 		}
 	    }
-	    
+
 	    // Convert % wildcards to ?
 	    if (vms_format) convert_vms_wildcards(filespec);
 
@@ -132,23 +155,40 @@ bool fal_directory::process_message(dap_message *m)
 	    // the connection will send a buffer full at a time.
 	    conn.set_blocked(true);
 
-	    // For VMS format names send the faked volume and directory names
-	    if (vms_format)
-	    {
-		name_msg->set_nametype(dap_name_message::VOLUME);
-		name_msg->set_namespec(volume);
-		if (!name_msg->write(conn)) return false;
+	    // Keep a track of the last path so we know when to send
+            // a new directory spec.
+	    char last_path[PATH_MAX] = {'\0'};
 
-		name_msg->set_nametype(dap_name_message::DIRECTORY);
-		name_msg->set_namespec(directory);
-		if (!name_msg->write(conn)) return false;
-	    }
-	    
 	    // Display the file names
 	    while (gl.gl_pathv[pathno])
 	    {
 		// Ignore metafile directory
 		if (strcmp(gl.gl_pathv[pathno], METAFILE_DIR)==0) continue;
+
+		if (vms_format && double_wildcard)
+		{
+		    char dir_path[PATH_MAX];
+		    strcpy(dir_path, gl.gl_pathv[pathno]);
+		    if (strrchr(dir_path, '/'))
+			*strrchr(dir_path, '/') = '\0';
+
+		    if (strcmp(last_path, dir_path))
+		    {
+			char filespec[PATH_MAX];
+
+			make_vms_filespec(gl.gl_pathv[pathno], filespec, true);
+			split_filespec(volume, directory, filespec);
+
+			name_msg->set_nametype(dap_name_message::VOLUME);
+			name_msg->set_namespec(volume);
+			if (!name_msg->write(conn)) return false;
+
+			name_msg->set_nametype(dap_name_message::DIRECTORY);
+			name_msg->set_namespec(directory);
+			if (!name_msg->write(conn)) return false;
+			strcpy(last_path, dir_path);
+		    }
+		}
 
 		// If the requested filespec has ".DIR" in it then
 		// only send directories.
@@ -203,7 +243,7 @@ bool fal_directory::send_dir_entry(const char *path, int display)
     {
 	char vmsname[PATH_MAX];
 	make_vms_filespec(path, vmsname, false);
-	
+
 	unsigned int lastdot = strlen(vmsname);
 	unsigned int dotcount = 0;
 	unsigned int i;
@@ -219,8 +259,8 @@ bool fal_directory::send_dir_entry(const char *path, int display)
 	{
 	    if (vmsname[i] == '~' ||
 		vmsname[i] == ' ') vmsname[i] = '-';
-	    
-	    if (vmsname[i] == '.') 
+
+	    if (vmsname[i] == '.')
 	    {
 		lastdot = i;
 		dotcount++;
@@ -240,7 +280,7 @@ bool fal_directory::send_dir_entry(const char *path, int display)
     {
         name_msg->set_namespec(path);
     }
-    
+
     name_msg->set_nametype(dap_name_message::FILENAME);
     if (!name_msg->write(conn)) return false;
 
@@ -256,7 +296,7 @@ bool fal_directory::send_dir_entry(const char *path, int display)
 	}
 
 	// There's hardly anything in this message but it keeps VMS quiet
-	if (display & dap_access_message::DISPLAY_ALLOC_MASK)	
+	if (display & dap_access_message::DISPLAY_ALLOC_MASK)
 	{
 	    if (!alloc_msg->write(conn)) return false;
 	}
@@ -275,7 +315,7 @@ bool fal_directory::send_dir_entry(const char *path, int display)
 	    date_msg->set_rvn(1);
 	    if (!date_msg->write(conn)) return false;
 	}
-	
+
 	// Send the protection
 	if (display & dap_access_message::DISPLAY_PROT_MASK)
 	{
@@ -283,13 +323,13 @@ bool fal_directory::send_dir_entry(const char *path, int display)
 	    prot_msg->set_owner(st.st_gid, st.st_uid);
 	    if (!prot_msg->write(conn)) return false;
 	}
-	
+
 	// Finish with an ACK
 	if (!ack_msg->write(conn)) return false;
     }
     else
     {
-	DAPLOG((LOG_WARNING, "DIR: cannot stat %s: %s\n", path, strerror(errno)));
+	if (verbose) DAPLOG((LOG_WARNING, "DIR: cannot stat %s: %s\n", path, strerror(errno)));
         dap_status_message st;
         st.set_errno();
         st.write(conn);

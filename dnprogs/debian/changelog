@@ -1,7 +1,8 @@
 dnprogs (2.08-1) unstable; urgency=low
 
+  * First Debian upload.  Closes: bug#83642
   * Split into 4 packages.
-  * FAL now correctly uses metadata for block-structured files.
+  * FAL now correctly uses metadata for block-structured files. 
 
  -- Patrick Caulfield <patrick@debian.org>  Sun,  4 Feb 2001 14:23:07 +0000
 

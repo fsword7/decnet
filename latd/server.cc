@@ -222,7 +222,7 @@ void LATServer::send_service_announcement(int sig)
 
     if (sendto(lat_socket, packet, ptr, 0,
 	       (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
-	perror("sendto");
+	syslog(LOG_ERR, "sendto: %m");
 
     /* Send it every minute */
     signal(SIGALRM, &alarm_signal);
@@ -238,9 +238,21 @@ void LATServer::run()
     lat_socket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_LAT));
     if (lat_socket < 0)
     {
-	perror("Can't create LAT protocol socket");
+	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
 	exit(1);
     }
+
+    // Bind it to the interface
+    struct sockaddr_ll sock_info;
+    sock_info.sll_family = AF_PACKET;
+    sock_info.sll_protocol = htons(ETH_P_LAT);
+    sock_info.sll_ifindex  = interface_num;
+    if (bind(lat_socket, (struct sockaddr *)&sock_info, sizeof(sock_info)))
+    {
+        syslog(LOG_ERR, "can't bind lat socket: %m\n");
+        exit(1);
+    }
+  
     // Add it to the sockets list    
     fdlist.push_back(fdinfo(lat_socket, 0, LAT_SOCKET));
 
@@ -249,7 +261,7 @@ void LATServer::run()
     latcp_socket = socket(PF_UNIX, SOCK_STREAM, 0);
     if (latcp_socket < 0)
     {
-	perror("Can't create latcp socket");
+	syslog(LOG_ERR, "Can't create latcp socket: %m");
 	exit(1);
     }
 
@@ -258,11 +270,13 @@ void LATServer::run()
     sockaddr.sun_family = AF_UNIX;
     if (bind(latcp_socket, (struct sockaddr *)&sockaddr, sizeof(sockaddr)))
     {
-        perror("can't bind latcp socket");
+	syslog(LOG_ERR, "can't bind latcp socket: %m");
         exit(1);
     }
     if (listen(latcp_socket, 1) != 0)
-	perror("listen latcp");
+    {
+	syslog(LOG_ERR, "listen latcp: %m");
+    }
     chmod(LATCP_SOCKNAME, 0600);
     fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));
     
@@ -292,7 +306,7 @@ void LATServer::run()
 	{
 	    if (errno != EINTR)
 	    {
-		perror("Error in select");
+		syslog(LOG_WARNING, "Error in select: %m");
 		do_shutdown = true;
 	    }
 	}
@@ -376,7 +390,7 @@ void LATServer::read_lat(int sock)
     {
 	if (errno != EINTR)
 	{
-	    perror("recvmsg");
+	    syslog(LOG_ERR, "recvmsg: %m");
 	    return;
 	}
     }
@@ -538,7 +552,7 @@ int LATServer::send_message(unsigned char *buf, int len, unsigned char *macaddr)
   if (sendto(lat_socket, buf, len, 0,
 	     (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
   {
-      perror("sendto");
+      syslog(LOG_ERR, "sendto: %m");
       return -1;
   }
   return 0;
@@ -773,7 +787,7 @@ void LATServer::accept_latcp(int fd)
 	fdlist.push_back(fdinfo(latcp_client_fd, 0, LATCP_SOCKET));	
     }
     else
-	perror("accept");
+	syslog(LOG_WARNING, "accept on latcp failed: %m");
 }
 
 // Read a request from LATCP

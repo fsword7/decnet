@@ -9,7 +9,7 @@ llogin \- Connect to a LAT service
 .br
 Options:
 .br
-[\-cpbhQ] [\-H node] [\-R port] [-n name] [\-q quit char]
+[\-cpbhlQ] [\-H node] [\-R port] [-n name] [\-q quit char]
 .SH DESCRIPTION
 .PP
 llogin connects your terminal to a LAT service via latd, the service name
@@ -38,6 +38,12 @@ Convert DEL to BS. By default the DEL key (keyboard, top right usually)
 send DEL (ASCII 0x7f) to the remote system. This switch will cause the DEL 
 key to send BS (ASCII 8) instead. Useful for some Unix systems connected 
 via terminal servers.
+.TP
+.I "\-l"
+Convert LF to VT. VMS expects the linefeed character (ASCII 0x0A) to simply
+move the cursor down one line, whereas Unix also moves the cursor to the
+start of that line. This switch converts the LF character to a vertical tab
+which has the right effect on Unix.
 .TP
 .I "\-q <char>"
 Change the quit character. By default CTRL-] will quit the terminal 

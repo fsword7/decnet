@@ -23,6 +23,7 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <stdarg.h>
+#include <string.h>
 #include <netdnet/dnetdb.h>
 
 static enum {DNETLOG_MONO, DNETLOG_STDERR, DNETLOG_SYSLOG} 

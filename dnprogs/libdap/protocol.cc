@@ -384,7 +384,7 @@ int dap_message::get_header(dap_connection &c)
 
     if (flags & 16) // SYSPEC is hard.
     {
-	fprintf(stderr, "SYSPEC field not supported yet.\n
+	fprintf(stderr, "SYSPEC field not supported yet.\n\
                          Please email patrick@tykepenguin.cix.co.uk if you REALLY want it.\n");
 	exit(999);
     }

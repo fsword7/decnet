@@ -21,6 +21,7 @@
 // Logging module for libdap
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <fcntl.h>
 #include <syslog.h>
 #include "logging.h"

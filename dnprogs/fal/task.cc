@@ -1073,18 +1073,18 @@ fal_task::auto_types *fal_task::auto_types_list = NULL;
 const char *fal_task::sysdisk_name = "SYSDISK";
 
 const char *fal_task::default_types_file  = "#\n\
-#Generic types
+#Generic types\n\
 .txt  r\n\
 .c    r\n\
 .cc   r\n\
 .log  r\n\
-# VMS types
+# VMS types\n\
 .com  r\n\
 .lis  r\n\
 .bck  b 32256\n\
 .save b 8192\n\
 .exe  b 512\n\
-#Linux types
+#Linux types\n\
 .tar  b 10240\n\
 .gz   b 512\n\
 # End of file\n";

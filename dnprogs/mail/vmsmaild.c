@@ -18,8 +18,10 @@
 ////
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <syslog.h>
 #include <signal.h>
+#include <string.h>
 #include <syslog.h>
 #include <errno.h>
 #include <unistd.h>

@@ -398,8 +398,10 @@ static void dterm_bind_reply (void)
 		/* nothing to send */
 		cnt = bufptr;		/* no data left in this packet */
 		read_present = TRUE;	/* always a "read present" */
+		break;
 	case CTERM:
 		/* keep the compiler happy by mentioning this case */
+		break;
 	}
 }
 /*-------------------------------------------------------------------------*/
@@ -1640,6 +1642,7 @@ static void ct_proc_pkt(void)
 			break;
 		case VMS:
 			/* keep the compiler happy by mentioning this case */
+			break;
 		}
 		if (cnt==bufptr) ct_read_pkt();
 	}
@@ -1721,6 +1724,7 @@ int main(int argc, char *argv[])
 	    break;
     case VMS:
 	    /* keep the compiler happy by mentioning this case */
+	    break;
     }
     sa.sa_mask  = ss;
     sa.sa_flags = 0;

@@ -169,7 +169,8 @@ bool LATCPCircuit::do_command()
 							  remnode,
 							  queued) < 0)
 	{
-	    send_reply(LATCP_ERRORMSG, "Error creating client service", -1);
+	    debuglog(("sending failure back to LATCP\n"));
+	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);
 	}
 	else
 	{

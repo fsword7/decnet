@@ -279,6 +279,11 @@ void add_service(int argc, char *argv[])
 
     if (!open_socket(false)) return;
 
+    // Variables for ACK message
+    unsigned char *result;
+    int len;
+    int cmd;
+
     if (got_service)
     {
 	char message[520];
@@ -286,6 +291,9 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);
+
+	// Wait for ACK or error
+	read_reply(latcp_socket, cmd, result, len);
 	return;
     }
 
@@ -299,6 +307,9 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)remnode);
 	message[ptr++] = queued;
 	send_msg(latcp_socket, LATCP_ADDPORT, message, ptr);
+
+	// Wait for ACK or error
+	read_reply(latcp_socket, cmd, result, len);
 	return;
     }
 

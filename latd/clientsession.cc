@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <termios.h>
 #include <list>
+#include <cassert>
 #include <queue>
 #include <string>
 #include <map>

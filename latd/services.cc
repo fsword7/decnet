@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+#include <sys/types.h>
 #include <stdio.h>
 #include <time.h>
 #include <netinet/in.h>

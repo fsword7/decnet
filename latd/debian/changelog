@@ -1,3 +1,21 @@
+latd (1.19-1) unstable; urgency=low
+
+  * Some Darwin bpf interface fixes.
+  * fix lat group on /dev/lat/ devices that was broken by my autoconf changes
+    in 1.17
+  * Fix memory leak caused by latcp -d & llogin -d
+    (thanks to Sergei Gorbatov)
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 20 Dec 2003 15:16:21 +0000
+
+latd (1.18.1-1) unstable; urgency=low
+  
+  * include <cassert>
+    Closes: #195153
+  
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 10 Jun 2003 08:21:04 +0100
+  
+  
 latd (1.18-1) unstable; urgency=low
 
   * Fix configure --enable-debug

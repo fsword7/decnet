@@ -345,7 +345,7 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
     // Increment the number of slots.
     LAT_Header *header = (LAT_Header *)buf;
     header->num_slots++;
-    header->cmd = LAT_CCMD_SDATA;
+    header->cmd = LAT_CCMD_SESSION;
 }
 
 void LATSession::crlf_to_lf(unsigned char *buf, int len, 

@@ -41,7 +41,6 @@
 
 #include "utils.h"
 #include "libnetlink.h"
-#include "dnrtlink.h"
 #include "csum.h"
 
 
@@ -53,7 +52,7 @@
 static unsigned char node_table[1024];
 extern char *if_index_to_name(int ifindex);
 extern int routing_multicast_timer;
-extern int send_route_msg(void);
+extern int send_route_msg(char *);
 
 int verbose;
 static int send_routing;
@@ -152,9 +151,6 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	}
     }
 
-    if (send_routing)
-	send_route_msg();
-
     return 0;
 }
 
@@ -179,6 +175,9 @@ static void get_neighbours(int dummy)
 	fprintf(stderr, "Dump terminated\n");
 	goto resched;
     }
+
+    if (send_routing)
+	send_route_msg(node_table);
 
     /* Schedule us again */
  resched:
@@ -222,6 +221,7 @@ int main(int argc, char **argv)
 
 	case 'r':
 	    send_routing++;
+	    break;
 
 	case 'V':
 	    printf("\ndnroute from dnprogs version %s\n\n", VERSION);

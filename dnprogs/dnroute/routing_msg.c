@@ -28,7 +28,6 @@
 #include <netdnet/dnetdb.h>
 
 #include "libnetlink.h"
-#include "dnrtlink.h"
 #include "utils.h"
 #include "csum.h"
 

@@ -66,7 +66,7 @@ have to override the whole environment variable eg:
 $ DNCOPY_OPTIONS="" dncopy myfile.txt vmsbox::
 .br
 
-.SS OPTIONS
+.SH OPTIONS
 .TP
 .I "\-v"
 Verbose operation. The more -v options are present the more verbose dncopy
@@ -129,7 +129,7 @@ Displays help for using the command.
 .I \-V
 Show the version of the tools package that dncopy comes from.
 .br
-.SS ENVIRONMENT VARIABLE
+.SH ENVIRONMENT VARIABLE
 You can put your most commonly used defaults in the environment variable
 .B DNCOPY_OPTIONS
 eg:
@@ -155,7 +155,7 @@ these in DNCOPY_OPTIONS you cannot disable them without deassigning the
 variable.
 .br
 
-.SS EXAMPLES
+.SH EXAMPLES
 .br
 .br
 Copy LOGIN.COM from the VMS system "tramp" to Linux as mylogin.com
@@ -184,7 +184,7 @@ Copy an executable to VMS:
     dncopy -mblock test.exe 'tramp"patrick pjc123"::[.BIN]'
 .br
 
-.SS HELPFUL HINTS
+.SH HELPFUL HINTS
 For fetching files the defaults should serve for most purposes. Most VMS files
 are record orientated and 
 .B -mrecord
@@ -217,5 +217,5 @@ If you really don't know what to do, just send it
 and use the set file/attr command to massage it on the VMS end until you are
 happy with it. (If you are using VMS earlier than 6.1 then you will need
 the freeware FILE utility to do this)
-.SS SEE ALSO
+.SH SEE ALSO
 .BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnsubmit "(1), " dnprint "(1)"

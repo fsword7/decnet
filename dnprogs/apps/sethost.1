@@ -21,7 +21,7 @@ This application implements the CTERM protocol over DECnet for connecting to
 a remote DECnet host emulating a DEC VT100 terminal.
 
 
-.SS OPTIONS
+.SH OPTIONS
 .TP
 .TP
 .I "\-e <char>"
@@ -36,7 +36,7 @@ Displays help for using the command.
 .I \-V
 Show the version of the package that sethost was built with.
 
-.SS EXAMPLES
+.SH EXAMPLES
 .br
 Connect to remote VAX host named "mv3100".
 .br
@@ -46,7 +46,7 @@ Connect to remote VAX host named "mv3100".
     sethost mv3100
 .br
 
-.SS HELPFUL HINTS
+.SH HELPFUL HINTS
 The CTERM specifications available from Digital does not include how to setup 
 VMS terminal characteristics, so the host cannot identify the capabilities of
 the session we are creating. The simplest workaround is to set the terminal
@@ -56,5 +56,5 @@ DCL procedure.
 
 .B $ SET TERM/DEC_CRT
 
-.SS SEE ALSO
+.SH SEE ALSO
 .BR dntype "(1), " dndir "(1), " dndel "(1), " dntask "(1), " dnping "(1)" 

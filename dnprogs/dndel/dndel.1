@@ -23,7 +23,7 @@ then dndel will open two connections to the VMS machine (much as VMS itself
 does). Otherwise it will attempt to use a single connection. One side-effect
 of this is that the deletion process will fail at the first file that cannot
 be deleted.
-.SS OPTIONS
+.SH OPTIONS
 .TP
 .I "\-i"
 Interactive. Prompt before deleting a file.
@@ -37,11 +37,11 @@ Displays help for using the command.
 .I \-V
 Show the version of the tools package that dndel comes from.
 
-.SS EXAMPLES
+.SH EXAMPLES
 
   dndel -i 'myvax::oldfile;*'
 
 .br
   dndel 'tramp"patrick pjc123"::interactive'
-.SS SEE ALSO
+.SH SEE ALSO
 .BR dntype "(1), " dndir "(1), " dncopy "(1), " dntask "(1) ," dnsubmit "(1), " dnprint "(1)"

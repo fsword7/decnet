@@ -38,7 +38,7 @@ screen orientated input or output will almost certainly not work.
 .br
 Task names can be up to 16 characters in length because that's the limit on
 DECnet object names.
-.SS OPTIONS
+.SH OPTIONS
 .TP
 .I "\-b"
 Send the output in binary mode. By default the output from the DECnet task is
@@ -67,7 +67,7 @@ Displays help for using the command.
 .TP
 .I \-V
 Show the version of the tools package that dntask comes from.
-.SS NOTES
+.SH NOTES
 The command procedure tht you write MUST ALWAYS write something to SYS$NET
 or you will get a "connection refused" message. This is a limitation
 with DECnet objects.
@@ -90,11 +90,11 @@ $ exit
 
 The "write" command near the end is essential.
 
-.SS EXAMPLES
+.SH EXAMPLES
 
   dntask 'myvax::show_system'
 
 .br
   dndir -i 'tramp"patrick pjc123"::interactive'
-.SS SEE ALSO
+.SH SEE ALSO
 .BR dntype "(1), " dndir "(1), " dncopy "(1), " dndel "(1)"

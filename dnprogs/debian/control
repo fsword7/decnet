@@ -11,7 +11,7 @@ Depends: debconf, debianutils (>=1.13), awk
 Priority: optional
 Section: net
 Conflicts: dnprogs
-Description: DECnet programs for Linux.
+Description: Base package for Linux DECnet
  This is the base package for Linux DECnet. it contains the necessary 
  configuration files and a program to set up the MAC address of your
  ethernet card(s) at boot-up.
@@ -27,7 +27,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, dnet-common, libdnet
 Priority: optional
 Section: net
-Description: DECnet programs for Linux.
+Description: DECnet user programs and daemons
  These tools are the application layer interface for DECnet on Linux systems.
  They provide file/terminal access facilities between OpenVMS and Linux and 
  remote execution of commands.
@@ -39,7 +39,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, dnet-common
 Priority: optional
 Section: net
-Description: DECnet programs for Linux.
+Description: DECnet Libraries
  This package contains the libraries necessary for a functioning DECnet 
  system. Most DECnet programs require these libraries to be present on 
  the system. The libraries are:
@@ -54,7 +54,7 @@ Architecture: any
 Depends: dnet-common, libdnet
 Priority: optional
 Section: net
-Description: DECnet programs for Linux.
+Description: DECnet development libraries & Headers
  Theses are the development libraries for Linux DECnet. This package contains
  the static libraries, header files and man pages for DECnet development
  on Linux.

@@ -40,19 +40,6 @@ fi
 
 rm -f $TMPFILE
 
-# Update /etc/modutils/decnet
-
-INTERFACE="`cat /etc/decnet.conf|grep executor|awk '{print $6}'`"
-COMMAADDR="`echo $addr|tr '.' ','`"
-TMPFILE="`tempfile`"
-
-head -1 /etc/modutils/decnet > $TMPFILE
-echo "options decnet addr=$COMMAADDR" >> $TMPFILE
-cp $TMPFILE /etc/modutils/decnet
-
-rm -f $TMPFILE
-
 /sbin/update-modules
-exec 2>/tmp/pjc2 >/tmp/pjc
-set -x
+
 #DEBHELPER#

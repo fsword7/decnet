@@ -4,22 +4,15 @@
 #
 # Starts/Stops DECnet processes
 #
-# This script should go in /etc/init.d      (Debian)
-#                          /etc/rc.d/init.d (RedHat)
-#                          /sbin/init.d     (SuSE)
+# This script should go in /etc/rc.d/init.d
 #
 # and you should link to it from the relevant runlevel startup directory
-# eg: (Debian)
-#      update-rc.d start 39 S .  stop 11 1 .
-#
+# eg:
 #     (RedHat)
-#      ln -s /etc/rc.d/init.d/decnet /etc/rc.d/rc3.d/S09decnet
-#
-#     (SuSE)
-#      ln -s /sbin/init.d/decnet.sh /sbin/init.d/rc2.d/S05decnet
+#      ln -s /etc/rc.d/init.d/decnet.sh /etc/rc.d/rc3.d/S09decnet
 #
 #     (Caldera)
-#      ln -s /etc/rc.d/init.d/decnet /etc/rc.d/rc5.d/S01decnet
+#      ln -s /etc/rc.d/init.d/decnet.sh /etc/rc.d/rc5.d/S01decnet
 #
 # This script MUST be run before TCP/IP is started unless you have a DEC
 # TULIP based ethernet card AND are running Linux 2.2
@@ -106,6 +99,10 @@ case $1 in
          echo error starting socket layer.
          exit 1
        fi
+       NODE=`grep executor /etc/decnet.conf|sed 's/.* \([0-9.]\{3,7\}\) .*/\1/'`
+       echo "$NODE" > /proc/sys/net/decnet/node_address
+       CCT=`grep executor /etc/decnet.conf|sed 's/.*line *//'`
+       echo "$CCT" > /proc/sys/net/decnet/default_device
      fi
 
      for i in $daemons

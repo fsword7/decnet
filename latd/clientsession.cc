@@ -109,11 +109,10 @@ void ClientSession::connect()
     reply->slot.remote_session = local_session;
     reply->slot.local_session  = remote_session;
     reply->slot.length         = ptr - sizeof(LAT_SessionData);
-    reply->slot.cmd            = 0x92;
+    reply->slot.cmd            = 0x9f;
 
     parent.send_message(buf, ptr, LATConnection::DATA);
 
-    connected = true; // TODO: actually not true until we get the ACK
 }
 
 ClientSession::~ClientSession()
@@ -148,4 +147,5 @@ void ClientSession::got_connection(unsigned char _remid)
     debuglog(("ClientSession:: got connection for rem session %d\n", _remid));
     LATServer::Instance()->set_fd_state(master_fd, false);
     remote_session = _remid;
+    connected = true;
 }

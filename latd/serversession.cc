@@ -117,9 +117,6 @@ int ServerSession::send_login_response()
     slotbuf[slotptr++] = 0x0D;
     add_slot(buf, ptr, 0x0f, slotbuf, 0);
 
-
-    // Hmmm, don't know why this needs doing... for Tru64 only...grrr!
-//    reply->slot.length = ptr-sizeof(LAT_SessionCmd);
     parent.queue_message(buf, ptr);
 
     return 0;

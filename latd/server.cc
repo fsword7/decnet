@@ -504,7 +504,7 @@ void LATServer::remove_fd(int fd)
     fdlist.remove(*fdi);
 }
 
-// Remove FD from the FD list
+// Change the DISABLED state of a PTY fd
 void LATServer::set_fd_state(int fd, bool disabled)
 {
     list<fdinfo>::iterator fdi;

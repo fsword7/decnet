@@ -77,11 +77,11 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 LATConnection::LATConnection(int _num, const char *_remnode,
 			     const char *_macaddr, const char *_lta):
     num(_num),
-    last_sequence_number(0xff),
+    last_sequence_number(0),
     last_ack_number(0xff),
     role(CLIENT)
 {
-    debuglog(("New client connection for %s created\n", remnode));
+    debuglog(("New client connection for %s created\n", _remnode));
     memcpy(macaddr, _macaddr, 6);
     memset(sessions, 0, sizeof(sessions));
     strcpy((char *)remnode, _remnode);
@@ -124,9 +124,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
   
     debuglog(("MSG:      seq: %d,        ack: %d\n", 
 	      msg->header.sequence_number, msg->header.ack_number));
-
-    debuglog(("SENT:last seq: %d, last acked: %d\n", 
-	      last_sequence_number, last_message_acked));
 
     debuglog(("PREV:last seq: %d,   last ack: %d\n", 
 	      last_message_seq, last_ack_number));
@@ -264,6 +261,15 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
         }
     }
 
+    // If "Response Requested" set, then make sure we send one.
+    if (msg->header.cmd & 1 && !replyhere) 
+    {
+	debuglog(("Sending response because we were told to (%x)\n", msg->header.cmd));
+	replyhere = true;
+	replyslots=0;
+	last_ack_number = last_message_acked;
+    }
+ 
     // ACK the message if we did nothing else
     if (replyhere)
     {
@@ -331,11 +337,13 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 	retransmit_count = 0;
 	last_message_seq = last_sequence_number;
 	window_size++;
+	need_ack = true;
     }
 
     if (type == REPLY) 
     {
 	last_ack_number++;
+	need_ack = false;
     }
 
     response->local_connid    = num;
@@ -343,7 +351,8 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     response->sequence_number = last_sequence_number;
     response->ack_number      = last_ack_number;
 
-    debuglog(("Sending message for connid %d\n", num));
+    debuglog(("Sending message for connid %d (seq: %d, ack: %d, needack: %d)\n", 
+	      num, last_sequence_number, last_ack_number, (type==DATA) ));
 
     if (type == DATA) last_message = pending_msg(buf, len, (type==DATA) );
     return LATServer::Instance()->send_message(buf, len, macaddr);
@@ -525,7 +534,7 @@ void LATConnection::circuit_timer(void)
         header->sequence_number = last_sequence_number;
         header->ack_number      = last_ack_number;
      
-        debuglog(("Sending message on circuit timer: seq: %d, ack: %d (%d)\n",
+        debuglog(("Sending message on circuit timer: seq: %d, ack: %d (need_ack: %d)\n",
 		  last_sequence_number, last_ack_number, need_ack));
  
         msg.send(macaddr);
@@ -597,13 +606,19 @@ int LATConnection::got_connect_ack(unsigned char *buf)
 
     last_sequence_number = reply->header.ack_number;
     last_message_acked   = reply->header.sequence_number;
+    last_ack_number = last_message_acked;
+
     max_window_size = reply->exqueued+1;
 
-    last_ack_number = last_message_acked;
+    debuglog(("got connect ack. seq: %d, ack: %d\n", 
+	      last_sequence_number, last_message_acked));
 
 // Start clientsession 1
     ClientSession *cs = (ClientSession *)sessions[1];
-    if (cs) cs->connect();
+    if (cs)
+    {
+	cs->connect();
+    }
     else
     {
 	// TODO Disconnect

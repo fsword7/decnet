@@ -1466,7 +1466,8 @@ void LATServer::unlock()
     alarm_signal(SIGALRM);
 }
 
-int LATServer::make_llogin_connection(int fd, char *service, char *node, char *port, bool queued)
+int LATServer::make_llogin_connection(int fd, char *service, char *node, char *port,
+				      char *localport, bool queued)
 {
     int ret;
     int connid = get_next_connection_number();
@@ -1479,7 +1480,7 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
     connections[connid] = new LATConnection(connid, 
 					    (char *)service, 
 					    (char *)port,
-					    (char *)"llogin", 
+					    (char *)localport, 
 					    (char *)node,
 					    queued,
 					    false);

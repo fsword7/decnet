@@ -31,10 +31,11 @@ class ClientSession: public LATSession
   virtual void start_port();
   int get_port_fd();
 
+ protected: 
+  char ltaname[255];
   
  private:
   int slave_fd;
   bool slave_fd_open;
   char mastername[255];
-  char ltaname[255];
 };

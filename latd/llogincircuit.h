@@ -26,5 +26,6 @@ class LLOGINCircuit: public Circuit
     char msg[1024];
     char node[256];
     char service[256];
-    char port[256];    
+    char port[256];
+    char localport[256];    
 };

@@ -37,8 +37,8 @@
 
 lloginSession::lloginSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
-			     int fd):
-    ClientSession(p, remid, localid, "", clean),
+			     char *lta, int fd):
+    ClientSession(p, remid, localid, lta, clean),
     have_been_queued(false)
 {
     master_fd = dup(fd);
@@ -99,7 +99,7 @@ void lloginSession::connect(char *service, char *port)
     buf[ptr++] = 0x00; // 
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
-    add_string(buf, &ptr, (unsigned char*)"llogin");
+    add_string(buf, &ptr, (unsigned char*)ltaname);
 
     // If the user wanted a particular port number then add it 
     // into the message

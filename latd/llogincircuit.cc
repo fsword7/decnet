@@ -89,7 +89,7 @@ bool LLOGINCircuit::do_command()
 	else
 	{
 	    debuglog(("Connect from invalid llogin version %s\n", cmdbuf));
-	    send_reply(LATCP_ERRORMSG, "login version does not match latd version " VERSION, -1);
+	    send_reply(LATCP_ERRORMSG, "llogin version does not match latd version " VERSION, -1);
 	    retval = false;
 	}
 	break;
@@ -115,6 +115,7 @@ bool LLOGINCircuit::do_command()
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)service);
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)node);
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)port);
+	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)localport);
 
 	debuglog(("Terminal session for S:%s, N:%s, P:%s\n",
 		  service, node, port));
@@ -124,6 +125,7 @@ bool LLOGINCircuit::do_command()
 							  service, 
 							  node,
 							  port,
+							  localport,
 							  queued) < 0)
 	{
 	    debuglog(("sending failure back to llogin\n"));

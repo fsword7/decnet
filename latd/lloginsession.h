@@ -16,7 +16,7 @@ class lloginSession: public ClientSession
 {
  public:
   lloginSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, int);
+		unsigned char remid, unsigned char localid, char *lta, int);
 
   virtual ~lloginSession();
   virtual int  new_session(unsigned char *remote_node, unsigned char c);

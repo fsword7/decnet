@@ -847,8 +847,8 @@ int LATConnection::create_llogin_session(int fd)
 // Create a ClientSession
 
     int newsessionnum = 1;
-    LATSession *newsession = new lloginSession(*this, 0,
-					       newsessionnum, fd);
+    LATSession *newsession = new lloginSession(*this, 0, newsessionnum, 
+					       lta_name, fd);
     if (newsession->new_session(remnode, 0) == -1)
     {
 	delete newsession;

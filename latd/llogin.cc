@@ -72,6 +72,7 @@ static int usage(char *cmd)
     printf ("       -Q         connect to a queued service\n");
     printf ("       -c         convert CR to LF\n");
     printf ("       -b         convert DEL to BS\n");
+    printf ("       -n <name>  Local port name\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
     return 0;
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
     char node[256] = {'\0'};
     char service[256] = {'\0'};
     char port[256] = {'\0'};
+    char localport[256] = {'\0'};
     signed char opt;
     int verbose = 0;
     int crlf = 1;
@@ -97,7 +99,10 @@ int main(int argc, char *argv[])
 	exit(usage(argv[0]));
     }  
 
-    while ((opt=getopt(argc,argv,"dpcvhbQH:R:q:")) != EOF)
+    // Set the default local port name
+    if (ttyname(0)) strcpy(localport, ttyname(0));
+
+    while ((opt=getopt(argc,argv,"dpcvhbQH:R:q:n:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -138,6 +143,10 @@ int main(int argc, char *argv[])
 
 	case 'R':
 	    strcpy(port, optarg);
+	    break;
+
+	case 'n':
+	    strcpy(localport, optarg);
 	    break;
 
 	default:
@@ -195,6 +204,7 @@ int main(int argc, char *argv[])
     add_string((unsigned char*)msg, &ptr, (unsigned char*)service);
     add_string((unsigned char*)msg, &ptr, (unsigned char*)node);
     add_string((unsigned char*)msg, &ptr, (unsigned char*)port);
+    add_string((unsigned char*)msg, &ptr, (unsigned char*)localport);
 
     send_msg(latcp_socket, LATCP_TERMINALSESSION, msg, ptr);
 

@@ -253,13 +253,16 @@ void cterm (void)
 		  if (FD_ISSET(pty,&rdfs))
 		  {
 			cnt=read(pty,buf,sizeof(buf)-1);
+			if (cnt <= 0) break;
 			buf[cnt]='\0';
-			cterm_write(buf);
+			cterm_write(buf);			    
 		   }
 
 		   if (FD_ISSET(net,&rdfs))
 		   {
 			cnt=read(net,buf,sizeof(buf));
+			if (cnt <= 0) break;
+			
 			switch (buf[4])
 			{
 		 	case 0x03:
@@ -292,7 +295,7 @@ void doit  (void)
 	struct	stat	stb;
 	char	ptyname[] = "/dev/ptyCP";
 	int	gotpty =0;
-
+	
 	cterm_bind();
 
 #ifdef DNETUSE_DEVPTS
@@ -351,7 +354,7 @@ void doit  (void)
 	{
 		cterm();
 	}
-
+	
 	setsid();
 	
 	close(pty); close(net);

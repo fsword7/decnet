@@ -117,12 +117,12 @@ void LATServer::send_service_announcement(int sig)
 
     announce->cmd             = LAT_CCMD_SERVICE;
     announce->circuit_timer   = circuit_timer;
-    announce->hiver           = 5;    // Highest LAT version acceptable
-    announce->lover           = 5;    // Lowest LAT version acceptable
+    announce->hiver           = LAT_VERSION;
+    announce->lover           = LAT_VERSION;
     announce->latver          = LAT_VERSION;
     announce->latver_eco      = LAT_VERSION_ECO;
     announce->incarnation     = ++multicast_incarnation;
-    announce->flags           = 0x6e; // TODO Allow group codes & stuff
+    announce->flags           = 0x6e;
     announce->mtu             = dn_htons(1500);
     announce->multicast_timer = multicast_timer;
     if (do_shutdown)
@@ -134,9 +134,20 @@ void LATServer::send_service_announcement(int sig)
 	announce->node_status     = 2;    // Accepting connections
     }
 
-    announce->group_length    = 1;
-    packet[ptr++] = 01; // Groups: TODO support groups
-    
+    // Send group codes
+    if (groups_set)
+    {
+	announce->group_length = 32;
+	memcpy(&packet[ptr], groups, 32);
+	ptr += 32;
+	announce->flags |= 1;
+    }
+    else
+    {
+	announce->group_length    = 1;
+	packet[ptr++] = 01; 
+    }
+
     /* Get host info */
     uname(&uinfo);
     
@@ -700,6 +711,10 @@ void LATServer::init(bool _static_rating, int _rating,
     local_name[0] = '\0'; // Use default node name
 
     memset(connections, 0, sizeof(connections));
+
+    // Enable user group 0
+    memset(user_groups, 0, 32);
+    user_groups[0] = 1;
 }
 
 // Create a new connection object for this remote node.
@@ -747,13 +762,41 @@ void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr
 {
     LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)buf;
     int ptr = sizeof(LAT_ServiceAnnounce);
+    int service_groups[32];
     unsigned char nodename[32];
     unsigned char greeting[255];
     unsigned char service[255];
     unsigned char ident[255];
 
-    // Skip groups
-    // TODO Honour group numbers(?)
+    // Set the groups to all zeros initially
+    memset(service_groups, 0, sizeof(service_groups));
+
+
+    // Make sure someone isn't pulling out leg.
+    if (announce->group_length > 32)
+	announce->group_length = 32;
+
+    // Get group numbers
+    memcpy(service_groups, buf+ptr, announce->group_length);
+
+    
+    // Compare with our user groups mask (which is always either completely
+    // empty or the full 32 bytes)
+
+    int i;
+    bool gotone = false;
+    for (i=0; i<announce->group_length; i++)
+    {
+	if (user_groups[i] & service_groups[i])
+	    gotone = true;
+    }
+    
+    if (!gotone)
+    {
+	debuglog(("remote node not in our user groups list\n"));
+	return;
+    }
+
     ptr += announce->group_length;
     get_string(buf, &ptr, nodename);
     get_string(buf, &ptr, greeting);
@@ -1089,10 +1132,14 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
     output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;
     output << "Retransmit Limit:     " << setw(6) << retransmit_limit << endl;
     output << "Multicast Timer (sec):" << setw(6) << multicast_timer << endl;
-    output <<endl;
+    output << endl;
 
-    // Groups go here...
-
+    // Show groups
+    output << "User Groups:     ";
+    print_bitmap(output, true, user_groups);
+    output << "Service Groups:  ";
+    print_bitmap(output, groups_set, groups);
+    output << endl;
 
     // Show services we are accepting for.
     output << "Service Name   Status   Rating  Identification" << endl;
@@ -1135,5 +1182,85 @@ int LATServer::get_next_connection_number()
     return -1;
 }
 
+int LATServer::set_servergroups(unsigned char *bitmap)
+{
+    // Assume all unset if this is the first mention of groups
+    if (!groups_set)
+    {
+	memset(groups, 0, 32);
+	user_groups[0] = 1; // But enable group 0
+    }
+    groups_set = true;
+
+    for (int i=0; i<32; i++)
+    {
+	groups[i] |= bitmap[i];
+    }
+    return true;
+}
+
+int LATServer::unset_servergroups(unsigned char *bitmap)
+{
+    // Assume all set if this is the first mention of groups
+    if (!groups_set)
+    {
+	memset(groups, 0xFF, 32);
+    }
+    groups_set = true;
+    
+    for (int i=0; i<32; i++)
+    {
+	groups[i] ^= bitmap[i];
+    }
+    return true;
+}
+
+int LATServer::set_usergroups(unsigned char *bitmap)
+{
+    for (int i=0; i<32; i++)
+    {
+	user_groups[i] |= bitmap[i];
+    }
+    return true;
+}
+
+int LATServer::unset_usergroups(unsigned char *bitmap)
+{    
+    for (int i=0; i<32; i++)
+    {
+	user_groups[i] ^= bitmap[i];
+    }
+    return true;
+}
+
+// Print a groups bitmap
+// TODO: print x-y format like we accept in latcp.
+void LATServer::print_bitmap(ostrstream &output, bool isset, char *bitmap)
+{
+    if (!isset)
+    {
+	output << "0" << endl;
+	return;
+    }
+    
+    bool printed = false;
+
+    for (int i=0; i<32; i++) // Show bytes
+    {
+	unsigned char thebyte = bitmap[i];
+
+	for (int j=0; j<8; j++) // Bits in the byte
+	{
+	    if (thebyte&1) 
+	    {
+		if (printed) output << ",";
+		printed = true;
+		output << i*8+j;
+	    }
+	    thebyte = thebyte>>1;
+	}
+    }
+    output << endl;
+}
 
 LATServer *LATServer::instance = NULL;

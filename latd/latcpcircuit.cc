@@ -148,6 +148,36 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+
+    case LATCP_SETSERVERGROUPS:
+    {
+	LATServer::Instance()->set_servergroups(cmdbuf);
+	send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
+    case LATCP_UNSETSERVERGROUPS:
+    {
+	LATServer::Instance()->unset_servergroups(cmdbuf);
+	send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
+
+    case LATCP_SETUSERGROUPS:
+    {
+	LATServer::Instance()->set_usergroups(cmdbuf);
+	send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
+    case LATCP_UNSETUSERGROUPS:
+    {
+	LATServer::Instance()->unset_usergroups(cmdbuf);
+	send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
     
     // Change the rating of a service
     case LATCP_SETRATING:

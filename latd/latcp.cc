@@ -73,7 +73,13 @@ void purge_services();
 void start_latd(int argc, char *argv[]);
 void set_rating(int argc, char *argv[]);
 void set_ident(int argc, char *argv[]);
+void set_server_groups(int argc, char *argv[]);
+void set_user_groups(int argc, char *argv[]);
 void set_node (char *);
+
+
+// Misc utility routines
+static void make_bitmap(char *bitmap, char *cmdline);
 
 
 int usage(char *cmd)
@@ -86,8 +92,8 @@ int usage(char *cmd)
     printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]\n");
     printf ("       -D {-a service | -p tty}\n");
     printf ("       -i descript -a service\n");
-    printf ("       -g list -a service\n");
-    printf ("       -G list -a service\n");
+    printf ("       -g list\n");
+    printf ("       -G list\n");
     printf ("       -u list\n");
     printf ("       -U list\n");
     printf ("       -j\n");
@@ -178,16 +184,16 @@ int main(int argc, char *argv[])
 	printf("counters not yet done\n");
 	break;
     case 'U':
-	printf("groups not yet done\n");
+	set_user_groups(argc, argv);
 	break;
     case 'u':
-	printf("groups not yet done\n");
-	break;
-    case 'G':
-	printf("groups not yet done\n");
+	set_user_groups(argc, argv);
 	break;
     case 'g':
-	printf("groups not yet done\n");
+	set_server_groups(argc, argv);
+	break;
+    case 'G':
+	set_server_groups(argc, argv);
 	break;
     default:
 	exit(usage(argv[0]));
@@ -342,6 +348,86 @@ void set_ident(int argc, char *argv[])
     exit(read_reply(latcp_socket, cmd, result, len));
 }
 
+
+void set_server_groups(int argc, char *argv[])
+{
+    char opt;
+    int  cmd;
+    char groups[256];
+    
+    while ((opt=getopt(argc,argv,"G:g:")) != EOF)
+    {
+	switch(opt) 
+	{
+	case 'G':
+	    cmd = LATCP_SETSERVERGROUPS;
+	    strcpy(groups, optarg);
+	    break;
+
+	case 'g':
+	    cmd = LATCP_UNSETSERVERGROUPS;
+	    strcpy(groups, optarg);
+	    break;
+
+	default:
+	    fprintf(stderr, "Just G or g please\n");
+	    exit(2);
+	}
+    }
+
+    if (!open_socket(false)) return;
+
+    char bitmap[32]; // 256 bits
+    make_bitmap(bitmap, groups);
+    
+    send_msg(latcp_socket, cmd, bitmap, 32);
+
+    // Wait for ACK or error
+    unsigned char *result;
+    int len;
+    exit(read_reply(latcp_socket, cmd, result, len));
+
+}
+
+void set_user_groups(int argc, char *argv[])
+{
+    char opt;
+    int  cmd;
+    char groups[256];
+    
+    while ((opt=getopt(argc,argv,"u:U:")) != EOF)
+    {
+	switch(opt) 
+	{
+	case 'U':
+	    cmd = LATCP_SETUSERGROUPS;
+	    strcpy(groups, optarg);
+	    break;
+
+	case 'u':
+	    cmd = LATCP_UNSETUSERGROUPS;
+	    strcpy(groups, optarg);
+	    break;
+
+	default:
+	    fprintf(stderr, "Just U or u please\n");
+	    exit(2);
+	}
+    }
+
+    if (!open_socket(false)) return;
+
+    char bitmap[32]; // 256 bits
+    make_bitmap(bitmap, groups);
+    
+    send_msg(latcp_socket, cmd, bitmap, 32);
+
+    // Wait for ACK or error
+    unsigned char *result;
+    int len;
+    exit(read_reply(latcp_socket, cmd, result, len));
+
+}
 
 // Enable/Disable the service responder
 void set_responder(int onoff)
@@ -821,4 +907,76 @@ static void make_upper(char *str)
     {
 	str[i] = toupper(str[i]);
     }
+}
+
+static inline void set_in_bitmap(char *bits, int entry)
+{
+
+    if (entry < 256)
+    {
+	unsigned int  intnum;
+	unsigned int  bitnum;
+    
+	intnum = entry / 8;
+	bitnum = entry % 8;
+	bits[intnum] |= 1<<bitnum;
+    }
+}
+
+static void make_bitmap(char *bitmap, char *cmdline)
+{
+    int   firstnum;
+    int   secondnum;
+    int   i;
+    bool  finished = false;
+    char  delimchar;
+    char* delimiter;
+
+    memset(bitmap, 0, 32);
+    delimiter = strpbrk(cmdline, ",-");
+    
+    do
+    {
+	if (delimiter == NULL)
+	{
+	    delimchar = ',';
+	}
+	else
+	{
+	    delimchar = delimiter[0];
+	    delimiter[0] = '\0';
+	}
+	firstnum = atoi(cmdline);
+	if (delimiter != NULL) delimiter[0] = delimchar;
+	
+	/* Found a comma -- mark the number preceding it as read */	
+	if ((delimchar == ',') || (delimiter == NULL))
+	{
+	    set_in_bitmap(bitmap, firstnum);
+	}
+	
+	/* Found a hyphen -- mark the range as read */
+	if (delimchar == '-')
+	{
+	    cmdline = delimiter+1;
+	    delimiter = strpbrk(cmdline, ",");
+
+	    if (delimiter != NULL)
+	    {
+		delimchar = delimiter[0];
+		delimiter[0] = '\0';
+	    }
+	    secondnum = atoi(cmdline);
+	    if (delimiter != NULL) delimiter[0] = delimchar;
+	    
+	    for (i=firstnum; i<=secondnum; i++)
+	    {
+		set_in_bitmap(bitmap, i);
+	    }
+	}
+	if (delimiter == NULL) finished = true;
+	
+	cmdline = delimiter+1;
+	if (delimiter != NULL) delimiter = strpbrk(cmdline, ",-");
+    } while (!finished);
 }

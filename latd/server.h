@@ -84,6 +84,7 @@ class LATServer
     void  add_services(unsigned char *, int, unsigned char *);
     void  accept_latcp(int);
     void  read_latcp(int);
+    void  print_bitmap(ostrstream &, bool, char *bitmap);
  
     static void alarm_signal(int sig);
 
@@ -160,6 +161,7 @@ class LATServer
 	fd_type        get_type(){return type;}
     };
 
+    // Class that defines a local (server) service
     class serviceinfo
     {
     public:
@@ -177,7 +179,6 @@ class LATServer
 	    { rating = _new_rating; static_rating = _static; }
 	void          set_ident(char *_ident)
 	    { id = string(_ident);}
-		
 	
 	const bool operator==(serviceinfo &si)  { return (si == name);}
 	const bool operator==(const string &nm) { return (nm == name);}
@@ -215,6 +216,9 @@ class LATServer
     int  retransmit_limit;// Default 20
     int  keepalive_timer; // Default ??
     bool responder;       // Be a service responder (false);
+    char groups[32];      // Bitmap of groups
+    bool groups_set;      // Have the groups been set ?
+    char user_groups[32]; // Bitmap of user groups..always in use
 
     // LATCP Circuit callins
  public:
@@ -231,4 +235,8 @@ class LATServer
     bool show_characteristics(bool verbose, ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,
 				unsigned char *, unsigned char *, bool);
+    int  set_servergroups(unsigned char *bitmap);
+    int  unset_servergroups(unsigned char *bitmap);
+    int  set_usergroups(unsigned char *bitmap);
+    int  unset_usergroups(unsigned char *bitmap);
 };

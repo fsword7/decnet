@@ -284,14 +284,6 @@ void LATSession::send_issue()
 
 void LATSession::set_port(unsigned char *inbuf)
 {
-    // Set port characteristics
-    debuglog(("Port char map: %x\n", inbuf[ptr]));
-    debuglog(("Stop  output %x\n",   inbuf[ptr+1]));
-    debuglog(("Start output %x\n",   inbuf[ptr+2]));
-    debuglog(("Stop  input  %x\n",   inbuf[ptr+3]));
-    debuglog(("Start input  %x\n",   inbuf[ptr+4]));
-
-    // Still not really sure what we do with this information.
 }
 
 // Add a slot to an existing message

@@ -18,6 +18,8 @@
 #define LAT_CCMD_CONACK   0x04
 #define LAT_CCMD_DISCON   0x0A
 #define LAT_CCMD_SERVICE  0x28
+#define LAT_CCMD_QCONNECT 0x30 // Queued Connect
+#define LAT_CCMD_STATUS   0x34 // Status of Queued Connect
 #define LAT_CCMD_ENQUIRE  0x38
 #define LAT_CCMD_ENQREPLY 0x3C
 
@@ -91,7 +93,7 @@ typedef struct
     unsigned char  prodver     __attribute__ ((packed));
 
     // Following:
-    // ASCIC Destination Service
+    // ASCIC Destination Node
     // ASCIC Source Node
     // ASCIC Local description (NUL terminated)
 } LAT_StartResponse;

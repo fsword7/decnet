@@ -60,8 +60,10 @@ class LATConnection
     int            interface;     // Ethernet i/f we are using
     int            remote_connid; // Remote Connection ID
     int            keepalive_timer; // Counting up.
-    unsigned char  last_sequence_number;
-    unsigned char  last_ack_number;
+    unsigned char  last_sent_seq;
+    unsigned char  last_sent_ack;
+    unsigned char  last_recv_seq;
+    unsigned char  last_recv_ack;
     unsigned int   next_session;
     unsigned int   highest_session;
     unsigned char  macaddr[6];
@@ -71,8 +73,6 @@ class LATConnection
     unsigned long  last_time;
     LATSession    *sessions[256];
 
-    unsigned char  last_sent_sequence; // Last sequence number we sent
-    unsigned char  last_message_acked;
     bool           need_ack;
     bool           queued;             // Client for queued connection.
     bool           queued_slave;       // We are a slave connection for a queued client
@@ -94,20 +94,20 @@ class LATConnection
     public:
       pending_msg() {}
       pending_msg(unsigned char *_buf, int _len, bool _need_ack):
-	len(_len),
-        need_ack(_need_ack)
+	  len(_len),
+	  need_ack(_need_ack)
 	{
 	    memcpy(buf, _buf, len);
 	}
       pending_msg(const pending_msg &msg):
-	len(msg.len),
-	need_ack(msg.need_ack)
-	{
-	    memcpy(buf, msg.buf, len);
-	}
+	  len(msg.len),
+	  need_ack(msg.need_ack)
+      {
+	  memcpy(buf, msg.buf, len);
+      }
       ~pending_msg()
-	{
-	}
+       {
+       }
 
       pending_msg &operator=(const pending_msg &a)
       {
@@ -129,6 +129,7 @@ class LATConnection
       }
       LAT_Header *get_header() { return (LAT_Header *)buf;}
       bool needs_ack() { return need_ack;}
+      unsigned char get_seq() { LAT_Header *h=(LAT_Header *)buf; return h->sequence_number;}
 
     private:
       unsigned char buf[1600];
@@ -174,6 +175,7 @@ class LATConnection
     int lat_eco;          // Remote end's LAT ECO version
     int max_slots_per_packet;
     pending_msg last_message; // In case we need to resend it.
+    pending_msg last_ack_message; // In case we need to resend it.
     int retransmit_count;
 
     // name of client device to create

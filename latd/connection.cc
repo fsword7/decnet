@@ -50,8 +50,10 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     num(_num),
     interface(_interface),
     keepalive_timer(0),
-    last_sequence_number(_ack),
-    last_ack_number(_seq),
+    last_sent_seq(0xff),
+    last_sent_ack(0),
+    last_recv_seq(_seq),
+    last_recv_ack(_ack),
     last_time(0L),
     queued_slave(false),
     eightbitclean(false),
@@ -62,8 +64,8 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     int  ptr = sizeof(LAT_Start);
     LAT_Start *msg = (LAT_Start *)buf;
 
-    debuglog(("New connection: (c: %x, s: %x)\n",
-             last_sequence_number, last_ack_number));
+    debuglog(("New connection: (s: %x, a: %x)\n",
+             last_recv_seq, last_recv_ack));
 
     get_string(buf, &ptr, servicename); // This is actually local nodename
     get_string(buf, &ptr, remnode);
@@ -75,7 +77,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     next_session = 1;
     highest_session = 1;
     max_window_size = msg->exqueued+1;
-    max_window_size = 1; // All we can manage
+    max_window_size = 1; // PJC All we can manage
     window_size = 0;
     lat_eco = msg->latver_eco;
 
@@ -95,8 +97,10 @@ LATConnection::LATConnection(int _num, const char *_service,
 			     const char *_remnode, bool queued, bool clean):
     num(_num),
     keepalive_timer(0),
-    last_sequence_number(0xff),
-    last_ack_number(0xff),
+    last_sent_seq(0xff),
+    last_sent_ack(0),
+    last_recv_seq(0),
+    last_recv_ack(0xff),
     last_time(0L),
     queued(queued),
     queued_slave(false),
@@ -112,9 +116,9 @@ LATConnection::LATConnection(int _num, const char *_service,
     strcpy((char *)remnode, _remnode);
     strcpy(lta_name, _lta);
 
-    max_slots_per_packet = 4; // TODO: Calculate // PJC Test
+    max_slots_per_packet = 4;
     max_window_size = 1;      // Gets overridden later on.
-    window_size = 0 ;
+    window_size = 0;
     next_session = 1;
     highest_session = 1;
 }
@@ -141,31 +145,47 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     for (int ri=0; ri<4; ri++)
 	reply[ri] = (LAT_SlotCmd *)replybuf[ri];
 
-    window_size--;
-    if (window_size < 0) window_size=0;
-
-    // For duplicate checking
-    unsigned char saved_last_sequence_number = last_sequence_number;
-    unsigned char saved_last_message_acked   = last_message_acked;
-
-    last_sequence_number = msg->header.ack_number;
-    last_message_acked   = msg->header.sequence_number;
-
 #ifdef REALLY_VERBOSE_DEBUGLOG
-    debuglog(("MSG:      seq: %d,        ack: %d\n",
-	      msg->header.sequence_number, msg->header.ack_number));
+    debuglog(("MSG:      seq: %d,        ack: %d (last sent seq = %d)\n",
+	      msg->header.sequence_number, msg->header.ack_number, last_sent_seq));
 
     debuglog(("PREV:last seq: %d,   last ack: %d\n",
-	      last_sent_sequence, last_ack_number));
+	      last_recv_seq, last_recv_ack));
 #endif
 
     // Is this a duplicate?
-    if (saved_last_sequence_number == last_sequence_number &&
-	saved_last_message_acked == last_message_acked)
+    if (msg->header.ack_number == last_recv_ack &&
+	msg->header.sequence_number == last_recv_seq)
     {
-	debuglog(("Duplicate packet received...ignoring it\n"));
+	debuglog(("Duplicate packet received...resending ACK\n"));
+
+        // But still send an ACK as it could be the ACK that went missing
+	last_ack_message.send(interface, macaddr);
+
+	// If the last DATA message wasn't seen either then resend that too
+	if (last_message.get_seq() != msg->header.ack_number)
+	    last_message.send(interface, macaddr);
 	return false;
     }
+
+    // PJC: Not sure about this
+    if (msg->header.ack_number != last_sent_seq)
+    {
+	debuglog(("Got ack for old message, resending ACK\n"));
+	last_ack_message.send(interface, macaddr);
+
+	// If the last DATA message wasn't seen either then resend that too
+	if (last_message.get_seq() != msg->header.ack_number)
+	    last_message.send(interface, macaddr);
+    }
+
+
+    window_size--;
+    if (window_size < 0) window_size = 0;
+
+    need_ack = false;
+    last_recv_ack = msg->header.ack_number;
+    last_recv_seq = msg->header.sequence_number;
 
     // No blocks? just ACK it (if we're a server)
     if (msg->header.num_slots == 0)
@@ -428,7 +448,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	//num_replies = add_data_slots(num_replies, reply);
 
     // Send any replies
-    last_ack_number = last_message_acked;
     if (replyhere || num_replies)
     {
 	debuglog(("Sending %d slots in reply\n", num_replies));
@@ -447,7 +466,20 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	    ptr += sizeof(LAT_SlotCmd); // Already word-aligned
 	}
 
-	send_message(replybuf, ptr, REPLY);
+	if (window_size < max_window_size)
+	{
+	    send_message(replybuf, ptr, REPLY);
+	}
+	else
+	{
+	    header->local_connid    = num;
+	    header->remote_connid   = remote_connid;
+	    header->sequence_number = ++last_sent_seq;
+	    header->ack_number      = last_recv_seq;
+
+	    pending.push(pending_msg(replybuf, len, false));
+	}
+
 	return true;
     }
 
@@ -493,31 +525,28 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 
     if (type == DATA)
     {
-	retransmit_count = 0;
-	window_size++;
-	debuglog(("send_message, window_size now %d\n", window_size));
 	need_ack = true;
+	window_size++;
     }
-
-    if (type == REPLY)
-    {
-	need_ack = false;
-    }
-
-    last_sequence_number++;
-    last_sent_sequence = last_sequence_number;
 
     response->local_connid    = num;
     response->remote_connid   = remote_connid;
-    response->sequence_number = last_sequence_number;
-    response->ack_number      = last_ack_number;
+    response->sequence_number = ++last_sent_seq;
+    response->ack_number      = last_recv_seq;
 
-    debuglog(("Sending message for connid %d (seq: %d, ack: %d, needack: %d)\n",
-	      num, last_sequence_number, last_ack_number, (type==DATA) ));
+    retransmit_count = 0;
+    last_sent_ack = last_recv_seq;
+
+    debuglog(("Sending message for connid %d (seq: %d, ack: %d) window=%d\n",
+	      num, last_sent_seq, last_sent_ack, window_size ));
 
     keepalive_timer = 0;
 
-    if (type == DATA) last_message = pending_msg(buf, len, (type==DATA) );
+    if (type == DATA)
+	last_message = pending_msg(buf, len, true);
+    else
+	last_ack_message =  pending_msg(buf, len, false);
+
     return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
@@ -529,8 +558,7 @@ int LATConnection::queue_message(unsigned char *buf, int len)
 
     response->local_connid    = num;
     response->remote_connid   = remote_connid;
-    response->sequence_number = last_sequence_number;
-    response->ack_number      = last_ack_number;
+    // SEQ and ACK filled in when we send it
 
     debuglog(("Queued messsge for connid %d\n", num));
 
@@ -603,9 +631,42 @@ int LATConnection::next_session_number()
 //
 void LATConnection::circuit_timer(void)
 {
+    // Did we get an ACK for our last message?
+    if (need_ack && last_sent_seq != last_recv_ack)
+    {
+	if (++retransmit_count > LATServer::Instance()->get_retransmit_limit())
+	{
+	    debuglog(("hit retransmit limit on connection %d\n", num));
+
+	    unsigned char buf[1600];
+	    LAT_Header *header = (LAT_Header *)buf;
+	    int ptr = sizeof(LAT_Header);
+
+	    header->cmd             = LAT_CCMD_DISCON;
+	    header->num_slots       = 0;
+	    header->local_connid    = num;
+	    header->remote_connid   = remote_connid;
+	    header->sequence_number = ++last_sent_seq;
+	    header->ack_number      = last_recv_seq;
+	    buf[ptr++] = 0x06; // Retransmission limit reached.
+	    LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
+
+	    // Set this connection pending deletion
+	    LATServer::Instance()->delete_connection(num);
+
+	    // Mark this node as unavailable in the service list
+	    LATServices::Instance()->remove_node(std::string((char *)remnode));
+	    return;
+	}
+	debuglog(("Last message not ACKed: RESEND\n"));
+	last_message.send(interface, macaddr);
+	return;
+    }
+
+    retransmit_count = 0;
 
     // Increment keepalive timer and trigger it if we are getting too close.
-    // Keepalive time is help in milli-seconds.
+    // Keepalive timer is held in milli-seconds.
 
     // Of course, we needn't send keepalive messages when we are a
     // disconnected client.
@@ -650,47 +711,9 @@ void LATConnection::circuit_timer(void)
 	    reply->slot.cmd            = 0;
 
 	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION | 2;
-	    window_size = 0;
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;
 	}
-    }
-
-    // Did we get an ACK for our last message?
-    if (need_ack && last_sequence_number != last_sent_sequence)
-    {
-	if (++retransmit_count > LATServer::Instance()->get_retransmit_limit())
-	{
-	    debuglog(("hit retransmit limit on connection %d\n", num));
-	    need_ack = false;
-
-	    unsigned char buf[1600];
-	    LAT_Header *header = (LAT_Header *)buf;
-	    int ptr=sizeof(LAT_Header);
-
-	    header->cmd             = LAT_CCMD_DISCON;
-	    header->num_slots       = 0;
-	    header->local_connid    = num;
-	    header->remote_connid   = remote_connid;
-	    header->sequence_number = last_sequence_number;
-	    header->ack_number      = last_ack_number;
-	    buf[ptr++] = 0x06; // Retransmission limit reached.
-	    LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
-
-	    LATServer::Instance()->delete_connection(num);
-
-	    // Mark this node as unavailable in the service list
-	    LATServices::Instance()->remove_node(std::string((char *)remnode));
-	    return;
-	}
-	debuglog(("Last message not ACKed: RESEND\n"));
-	last_message.send(interface, macaddr);
-	return;
-    }
-    else
-    {
-	retransmit_count = 0;
-	need_ack = false;
     }
 
     // Poll our sessions
@@ -706,16 +729,13 @@ void LATConnection::circuit_timer(void)
 	debuglog(("circuit Timer:: slots pending = %d\n", slots_pending.size()));
         unsigned char buf[1600];
         LAT_Header *header = (LAT_Header *)buf;
-        int len=sizeof(LAT_Header);
+        int len = sizeof(LAT_Header);
+
 	if (role == SERVER)
 	    header->cmd         = LAT_CCMD_SDATA;
 	else
 	    header->cmd         = LAT_CCMD_SESSION;
         header->num_slots       = 0;
-        header->local_connid    = num;
-        header->remote_connid   = remote_connid;
-        header->sequence_number = last_sequence_number;
-        header->ack_number      = last_ack_number;
 
 	// Send as many slot data messages as we can
 	while ( (header->num_slots < max_slots_per_packet && !slots_pending.empty()))
@@ -726,13 +746,18 @@ void LATConnection::circuit_timer(void)
 
             memcpy(buf+len, cmd.get_buf(), cmd.get_len());
             len += cmd.get_len();
-            if (len%2) len++;// Keep it on even boundary
+            if (len%2) len++;    // Keep it on even boundary
 
             slots_pending.pop();
         }
+
 	if (header->num_slots)
 	{
-	    debuglog(("Sending %d slots on circuit timer\n", header->num_slots));
+	    header->local_connid    = num;
+	    header->remote_connid   = remote_connid;
+	    // SEQ and ACK filled in when we send it
+
+	    debuglog(("Collected %d slots on circuit timer\n", header->num_slots));
 	    pending.push(pending_msg(buf, len, true));
 	}
     }
@@ -740,32 +765,31 @@ void LATConnection::circuit_timer(void)
 #ifdef VERBOSE_DEBUG
     if (!pending.empty())
     {
-      debuglog(("Window size: %d, max %d\n", window_size, max_window_size));
+	debuglog(("Pending messages. Window size: %d, max %d. last_ack=%d, last_seq=%d\n",
+		  window_size, max_window_size, last_recv_ack, last_sent_seq));
     }
 #endif
 
     //  Send a pending message (if we can)
-    if (!pending.empty() && window_size < max_window_size)
+    if (!pending.empty() && window_size < max_window_size)// &&
+//	last_sent_seq - last_recv_ack < max_window_size)
     {
         // Send the top message
         pending_msg &msg(pending.front());
 
-        last_sequence_number++;
-        last_sent_sequence = last_sequence_number;
-        need_ack = msg.needs_ack();
 	retransmit_count = 0;
+	need_ack = true;
 
         LAT_Header *header      = msg.get_header();
-        header->sequence_number = last_sequence_number;
-        header->ack_number      = last_ack_number;
+        header->sequence_number = ++last_sent_seq;
+        header->ack_number      = last_recv_seq;
 
-        debuglog(("Sending message on circuit timer: seq: %d, ack: %d (need_ack: %d)\n",
-		  last_sequence_number, last_ack_number, need_ack));
+        debuglog(("Sending message on circuit timer: seq: %d, ack: %d\n",
+		  last_sent_seq, last_sent_ack));
 
         msg.send(interface, macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
         pending.pop();
-	window_size++;
 	keepalive_timer = 0;
     }
 }
@@ -862,8 +886,10 @@ int LATConnection::connect(ClientSession *session)
 	}
 
 	// Reset the sequence & ack numbers
-	last_sequence_number = 0xff;
-	last_ack_number = 0xff;
+	last_recv_seq = 0xff;
+	last_recv_ack = 0;
+	last_sent_seq = 0xff;
+	last_sent_ack = 0;
 	remote_connid = 0;
 	interface = this_int;
 	connecting = true;
@@ -998,17 +1024,19 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     LAT_StartResponse *reply = (LAT_StartResponse *)buf;
     remote_connid = reply->header.local_connid;
 
-    last_sequence_number = reply->header.ack_number;
-    last_message_acked   = reply->header.sequence_number;
-    last_ack_number = last_message_acked;
+    last_recv_ack = reply->header.ack_number;
+    last_recv_seq = reply->header.sequence_number;
+
     connected = true;
     connecting = false;
 
     max_window_size = reply->exqueued+1;
-    max_window_size = 1; // All we can manage
+    max_window_size = 1; // PJC All we can manage
+    window_size = 0;
+    need_ack = false;
 
     debuglog(("got connect ack. seq: %d, ack: %d\n",
-	      last_sequence_number, last_message_acked));
+	      last_recv_seq, last_recv_ack));
 
 // Start clientsessions
     for (unsigned int i=1; i<=highest_session; i++)

@@ -37,8 +37,13 @@ backup:
 
 clean:
 	rm -rf debian/tmp
+	rm -f debian/files
+	rm -f debian/substvars
+	rm -f debian/*~
 	rm -rf rpmbuild
 	rm -rf RPMS
+	rm -f .rpm*
+	rm -f build
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 #
@@ -96,16 +101,12 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'        \
-	    -e's/%%VERSION%%/$(VERSION)/g'            \
-	    -e's@%%PREFIX%%@$(prefix)@g'              \
-	    -e"s/%%DATE%%/`date --rfc-822`/g"         \
-	   <debian-changelog >debian/changelog
-	echo >>debian/changelog
-	cat NEWS >>debian/changelog
+	make clean
+	make prefix=/usr RELEASE=true -j
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
-	cd ../$(PKGNAME)-$(VERSION); fakeroot debian/rules binary-arch
+#	cd ../$(PKGNAME)-$(VERSION); fakeroot debian/rules binary-arch
+	cd ../$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 
 #

@@ -23,8 +23,8 @@ runs the file
 .B /etc/latd.conf
 as a shell script (using /bin/sh). Any customisations you need to do to the
 LAT system should be put in this file as latcp commands. The latcp command
-is guaranteed to be on the path when the script is run but other commands may
-not be. An example latd.conf file is shipped with the package.
+should be invoked using the environment variable $LATCP.
+An example latd.conf file is shipped with the package.
 .br
 .B latcp -s 
 passes any extra switches onto latd itself so you can customise latd this way,

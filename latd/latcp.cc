@@ -743,10 +743,20 @@ void start_latd(int argc, char *argv[])
 	char *newargv[argc+1];
 	char *newenv[4];
 	int   i;
+	char  latcp_proc[PATH_MAX];
 	char  latcp_bin[PATH_MAX];
 	char  latcp_env[PATH_MAX+7];
 
-	realpath(argv[0], latcp_bin);
+// This is VERY Linux specific and need /proc mounted. 
+// we get the full path of the current executable by doing a readlink.
+// /proc/<pid>/exe
+
+	sprintf(latcp_proc, "/proc/%d/exe", getpid());
+	if ( (i=readlink(latcp_proc, latcp_bin, sizeof(latcp_bin))) == -1)
+	{
+	    fprintf(stderr, "readlink in /proc failed. Make sure the the proc filesystem is mounted on /proc\n");
+	    exit(2);
+	}
 	sprintf(latcp_env, "LATCP=%s", latcp_bin);
 
 	newargv[0] = latd_bin;

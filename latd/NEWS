@@ -4,12 +4,16 @@
 - Add latcp control of keepalive timer & retransmit limit
 - Fixed crash if you run out of PTYs
 - Add latcp -d command to show daemon configuration. Use latcp -d -l to
-  show learned services.
-- Added, oh, loads more latcp commands.
+  show learned services
+- Added, oh, loads more latcp commands. All of them apart from group codes in
+  fact
 - You now MUST start the daemon from latcp. This is so that any parameters
   modified in /etc/latd.conf take effect before any connections are established
-  or broadcasts sent.
+  or broadcasts sent
 - MANPAGES!!
+- Now converts LF to CR/LF when printing the issue file
+- Doesn't reduce CR/LF to just LF when soing reverse LAT
+- latcp returns error status to the shell
 
 
 0.6 27th May 2000

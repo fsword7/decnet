@@ -141,6 +141,29 @@ will display the learned service table.
 .I \-?
 Displays help for using the command.
 
+.TP
+.I \-G
+Add groups to the services advertised. The groups can be numbers 
+seperated by commas or a range. eg
+.br
+latcp -G 1,2,3,10-20
+.br
+Enables groups 1 2 3 and 10 to 20 inclusive.
+
+.TP
+.I \-g
+Disable groups using syntax as above.
+
+.TP
+.I \-U
+Add to the list of groups that the server will accept for incoming
+services. this affects the services that are available using the
+"reverse LAT" feature. See -G for the syntax.
+
+.TP
+.I \-u
+Remove groups from the user groups list.
+
 
 .SS SEE ALSO
 .BR latd "(8),  "latd.conf "(5)"

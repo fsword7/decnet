@@ -2,8 +2,8 @@ Source: dnprogs
 Section: net
 Priority: extra
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev
-Standards-Version: 3.5.0
+Build-Depends: fakeroot, debhelper, libncurses5-dev
+Standards-Version: 3.5.5
 
 Package: dnet-common
 Architecture: all
@@ -13,7 +13,7 @@ Section: net
 Conflicts: dnprogs
 Description: Base package for Linux DECnet
  This is the base package for Linux DECnet. it contains the necessary 
- configuration files and a program to set up the MAC address of your
+ configuration files and a script to set up the MAC address of your
  ethernet card(s) at boot-up.
  .
  You will also need to be running a 2.4+ kernel and have DECnet either

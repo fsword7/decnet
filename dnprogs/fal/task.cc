@@ -616,6 +616,7 @@ bool fal_task::guess_file_type(unsigned int &block_size, bool &send_records,
 	    attrib_msg->clear_rat_bit(dap_attrib_message::FB$CR);
 	    block_size = 512;
 	    if (verbose > 1) DAPLOG((LOG_INFO, "sending file %s as blocked binary\n", name));
+	    send_records = false;
 	    return true;
 	}
 	else

@@ -1,7 +1,7 @@
-.TH LATD 8 "November 25 2000" "LAT Server"
+.TH LATD 8 "MARCH 17 2003" "LAT Server"
 
 .SH NAME
-latd \- LAT daemon for Linux
+latd \- LAT daemon
 .SH SYNOPSIS
 .B latd
 [options]
@@ -32,7 +32,9 @@ then all ethernet interfaces will be used. This option can be specified
 multiple times to enable several interfaces. eg:
 .br 
 -i eth0 -i eth2
-
+Note, only Linux can use more than one ethernet interface at a time. *BSD
+versions will use the first available ethernet adaptor unless it is overridden
+by -i.
 .TP
 .I "\-g"
 Sets the greeting for this node.

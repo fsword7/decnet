@@ -27,7 +27,7 @@
 </table>
 
 <h1>LAT</h1>
-This is a quick guide to using LAT on Linux systems. I am assuming that
+This is a quick guide to using LAT on Linux and *BSD systems. I am assuming that
 you already have the latd package installed and that the latcp command is
 on root's PATH. All the terminal server examples are for the (very
 obsolete) DECserver 200 but the syntax is similar for other models (apart
@@ -52,11 +52,11 @@ in earlier versions. </p>
  <tt><b>latcp -s</b></tt> starts the lat daemon.<br>
  <tt><b>latcp -h</b></tt> stops the daemon.
 <p>By default (ie if you haven't customised the startup script) latd will
-advertise a service which is the hostname of your Linux system. This means
+advertise a service which is the hostname of your system. This means
 that any users that have terminals connected to a terminal service will be
 able to connect to your system by typing the appropriate connect command
-to the terminal server. On a DECserver 200 this would be "CONNECT LINUX"
-if your machine's host name is "linux". Of course, if the user does not have
+to the terminal server. On a DECserver 200 this would be "CONNECT ZAPHOD"
+if your machine's host name is "zaphod". Of course, if the user does not have
 a username on the system they will not be able to get past the login prompt.
 When latcp starts the daemon it runs a <i>startup script</i>  called <tt><b>
 /etc/latd.conf</b></tt> which is a conventional shell script. If you want
@@ -147,8 +147,7 @@ This creates a service called MYVAX which is associated with port 4 on the
 terminal server. Note,you may also have to set the port characteristics to
 match those of the printer and set the access type to "Remote". Now, assuming
 you have connected the serial console of your VAX to port 4 of the terminal
-server and the server is called DS200, you can issue the following command
-on the linux machine:<br>
+server and the server is called DS200, you can issue the following command:<br>
 <tt><b>latcp -A -p /dev/lat/myvax -Hds200 -Vmyvax</b></tt><br>
 If you now connect a terminal emulator program (say minicom, seyon or microcom)
 to /dev/lat/myvax you can log in to the console of the VAX and issue commands
@@ -352,8 +351,10 @@ Put the names and ethernet addresses of your terminal servers in the file
 /etc/ethers (see ethers(5) for the format of this file) and you can connect
 to the servers by name:<br>
 <tt><b># moprc DS200 </b></tt><br>
-If your Linux machine has more than one ethernet adaptor you may need to tell
-moprc which card to use - it defaults to eth0.
+If your machine has more than one ethernet adaptor you may need to tell
+moprc which card to use - it defaults to the first adaptor on the system. Note
+that the BPF interface supports only one interface at a time, Linux supports as
+many as you like..
 
 <br>
 

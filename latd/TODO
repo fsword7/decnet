@@ -8,6 +8,7 @@ TODO in no particular order
 - Make more fields configurable (via latcp)
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
+- Support multiple client sessions in one connection
 - See if there's a better way of translating CR/LF & LF/CR into just LF
 - Modem control??
 - Input flow control in case the PTY stops reading.
@@ -15,11 +16,9 @@ TODO in no particular order
   some assumptions I am not happy with)
 - Timeout dead sessions (keepalive timer)
 - Test Service responder
-- Reverse LAT: This could be seriously useful
 - Reverse LAT queueing
 - Groups incoming & outgoing
 - Understand more of the parameter fields in the protocol.
-- Find out why login core dumps on my potato box?
 - Keep counters ? 
 - Get rid of all the TODOs in the code.
 - Stop putting things in this list!

@@ -101,10 +101,11 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
-	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
-	cd ../$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
-	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
+	make clean
+	make dist
+	cd /tmp; tar -xzvf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz
+	cd /tmp/$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
+	rm -rf /tmp/$(PKGNAME)-$(VERSION)
 
 #
 # Copy binaries to the web preload directory.

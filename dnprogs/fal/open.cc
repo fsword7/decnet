@@ -407,7 +407,7 @@ bool fal_open::send_file(int rac, long vbn)
 		    // Make sure there's a NUL on the end for strlen to find.
 		    buf[bs] = '\0';
 		    buflen = strlen(buf); // Leave the LF on the end.
-		    if (!buflen) ateof = true;
+//		    if (!buflen) ateof = true;
 		}
 		else
 		{

@@ -31,6 +31,8 @@ extern  void              dnet_endnode(void *);
 extern  int               dnet_recv(int s, void *buf, int len, unsigned int flags);
 extern  int               dnet_conn(const char *, const char *, int,
 				    int,int,int,int);
+extern  int               dnet_pton(int af, const char *src, void *addr);
+extern  const char       *dnet_ntop(int af, const void *addr, char *str, size_t len);
 
 /* DECnet daemon functions in libdnet_daemon */
 extern int   dnet_daemon(int object, char *named_object, 

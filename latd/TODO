@@ -2,11 +2,7 @@ TODO in no particular order
 ----
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
-- See if there's a better way of translating CR/LF & LF/CR into just LF
-- Modem control??
 - Input flow control in case the PTY stops reading.
-- latcp display command - show full configration & maybe active sessions
-- Timeout dead sessions (keepalive timer)
 - Test Service responder
 - Reverse LAT queueing
 - Groups incoming & outgoing

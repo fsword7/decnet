@@ -411,6 +411,8 @@ bool fal_open::send_file(int rac, long vbn)
 	{
 	    buflen = ::fread(buf, 1, bs, stream);
 	    if (!buflen) ateof = true;
+
+	    // Always send a full block or VMS complains.
 	    buflen=bs;
 	}
 	
@@ -451,6 +453,11 @@ bool fal_open::send_file(int rac, long vbn)
 		if (d->get_type() == dap_message::ACCOMP)
 	        {
 		    dap_accomp_message am;
+
+		    // Make sure this is the first thing sent. Anything pending
+		    // is no longer required.
+		    conn.clear_output_buffer();
+
 		    am.set_cmpfunc(dap_accomp_message::RESPONSE);
 		    am.write(conn);
 		    conn.set_blocked(false); 

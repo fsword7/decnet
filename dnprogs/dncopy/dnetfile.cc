@@ -77,13 +77,26 @@ int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
 
     struct accessdata_dn accessdata;
     memset(&accessdata, 0, sizeof(accessdata));
-    if (!conn.parse(fname, accessdata, node, name)) return -1;
+    if (!conn.parse(fname, accessdata, node, name))
+    {
+	lasterror = conn.get_error();
+	return -1;
+    }
+
 
     strcpy(user, (char *)accessdata.acc_user);
     strcpy(password, (char *)accessdata.acc_pass);
 
-    if (!conn.connect(node, user, password, dap_connection::FAL_OBJECT)) return -1;
-    if (!conn.exchange_config()) return -1;
+    if (!conn.connect(node, user, password, dap_connection::FAL_OBJECT))
+    {
+	lasterror = conn.get_error();
+	return -1;
+    }
+    if (!conn.exchange_config())
+    {
+	lasterror = conn.get_error();
+	return -1;
+    }
 
     strcpy(filname, name);
 

@@ -6,3 +6,8 @@ core
 latd
 latcp
 log
+BUILD
+RPMS
+rpmbuild
+.rpmmacros
+.rpmrc

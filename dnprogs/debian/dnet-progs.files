@@ -30,7 +30,6 @@
 ./usr/share/man/man1/dndel.1
 ./usr/share/man/man1/dncopy.1
 ./usr/share/man/man1/dndir.1
-./usr/share/man/man1/dnmount.1
 ./usr/share/man/man1/sethost.1
 ./usr/share/man/man1/dnping.1
 ./usr/share/man/man1/dntype.1

@@ -920,7 +920,7 @@ void LATConnection::circuit_timer(void)
     {
 	LAT_Header msg;
 
-	debuglog("Deleting pending connection\n");
+	debuglog(("Deleting pending connection\n"));
 	msg.local_connid = remote_connid;
 	msg.remote_connid = num;
 	msg.sequence_number = ++last_sent_seq;

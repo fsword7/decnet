@@ -2,6 +2,7 @@
 
    Modifications (c) 1998 by Patrick Caulfield to set the Ethernet address
                 and  1999 to configure 2.3+ kernels
+		and  2001 to set MAC address on all, or specified interfaces 
 */
 
 #include <stdio.h>
@@ -15,10 +16,20 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 #include <netinet/in.h>
-#include <net/if.h>
+#include <features.h>    /* for the glibc version number */
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
+#include <netpacket/packet.h>
+#include <net/ethernet.h>     /* the L2 protocols */
+#else
+#include <asm/types.h>
+#include <linux/if.h>
+#include <linux/if_arp.h>
+#include <linux/if_packet.h>
+#include <linux/if_ether.h>   /* The L2 protocols */
+#endif
 
 
-static int set_hwaddr(void);
+static int set_hwaddr(int argc, char *argv[]);
 
 struct 
 {
@@ -54,7 +65,9 @@ int main(int argc, char *argv[])
 	if_arg.exec_addr[4]=binadr->a_addr[0];
 	if_arg.exec_addr[5]=binadr->a_addr[1];
 
+
 #ifdef SDF_UICPROXY 
+#if 0 /* This doesn't really achieve anything */
 	// Steve's Kernel uses syctl
 	{
 	    int name[] = {CTL_NET, NET_DECNET, NET_DECNET_DEFAULT_DEVICE};
@@ -86,7 +99,7 @@ int main(int argc, char *argv[])
 			    node->n_name, strlen(node->n_name));
 	    if (status) perror("sysctl(set exec name)");
 	}
-
+#endif
 #else
 	// Eduardo's uses ioctl on an open socket
   	if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) {
@@ -110,30 +123,91 @@ int main(int argc, char *argv[])
         // Setting the hardware address is common to both
 	if (argc > 1 && !strcmp(argv[1], "-hw"))
 	{
-	    return set_hwaddr();
+	    return set_hwaddr(argc-2, argv+2);
 	}
 	return 0;
 }
 
 
-int set_hwaddr(void)
+/* See if the current interface is one we need to change */
+static int use_if(char *name, int argc, char *argv[])
+{
+    int i;
+    
+    if (argc == 0) return 1; /* Do em all */
+
+    for (i=0; i<argc; i++)
+	if (strcmp(name, argv[i]) == 0) return 1;
+
+    return 0;
+}
+
+/* Change the MAC(hardware) address on specified(or all) ethernet
+   interfaces */
+static int set_hwaddr(int argc, char *argv[])
 {
     struct ifreq ifr;
-    int skfd;
-    
-    skfd = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-    if (skfd == -1) return -1;
-    
-    memset(&ifr, 0, sizeof(ifr));
-    strcpy(ifr.ifr_name, if_arg.devname);
-    ifr.ifr_hwaddr.sa_family  = AF_UNIX;
-    memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
+    int iindex = 1;
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int ifdone = 0;
+    int ret = 0;
 
-    if (ioctl(skfd, SIOCSIFHWADDR, &ifr) < 0) {
-	perror("error setting hw address");
-	return -1;
+    ifr.ifr_ifindex = iindex;
+
+    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+    {
+	/* Only use ethernet interfaces */
+	ioctl(sock, SIOCGIFHWADDR, &ifr);
+	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+	{
+	    if (use_if(ifr.ifr_name, argc, argv))
+	    {
+		int downed = 0;
+		
+		/* Down the interface so we can change the MAC address */
+		ioctl(sock, SIOCGIFFLAGS, &ifr);
+		if (ifr.ifr_flags & IFF_UP)
+		{
+		    ifr.ifr_flags &= ~IFF_UP;
+		    ioctl(sock, SIOCSIFFLAGS, &ifr);
+		    downed++;
+		}
+
+		/* Need to refresh this */
+		ioctl(sock, SIOCGIFHWADDR, &ifr);
+		ifr.ifr_ifindex = iindex;		
+		memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
+
+		/* Do the deed */
+		if (ioctl(sock, SIOCSIFHWADDR, &ifr) < 0)
+		{
+		    fprintf(stderr, "Error setting hw address on %s: %s\n",
+			    ifr.ifr_name, strerror(errno));
+		    ret = errno;		
+		}
+
+		/* And UP the interface again if we downed it */
+		if (downed)
+		{
+		    ioctl(sock, SIOCGIFFLAGS, &ifr);		    
+		    ifr.ifr_flags |= IFF_UP;
+		    ioctl(sock, SIOCSIFFLAGS, &ifr);
+		}
+		    
+		ifdone++;
+	    }
+	}	    
+	ifr.ifr_ifindex = ++iindex;
     }
 
-    close(skfd);
-    return 0;
+    /* If interfaces were specified and none were done then
+       that's an error */
+    if (!ifdone && argc)
+    {
+	fprintf(stderr, "No interfaces set for DECnet\n");
+	ret = -1;
+    }
+    
+    close(sock);
+    return ret;
 }

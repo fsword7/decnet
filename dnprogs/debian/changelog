@@ -1,3 +1,11 @@
+dnprogs (2.13-1potato) unstable; urgency=low
+
+  * Fix use of __GLIBC__ macro
+  * Allow binary keys in librms
+  * Remove debugging printf from dnet_conn function
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue,  7 Aug 2001 19:32:06 +0100
+
 dnprogs (2.12-1) unstable; urgency=low
 
   * Don't use makedepend for dependancies.

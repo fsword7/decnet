@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.16
+VERSION=1.17
 PKGNAME=latd
 
 
@@ -17,7 +17,7 @@ PROG1OBJS=main.o utils.o server.o connection.o session.o \
 	  circuit.o localport.o localportsession.o interfaces.o interfaces-linux.o
 PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
-PROG4OBJS=moprc.o
+PROG4OBJS=moprc.o interfaces.o interfaces-linux.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
 DEFS+=-DUSE_OPENPTY 
@@ -67,7 +67,7 @@ $(PROG3): depend $(PROG3OBJS)
 	$(CXX) -o $@ $(PROG3OBJS) -llockdev
 
 $(PROG4): depend $(PROG4OBJS)
-	$(CC) $(CFLAGS) -o $@ $(PROG4OBJS)
+	$(CXX) $(CFLAGS) -o $@ $(PROG4OBJS)
 
 install:
 	install -d $(prefix)/sbin
@@ -84,7 +84,7 @@ install:
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
 
 dep depend:
-	@$(CXX) -MM *.cc >.depend 2>/dev/null
+	@$(CXX) $(CXXFLAGS) -MM *.cc >.depend 2>/dev/null
 
 clean:
 	rm -f .depend

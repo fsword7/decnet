@@ -1,0 +1,24 @@
+Just type "make" !
+
+Don't do make install - it probably doesn't work yet and the software is not 
+nearly stable enough to warrant a permanant place on your Linux system :-)
+
+There are a few things you can tweak in the Makefile:
+
+See the line:
+DEFS+=-DVERBOSE_DEBUG -DOLDSTUFF -DNO_FORK
+
+-DVERBOSE_DEBUG enables lots of messages onto stderr. If you're not helping me 
+test it or not wanting to try to fix it then you can remove this.
+
+-DOLDSTUFF is for compatibility with old /bin/login commands and broken 
+openpty() implementations. If you have RedHat 6.0+ or Debian 2.1+ then you can 
+safely remove this and the "who" command will show the name of the terminal 
+server/host you came from.  If you have RedHat 5 or similar then leave it in: 
+otherwise it will not work at all.
+
+-DNO_FORK prevent the daemon from forking into the background when run. Without
+this and without the -d flag, latd wil detach itself from the current process
+and run independantly. If you want to see the debug messges from -DVERBOSE_DEBUG
+then leave this option on or specifiy -d when you run latd.
+

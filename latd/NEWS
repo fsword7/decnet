@@ -1,0 +1,16 @@
+
+
+0.0.5 15th April 2000
+---------------------
+- Started the NEWS file
+- Now works with DECserver 200
+- Much improved speed due to better slot packing
+- Some (non-working) reverse-LAT code
+- Tidied serversession.cc
+- Added -c parameter to specify the circuit timer period
+- Fixed lots of bugs in the service table code
+- Now sends a "shutdown" announcement when latd exits
+- libdnet is now optional. latd now has no dependancy on DECnet at all though
+  it will use libdnet if it's present.
+- Plenty of other stuff I've probably forgotten
+- Disconnecting one session doesn't delete them all now

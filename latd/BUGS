@@ -1,0 +1,11 @@
+LAT BUGS
+--------
+
+Gosh, loads of the slimy little things.
+
+In rough order of fixing:
+
+- "Insufficient resources" from terminal server (may be fixed by now)
+- Tru64 doesn't disconnect, but times out instead.
+
+- Loads more: TELL ME!!

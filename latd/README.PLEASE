@@ -1,0 +1,81 @@
+This is latd - a LAT terminal daemon for Linux
+
+WARNING: This is alpha software. It does not work properly and has many 
+features missing. Do not use it in a production environment.
+
+The daemon is purely userland code and should not crash your system but it
+might. Don't say I didn't warn you.
+
+It does not need DECnet support from the kernel nor does it need libdnet.
+However, if you have libdnet installed it will use it to get the nodename
+and default network interface.
+
+You will need Packet Socket support in the kernel, but I think that's
+usually the default anyway.
+
+This software will not work on kernels 2.0 or lower.
+
+As shipped it does not currently fork into the background and it issues lots of 
+debugging messages to stderr. If you want a forking quiet daemon (say that
+carefully) remove -DNO_FORK and -DVERBOSE_DEBUG from the Makefile. See the
+file INSTALL for more detail.
+
+Starting with 0.0.4 there is a latcp command included too. This will be the
+management interface to latd. I am modelling it on the latcp provided with
+Tru64 Unix 4. It's quite basic at the moment but more features will be added
+with each new release.
+
+If you can, please try this software and let me know how you get on. 
+If you encounter bad problems please send me a tcpdump file produced with the 
+following command:
+
+tcpdump -wlatlog.dmp lat
+
+I will be updating the software fairly frequently as time allows - please 
+watch the linux-decnet mailing list for announcements.
+
+This code is a clean-room reverse-engineering effort. I have no access to
+Compaq technical documentation or source code for LAT and nor do I want any.
+
+This software should work on all Linux architectures. I have tested it on
+Intel and SPARC.
+
+TESTING LATD
+------------
+
+If you have access to a DECserver and a terminal the I would be very grateful
+for any/all of the following (in order of preference)
+tcpdump of the conversation between DECserver-connected terminal and
+VMS/Tru64. Please also (if possible) include a transcript.
+tcpdump of the conversation between DECserver-connected terminal and Linux
+running latd (as far as it gets!). Please also include a copy of the output
+from latd and any messages that appear on the terminal.
+Output from "SHOW SERVER" & "SHOW TERMINAL" commands issued on DECserver and
+output from "MCR LATCP SHOW NODE" on VMS or "latcp -d" on Tru64
+
+Commands to use:
+
+$ tcpdump -wlat.dmp lat 
+$ latd 2>latd.log
+
+If you have a few LAT clients/servers it may help to restrict tcpdump
+monitoring to the two boxes under test as in:
+
+$ tcpdump -wlat.dmp lat ether host aa:00:04:00:b2:04 or ether host 00:00:f8:71:5f:63
+
+of course, substitute your own machines' ethernet addresses.
+
+Then send me lat.dmp & latd.log
+
+Thank you very much.
+Patrick
+
+
+CREDITS
+-------
+I'd very much like to thank Eduardo for providing much help and trace logs
+in this reverse-engineering effort.
+
+I would also like to thank Real Dupeux for sending me a DECserver 200 for
+the project.
+

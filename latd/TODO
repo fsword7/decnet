@@ -1,0 +1,37 @@
+Things I still don't understand
+-------------------------------
+- Why Tru64 doesn't disconnect cleanly [or connect well any more :-( ]
+- Why I can't get the counters working properly without this "swapped"
+  misunderstanding.
+- Why the remote credit seems limited to 15
+
+
+TODO in no particular order
+----
+- Make more fields configurable (via latcp)
+- Check multiple sessions on the same connection. How many slots can I
+  get away with sending? (and stuff like that)
+- Figure out all the parameters to the 08 message
+- Modem control??
+- Input flow control in case the PTY stops reading.
+- Manage remote credit properly (may be OK but there are
+  some assumptions I am not happy with)
+- Timeout dead sessions (keepalive timer)
+- Test Service responder
+- Reverse LAT: This could be seriously useful
+- Reverse LAT queueing
+- Groups incoming & outgoing
+- Understand more of the parameter fields in the protocol.
+- Find out why login core dumps on my potato box?
+- Keep counters ? 
+- Get rid of all the TODOs in the code.
+- Stop putting things in this list!
+
+THINGS I MAY NOT DO
+-------------------
+
+- Allow /etc/issue.net files longer than 255 characters (I might allow up
+  to 1020 if I'm feeling generous)
+- CR/LF conversion when printing /etc/issue.net - maybe force you
+  to use a different file instead.
+- Put the protocol bits into the kernel.

@@ -9,7 +9,7 @@ llogin \- Connect to a LAT service
 .br
 Options:
 .br
-[\-cpbhQ] [\-H node] [\-R port] [\-q quit char]
+[\-cpbhQ] [\-H node] [\-R port] [-n name] [\-q quit char]
 .SH DESCRIPTION
 .PP
 llogin connects your terminal to a LAT service via latd, the service name
@@ -52,7 +52,11 @@ Tells latd that the service you are connecting to is queued service and not a
 normal login service or port service. Unfortunately latd cannot tell whether 
 a remote service needs to be queued or not so the onus is on the user to
 specify this switch when connecting to a queued service.
-
+.TP
+.I "\-n"
+Sets the local connection name. By default this will be your local TTY name.
+In most cases this simply affects the display of the terminal on the remote end
+so you shouldn't need to change it.
 .TP
 .I "\-p"
 Tells llogin to connect to the device named instead of a LAT service. This 

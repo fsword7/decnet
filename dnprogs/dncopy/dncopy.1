@@ -10,6 +10,9 @@ dncopy \- Copy files to/from a VMS system
 .B dncopy 
 [options] source... directory
 .br
+.B dntype
+source...
+.br
 Options:
 .br
 [\-vdikVh] [\-m mode] [\-a record attributes] [\-r record format]
@@ -25,7 +28,8 @@ of node"username password"::[directory]file. To protect quotes and dollar signs
 from shell expansion I recommend that all VMS file specifications be enclosed
 in single quotes (see 
 .B EXAMPLES
-below).
+below). If you don't want to type the password on the command-line then 
+put a hyphen ("-") in its place and you will be prompted for it.
 .br
 
 .br
@@ -65,6 +69,10 @@ have to override the whole environment variable eg:
 .br
 $ DNCOPY_OPTIONS="" dncopy myfile.txt vmsbox::
 .br
+
+.B dntype
+is simply a version of dncopy where the output file is forced to "-". Thus
+it takes all the same options as dncopy. It is merely a convenience.
 
 .SH OPTIONS
 .TP
@@ -159,7 +167,6 @@ variable.
 .br
 .br
 Copy LOGIN.COM from the VMS system "tramp" to Linux as mylogin.com
-.br
 .nf
 .br
 .PP
@@ -169,8 +176,6 @@ Copy LOGIN.COM from the VMS system "tramp" to Linux as mylogin.com
 .br
 Copy all .TXT files from the VMS directory SYS$SYSDEVICE:[WP] to /tmp:
 .br
-
-.br
 .PP
     dncopy 'tramp"patrick pjc123"::sys$sysdevice:[wp]*.txt' /tmp
 .br
@@ -178,11 +183,20 @@ Copy all .TXT files from the VMS directory SYS$SYSDEVICE:[WP] to /tmp:
 .br
 Copy an executable to VMS:
 .br
-
-.br
 .PP
     dncopy -mblock test.exe 'tramp"patrick pjc123"::[.BIN]'
 .br
+
+.br
+.PP
+.br
+Display the contents of LOGIN.COM:
+.br
+.PP
+    dtype 'trisha"patrick -"::login.com'
+.br
+    You will then be prompted for a password
+
 
 .SH HELPFUL HINTS
 For fetching files the defaults should serve for most purposes. Most VMS files

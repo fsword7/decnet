@@ -90,7 +90,7 @@ rpm:
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
-	rpm -bb --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
+	rpm -bb --target=$(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
 	rm -f $(PKGNAME).spec  .rpmrc .rpmmacros
 
 #

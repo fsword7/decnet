@@ -31,22 +31,25 @@
 #include "cterm.h"
 #include "dn_endian.h"
 #include "dnlogin.h"
+#include "tty.h"
 
 /* The global state */
-static int termfd = -1;
-static int exit_char = 035; /* Default to ^] */
-static int finished = 0;    /* terminate mainloop */
+extern int termfd;
+extern int exit_char;
+extern int finished;
 
 /* Input state buffers & variables */
 static unsigned char terminators[32];
 static char input_buf[1024];
 static int  input_len;
+static int  input_pos;
 static char prompt_buf[1024];
 static char prompt_len;
 static char esc_buf[132];
 static int  esc_len;
 static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
+static int  insert_mode = 0;
 
 /* Output processor */
 int (*send_input)(char *buf, int len, int flags);
@@ -74,6 +77,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 
     memcpy(input_buf, prompt+promptlen, len-promptlen);
     input_len = len-promptlen;
+    input_pos = input_len;
 }
 
 void tty_set_timeout(unsigned short to)
@@ -132,6 +136,21 @@ static short is_terminator(char c)
     return 0;
 }
 
+/* Erase to end of line */
+static void erase_eol(void)
+{
+    write(termfd, "\033[1K", 4);
+}
+
+/* Move to column "hpos", where hpos starts at 0 */
+static void move_cursor_abs(int hpos)
+{
+    char buf[32];
+
+    sprintf(buf, "\r\033[%dC", hpos);
+    write(termfd, buf, strlen(buf));
+}
+
 /* Input from keyboard */
 int tty_process_terminal(char *buf, int len)
 {
@@ -148,14 +167,82 @@ int tty_process_terminal(char *buf, int len)
 	if (echo)
 	    write(termfd, &buf[i], 1);
 
+	/* Swap LF for CR */
+	//PJC: is this right??
+	if (buf[i] == '\n')
+	    buf[i] = '\r';
+
 	if (is_terminator(buf[i]))
 	{
 	    send_input(&buf[i], 1, 0);
 	    return 0;
 	}
 
-	// TODO: process line-editting keys & flags
-	input_buf[input_len++] = buf[i];
+	/* Is it ESCAPE ? */
+	if (buf[i] == ESC && !esc_len)
+	{
+	    esc_buf[esc_len++] = buf[i];
+	    continue;
+	}
+	/* Still processing escape sequence */
+	if (esc_len)
+	{
+	    esc_buf[esc_len++] = buf[i];
+	    if (isalpha(buf[i]))
+	    {
+		/* Process escape sequences */
+		if (strncmp(esc_buf, "\033[C", 3)) /* Cursor RIGHT */
+		{
+		    if (input_pos < input_len)
+		    {
+			input_pos++;
+			write(termfd, esc_buf, esc_len);
+		    }
+		}
+		if (strncmp(esc_buf, "\033[D", 3)) /* Cursor LEFT */
+		{
+		    if (input_pos)
+		    {
+			input_pos--;
+			write(termfd, esc_buf, esc_len);
+		    }
+		}
+		esc_len = 0;
+		continue;
+	    }
+	}
+
+	/* Process non-terminator control chars */
+	if (buf[i] < ' ')
+	{
+	    switch (buf[i])
+	    {
+	    case CTRL_B: // Up a line
+		break;
+	    case CTRL_X: // delete input line
+	    case CTRL_U: // delete input line
+		move_cursor_abs(prompt_len);
+		erase_eol();
+		input_pos = 0;
+		break;
+	    case CTRL_H: // back to start of line
+		move_cursor_abs(prompt_len);
+		input_pos = 0;
+		break;
+	    case CTRL_A: /* switch overstrike/insert mode */
+		insert_mode = 1-insert_mode;
+		break;
+	    case CTRL_M:
+		send_input(input_buf, input_len, 0);
+		break;
+	    }
+	    continue;
+	}
+
+	input_buf[input_pos++] = buf[i];
+	if (input_len < input_pos)
+	    input_len = input_len;
+
 	if (input_len == max_read_len)
 	{
 	    send_input(input_buf, input_len, 0);

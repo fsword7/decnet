@@ -33,9 +33,9 @@
 #include "dnlogin.h"
 
 /* The global state */
-static int termfd = -1;
+int termfd = -1;
 int exit_char = 035; /* Default to ^] */
-static int finished = 0;    /* terminate mainloop */
+int finished = 0;    /* terminate mainloop */
 
 int debug = 0;
 
@@ -93,12 +93,12 @@ static void set_exit_char(char *string)
 
 static void usage(char *prog, FILE * f)
 {
-    fprintf(f, "\nUSAGE: %s [OPTIONS] node\n\n", prog);
+    fprintf(f, "\nUsage: %s [OPTIONS] node\n\n", prog);
 
     fprintf(f, "\nOptions:\n");
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -V           show version number\n");
-    fprintf(f, "  -e <char>    set escape char\n");
+    fprintf(f, "  -e <char>    set exit char\n");
     fprintf(f, "  -d           debug information\n");
 
     fprintf(f, "\n");

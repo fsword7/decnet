@@ -6,6 +6,7 @@ package=latd
 
 build:
 	$(checkdir)
+	./configure --prefix=/usr --sysconfdir=/
 	make
 	touch build
 

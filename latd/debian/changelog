@@ -1,3 +1,18 @@
+latd (1.17-1) unstable; urgency=low
+
+  * Add support for a MOPRC_INTERFACE env variable.
+  * Fix bug in the lastest retransmit code that screwed up
+    queued connections rather badly.
+  * Don't show status messages to /dev/lat ports
+  * moprc is now a C++ program that uses the LATinterfaces class.
+  * llogin -p only locks devices if liblockdev is found
+  * Porting work for *BSD and Darwin.
+    HUGE thanks to Matthew Fredette of NetBSD for all the bpf work.
+  * Use autoconf to configure and build. Again Matthew Fredette did
+    most of the work for this, but I added the Linux bits.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 15 Mar 2003 14:17:42 +0000
+
 latd (1.16-1) unstable; urgency=low
 
   * Don't use an IP socket for finding interfaces. So now you

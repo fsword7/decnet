@@ -1,0 +1,146 @@
+.TH LATCP 8 "June 2 2000" "LAT Server"
+
+.SH NAME
+latcp \- LAT Control Program
+.SH SYNOPSIS
+.B latcp
+[options]
+.br
+.SH DESCRIPTION
+.PP
+.B latcp
+is the control program for
+.B latd(8).
+
+
+.SS OPTIONS
+.TP
+.I \-s
+Start the LAT daemon. This is the only way to start LAT, you should not
+attempt to run latd directly or you may get unexpected behviour.
+.B latcp -s 
+runs the file 
+.B /etc/latd.conf
+as a shell script (using /bin/sh). Any customisations you need to do to the
+LAT system should be put in this file as latcp commands. The latcp command
+is guaranteed to be on the path when the script is run but other commands may
+not be. An example latd.conf file is shipped with the package.
+.br
+.B latcp -s 
+passes any extra switches onto latd itself so you can customise latd this way,
+however latd.conf is recommended.
+
+.TP
+.I \-h
+Halts latd. This will kill any active sessions without warning.
+
+.TP
+.I \-A
+Create a local LAT service or reverse LAT port.
+.br
+The syntax for creating a login service is:
+.br
+latcp -A -a service [-i description] [-r rating] [-s]
+.br
+The syntax for creating a reverse LAT port is:
+.br
+latcp -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]
+.br
+The tty name should start /dev/lat and must not exist.
+
+.TP
+.I \-D
+Delete a service or port.
+.br
+latcp -D -a <service> deletes an advertised service created with
+latcp -A -a.
+.br
+latcp -D -p <tty> deletes a reverse LAT port created with
+latcp -A -p
+
+.TP
+.I \-i
+Change the description of an advertised service
+.br
+latcp -i <description> -a <service>
+.BR
+If the description contains spaces or shell metacharacters 
+you should enclose it in quotes.
+
+
+.TP
+.I \-J
+Enables the service responder. This feature is needed for small
+terminal servers that do not collect their own service lists. 
+I currently don't have a list of servers that need this feature.
+can anyone help??
+
+.TP
+.I \-j
+Disables service responder.
+
+.TP
+.I \-Y
+Purges the list of known services from latds internal tables.
+
+
+.TP
+.I \-x
+Change the rating of an advertised service
+.br
+latcp -x <rating> [-s] -a <service>
+.br
+If the -s flag is present the rating is static, otherwise
+it is treated as the maximum value and will be decreased according
+to the system load average.
+
+
+.TP
+.I \-n
+Change the system's current node name (Note this affects latd only,
+not DECnet nor TCP/IP)
+.br
+latcp -n <nodename>
+
+
+.TP
+.I \-r
+Change the retransmit limit. This is the maximum number of times
+latd will transmit a packet without an acknowlegement. If this
+number is exceeded then the connection is closed as it is assumed
+that the remote end has gone away.
+.br
+The default value is 20.
+
+.TP
+.I \-m
+Sets the multicast timer (in seconds). This timer determines how
+often services are advertised on the LAN. The default is 60 seconds.
+
+
+.TP
+.I \-k
+Sets the keepalive timer (in seconds). This is the maximum amount
+of time that a connection can be inactive. When this timer expires
+an empty message is sent to the remote end. If it does not respond
+after <retransmit limit> then the connection is closed. This timer
+is reset every time a packet is sent out.
+
+
+.TP
+.I \-d
+Displays latd configuration or the learned service table.
+.B -d
+on it's own will display the latd configuration and the services
+that are advertised by this node.
+.B -d -l
+will display the learned service table.
+
+
+.TP
+.I \-?
+Displays help for using the command.
+
+
+.SS SEE ALSO
+.BR latd "(8),  "latd.conf "(5)"

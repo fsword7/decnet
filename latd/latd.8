@@ -1,0 +1,69 @@
+.TH LATD 8 "June 2 2000" "LAT Server"
+
+.SH NAME
+latd \- LAT daemon for Linux
+.SH SYNOPSIS
+.B latd
+[options]
+.br
+Options:
+.br
+[\-dvVht] [\-i interface] [\-g greeting] [\-s service] [\-c circuit-timer] [\-r rating]
+.SH DESCRIPTION
+.PP
+.B lat
+is a daemon that serves incoming and outgoing LAT (Local Area Transport) requests.
+.br
+The parameters for LATD are just defaults, they can all be changed using 
+.B latcp(8).
+.br
+
+latd should not be started directly but should be invoked using the command
+.B latcp -s.
+Any arguments for latd can be added to the latcp -s command line or set in
+.B /etc/latd.conf(5).
+
+.SS OPTIONS
+.TP
+.I "\-i"
+Set the interface to be used for LAT communication. Currently only one is allowed.
+The default is either eth0 or the interface used for decnet defined in 
+/etc/decnet.conf depending on whether latd was compiled on a system with DECnet
+support.
+.TP
+.I "\-g"
+Sets the greeting for this node.
+.TP
+.I "\-s"
+Set the default service name for this node. The default is the node name.
+.TP
+.I "\-c"
+Sets the circuit timer. he default is 80 (ms);
+.TP
+.I "\-r"
+Sets the rating for the default service. If the 
+.B -t
+switch is not present this rating will be the maximum rating for the service.
+The load average of the machine will be used to recalculate the rating each time
+the servuce is announced. This allows terminal servers to do load balancing.
+.TP
+.I "\-t"
+Makes the rating static. It will not change as the system load changes.
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose latd will be. Don't use 
+more than one for normal operation because it will seriously impair 
+performance.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-V
+Show the version of latd.
+
+
+.SS SEE ALSO
+.BR latcp "(8), " decnet.conf "(5), " latd.conf "(5)"

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 ******************************************************************************/
 // Singleton server object
 #define MAX_INTERFACES 255
-
+#include "interfaces.h"
 class LATServer
 {
     typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS, LLOGIN_RENDEZVOUS,
@@ -83,9 +83,6 @@ class LATServer
     int  next_connection;
     gid_t lat_group;
 
-    void  get_all_interfaces();
-    std::string print_interfaces();
-    int   find_interface(char *ifname);
     void  read_lat(int sock);
     float get_loadavg();
     void  reply_to_enq(unsigned char *inbuf, int len, int interface,
@@ -255,6 +252,7 @@ class LATServer
     unsigned char groups[32];      // Bitmap of groups
     bool          groups_set;      // Have the server groups been set ?
     unsigned char user_groups[32]; // Bitmap of user groups..always in use
+    LATinterfaces *iface;
 
     // LATCP Circuit callins
  public:
@@ -271,10 +269,11 @@ class LATServer
     void unlock();
     bool show_characteristics(bool verbose, std::ostrstream &output);
     int  create_local_port(unsigned char *, unsigned char *,
-			   unsigned char *, unsigned char *, bool, bool);
+			   unsigned char *, unsigned char *, bool, bool,
+			   unsigned char *);
     int  make_llogin_connection(int fd, char *, char *,	char *, char *, char *, bool);
     int  make_port_connection(int fd, LocalPort *, const char *, const char *, const char *,
-			      const char *, bool);
+			      const char *, const char *, bool);
     int  set_servergroups(unsigned char *bitmap);
     int  unset_servergroups(unsigned char *bitmap);
     int  set_usergroups(unsigned char *bitmap);

@@ -14,7 +14,7 @@ MANPAGES8=latd.8 latcp.8 moprc.8
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
 	  serversession.o clientsession.o queuedsession.o services.o \
 	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o \
-	  circuit.o localport.o localportsession.o
+	  circuit.o localport.o localportsession.o interfaces.o interfaces-linux.o
 PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
 PROG4OBJS=moprc.o

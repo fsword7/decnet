@@ -49,5 +49,6 @@ class LATSession
  protected:
     int  send_data(unsigned char *buf, int msglen, int );
     void send_issue();
+    int  send_break();
     void add_slot(unsigned char *buf, int &ptr, int slotcmd, unsigned char *slotdata, int len);
 };

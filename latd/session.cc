@@ -64,9 +64,7 @@ void LATSession::add_credit(signed short c)
 
 /* Got some data from the terminal - send it to the PTY */
 int LATSession::send_data_to_process(unsigned char *buf, int len)
-{
-
-    
+{  
     // If there's anything to send, do so
     if (len)
     {
@@ -111,7 +109,7 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
     // unsolicited data.
     int numbytes;
     sleep(0); // Give it a slight chance of generating an echo
-    ioctl(master_fd,FIONREAD,&numbytes);
+    ioctl(master_fd, FIONREAD, &numbytes);
     debuglog(("%d echo bytes available\n", numbytes));
     if (numbytes == 0 || numbytes != len)
     {
@@ -172,7 +170,33 @@ int LATSession::read_pty()
 	return 0;
     }
 
-    return send_data(buf, msglen, command);
+    // Got break!
+    if (msglen == 1 && buf[0] == '\0')
+	return send_break();
+    else
+	return send_data(buf, msglen, command);
+}
+
+int LATSession::send_break()
+{
+    unsigned char buf[1600];
+    unsigned char slotbuf[10];
+    int  ptr = 0;
+    int command = 0xA0;
+
+    syslog(LOG_INFO, "Sending BREAK\n");
+    if (remote_credit <= 1)
+    {
+	debuglog(("Sending more remote credit with break\n"));
+	remote_credit += 5;
+	command |= 0x5;
+    }
+
+    slotbuf[0] = 0x10;
+    add_slot(buf, ptr, command, slotbuf, 1);
+
+    parent.queue_message(buf, ptr);
+    return 0;
 }
 
 int LATSession::send_data(unsigned char *buf, int msglen, int command)
@@ -291,6 +315,13 @@ void LATSession::send_issue()
 
 void LATSession::set_port(unsigned char *inbuf)
 {
+    unsigned char *ptr = inbuf+sizeof(LAT_SlotCmd);
+
+    if (*ptr & 0x10) /* BREAK */
+    {
+	debuglog(("Sending break\n"));
+	tcsendbreak(master_fd, 0);
+    }
 }
 
 // Add a slot to an existing message

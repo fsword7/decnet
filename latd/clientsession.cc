@@ -57,6 +57,13 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return -1; /* REJECT */
   
+
+    // Set terminal characteristics
+    struct termios tio;
+    tcgetattr(master_fd, &tio);
+    tio.c_iflag |= IGNBRK|BRKINT;
+    tcsetattr(master_fd, TCSANOW, &tio);
+
     strcpy(remote_node, (char *)_remote_node);
     strcpy(ptyname, ttyname(slave_fd));
     strcpy(mastername, ttyname(master_fd));

@@ -72,7 +72,6 @@ binary-arch: checkroot build
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	mv debian/tmp/usr/sbin/startnet debian/tmp/sbin
-	dh_testversion 2
 	dh_installdirs -Ndnet-common
 	dh_installchangelogs -Ndnet-common
 	dh_installdocs -Ndnet-common

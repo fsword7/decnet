@@ -616,7 +616,7 @@ void print_short(
 	    }
 	    else
 	    {
-		printf("%-*s",(int)(filename_width-(strlen(name)-filename_width)), "");
+		printf("%-*s",filename_width-(strlen(name)-filename_width), "");
 	    }
 	    ++(*printed);
 	}

@@ -27,6 +27,8 @@
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
 #include <net/ethernet.h>     /* the L2 protocols */
+#include <net/if.h>    
+#include <net/if_arp.h> 
 #else
 #include <asm/types.h>
 #include <linux/if.h>

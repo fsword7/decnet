@@ -21,6 +21,7 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <net/if.h>
+#include <net/if_arp.h>
 #include <netinet/in.h>
 #include <string.h>
 #include <linux/netfilter_decnet.h>

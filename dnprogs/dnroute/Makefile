@@ -2,7 +2,7 @@ IPROUTE2=/usr/local/src/iproute2
 
 DNROUTE=dnroute
 
-CC=gcc -g -Wall -fstrict-prototypes -I$(IPROUTE2)include
+CC=gcc -g -Wall -fstrict-prototypes -I$(IPROUTE2)/include
 
 all: $(DNROUTE)
 

@@ -19,8 +19,6 @@
 #include <linux/netfilter.h>
 #include <linux/spinlock.h>
 #include <linux/netlink.h>
-#include <linux/rtnetlink.h>
-#include <asm/semaphore.h>
 
 #include <net/sock.h>
 #include <net/dn.h>
@@ -29,9 +27,12 @@
 #include <linux/netfilter_decnet.h>
 
 static struct sock *dnrmg = NULL;
-extern struct semaphore rtnl_sem;
 
-
+/*
+ * The message sent by this function consists of the interface index of
+ * the interface on which the routing message was received followed by
+ * the message itself.
+ */
 static struct sk_buff *netlink_build_message(struct sk_buff *rt_skb, int *errp)
 {
 	struct sk_buff *skb = NULL;
@@ -49,7 +50,7 @@ static struct sk_buff *netlink_build_message(struct sk_buff *rt_skb, int *errp)
 	old_tail = skb->tail;
 	nlh = NLMSG_PUT(skb, 0, 0, 0, size - sizeof(*nlh));
 	rtm = (struct nf_dn_rtmsg *)NLMSG_DATA(nlh);
-	rtm->nfdn_ifindex = rt_skb->rx_dev->ifindex;
+	rtm->nfdn_ifindex = rt_skb->dev->ifindex;
 	ptr = NFDN_RTMSG(rtm);
 	memcpy(ptr, rt_skb->data, rt_skb->len);
 	nlh->nlmsg_len = skb->tail - old_tail;
@@ -63,7 +64,7 @@ nlmsg_failure:
 	return NULL;
 }
 
-static int netlink_send_peer(struct sk_buff *skb)
+static void netlink_send_peer(struct sk_buff *skb)
 {
 	struct sk_buff *skb2;
 	int status = 0;
@@ -78,15 +79,14 @@ static int netlink_send_peer(struct sk_buff *skb)
 			group = DNRMG_L2_GROUP;
 			break;
 		default:
-			return -EINVAL;
+			return;
 	}
 
 	skb2 = netlink_build_message(skb, &status);
 	if (skb2 == NULL)
-		return status;
+		return;
 	NETLINK_CB(skb2).dst_groups = group;
 	netlink_broadcast(dnrmg, skb2, 0, group, GFP_ATOMIC);
-	return 0;
 }
 
 
@@ -105,29 +105,30 @@ static unsigned int dnrmg_hook(unsigned int hook,
 
 static __inline__ void netlink_receive_user_skb(struct sk_buff *skb)
 {
-	struct nlmsghdr *nlh=(struct nlmsghdr *)skb->data;
-	
+	struct nlmsghdr *nlh = (struct nlmsghdr *)skb->data;
+
+	if (nlh->nlmsg_len < sizeof(*nlh) || skb->len < nlh->nlmsg_len)
+		return;
+
 	if (!cap_raised(NETLINK_CB(skb).eff_cap, CAP_NET_ADMIN))
 		RCV_SKB_FAIL(-EPERM);
+
+	/*
+	 * In future this will probably be the preferred way to send
+	 * DECnet routing messages, for now we use raw sockets though.
+	 */
 
 	RCV_SKB_FAIL(-EINVAL);
 }
 
 static void netlink_receive_user_sk(struct sock *sk, int len)
 {
-	do {
-		struct sk_buff *skb;
+	struct sk_buff *skb;
 
-		if (rtnl_shlock_nowait())
-			return;
-
-		while((skb = skb_dequeue(&sk->receive_queue)) != NULL) {
-			netlink_receive_user_skb(skb);
-			kfree_skb(skb);
-		}
-
-		up(&rtnl_sem);
-	} while(dnrmg && skb_queue_len(&dnrmg->receive_queue));
+	while((skb = skb_dequeue(&sk->receive_queue)) != NULL) {
+		netlink_receive_user_skb(skb);
+		kfree_skb(skb);
+	}
 }
 
 static struct nf_hook_ops dnrmg_ops = {
@@ -158,10 +159,10 @@ static void __exit fini(void)
 	sock_release(dnrmg->socket);
 }
 
-
+EXPORT_NO_SYMBOLS;
 MODULE_DESCRIPTION("DECnet Routing Message Grabulator");
 MODULE_AUTHOR("Steven Whitehouse <steve@chygwyn.com>");
+MODULE_LICENSE("GPL");
 
 module_init(init);
 module_exit(fini);
-

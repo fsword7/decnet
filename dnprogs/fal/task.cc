@@ -517,7 +517,7 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	{
 	    dap_name_message name_msg;
 
-	    if (vms_format)
+	    if (vms_format || params.remote_os == 4)
 	    {
 		char vmsname[PATH_MAX];
 

@@ -1,3 +1,12 @@
+dnprogs (2.18-1) unstable; urgency=low
+
+  * Fix dependancies in dnet-progs so libdnet gets pulled in too even when
+    build by the autobuilders. Closes: bug#122893
+  * Fix sending of binary files by FAL by block.
+  * Add .html, .tgz & .bz2 file types to FAL types list
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 10 Dec 2001 10:15:12 +0000
+
 dnprogs (2.17-1) unstable; urgency=low
 
   * Don't print "done" when stopping daemons in dnet-progs.init.d

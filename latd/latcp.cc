@@ -488,7 +488,7 @@ void set_retransmit(int newlim)
 
 void set_keepalive(int newtime)
 {
-    if (newtime < 1 || newtime > 180)
+    if (newtime < 10 || newtime > 180)
     {
 	fprintf(stderr, "invalid keepalive timer\n");
 	return;

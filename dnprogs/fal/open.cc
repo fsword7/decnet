@@ -256,37 +256,8 @@ bool fal_open::process_message(dap_message *m)
 	    switch (am->get_cmpfunc())
 	    {
 	    case dap_accomp_message::END_OF_STREAM:
-
-		// write metafile
-		if (params.use_metafiles && create)
-		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
-
-		// move onto next file
-		if (glob_entry < gl.gl_pathc-1)
-		{
-		  glob_entry++;
-		  fclose(stream);
-		  stream = fopen(gl.gl_pathv[glob_entry], write_access?"w":"r");
-		  if (!stream)
-		  {
-		      return_error();
-		      return false;
-		  }
-		  num_records    = 0;
-		  current_record = 0;
-		  if (record_lengths) delete[] record_lengths;
-
-		  if (!send_file_attributes(block_size, use_records, gl.gl_pathv[glob_entry],
-					    display, SEND_DEV))
-		      return false;
-		  return send_ack_and_unblock();
-		}
-		else // End of wildcard list
-		{
-		    reply.set_cmpfunc(dap_accomp_message::RESPONSE);
-		    reply.write(conn);
-		    return false;
-		}
+		reply.set_cmpfunc(dap_accomp_message::RESPONSE);
+		reply.write(conn);
 		return true;
 
 	    case dap_accomp_message::CLOSE:
@@ -311,10 +282,36 @@ bool fal_open::process_message(dap_message *m)
 		    attrib_msg->get_fop_bit(dap_attrib_message::FB$DLT))
 		    delete_file();
 
-		reply.set_cmpfunc(dap_accomp_message::RESPONSE);
-		reply.write(conn);
+		// write metafile
+		if (params.use_metafiles && create)
+		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
+
+		// move onto next file
+		if (glob_entry < gl.gl_pathc-1)
+		{
+		    glob_entry++;
+		    stream = fopen(gl.gl_pathv[glob_entry], write_access?"w":"r");
+		    if (!stream)
+		    {
+			return_error();
+			return false;
+		    }
+		    num_records    = 0;
+		    current_record = 0;
+		    if (record_lengths) delete[] record_lengths;
+
+		    if (!send_file_attributes(block_size, use_records, gl.gl_pathv[glob_entry],
+					      display, SEND_DEV))
+			return false;
+		    return send_ack_and_unblock();
+		}
+		else // End of wildcard list
+		{
+		    reply.set_cmpfunc(dap_accomp_message::RESPONSE);
+		    reply.write(conn);
+		    return false;
+		}
 		return true;
-		break;
 
 	    default:
 		DAPLOG((LOG_WARNING, "unexpected ACCOMP message type %d received\n", am->get_cmpfunc() ));

@@ -876,7 +876,7 @@ void LATServer::send_connect_error(int reason, LAT_Header *msg, unsigned char *m
     send_message(buf, ptr, macaddr);
 }
 
-// Shutdown bu latcp
+// Shutdown by latcp
 void LATServer::Shutdown()
 {
     // Shutdown all the connections first
@@ -892,12 +892,12 @@ void LATServer::Shutdown()
 }
 
 // Add a new service from latcp
-void LATServer::add_service(char *name, char *ident, int _rating, bool _static_rating)
+bool LATServer::add_service(char *name, char *ident, int _rating, bool _static_rating)
 {
     // Look for it.
     list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
-    if (sii != servicelist.end()) return; // Already exists
+    if (sii != servicelist.end()) return false; // Already exists
 
     // if rating is 0 then use the node default.
     if (!_rating) _rating = rating;
@@ -909,6 +909,8 @@ void LATServer::add_service(char *name, char *ident, int _rating, bool _static_r
 
     // Resend the announcement message.
     send_service_announcement(-1);
+
+    return true;
 }
 
 

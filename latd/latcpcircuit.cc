@@ -203,8 +203,10 @@ bool LATCPCircuit::do_command()
 	debuglog(("latcp: add service: %s (%s)\n",
 		  name, ident));
 
-	LATServer::Instance()->add_service((char*)name, (char*)ident, rating, static_rating);
-	send_reply(LATCP_ACK, "", -1);
+	if (LATServer::Instance()->add_service((char*)name, (char*)ident, rating, static_rating))
+	    send_reply(LATCP_ACK, "", -1);
+	else
+	    send_reply(LATCP_ERRORMSG, "Local service already exists", -1);
     }
     break;
     

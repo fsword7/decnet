@@ -219,7 +219,7 @@ class LATServer
  public:
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
-    void add_service(char *name, char *ident, int _rating, bool _static_rating);
+    bool add_service(char *name, char *ident, int _rating, bool _static_rating);
     bool set_rating(char *name, int _rating, bool _static_rating);
     bool set_ident(char *name, char *ident);
     bool remove_service(char *name);

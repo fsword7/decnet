@@ -57,7 +57,7 @@ class LATinterfaces
     virtual int send_packet(int ifn, unsigned char macaddr[], unsigned char *data, int len)=0;
 
     // Receive a packet from a given FD (note FD not iface)
-    virtual int recv_packet(int fd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen)=0;
+    virtual int recv_packet(int fd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen, bool &more)=0;
 
     // Enable reception of LAT multicast messages
     virtual int set_lat_multicast(int ifn)=0;

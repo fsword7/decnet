@@ -45,7 +45,7 @@ class LinuxInterfaces : public LATinterfaces
     virtual int send_packet(int ifn, unsigned char macaddr[], unsigned char *data, int len);
 
     // Receive a packet from a given interface
-    virtual int recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen);
+    virtual int recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen, bool &more);
 
     // Enable reception of LAT multicast messages
     virtual int set_lat_multicast(int ifn);

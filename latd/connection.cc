@@ -322,11 +322,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 			    newsessionnum = next_session_number();
 			    newsession = new QueuedSession(*this,
-							 (LAT_SessionStartCmd *)buf,
-							 cs,
-							 slotcmd->remote_session,
-							 newsessionnum,
-							 (*master_conn)->eightbitclean);
+							   (LAT_SessionStartCmd *)buf,
+							   cs,
+							   slotcmd->remote_session,
+							   newsessionnum,
+							   (*master_conn)->eightbitclean);
 			    if (newsession->new_session(remnode, "","",
 							credits) == -1)
 			    {

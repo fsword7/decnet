@@ -1,9 +1,9 @@
 /******************************************************************************
     (c) 2002 Matthew Fredette                 fredette@netbsd.org
- 
+
     Some modifications:
     (c) 2003 Patrick Caulfield                 patrick@debian.org
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -381,9 +381,9 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
   ether_packet.ether_type = htons(protocol);
 
   /* write this packet: */
-  iov[0].iov_base = (unsigned char* )&ether_packet;
+  iov[0].iov_base = (char* )&ether_packet;
   iov[0].iov_len = sizeof(ether_packet);
-  iov[1].iov_base = data;
+  iov[1].iov_base = (char *)data;
   iov[1].iov_len = len;
   if (writev(_latd_bpf_fd, iov, 2) < 0) {
     syslog(LOG_ERR, "writev: %m");
@@ -395,17 +395,22 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
 
 
 #define CONT_OR_RET() \
-    if (_latd_bpf_buffer_offset < _latd_bpf_buffer_end) \
+    if (_latd_bpf_buffer_offset < _latd_bpf_buffer_end) {\
         continue;\
-    else \
-        return 0;
+    } else {\
+        if (_latd_bpf_buffer_offset_next <= _latd_bpf_buffer_end) \
+          more = true; \
+        return 0; \
+    }
 
 // Receive a packet from a given interface
-int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen)
+int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen, bool &more)
 {
   ssize_t buffer_end;
   struct bpf_hdr the_bpf_header;
   unsigned int _latd_bpf_buffer_offset_next;
+
+  more = false;
 
   /* loop until we have something to return: */
   for(;;) {
@@ -415,6 +420,13 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
     if (_latd_bpf_buffer_offset
 	>= _latd_bpf_buffer_end) {
 
+	// Is there really anything to read? we really don't want to
+	// block here.
+	int bytes;
+	if (ioctl(sockfd, FIONREAD, &bytes) == 0 &&
+	    bytes == 0) {
+	    return 0;
+	}
       /* read the BPF socket: */
       debuglog(("bpf: calling read\n"));
       buffer_end = read(sockfd,
@@ -436,7 +448,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 	> _latd_bpf_buffer_end) {
       debuglog(("bpf: flushed garbage BPF header bytes\n"));
       _latd_bpf_buffer_end = 0;
-      CONT_OR_RET();
+      return 0;
     }
 
     /* get the BPF header and check it: */
@@ -505,6 +517,8 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 				     + _latd_bpf_buffer_offset))->ether_shost,
 	   ETHER_ADDR_LEN);
     _latd_bpf_buffer_offset = _latd_bpf_buffer_offset_next;
+    if (_latd_bpf_buffer_offset < _latd_bpf_buffer_end)
+	more = true;
     return (the_bpf_header.bh_datalen
 	    - sizeof(struct ether_header));
   }
@@ -654,7 +668,7 @@ int BPFInterfaces::bind_socket(int ifn)
       syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
       return -1;
     }
-    
+
     /* set the filter on the BPF device: */
     program.bf_len = sizeof(moprc_bpf_filter) / sizeof(moprc_bpf_filter[0]);
     program.bf_insns = moprc_bpf_filter;

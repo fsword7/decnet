@@ -571,31 +571,35 @@ void LATServer::read_lat(int sock)
     int    len;
     int    i;
     int    ifn;
+    bool   more = true;
     LAT_Header *header = (LAT_Header *)buf;
 
-    len = iface->recv_packet(sock, ifn, macaddr, buf, sizeof(buf));
-    if (len == 0)
-	return; // Probably a rogue packet
-
-    if (len < 0)
+    while (more)
     {
-	if (errno != EINTR && errno != EAGAIN)
+	len = iface->recv_packet(sock, ifn, macaddr, buf, sizeof(buf), more);
+	if (len == 0)
+	    continue; // Probably a rogue packet
+
+	if (len < 0)
 	{
-	    syslog(LOG_ERR, "recvmsg: %m");
-	    return;
+	    if (errno != EINTR && errno != EAGAIN)
+	    {
+		syslog(LOG_ERR, "recvmsg: %m");
+		return;
+	    }
 	}
-    }
 
-    // Not listening yet, but we must read the message otherwise we
-    // we will spin until latcp unlocks us.
-    if (locked) return;
+	// Not listening yet, but we must read the message otherwise we
+	// we will spin until latcp unlocks us.
+	if (locked)
+	       continue;	
 
-    // Parse & dispatch it.
-    switch(header->cmd)
-    {
-    case LAT_CCMD_SREPLY:
-    case LAT_CCMD_SDATA:
-    case LAT_CCMD_SESSION:
+	// Parse & dispatch it.
+	switch(header->cmd)
+	{
+	case LAT_CCMD_SREPLY:
+	case LAT_CCMD_SDATA:
+	case LAT_CCMD_SESSION:
         {
 	    debuglog(("session cmd for connid %d\n", header->remote_connid));
 	    LATConnection *conn = NULL;
@@ -616,7 +620,7 @@ void LATServer::read_lat(int sock)
 	}
 	break;
 
-    case LAT_CCMD_CONNECT:
+	case LAT_CCMD_CONNECT:
         {
 	    // Make a new connection
 
@@ -631,7 +635,7 @@ void LATServer::read_lat(int sock)
 	    {
 		// How the &?* did that happen?
 		send_connect_error(2, header, ifn, macaddr);
-		return;
+		continue;
 	    }
 
      	    // Make a new connection.
@@ -643,7 +647,7 @@ void LATServer::read_lat(int sock)
 	}
 	break;
 
-    case LAT_CCMD_CONACK:
+	case LAT_CCMD_CONACK:
         {
 	    LATConnection *conn = NULL;
 	    debuglog(("Got connect ACK for %d\n", header->remote_connid));
@@ -664,8 +668,8 @@ void LATServer::read_lat(int sock)
 	}
 	break;
 
-    case LAT_CCMD_CONREF:
-    case LAT_CCMD_DISCON:
+	case LAT_CCMD_CONREF:
+	case LAT_CCMD_DISCON:
         {
 	    debuglog(("Disconnecting connection %d: status %x(%s)\n",
 		      header->remote_connid,
@@ -701,27 +705,28 @@ void LATServer::read_lat(int sock)
 	}
 	break;
 
-    case LAT_CCMD_SERVICE:
-	// Keep a list of known services
-	add_services(buf, len, ifn, macaddr);
-	break;
+	case LAT_CCMD_SERVICE:
+	    // Keep a list of known services
+	    add_services(buf, len, ifn, macaddr);
+	    break;
 
-    case LAT_CCMD_ENQUIRE:
-	reply_to_enq(buf, len, ifn, macaddr);
-	break;
+	case LAT_CCMD_ENQUIRE:
+	    reply_to_enq(buf, len, ifn, macaddr);
+	    break;
 
-    case LAT_CCMD_ENQREPLY:
-	got_enqreply(buf, len, ifn, macaddr);
-	break;
+	case LAT_CCMD_ENQREPLY:
+	    got_enqreply(buf, len, ifn, macaddr);
+	    break;
 
-    case LAT_CCMD_STATUS:
-	forward_status_messages(buf, len);
-	break;
+	case LAT_CCMD_STATUS:
+	    forward_status_messages(buf, len);
+	    break;
 
-	// Request for a reverse-LAT connection.
-    case LAT_CCMD_COMMAND:
-	process_command_msg(buf, len, ifn, macaddr);
-	break;
+	    // Request for a reverse-LAT connection.
+	case LAT_CCMD_COMMAND:
+	    process_command_msg(buf, len, ifn, macaddr);
+	    break;
+	}
     }
 }
 

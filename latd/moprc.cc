@@ -213,8 +213,9 @@ static int readmop(unsigned char *buf, int buflen)
 {
     int ifn;
     unsigned char macaddr[6];
+    bool more;
 
-    return iface->recv_packet(mop_socket, ifn, macaddr, buf, buflen);
+    return iface->recv_packet(mop_socket, ifn, macaddr, buf, buflen, more);
 }
 
 static int send_reserve(u_int8_t *macaddr, int interface)

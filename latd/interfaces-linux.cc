@@ -209,12 +209,15 @@ int LinuxInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char
 }
 
 // Receive a packet from a given interface
-int LinuxInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen)
+int LinuxInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], unsigned char *data, int maxlen, bool &more)
 {
     struct msghdr msg;
     struct iovec iov;
     struct sockaddr_ll sock_info;
     int    len;
+
+/* Linux only returns 1 packet at a time */
+    more = false;
 
     memset(&msg, 0, sizeof(msg));
     msg.msg_name = &sock_info;

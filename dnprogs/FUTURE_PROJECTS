@@ -5,8 +5,6 @@ I might start them.
 If you have any more ideas or any preferences for the order in which things
 happen then mail me on patrick@users.sourceforge.net. But no promises.
 
-- A print symbiont for VMS that forwards prints to lpd on Linux
-
 - use dbm/gdbm for /etc/decnet.conf to speed lookups on sites with a large 
   number of nodes. Possibly also include something like 
   "NCP COPY KNOWN NODES FROM" so it's easy to maintain.

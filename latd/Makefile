@@ -66,19 +66,15 @@ install:
 	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
 
-dep depend: .depend
-	@makedepend *.cc *.c 2>/dev/null
-
-.depend:
-	@touch .depend
+dep depend:
+	@$(CXX) -MM *.cc >.depend 2>/dev/null
 
 clean:
-	makedepend
+	rm -f .depend
 	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend 
 	rm -rf debian/tmp
 
 dist:
-	makedepend
 	rm  -f .depend
 	rm -rf debian/tmp
 	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc \
@@ -121,4 +117,6 @@ deb:
 	dpkg-buildpackage -rfakeroot
 
 
-# DO NOT DELETE THIS LINE -- make  depend  depends  on it.
+ifeq (.depend,$(wildcard .depend))
+include .depend
+endif

@@ -41,13 +41,22 @@ Create a local LAT service or reverse LAT port.
 .br
 The syntax for creating a login service is:
 .br
-latcp -A -a service [-i description] [-r rating] [-s]
+latcp -A -a service [-i description] [-r rating] [-s] [-C command] [-u user]
 .br
 The 
 .B -s
 flag indicates that the service rating is static. Without this the
 service rating is regarded as a maximum and will be reduced according
 the the load average of the machine.
+.br
+The
+.B -C
+flag indicates a command to run when a user connects to the service - by
+default this is /bin/login.
+.br.
+The
+.B -u
+flag specifies a user to runthe above command as. By default this will be root.
 .br
 The syntax for creating a reverse LAT port is:
 .br
@@ -62,7 +71,7 @@ will be forced to wait until it is available.
 The
 .B -8
 flag tells latd not to muck about with the data. Normally latd will
-transmit a BREAK if a NUL character is sent,
+transmit a BREAK if a NUL character is typed,
 .B -8
 disables this behaviour for ports with (eg) printers or modems attached.
 .TP

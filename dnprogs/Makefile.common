@@ -53,7 +53,7 @@ DFLAGS=-g
 #------------------------------------------------------------------------------
 
 MAJOR_VERSION=2
-MINOR_VERSION=07cvs
+MINOR_VERSION=07
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #
@@ -82,6 +82,10 @@ endif
 # Look for optional files (who needs autoconf!)
 #
 ifeq (/usr/lib/libcrypt.a,$(wildcard /usr/lib/libcrypt.a))
+LIBCRYPT=-lcrypt
+endif
+
+ifeq (/usr/lib/libcrypt.so,$(wildcard /usr/lib/libcrypt.so))
 LIBCRYPT=-lcrypt
 endif
 

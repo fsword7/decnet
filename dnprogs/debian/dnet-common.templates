@@ -39,7 +39,7 @@ Description-de: Wie lautet die DECnet Knotenadresse?
 Template: dnet-common/warning
 Type: note
 Description: DECnet startup changes your ethernet hardware address
- The startnet program in this package will change the hardware (MAC) address 
+ The "setether" program in this package will change the hardware (MAC) address 
  of all ethernet cards in your system (by default) to match the DECnet
  node address. This is essential for the operation of DECnet and so
  is not optional. However, if you have more than one ethernet card
@@ -56,7 +56,7 @@ Description: DECnet startup changes your ethernet hardware address
  You should also edit /etc/decnet.conf to add the names and addresses of
  DECnet nodes you want to communicate with.
 Description-de: Starten des DECnet verändert die MAC-Adresse Ihrer Netzwerkkarten.
- Das startnet-Programm in diesem Paket wird standardmäßig die Hardware-
+ Das setether-Programm in diesem Paket wird standardmäßig die Hardware-
  Adresse aller im Rechner installierten Netzwerkkarten ändern, um diese
  an die Knotenadresse anzupassen. Dies ist wichtig für den Betrieb des
  DECnet und kann nicht unterbunden werden. Wenn Sie mehr als eine Netz-

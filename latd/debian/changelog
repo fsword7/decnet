@@ -1,3 +1,14 @@
+latd (1.14-1) unstable; urgency=low
+
+  * gcc-3.0 compilation fixes in the new bits
+  * Rewritten ethernet flow control
+  * Increase moprc timeout a little.
+  * Don't try to process zero-length packets 
+  * Include lat.html documentation
+  * Tested on DECserver 700
+
+ --
+
 latd (1.13-1) unstable; urgency=low
 
   * Fail attempts to create /dev/lat ports twice

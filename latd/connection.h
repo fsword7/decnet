@@ -121,10 +121,10 @@ class LATConnection
       }
 
       int send(int interface, unsigned char *macaddr);
-      int send(int interface, unsigned char seq, unsigned char *macaddr)
+      int send(int interface, unsigned char ack, unsigned char *macaddr)
       {
 	  LAT_Header *header = (LAT_Header *)buf;
-	  header->sequence_number = seq;
+	  header->ack_number = ack;
 	  return send(interface, macaddr);
       }
       LAT_Header *get_header() { return (LAT_Header *)buf;}

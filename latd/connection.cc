@@ -139,6 +139,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     char replybuf[4][256];
     bool replyhere = false;
 
+    memset(replybuf, 0, sizeof(replybuf)); // PJC
+
     debuglog(("process_session_cmd: %d slots, %d bytes\n",
              msg->header.num_slots, len));
 
@@ -163,11 +165,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	    debuglog(("Duplicate packet received...resending ACK\n"));
 
 	    // But still send an ACK as it could be the ACK that went missing
-	    last_ack_message.send(interface, macaddr);
+	    last_ack_message.send(interface, last_recv_seq, macaddr);
 
 	    // If the last DATA message wasn't seen either then resend that too
 	    if (last_message.get_seq() != msg->header.ack_number)
-		last_message.send(interface, macaddr);
+		last_message.send(interface,  last_recv_seq, macaddr);
 	}
 	return false;
     }
@@ -176,11 +178,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     if (msg->header.ack_number != last_sent_seq)
     {
 	debuglog(("Got ack for old message, resending ACK\n"));
-	last_ack_message.send(interface, macaddr);
+	last_ack_message.send(interface,  last_recv_seq, macaddr);
 
 	// If the last DATA message wasn't seen either then resend that too
 	if (last_message.get_seq() != msg->header.ack_number)
-	    last_message.send(interface, macaddr);
+	    last_message.send(interface,  last_recv_seq, macaddr);
     }
 
     window_size--;
@@ -455,6 +457,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     {
 	debuglog(("Sending %d slots in reply\n", num_replies));
 	unsigned char replybuf[1600];
+	memset(replybuf, 0, sizeof(replybuf)); // PJC
 	LAT_Header *header  = (LAT_Header *)replybuf;
 	ptr = sizeof(LAT_Header);
 
@@ -662,7 +665,7 @@ void LATConnection::circuit_timer(void)
 	    return;
 	}
 	debuglog(("Last message not ACKed: RESEND\n"));
-	last_message.send(interface, macaddr);
+	last_message.send(interface, last_recv_seq, macaddr);
 	return;
     }
 
@@ -787,7 +790,7 @@ void LATConnection::circuit_timer(void)
         header->ack_number      = last_recv_seq;
 
         debuglog(("Sending message on circuit timer: seq: %d, ack: %d\n",
-		  last_sent_seq, last_sent_ack));
+		  last_sent_seq, last_recv_seq));
 
         msg.send(interface, macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
@@ -841,8 +844,13 @@ void LATConnection::remove_session(unsigned char id)
 // TODO: Disconnect & Remove connection if no sessions active...
     if (num_clients() == 0)
     {
-//  //	send_disconnect_error(3, msg???, interface, macaddr)
-	LATServer::Instance()->delete_connection(num);
+      LAT_Header msg;
+      msg.local_connid = remote_connid;
+      msg.remote_connid = num;
+      msg.sequence_number = ++last_sent_seq;
+      msg.ack_number = last_recv_ack;
+      LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+      LATServer::Instance()->delete_connection(num);
     }
 }
 

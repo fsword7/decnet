@@ -1,7 +1,7 @@
 /*
-    read.cc from librms
+    readwrite.cc from librms
 
-    Copyright (C) 1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1999-2001 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -37,12 +37,10 @@ static void build_control_message(rms_conn *rc, dap_control_message *ctl, struct
     ctl->set_rop(rab->rab$l_rop);
     if (rab->rab$l_kbf)
     {
-// To be helpful - if the ksz is zero then use strlen on the key buffer itself
+// To be helpful - if the ksz is zero then assume it's a string
 	if (rab->rab$b_ksz)
 	{
-	    memcpy(rc->key, rab->rab$l_kbf, rab->rab$b_ksz);
-	    rc->key[rab->rab$b_ksz] = '\0';
-	    ctl->set_key(rc->key);
+	    ctl->set_key((char*)rab->rab$l_kbf, (int)rab->rab$b_ksz);
 	}
 	else
 	{

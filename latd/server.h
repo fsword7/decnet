@@ -48,7 +48,7 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, int interface, unsigned char *macaddr);
     bool  is_local_service(char *);
-    int   get_service_info(char *name, std::string &cmd, int &maxcon, uid_t &uid, gid_t &gid);
+    int   get_service_info(char *name, std::string &cmd, int &maxcon, int &curcon, uid_t &uid, gid_t &gid);
     gid_t get_lat_group() { return lat_group; }
     LATConnection **get_connection(int id) { return &connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
@@ -193,6 +193,7 @@ class LATServer
 	    command(std::string(comm)),
 	    rating(r),
 	    max_connections(mc),
+	    cur_connections(0),
 	    static_rating(s),
 	    cmd_uid(uid),
 	    cmd_gid(gid)
@@ -204,6 +205,7 @@ class LATServer
 	const std::string &get_id() {return id;}
 	const std::string &get_command() {return command;}
 	int           get_max_connections() {return max_connections;}
+	int           get_cur_connections() {return cur_connections;}
 	uid_t         get_uid() {return cmd_uid;}
 	gid_t         get_gid() {return cmd_gid;}
 	int           get_rating() {return rating;}
@@ -212,6 +214,8 @@ class LATServer
 	    { rating = _new_rating; static_rating = _static; }
 	void          set_ident(char *_ident)
 	    { id = std::string(_ident);}
+	void inc_connections() {cur_connections++;}
+	void dec_connections() {cur_connections--;}
 
 	const bool operator==(serviceinfo &si)  { return (si == name);}
 	const bool operator==(const std::string &nm) { return (nm == name);}
@@ -224,6 +228,7 @@ class LATServer
 	std::string command;
 	int rating;
 	int max_connections;
+	int cur_connections;
 	bool static_rating;
 	uid_t cmd_uid;
 	gid_t cmd_gid;

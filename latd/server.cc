@@ -1108,8 +1108,7 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 						true);
     }
 
-    // make a serversession and connect it.
-    // make up a LAT_Start message and rem & local IDs.
+    // Make a reverse-session and connect it.
     LAT_SessionStartCmd startcmd;
     memset(&startcmd, 0, sizeof(startcmd));
     startcmd.dataslotsize = 255;
@@ -1118,7 +1117,10 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 						    dn_ntohs(msg->request_id),
 						    interface, macaddr) == -1)
     {
-	// TODO Destroy session & send error message.
+	// If we created this connection just for the new session
+	// then get rid of it.
+	if (connections[connid]->num_clients() == 0)
+	    delete_connection(connid);
     }
 }
 
@@ -1279,7 +1281,7 @@ void LATServer::delete_entry(deleted_session &dsl)
     case LLOGIN_SOCKET:
 	remove_fd(dsl.get_fd());
 	close(dsl.get_fd());
-	delete latcp_circuits[dsl.get_fd()]; /* PJC is this right ?? */
+	delete latcp_circuits[dsl.get_fd()];
 	latcp_circuits.erase(dsl.get_fd());
 	break;
 
@@ -1370,7 +1372,7 @@ bool LATServer::is_local_service(char *name)
 }
 
 // Return the command info for a service
-int LATServer::get_service_info(char *name, std::string &cmd, int &maxcon, uid_t &uid, gid_t &gid)
+int LATServer::get_service_info(char *name, std::string &cmd, int &maxcon, int &curcon, uid_t &uid, gid_t &gid)
 {
     // Look for it.
     std::list<serviceinfo>::iterator sii;
@@ -1379,6 +1381,7 @@ int LATServer::get_service_info(char *name, std::string &cmd, int &maxcon, uid_t
     {
 	cmd = sii->get_command();
 	maxcon = sii->get_max_connections();
+	curcon = sii->get_cur_connections();
 	uid = sii->get_uid();
 	gid = sii->get_gid();
 

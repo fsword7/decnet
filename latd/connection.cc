@@ -374,7 +374,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    int maxcon;
 			    uid_t uid;
 			    gid_t gid;
-			    LATServer::Instance()->get_service_info((char *)name, cmd, maxcon, uid, gid);
+			    int curcon;
+			    LATServer::Instance()->get_service_info((char *)name, cmd, maxcon, curcon, uid, gid);
 			    strcpy((char *)servicename, (char *)name);
 
 			    newsessionnum = next_session_number();
@@ -950,10 +951,7 @@ void LATConnection::remove_session(unsigned char id)
 	sessions[id] = NULL;
     }
 
-    debuglog(("---------------------------------------------------\n"));
-    debuglog(("Deleting session %d, have %d session left\n", id, num_clients()));
-
-// TODO: Disconnect & Remove connection if no sessions active...
+// Disconnect & Remove connection if no sessions active...
     if (num_clients() == 0)
     {
 	LAT_Header msg;
@@ -1197,7 +1195,6 @@ int LATConnection::create_localport_session(int fd, LocalPort *lport,
 }
 
 // Create a server session for an incoming reverse-LAT connection
-// PJC: may be able to reuse this code for above creation of ServerSessions
 int LATConnection::create_reverse_session(const char *service,
 					  const char *cmdbuf,
 					  int reqid,
@@ -1208,10 +1205,11 @@ int LATConnection::create_reverse_session(const char *service,
     int maxcon;
     uid_t uid;
     gid_t gid;
+    int curcon;
 
     debuglog(("Create reverse session for %s\n", service));
 
-    if (LATServer::Instance()->get_service_info((char *)service, cmd, maxcon, uid, gid) == -1)
+    if (LATServer::Instance()->get_service_info((char *)service, cmd, maxcon, curcon, uid, gid) == -1)
     {
 	debuglog(("Service not known\n"));
 	return -1;

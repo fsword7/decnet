@@ -904,7 +904,10 @@ void fal_task::meta_filename(const char *file, char *metafile)
     struct stat st;
     if (stat(metafile, &st) == -1 && errno == ENOENT)
     {
+	// Make Unix do as it's fucking told.
+	mode_t old_umask = umask(0);
 	mkdir(metafile, 0777);
+	umask(old_umask);
     }
     strcat(metafile, "/");
     strcat(metafile, endpath);
@@ -1028,6 +1031,15 @@ void fal_task::create_metafile(char *name, dap_attrib_message *attrib_msg)
 	{
 	    if (verbose > 1) DAPLOG((LOG_INFO, "Writing metafile with %d records\n", current_record));
 	    ::fwrite(record_lengths, sizeof(short), current_record, mf);
+	}
+
+	// Set the file ownership & protecttion of the metafile so it
+	// matches the real file.
+	struct stat st;
+	if (stat(name, &st) == 0)
+	{
+	    fchown(fileno(mf), st.st_uid, st.st_gid);
+	    fchmod(fileno(mf), st.st_mode & 0777);
 	}
 	fclose(mf);
     }

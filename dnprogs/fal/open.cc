@@ -55,7 +55,7 @@
 
 // This is the initial allocation and expansion value for
 // the array or record lengths.
-#define RECORD_LENGTHS_SIZE 10
+#define RECORD_LENGTHS_SIZE 100
 
 fal_open::fal_open(dap_connection &c, int v, fal_params &p,
 		   dap_attrib_message *att,

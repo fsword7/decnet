@@ -22,8 +22,8 @@ sysconfprefix=
 #                  FAL built like this will *NOT* work with most VMS commands.
 # -DNO_BLOCKING    disable sending of many messages in one block
 #
-#DFLAGS=-g
-DFLAGS=-O2
+DFLAGS=-g
+#DFLAGS=-O2
 
 #
 # This variable determines whether the programs are statically or dynamically
@@ -53,7 +53,7 @@ DFLAGS=-O2
 #------------------------------------------------------------------------------
 
 MAJOR_VERSION=2
-MINOR_VERSION=06
+MINOR_VERSION=07cvs
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #

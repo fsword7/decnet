@@ -1,10 +1,11 @@
 # Makefile for LAT server
 
-VERSION=0.6
+VERSION=0.7
 
 PROG1=latd
 PROG2=latcp
 MANPAGES8=latd.8 latcp.8
+MANPAGES5=latd.conf.5
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
 	  serversession.o clientsession.o services.o latcpcircuit.o lat_messages.o
 PROG2OBJS=latcp.o utils.o
@@ -36,10 +37,12 @@ $(PROG2): depend $(PROG2OBJS)
 
 install:
 	install -d $(prefix)/bin
+	install -d $(prefix)/man/man5
 	install -d $(prefix)/man/man8
 	install -m 0750 -s $(PROG1) $(prefix)/sbin
 	install -m 0750 -s $(PROG2) $(prefix)/sbin
-#	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
+	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
+	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
 
 dep depend: .depend
 	@makedepend *.cc *.c 2>/dev/null
@@ -55,7 +58,8 @@ dist:
 	makedepend
 	rm  -f .depend
 	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc \
-		latd/BUGS latd/README.PLEASE latd/NEWS latd/Makefile \
-                latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO
+		latd/BUGS latd/README latd/NEWS latd/Makefile \
+                latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
+		latd/*.[1-8]
 
 # DO NOT DELETE THIS LINE -- make  depend  depends  on it.

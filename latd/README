@@ -20,10 +20,9 @@ debugging messages to stderr. If you want a forking quiet daemon (say that
 carefully) remove -DNO_FORK and -DVERBOSE_DEBUG from the Makefile. See the
 file INSTALL for more detail.
 
-Starting with 0.0.4 there is a latcp command included too. This will be the
-management interface to latd. I am modelling it on the latcp provided with
-Tru64 Unix 4. It's quite basic at the moment but more features will be added
-with each new release.
+You should start latd with the latcp -s command. Starting latd manually
+is not supported and may result in unexpected behaviour. See the man 
+page for latcp for more information.
 
 If you can, please try this software and let me know how you get on. 
 If you encounter bad problems please send me a tcpdump file produced with the 

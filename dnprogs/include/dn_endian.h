@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998 P.J. Caulfield               patrick@pandh.demon.co.uk
+    (c) 1998 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
                                           pcaulfield@cix.co.uk
     
     This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 
 
 #ifndef __BYTE_ORDER
-    #error "Can't determine endianness - please inform patrick@pandh.demon.co.uk with your distribution and hardware type."
+    #error "Can't determine endianness - please inform patrick@tykepenguin.cix.co.uk with your distribution and hardware type."
 #endif
 
 #if (__BYTE_ORDER == 1234)
@@ -51,6 +51,6 @@
   #else
 
     /* it's a PDP??? */
-    #error "Unsupported endianness - please inform patrick@pandh.demon.co.uk with your distribution and hardware type."
+    #error "Unsupported endianness - please inform patrick@tykepenguin.cix.co.uk with your distribution and hardware type."
   #endif
 #endif

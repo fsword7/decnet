@@ -1,7 +1,7 @@
 /*
     protocol.cc from libdap
 
-    Copyright (C) 1998-1999 Patrick Caulfield       patrick@pandh.demon.co.uk
+    Copyright (C) 1998-1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -382,7 +382,7 @@ int dap_message::get_header(dap_connection &c)
     if (flags & 16) // SYSPEC is hard.
     {
 	fprintf(stderr, "SYSPEC field not supported yet.\n
-                         Please email patrick@pandh.demon.co.uk if you REALLY want it.\n");
+                         Please email patrick@tykepenguin.cix.co.uk if you REALLY want it.\n");
 	exit(999);
     }
 

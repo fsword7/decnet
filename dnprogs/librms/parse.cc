@@ -73,23 +73,22 @@ struct types
     {NULL, 0} // End of the list
 };
 
-/* I really hate having to do this but I don't think there's any other way 
-   around it. Because of the odd way in which PPC defines a va_list it does
-   not seem to be possible to pass it around in such as way as it can be 
-   modified so th edefinition here actually BREAKS the code on PPC - any 
-   attempt to use extended args on a PPC machine will core dump.
+// This is a bit gross really.
+// What I need to do is pass the va_list variable into get_item by reference
+// so that it can increment the pointer for each arg it finds. 
+// HOWEVER, some machines (PPC that I know of) have a definition of va_list
+// that prevents this passing by reference, so what I am doing now is to 
+// enclose the va_list in a structure and pass /that/ by reference.
+// The real horror is that I need to use __va_copy() to copy the va_list
+// into the structure. I know: you're not supposed to use double-underscored
+// names. If anyone has a better way around this then please tell me.
+struct va_list_passer
+{
+    va_list ap;
+};
 
-   Given the number of people who need to use this feature of this library
-   with DECnet on a PPC is unlikely to be >0 I'm only going to worry about this
-   if anyone sends me a bug report stating they actually want to use it.
-*/
-#if defined (__PPC__) && (defined (_CALL_SYSV) || defined (_WIN32))
 static bool get_item(char *options, unsigned int &option_ptr,
-		     char *key, char *value, va_list ap)
-#else
-static bool get_item(char *options, unsigned int &option_ptr,
-		     char *key, char *value, va_list &ap)
-#endif
+		     char *key, char *value, struct va_list_passer &vlp)
 {
     // We've reached the end.
     if (option_ptr+4 >= strlen(options)) return false;
@@ -164,19 +163,19 @@ static bool get_item(char *options, unsigned int &option_ptr,
 	if (value[1] == '*') // Length is also an argument
 	{
 	    ptr++;
-	    len = va_arg(ap, int);
+	    len = va_arg(vlp.ap, int);
 	}
 	switch (value[ptr])
 	{
 	case 'd':
 	    // Rather depressingly we have to convert this to a string before 
 	    // converting it back to a number :-(
-	    intval = va_arg(ap, int);
+	    intval = va_arg(vlp.ap, int);
 	    sprintf(value, "%d", intval);
 	    break;
 
 	case 's':
-	    charval = va_arg(ap, char *);
+	    charval = va_arg(vlp.ap, char *);
 	    if (len)
 	    {
 		memcpy(value, charval, len);
@@ -209,6 +208,7 @@ bool parse_options(RMSHANDLE h, char *options, struct FAB *fab,
     unsigned int option_ptr = 0;
     char key[4];     // All option names are 3 letters
     char value[256]; // All values are shorter than 256 bytes
+    struct va_list_passer vlp;
 
     memset(fab, 0, sizeof(struct FAB));
     memset(rab, 0, sizeof(struct RAB));
@@ -216,7 +216,14 @@ bool parse_options(RMSHANDLE h, char *options, struct FAB *fab,
     // a NULL option string is legal
     if (!options) return true;
 
-    while (get_item(options, option_ptr, key, value, ap))
+// Oh dear, oh dear, oh dear.
+#ifdef __va_copy
+    __va_copy(vlp.ap, ap);
+#else
+    vlp.ap = ap;
+#endif
+
+    while (get_item(options, option_ptr, key, value, vlp))
     {
 	int i=0;
 	while (field_types[i].key)

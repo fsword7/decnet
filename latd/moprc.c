@@ -87,7 +87,7 @@ static int find_interface(char *ifname)
 {
     struct ifreq ifr;
     int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock = socket(PF_PACKET, SOCK_RAW, 0);
 
     ifr.ifr_ifindex = iindex;
 

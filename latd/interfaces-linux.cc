@@ -81,7 +81,7 @@ void LinuxInterfaces::get_all_interfaces(int *ifs, int &num)
 {
     struct ifreq ifr;
     int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock = socket(PF_PACKET, SOCK_RAW, 0);
     num = 0;
 
     ifr.ifr_ifindex = iindex;
@@ -106,7 +106,7 @@ void LinuxInterfaces::get_all_interfaces(int *ifs, int &num)
 std::string LinuxInterfaces::ifname(int ifn)
 {
     struct ifreq ifr;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock = socket(PF_PACKET, SOCK_RAW, 0);
 
     ifr.ifr_ifindex = ifn;
 
@@ -126,7 +126,7 @@ int LinuxInterfaces::find_interface(char *name)
 {
     struct ifreq ifr;
     int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock = socket(PF_PACKET, SOCK_RAW, 0);
 
     ifr.ifr_ifindex = iindex;
 

@@ -253,9 +253,7 @@ bool fal_open::process_message(dap_message *m)
 	    switch (am->get_cmpfunc())
 	    {
 	    case dap_accomp_message::END_OF_STREAM:
-
-		fclose(stream);
-
+		
 		// write metafile
 		if (params.use_metafiles && create)
 		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
@@ -264,6 +262,7 @@ bool fal_open::process_message(dap_message *m)
 		if (glob_entry < gl.gl_pathc-1)
 		{
 		  glob_entry++;
+		  fclose(stream);
 		  stream = fopen(gl.gl_pathv[glob_entry], write_access?"w":"r");
 		  if (!stream)
 		  {
@@ -288,6 +287,11 @@ bool fal_open::process_message(dap_message *m)
 
 	    case dap_accomp_message::CLOSE:
 		// finished task
+		if (stream)
+		{		    
+		    fclose(stream);
+		    stream = NULL;
+		}
 		
 		// Do close options
 		if (am->get_fop_bit(dap_attrib_message::FB$SPL) ||
@@ -356,6 +360,7 @@ bool fal_open::send_file(int rac, long vbn)
     dap_data_message data_msg;
     bool  ateof(false);
 
+
     if (verbose > 2) DAPLOG((LOG_DEBUG, "sending file contents. block size is %d. streaming = %d, use_records=%d, vbn=%d\n", bs, streaming, use_records, vbn));
 
     // We've already sent the last record...
@@ -389,14 +394,22 @@ bool fal_open::send_file(int rac, long vbn)
 	{
 	    // Do we need to use the stored record lengths from the metafile ?
 	    if (attrib_msg->get_rfm() == dap_attrib_message::FB$VAR &&
-		record_lengths != NULL && current_record < num_records)
+		record_lengths != NULL)
 	    {
-		if (::fread(buf, 1, record_lengths[current_record], stream) < 1)
-		    ateof = true;
-
-		// We read a whole record (including our "compatibility" LF)
-		// which VMS does not want.
-		buflen = record_lengths[current_record++]-1;
+		if (current_record < num_records)
+		{
+		    if (::fread(buf, 1, record_lengths[current_record], stream) < 1)
+			ateof = true;
+		    
+		    // We read a whole record (including our "compatibility" LF)
+		    // which VMS does not want.
+		    buflen = record_lengths[current_record++]-1;
+		}
+		else
+		{
+		    send_eof();
+		    return true;
+		}
 	    }
 	    else
 	    {

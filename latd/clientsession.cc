@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <termios.h>
 #include <list>
 #include <queue>
 #include <string>

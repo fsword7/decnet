@@ -4,18 +4,19 @@
 #
 # Starts/Stops DECnet processes
 #
-# This script should go in /etc/rc.d/init.d
+# chkconfig: - 09 91
+# description:  DECnet.
+# processname: dnetd
+# config: /etc/decnet.conf
 #
-# and you should link to it from the relevant runlevel startup directory
-# eg:
-#     (RedHat)
-#      ln -s /etc/rc.d/init.d/decnet.sh /etc/rc.d/rc3.d/S09decnet
 #
-#     (Caldera)
-#      ln -s /etc/rc.d/init.d/decnet.sh /etc/rc.d/rc5.d/S01decnet
+# This script should go in
+#  /etc/init.d for redhat 7.0 onwards
+#  /etc/rc.d/init.d for redhat up to 6.2
 #
-# This script MUST be run before TCP/IP is started unless you have a DEC
-# TULIP based ethernet card AND are running Linux 2.2
+# You can install it using the following command:
+#
+# chkconfig --level 345 decnet on
 #
 # -----------------------------------------------------------------------------
 #
@@ -31,7 +32,7 @@ daemons="dnetd phoned"
 # then remove the -hw switch from the command.
 #
 # If running on Caldera OpenLinux you may need to add the -f switch to
-# startnet to force it to change the MAC address because that 
+# startnet to force it to change the MAC address because that
 # distribution's startup scripts UP all the interfaces before calling any
 # other scripts :-(
 #
@@ -40,33 +41,13 @@ interfaces=""
 startnet="$prefix/sbin/startnet -hw $interfaces"
 
 #
-# See which distribution we are using and customise the start/stop 
-# commands and the console display.
+# Set up some variables.
 #
-if [ -d /var/lib/dpkg ]
-then
-  # Debian
-  startcmd="start-stop-daemon --start --quiet --exec"
-  stopcmd="start-stop-daemon --stop --quiet --exec"
-  startecho="\$i"
-  startendecho="."
-  stopendecho="done."
-elif [ -d /var/lib/YaST ]
-then
-  # SuSE
-  . /etc/rc.config
-  startcmd=""
-  stopcmd="killproc -TERM"
-  startendecho=""
-  stopendecho="done."
-else
-  # Assume RedHat
-  . /etc/rc.d/init.d/functions
-  startcmd="daemon"
-  stopcmd="killproc"
-  startendecho=""
-  stopendecho="done."
-fi
+. /etc/rc.d/init.d/functions
+startcmd="daemon"
+stopcmd="killproc"
+startendecho=""
+stopendecho="done."
 
 case $1 in
    start)
@@ -87,7 +68,7 @@ case $1 in
        fi
      fi
 
-     echo -n "Starting DECnet: " 
+     echo -n "Starting DECnet: "
 
      # Run startnet only if we need to
      EXEC=`cat /proc/net/decnet | sed -n '2s/ *\([0-9]\.[0-9]\).*[0-9]\.[0-9]/\1/p'`

@@ -40,12 +40,13 @@ PowerPC.
 SUPPORTED SYSTEMS
 -----------------
 LATD itself runs on Linux and several BSD systems: NetBSD, FreeBSD and Darwin
-have been tested though not very thoroughly, as I primarily use Linux.
+have been tested. Not all the ports are tested very thoroughly, as I primarily
+use Linux and Darwin.
 
-The following systems I know to work with LATD because I have tested them,
-others may also work.
+The following systems I know to work on the other end of LATD because I have 
+tested them, others may also work.
 
-OpenVMS 7.2   (VAX & Alpha)
+OpenVMS 7.2 (VAX & Alpha)
 DEC Unix v4.0d
 DECserver 200/MC
 DECserver 90M
@@ -81,7 +82,7 @@ There are several things you can tweak in the configuration process:
 CREDITS
 -------
 The BPF interface used in the *BSD ports was written by Matthew Fredette
-(fredette@netbsd.org)
+(fredette@netbsd.org), as was much of the autoconf system.
 
 I'd like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.

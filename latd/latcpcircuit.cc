@@ -307,7 +307,7 @@ bool LATCPCircuit::do_command()
     {
 	int newtimer;
 
-	newtimer = *(int *)cmdbuf;
+	memcpy(&newtimer, cmdbuf, sizeof(int));
 
 	debuglog(("latcp: Set multicast: %d\n", newtimer));
 
@@ -321,7 +321,7 @@ bool LATCPCircuit::do_command()
     {
         int newlim;
 
-        newlim = *(int *)cmdbuf;
+        memcpy(&newlim, cmdbuf, sizeof(int))
 
         debuglog(("latcp: Set retransmit limit: %d\n", newlim));
 
@@ -335,7 +335,7 @@ bool LATCPCircuit::do_command()
     {
         int newtimer;
 
-        newtimer = *(int *)cmdbuf;
+        memcpy(newtimer, cmdbuf, sizeof(int));
 
         debuglog(("latcp: Set keepalive timer: %d\n", newtimer));
 

@@ -1837,8 +1837,8 @@ char *dap_status_message::get_message()
 	default:
 	    return "unknown transfer error";
 	}
-    case 12:
-	return "Message Type error";
+    case 012:
+	return "Message received out of synchronisation";
     }
     return "WTF";
 }

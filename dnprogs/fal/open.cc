@@ -260,8 +260,8 @@ bool fal_open::process_message(dap_message *m)
 		if (params.use_metafiles && create)
 		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
 
-		// move onto next file // PJC WARNING HERE:
-		if (++glob_entry < gl.gl_pathc) // gl.gl_pathv[++glob_entry])
+		// move onto next file
+		if (++glob_entry < gl.gl_pathc)
 		{
 		  stream = fopen(gl.gl_pathv[glob_entry], write_access?"w":"r");
 		  if (!stream)
@@ -349,15 +349,6 @@ bool fal_open::send_file(int rac, long vbn)
     dap_data_message data_msg;
     bool  ateof(false);
 
-    // If we are doing a file transfer than use as big a buffer as
-    // possible (allowing for control headers), but rounded
-    // down to a multiple of 512 bytes to match VMS block sizes
-    if (streaming && !use_records) 
-    {
-	bs = conn.get_blocksize()-10;
-	bs -= bs%512;
-    }
-
     if (verbose > 2) DAPLOG((LOG_DEBUG, "sending file contents. block size is %d. streaming = %d, use_records=%d, vbn=%d\n", bs, streaming, use_records, vbn));
 
     // We've already sent the last record...
@@ -407,7 +398,6 @@ bool fal_open::send_file(int rac, long vbn)
 		    // Make sure there's a NUL on the end for strlen to find.
 		    buf[bs] = '\0';
 		    buflen = strlen(buf); // Leave the LF on the end.
-//		    if (!buflen) ateof = true;
 		}
 		else
 		{
@@ -421,26 +411,15 @@ bool fal_open::send_file(int rac, long vbn)
 	{
 	    buflen = ::fread(buf, 1, bs, stream);
 	    if (!buflen) ateof = true;
+	    buflen=bs;
 	}
 	
 	// We got some data
 	if (!ateof)
 	{
 	    data_msg.set_data(buf, buflen);
+	    if (!data_msg.write_with_len(conn)) return false;
 
-	    // Complicated bit dealing with headers.
-	    // If we are streaming then performance is important so we send
-	    // as much as possible in one block with no length.
-	    // When not streaming we send a length ('cos we need to send a
-	    // STATUS message too) and we use the shortest len header we can.
-	    if (streaming && !use_records)
-            {
-		if (!data_msg.write(conn)) return false;
- 	    }
-	    else
-	    {
-		if (!data_msg.write_with_len(conn)) return false;
-            }
 	    if (verbose > 2) DAPLOG((LOG_DEBUG, "sent %d bytes of data\n", buflen));
 	    total += buflen;
 	}

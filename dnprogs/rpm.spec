@@ -61,12 +61,15 @@ instructions on how to apply it.
 %%PREFIX%%/man/man5/decnet.conf.5
 %%PREFIX%%/man/man5/decnet.proxy.5
 %%PREFIX%%/man/man5/dnetd.conf.5
+%%PREFIX%%/man/man5/vmsmail.conf.5
 %%PREFIX%%/man/man8/fal.8
 %%PREFIX%%/man/man8/phoned.8
 %%PREFIX%%/man/man8/dnetd.8
 %%PREFIX%%/man/man8/ctermd.8
 %%PREFIX%%/man/man8/rmtermd.8
 %%PREFIX%%/man/man8/startnet.8
+%%PREFIX%%/man/man8/sendvmsmail.8
+%%PREFIX%%/man/man8/vmsmaild.8
 /etc/rc.d/init.d/decnet
 %%LIBPREFIX%%/lib/libdnet.a
 %%LIBPREFIX%%/lib/libdnet.so.1

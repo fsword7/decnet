@@ -1,8 +1,14 @@
 2.07
 ------------------
 - Fix VMS errors sending block-structured files
-- Added support for Ultrix DATE DAP message (another undocumented extension).
+- Added support for Ultrix DATE DAP message (another "new" extension)
 - Cope better with VMS errors when sending files (eg. disk full)
+- Changed some prototypes in netdb.h to match Ultrix
+- Fixed compile of phone because of stupid ncurses symbol
+- dnet_conn() is Ultrix-compatible (with a 2.4 kernel)
+- Substantial enhancements to mail to make it work. But only on 2.4 kernels
+- New function dnet_eof. Again, only for 2.4 kernels
+
 
 2.06 28th Oct 2000
 ------------------

@@ -51,6 +51,7 @@ class LATServer
 	circuit_timer(8),
 	multicast_timer(60),
 	retransmit_limit(20),
+	keepalive_timer(20),
 	responder(false)
       {};                       // Private constructor to force singleton
     static LATServer *instance; // Singleton instance

@@ -2,6 +2,10 @@
  *
  */
 
+// Our LAT version (5.2)
+
+#define LAT_VERSION     5
+#define LAT_VERSION_ECO 2
 
 /* Command types */
 // NOTE: Bit 0 is "Response Requested"

@@ -318,12 +318,12 @@ void LATConnection::send_connect_ack()
     response->header.cmd       = LAT_CCMD_CONACK;
     response->header.num_slots = 0;
     response->maxsize          = dn_htons(1500);
-    response->latver           = 5;   // We do LAT 5.2
-    response->latver_eco       = 2;    
+    response->latver           = LAT_VERSION;
+    response->latver_eco       = LAT_VERSION_ECO;
     response->maxsessions      = 254;
     response->exqueued         = 0;   // TODO Make 9 when we know how to cope.
-    response->circtimer        = 8;
-    response->keepalive        = 20;  // seconds
+    response->circtimer        = LATServer::Instance()->get_circuit_timer();
+    response->keepalive        = LATServer::Instance()->get_keepalive_timer();
     response->facility         = dn_htons(0);
     response->prodtype         = 3;   // Wot do we use here???
     response->prodver          = 3;   // and here ???
@@ -445,15 +445,16 @@ int LATConnection::next_session_number()
 void LATConnection::circuit_timer(void)
 {
 
-    // Increment keepalive timer - timer is measured inthe same units
-    // as the circut timer(100ths/sec) but the keepalive timer is 
-    // measured in seconds.
+    // Increment keepalive timer - timer is measured in the same units
+    // as the circut timer(100ths/sec) but the keepalive timer in the Server 
+    // is measured in seconds.
     keepalive_timer += LATServer::Instance()->get_circuit_timer();
     if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
     {
 	// Send an empty message that needs an ACK.
         // If we don't get a response to this then we abort the circuit.
-	debuglog(("keepalive timer expired\n"));
+	debuglog(("keepalive timer expired: %d: limit: %d\n", keepalive_timer,
+		LATServer::Instance()->get_keepalive_timer()*100));
 
 	// If we get into this block then there is no chance that there is
 	// an outstanding ack (or if there is then it's all gone horribly wrong anyway
@@ -664,8 +665,8 @@ int LATConnection::connect()
     msg->header.local_connid = num;  
 
     msg->maxsize     = dn_htons(1500);
-    msg->latver      = 5;   // We do LAT 5.2
-    msg->latver_eco  = 2;   // Pretty arbitrary really.
+    msg->latver      = LAT_VERSION;
+    msg->latver_eco  = LAT_VERSION_ECO;
     msg->maxsessions = 16;  // Probably ought to be 254
     msg->exqueued    = 0;   // TODO: A decision here
     msg->circtimer   = LATServer::Instance()->get_circuit_timer();

@@ -39,7 +39,7 @@
 #include <netdnet/dnetdb.h>
 #endif
 #include <features.h>    /* for the glibc version number */
-#if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
 #include <net/ethernet.h>     /* the L2 protocols */
 #else
@@ -119,8 +119,8 @@ void LATServer::send_service_announcement(int sig)
     announce->circuit_timer   = circuit_timer;
     announce->hiver           = 5;    // Highest LAT version acceptable
     announce->lover           = 5;    // Lowest LAT version acceptable
-    announce->latver          = 5;    // We do LAT 5.2
-    announce->latver_eco      = 2;
+    announce->latver          = LAT_VERSION;
+    announce->latver_eco      = LAT_VERSION_ECO;
     announce->incarnation     = ++multicast_incarnation;
     announce->flags           = 0x6e; // TODO Allow group codes & stuff
     announce->mtu             = dn_htons(1500);

@@ -7,7 +7,7 @@ PROG2=sendvmsmail
 
 UULIB=uulib/libuu.a
 
-MANPAGES=vmsmaild.8
+MANPAGES=vmsmaild.8 sendvmsmail.8
 
 PROG1OBJS=vmsmaild.o receive.o configfile.o
 PROG2OBJS=sendvmsmail.o configfile.o

@@ -37,7 +37,7 @@ all: $(PROG1) $(PROG2)
 ifdef HAVE_GTK
 PROG1OBJS+=gtkphonesrc.o gtkphonesig.o phone_gtk.o
 GTKLIBS=$(shell gtk-config --libs)
-CFLAGS+=-DHAVE_GTK $(BINARY_PREFIX)
+CFLAGS+=-DHAVE_GTK $(BINARY_PREFIX) -DPIXMAPDIR=\"$(PIXMAPDIR)\"
 endif
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBDNET)

@@ -30,7 +30,10 @@
 #include "phone_gtk.h"
 
 #ifndef BINARY_PREFIX
-#define BINARY_PREFIX="/usr/local"
+#define BINARY_PREFIX "/usr/local"
+#endif
+#ifndef PIXMAPDIR
+#define PIXMAPDIR BINARY_PREFIX "/X11/pixmaps/phone"
 #endif
 
 GtkWidget *MainWindow;
@@ -58,7 +61,7 @@ gtk_phone_init(int argc, char *argv[])
     gtk_set_locale ();
     gtk_init (&argc, &argv);
 
-    add_pixmap_directory( BINARY_PREFIX "/X11/pixmaps/phone" );
+    add_pixmap_directory(PIXMAPDIR);
     
     return 1;
 }

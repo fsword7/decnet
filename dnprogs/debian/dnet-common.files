@@ -10,3 +10,4 @@
 ./usr/share/man/man8/startnet.8
 ./usr/share/man/man5/decnet.conf.5
 ./usr/share/man/man5/dnetd.conf.5
+./usr/share/man/man5/decnet.proxy.5

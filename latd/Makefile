@@ -94,7 +94,7 @@ dist:
 	rm  -f .depend
 	rm -rf debian/tmp
 	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc latd/*.c \
-		latd/BUGS latd/README latd/NEWS latd/Makefile \
+		latd/BUGS latd/README latd/NEWS latd/Makefile latd/rpm.spec \
                 latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
 		latd/*.[1-8] latd/latd.conf latd/startlat.sh \
 		latd/rpm.spec latd/debian/*

@@ -1,5 +1,5 @@
-0.7
-----------------
+0.7  7th June 2000
+------------------
 - Add keepalive timer
 - Add latcp control of keepalive timer & retransmit limit
 - Fixed crash if you run out of PTYs
@@ -12,7 +12,7 @@
   or broadcasts sent
 - MANPAGES!!
 - Now converts LF to CR/LF when printing the issue file
-- Doesn't reduce CR/LF to just LF when soing reverse LAT
+- Doesn't reduce CR/LF to just LF when doing reverse LAT
 - latcp returns error status to the shell
 - latcp -d -lv (long version of services list)
 

@@ -41,6 +41,8 @@
 */include/netdnet/dn.h
 */debian/tmp
 */debian/tmp/*
+*/debian/files
+*/debian/substvars
 */rpmbuild
 */rpmbuild/*
 *CVS

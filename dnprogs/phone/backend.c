@@ -640,8 +640,9 @@ void send_hold(int held, int fd)
 int dial_remote(char *remuser)
 {
     char  *colons;
-    char  *node = remuser;
+    char   node[128];
     char   msg[128];
+    char   newuser[128];
     char   buf[64];
     int    sockfd;
     int    i,len;
@@ -670,11 +671,13 @@ int dial_remote(char *remuser)
     }
 
     *colons = '\0';
-    if ( (np=getnodebyname(node)) == NULL)
+
+    if ( (np=getnodebyname(remuser)) == NULL)
     {
 	cr.show_error(1, "Cannot resolve remote node name");
 	return -1;
     }
+    strcpy(node, np->n_name);
  
     memset(&sockaddr, 0, sizeof(sockaddr));
     sockaddr.sdn_family    = AF_DECnet;
@@ -692,23 +695,33 @@ int dial_remote(char *remuser)
 	return -1;
     }
 
-    *colons = ':'; // Restore colon
-    // Make it all uppercase
-    for (i=0; i<strlen(remuser); i++)
-    {
-	if (islower(remuser[i])) remuser[i] = toupper(remuser[i]);
-    }
-
     sprintf(msg, "Ringing %s...              (Press any key to cancel call and continue.)", colons+2);
 
     cr.show_error(0, msg);
+
+    // If the node name was actually an address then look up the name.
+    if (isdigit(node[0]))
+    {
+	struct nodeent *np2;
+	if ( (np2=getnodebyaddr(np->n_addr, 2, AF_DECnet)) != NULL)
+	{
+	    strcpy(node, np2->n_name);
+	}
+    }
     
-// Send initial connect message
+    // Rebuild the node::user from the real node name and make it all caps
+    snprintf(newuser, sizeof(newuser), "%s::%s", node, colons+2);
+    for (i=0; i<strlen(newuser); i++)
+    {
+	if (islower(newuser[i])) newuser[i] = toupper(newuser[i]);
+    }
+    
+    // Send initial connect message
     msg[0] = PHONE_CONNECT;
     strcpy(msg+1, get_local_name());
-    strcpy(msg+strlen(msg)+1, remuser);
-
-    if (write(sockfd, msg, strlen(msg)+strlen(remuser)+1) < 0)
+    strcpy(msg+strlen(msg)+1, newuser);
+    
+    if (write(sockfd, msg, strlen(msg)+strlen(newuser)+1) < 0)
     {
 	cr.show_error(1, "Cannot send message to remote node");
 	close(sockfd);

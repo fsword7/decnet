@@ -63,7 +63,20 @@ class LATServer
 	multicast_timer(60),
 	retransmit_limit(20),
 	keepalive_timer(20),
-	responder(false)
+	responder(false),
+        static_rating(false),
+        rating(12),
+        num_interfaces(0),
+        multicast_incarnation(0),
+        verbosity(0),
+        latcp_socket(-1),
+        llogin_socket(-1),
+        do_shutdown(false),
+        locked(true),
+        next_connection(1),
+        lat_group(0),
+        groups_set(false),
+        iface(0)
       {};                       // Private constructor to force singleton
     static LATServer *instance; // Singleton instance
 
@@ -77,7 +90,6 @@ class LATServer
     int  num_interfaces;
     unsigned char multicast_incarnation;
     int  verbosity;
-    int  lat_socket;
     int  latcp_socket;
     int  llogin_socket;
     bool do_shutdown;

@@ -718,14 +718,14 @@ void LATConnection::circuit_timer(void)
 	    unsigned char replybuf[1600];
 	    LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
 
-	    reply->header.cmd          = LAT_CCMD_SREPLY;
+	    reply->header.cmd          = LAT_CCMD_SDATA;
 	    reply->header.num_slots    = 0;
 	    reply->slot.remote_session = 0;
 	    reply->slot.local_session  = 0;
 	    reply->slot.length         = 0;
 	    reply->slot.cmd            = 0;
 
-	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION | 2;
+	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION;
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;
 	}

@@ -20,7 +20,7 @@ struct	nodeent	{
 extern  struct  dn_naddr *dnet_addr(char *cp);
 extern  int               dnet_conn(char *node, char *object, int type, 
                                 unsigned char *opt_out, int opt_outl, 
-                                unsigned char *opt_in, int opt_inl);
+                                unsigned char *opt_in, int *opt_inl);
 extern  char             *dnet_htoa(struct dn_naddr *add);
 extern  char             *dnet_ntoa(struct dn_naddr *add);
 extern  struct  dn_naddr *getnodeadd(void);

@@ -192,6 +192,7 @@ void ClientSession::disconnect_session(int reason)
     }
     LATServer::Instance()->set_fd_state(master_fd, true);
     connected = false;
+    restart_pty();
     return;
 }
 

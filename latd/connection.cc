@@ -194,7 +194,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                     if (session->send_data_to_process(buf+ptr, msglen))
                     {
                         // No echo.
-                        replyhere = true;
+                        if (role == SERVER) replyhere = true;
                     }
                     // We are expecting an echo - don't send anything now
 		    // but still increment the remote credit if the other end

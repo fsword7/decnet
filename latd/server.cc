@@ -356,6 +356,7 @@ void LATServer::run()
 	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
 	exit(1);
     }
+
     struct sockaddr_ll sock_info;
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
@@ -1469,7 +1470,7 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
 	    (i->get_static()?"    ":" D  ") << i->get_id() << endl;
     }
 
-    output << endl << "Port                    Node            Service         Remote Port     Queued" << endl;
+    output << endl << "Port                    Service         Node            Remote Port     Queued" << endl;
     
     // Show allocated ports
     for (int i=1; i< MAX_CONNECTIONS; i++)

@@ -116,6 +116,9 @@ bool LLOGINCircuit::do_command()
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)node);
 	get_string((unsigned char*)cmdbuf, &ptr, (unsigned char*)port);
 
+	debuglog(("Terminal session for S:%s, N:%s, P:%s\n",
+		  service, node, port));
+
 	// Do the biz
 	if (LATServer::Instance()->make_llogin_connection(fd,
 							  service, 

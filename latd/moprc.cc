@@ -253,7 +253,7 @@ static int send_reqid(u_int8_t *macaddr, int interface)
     unsigned char buf[32];
     memset(buf, 0, sizeof(buf));
 
-    buf[0] = 4;
+    buf[0] = 5;
     buf[1] = 0;
     buf[2] = MOPRC_CMD_REQUESTID;
 

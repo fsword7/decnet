@@ -55,7 +55,7 @@ static int latcp_socket;
 
 static void make_upper(char *str);
 
-bool read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
+int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 bool send_msg(int fd, int cmd, char *buf, int len);
 bool open_socket(bool);
 
@@ -294,8 +294,8 @@ void set_rating(int argc, char *argv[])
     unsigned char *result;
     int len;
     int cmd;
-    read_reply(latcp_socket, cmd, result, len);
-    return;
+
+    exit (read_reply(latcp_socket, cmd, result, len));
     
 }
 
@@ -338,9 +338,7 @@ void set_ident(int argc, char *argv[])
     unsigned char *result;
     int len;
     int cmd;
-    read_reply(latcp_socket, cmd, result, len);
-    return;
-    
+    exit(read_reply(latcp_socket, cmd, result, len));
 }
 
 
@@ -527,8 +525,7 @@ void add_service(int argc, char *argv[])
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);
 
 	// Wait for ACK or error
-	read_reply(latcp_socket, cmd, result, len);
-	return;
+	exit(read_reply(latcp_socket, cmd, result, len));
     }
 
     if (got_port)
@@ -543,8 +540,7 @@ void add_service(int argc, char *argv[])
 	send_msg(latcp_socket, LATCP_ADDPORT, message, ptr);
 
 	// Wait for ACK or error
-	read_reply(latcp_socket, cmd, result, len);
-	return;
+	exit(read_reply(latcp_socket, cmd, result, len));
     }
 
     fprintf(stderr, "Sorry, did you want me to do something??\n");
@@ -600,7 +596,7 @@ void del_service(int argc, char *argv[])
     unsigned char *result;
     int len;
     int cmd;
-    read_reply(latcp_socket, cmd, result, len);
+    exit(read_reply(latcp_socket, cmd, result, len));
 }
 
 // Start latd & run startup script.
@@ -755,13 +751,14 @@ bool send_msg(int fd, int cmd, char *buf, int len)
 }
 
 
-bool read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
+// Return 0 for success and -1 for failure
+int read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
 {
     unsigned char head[3];
     
     // Get the message header (cmd & length)
     if (read(fd, head, sizeof(head)) != 3)
-	return false; // Bad header
+	return -1; // Bad header
     
     len = head[1] * 256 + head[2];
     cmd = head[0];
@@ -770,16 +767,16 @@ bool read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len)
     // Read the message buffer
     if (read(fd, cmdbuf, len) != len)
     {
-	return false; // Bad message
+	return -1; // Bad message
     }
 
     if (cmd == LATCP_ERRORMSG)
     {
 	fprintf(stderr, "%s\n", cmdbuf);
-	return false;
+	return -1;
     }
     
-    return true;
+    return 0;
 }
 
 bool open_socket(bool quiet)

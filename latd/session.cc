@@ -75,26 +75,32 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 	debugbuf[len] = 0;
 	debuglog(("To PTY(%d): %s\n", len, debugbuf));
 
-	// Replace LF/CR with LF
+	// Replace LF/CR with LF if we are a server.
         // TODO There MUST be an option for this...
-	char newbuf[len+1];
-	int newlen = 0;
-	int i;
-	for (i=0; i<len; i++)
+	if (!parent.isClient())
 	{
-	    if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
+	    char newbuf[len+1];
+	    int newlen = 0;
+	    int i;
+	    for (i=0; i<len; i++)
 	    {
-		continue;
+		if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
+		{
+		    continue;
+		}
+		if (i>0 && i<len && (buf[i] == '\n') && (buf[i-1] == '\r'))
+		{
+		    newbuf[newlen-1] = '\n';
+		    continue;
+		}
+		newbuf[newlen++] = buf[i];
 	    }
-	    if (i>0 && i<len && (buf[i] == '\n') && (buf[i-1] == '\r'))
-	    {
-		newbuf[newlen-1] = '\n';
-		continue;
-	    }
-	    newbuf[newlen++] = buf[i];
+	    write(master_fd, newbuf, newlen);
 	}
-
-	write(master_fd, newbuf, newlen);
+	else
+	{
+	    write(master_fd, buf, len);
+	}
     }
 
     // See if there's any echo. Anything longer than the data sent

@@ -1,0 +1,47 @@
+.TH DNROUTE 8 "May 4 2003" "DECnet utilities"
+
+.SH NAME
+dnroute \- DECnet Routing Daemon
+.SH SYNOPSIS
+.B dnroute
+[options]
+.br
+Options:
+.br
+[\-dvVhr]
+.SH DESCRIPTION
+.PP
+.B dnroute
+is a daemon that manages the DECnet routing tables to provide a simple
+routing policy.
+.br
+.B dnetd
+reads polls the DECnet neighbour table and copies those entries into
+the internal routing tables, thus providing a simple (I can see that node,
+therefore I can route to it) routing system. For many sites this will be
+simple enough. it is still possible to add routes using the ip(8) command.
+
+.SH OPTIONS
+.TP
+.I "\-d"
+Don't fork and run the background. Use this for debugging.
+.TP
+.I "\-v"
+Verbose. The more of these there are the more verbose droute will be.
+.TP
+.I \-h \-?
+Displays help for using the command.
+.TP
+.I \-r
+Send DECnet routing messages showing the routes set by the daemon.
+.TP
+.I \-l
+Listen to incoming routing messages and add routes based on that information
+(not currently implemted)
+.TP
+.I \-V
+Show the version of dnroute.
+
+
+.SH SEE ALSO
+.BR dnetd.conf "(5), " ip "(8)"

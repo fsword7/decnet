@@ -50,6 +50,7 @@ case $1 in
 
      echo -n "Starting DECnet..."
      $setether
+     echo "$ADDR" > /proc/sys/net/decnet/node_address
      echo "done."
      ;;
 

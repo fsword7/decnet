@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@ void pjc_debuglog(char *fmt, ...)
 #endif
 
 
-#ifdef INTERNAL_OPENPTY
+#ifndef HAVE_OPENPTY
 int pjc_openpty(int *master, int *slave, char *a, char *b, char *d)
 {
     char ptyname[] = "/dev/ptyCP";

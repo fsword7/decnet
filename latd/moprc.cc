@@ -36,14 +36,14 @@
 #include <signal.h>
 #include <assert.h>
 #ifdef HAVE_NET_IF_ETHER_H
-# include <net/if.h>
-# include <net/if_ether.h>
-#else
-# ifdef HAVE_NET_ETHERNET_H
-#  include <net/ethernet.h>
-# else
-# include <netinet/ether.h>
-# endif
+#include <net/if.h>
+#include <net/if_ether.h>
+#endif
+#ifdef HAVE_NET_ETHERNET_H
+#include <net/ethernet.h>
+#endif
+#ifdef HAVE_NETINET_ETHER_H
+#include <netinet/ether.h>
 #endif
 
 #include <string>

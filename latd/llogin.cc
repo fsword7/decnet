@@ -38,7 +38,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <termios.h>
-#ifdef DEVICE_LOCKING
+#ifdef HAVE_LOCKDEV_H
 #include <lockdev.h>
 #endif
 
@@ -72,7 +72,7 @@ static int usage(char *cmd)
     printf ("       -d         show learned services\n");
     printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local device rather than a service\n");
-#ifdef DEVICE_LOCKING
+#ifdef HAVE_LOCKDEV_H
     printf ("       -L         Don't do device locking when using -p\n");
 #endif
     printf ("       -H <node>  remote node name\n");
@@ -444,7 +444,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     struct termios old_term;
     struct termios new_term;
 
-#ifdef DEVICE_LOCKING
+#ifdef HAVE_LOCKDEV_H
     if (!nolock)
     {
 	if (dev_lock(portname))
@@ -459,7 +459,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     if (termfd < 0)
     {
 	fprintf(stderr, "Cannot open device %s: %s\n", portname, strerror(errno));
-#ifdef DEVICE_LOCKING
+#ifdef HAVE_LOCKDEV_H
 	dev_unlock(portname, getpid());
 #endif
 	return -1;
@@ -488,7 +488,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     tcsetattr(termfd, TCSANOW, &old_term);
     close(termfd);
 
-#ifdef DEVICE_LOCKING
+#ifdef HAVE_LOCKDEV_H
     if (!nolock) dev_unlock(portname, getpid());
 #endif
     return 0;

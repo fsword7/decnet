@@ -2,12 +2,12 @@ Source: dnprogs
 Section: net
 Priority: optional
 Maintainer: Patrick Caulfield <patrick@tykepenguin.cix.co.uk>
-Build-Depends: debmake, kernel-headers-2.4.0 [!hurd-i386]
-Standards-Version: 3.1.1.1
+Build-Depends: debmake, kernel-headers-2.4.0, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
+Standards-Version: 3.2.1.0
 
 Package: dnprogs
 Architecture: i386
-Depends: debianutils (>= 1.13), ${shlibs:Depends}
+Depends: ${shlibs:Depends}
 Priority: optional
 Section: net
 Description: DECnet programs for Linux.

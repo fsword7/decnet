@@ -60,6 +60,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     queued(false),
     eightbitclean(false),
     connected(false),
+    delete_pending(false),
     request_id(0),
     last_msg_type(0),
     role(SERVER),
@@ -106,6 +107,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     eightbitclean(clean),
     connected(false),
     connecting(false),
+    delete_pending(false),
     request_id(0),
     last_msg_type(0),
     role(CLIENT),
@@ -338,6 +340,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    {
 				sessions[newsessionnum] = newsession;
 				newsession->set_master_conn(master_conn);
+
+				// If we were pending a delete, we aren't now
+				delete_pending = false;
 			    }
 			}
 		    }
@@ -395,6 +400,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    else
 			    {
 				sessions[newsessionnum] = newsession;
+				// If we were pending a delete, we aren't now
+				delete_pending = false;
 			    }
 			}
 		    }
@@ -907,6 +914,21 @@ void LATConnection::circuit_timer(void)
 	    return;
 	}
     }
+    // Delete us if delete_pending is set and no more data to send
+    if (delete_pending && pending_data.empty() &&
+	slots_pending.empty())
+    {
+	LAT_Header msg;
+
+	debuglog("Deleting pending connection\n");
+	msg.local_connid = remote_connid;
+	msg.remote_connid = num;
+	msg.sequence_number = ++last_sent_seq;
+	msg.ack_number = last_recv_ack;
+	LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+	LATServer::Instance()->delete_connection(num);
+    }
+
 }
 
 // Add as many data slots as we can to a reply.
@@ -951,16 +973,27 @@ void LATConnection::remove_session(unsigned char id)
 	sessions[id] = NULL;
     }
 
-// Disconnect & Remove connection if no sessions active...
+// Disconnect & remove connection if no sessions active...
+// and no messages pending on circuit timer....
     if (num_clients() == 0)
     {
-	LAT_Header msg;
-	msg.local_connid = remote_connid;
-	msg.remote_connid = num;
-	msg.sequence_number = ++last_sent_seq;
-	msg.ack_number = last_recv_ack;
-	LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
-	LATServer::Instance()->delete_connection(num);
+
+	if (pending_data.empty() && slots_pending.empty())
+	{
+	    LAT_Header msg;
+
+	    msg.local_connid = remote_connid;
+	    msg.remote_connid = num;
+	    msg.sequence_number = ++last_sent_seq;
+	    msg.ack_number = last_recv_ack;
+	    LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+	    LATServer::Instance()->delete_connection(num);
+	}
+	else
+	{
+	    // Otherwise just delete us when it's all calmed down.
+	    delete_pending = true;
+	}
     }
 }
 

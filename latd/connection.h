@@ -81,6 +81,7 @@ class LATConnection
     bool           eightbitclean;
     bool           connected;
     bool           connecting;
+    bool           delete_pending;
     unsigned short request_id;         // For incoming reverse-LATs
 
     // Keep track of non-flow-controlled messages

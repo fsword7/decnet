@@ -251,3 +251,11 @@ void ClientSession::got_connection(unsigned char _remid)
 
     connected = true;
 }
+
+// Called from the slave connection - return the master fd so it can 
+// can do I/O on it and close the slave so it gets EOF notification.
+int ClientSession::get_port_fd()
+{
+    close(slave_fd);
+    return master_fd;
+}

@@ -47,6 +47,7 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
     bool  is_local_service(char *);
+    LATConnection *get_connection(int id) { return connections[id]; }
     
  private:
     LATServer():

@@ -1,13 +1,14 @@
 # Makefile for LAT server
 
-VERSION=0.7
+VERSION=0.8
 
 PROG1=latd
 PROG2=latcp
 MANPAGES8=latd.8 latcp.8
 MANPAGES5=latd.conf.5
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
-	  serversession.o clientsession.o services.o latcpcircuit.o lat_messages.o
+	  serversession.o clientsession.o portsession.o services.o \
+	  latcpcircuit.o lat_messages.o
 PROG2OBJS=latcp.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\"

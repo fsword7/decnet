@@ -12,26 +12,16 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class ClientSession: public LATSession
+class PortSession: public ServerSession
 {
  public:
-  ClientSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *);
+  PortSession(class LATConnection &p,
+	      LAT_SessionStartCmd *cmd,
+	      int port_fd,
+	      unsigned char remid, unsigned char localid);
 
-  virtual ~ClientSession();
   virtual int new_session(unsigned char *remote_node, unsigned char c);
-  virtual void do_read();
-  virtual void disconnect_session(int reason);
-    
-  void connect(char *service, char *port);
-  void restart_pty();
-  int  connect_parent();
-  void got_connection(unsigned char);
-  int get_port_fd();
-  
- private:
-  int slave_fd;
-  bool slave_fd_open;
-  char mastername[255];
-  char ltaname[255];
+
+ private:  
+
 };

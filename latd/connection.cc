@@ -26,6 +26,7 @@
 #include "utils.h"
 #include "session.h"
 #include "serversession.h"
+#include "portsession.h"
 #include "clientsession.h"
 #include "connection.h"
 #include "latcpcircuit.h"
@@ -44,6 +45,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     keepalive_timer(0),
     last_sequence_number(_ack),
     last_ack_number(_seq),
+    queued_slave(false),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -85,6 +87,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     last_sequence_number(0xff),
     last_ack_number(0xff),
     queued(queued),
+    queued_slave(false),
     role(CLIENT)
 {
     debuglog(("New client connection for %s created\n", _remnode));
@@ -212,34 +215,76 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	    case 0x90:
 		if (role == SERVER)
 		{
-		    //  Check service name is one we recognise.
-		    ptr = sizeof(LAT_SessionStartCmd);
-		    unsigned char name[256];
-		    get_string(buf, &ptr, name);
-
-		    if (!LATServer::Instance()->is_local_service((char *)name))
+		    int queued_connection;
+		    if (is_queued_reconnect(buf, len, &queued_connection))
 		    {
-			// Not us mate...
-			retcmd = 0xd7;  // No such service
-			replyslots = 1;
-			replyhere = true;
-		    }
-		    else
-		    {
-			newsessionnum = next_session_number();
-			newsession = new ServerSession(*this,
-						       (LAT_SessionStartCmd *)buf,
-						       slotcmd->remote_session, 
-						       newsessionnum);
-			if (newsession->new_session(remnode, 
-						    credits) == -1)
+			master_conn = LATServer::Instance()->get_connection(queued_connection);
+			if (!master_conn)
 			{
-			    newsession->send_disabled_message();
-			    delete newsession;
+			    debuglog(("Got queued reconnect for non-existant request ID\n"));
+
+			    // Not us mate...
+			    retcmd = 0xd7;  // No such service
+			    replyslots = 1;
+			    replyhere = true;
 			}
 			else
 			{
-			    sessions[newsessionnum] = newsession;
+			    // Connect a new port session to it
+
+			    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
+			    int port_fd = -1;
+			    if (cs) port_fd = cs->get_port_fd();
+
+			    newsessionnum = next_session_number();
+			    newsession = new PortSession(*this,
+							 (LAT_SessionStartCmd *)buf,
+							 port_fd,
+							 slotcmd->remote_session, 
+							 newsessionnum);
+			    if (newsession->new_session(remnode, 
+							credits) == -1)
+			    {
+				newsession->send_disabled_message();
+				delete newsession;
+			    }
+			    else
+			    {
+				sessions[newsessionnum] = newsession;
+			    }
+			}
+		    }
+		    else
+		    {
+			//  Check service name is one we recognise.
+			ptr = sizeof(LAT_SessionStartCmd);
+			unsigned char name[256];
+			get_string(buf, &ptr, name);
+			
+			if (!LATServer::Instance()->is_local_service((char *)name))
+			{
+			    // Not us mate...
+			    retcmd = 0xd7;  // No such service
+			    replyslots = 1;
+			    replyhere = true;
+			}
+			else
+			{
+			    newsessionnum = next_session_number();
+			    newsession = new ServerSession(*this,
+							   (LAT_SessionStartCmd *)buf,
+							   slotcmd->remote_session, 
+							   newsessionnum);
+			    if (newsession->new_session(remnode, 
+							credits) == -1)
+			    {
+				newsession->send_disabled_message();
+				delete newsession;
+			    }
+			    else
+			    {
+				sessions[newsessionnum] = newsession;
+			    }
 			}
 		    }
 		}
@@ -270,6 +315,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 	    case 0xd0:  // Disconnect
 		if (session) session->disconnect_session(credits);
+		if (queued_slave)
+		{
+		    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
+		    if (cs) cs->restart_pty();
+		    queued_slave = false;
+		}
 		break;	  
 
 	    default:
@@ -411,6 +462,13 @@ void LATConnection::send_slot_message(unsigned char *buf, int len)
 LATConnection::~LATConnection()
 {
     debuglog(("LATConnection dtor: %d\n", num));
+
+    // Do we need to notify our master?
+    if (queued_slave)
+    {
+	ClientSession *cs = (ClientSession *)master_conn->sessions[1];
+	if (cs) cs->restart_pty();
+    }
 
     // Delete all sessions
     for (unsigned int i=1; i<MAX_SESSIONS; i++)
@@ -672,33 +730,68 @@ int LATConnection::connect()
     last_ack_number = 0xff;
     remote_connid = 0;
     
-    // TODO queued connections
+    // Queued connection or normal?
+    if (queued)
+    {
+	debuglog(("Requesting connect to queued service\n"));
 
-    int ptr;
-    unsigned char buf[1600];
-    LAT_Start *msg = (LAT_Start *)buf;
-    ptr = sizeof(LAT_Start);
+	int ptr;
+	unsigned char buf[1600];
+	LAT_Command *msg = (LAT_Command *)buf;
+	ptr = sizeof(LAT_Command);
 
-    msg->header.cmd          = LAT_CCMD_CONNECT;
-    msg->header.num_slots    = 0;
-    msg->header.local_connid = num;  
+	msg->cmd         = LAT_CCMD_COMMAND;
+	msg->format      = 0;
+	msg->hiver       = LAT_VERSION;
+	msg->lover       = LAT_VERSION;
+	msg->latver      = LAT_VERSION;
+	msg->latver_eco  = LAT_VERSION_ECO;
+	msg->maxsize     = dn_htons(1500);
+	msg->request_id  = num;
+	msg->entry_id    = 0;
+	msg->opcode      = 2; // Request Queued connection
+	msg->modifier    = 1; // Send status periodically
 
-    msg->maxsize     = dn_htons(1500);
-    msg->latver      = LAT_VERSION;
-    msg->latver_eco  = LAT_VERSION_ECO;
-    msg->maxsessions = 16;  // Probably ought to be 254
-    msg->exqueued    = 0;   // TODO: A decision here
-    msg->circtimer   = LATServer::Instance()->get_circuit_timer();
-    msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
-    msg->facility    = dn_htons(0); // Eh?
-    msg->prodtype    = 3;   // Wot do we use here???
-    msg->prodver     = 3;   // and here ???
+	add_string(buf, &ptr, remnode);
+	buf[ptr++] = 1; // Groups length
+	buf[ptr++] = 1; // Groups. TODO this properly.
+	add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+	buf[ptr++] = 0; // ASCIC source port
+	add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
+	add_string(buf, &ptr, servicename);
+	add_string(buf, &ptr, portname);
 
-    add_string(buf, &ptr, remnode);
-    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
-    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
+	// Send it raw.
+	return LATServer::Instance()->send_message(buf, ptr, macaddr);
+    }
+    else
+    {
+	int ptr;
+	unsigned char buf[1600];
+	LAT_Start *msg = (LAT_Start *)buf;
+	ptr = sizeof(LAT_Start);
 
-    return send_message(buf, ptr, LATConnection::DATA);
+	msg->header.cmd          = LAT_CCMD_CONNECT;
+	msg->header.num_slots    = 0;
+	msg->header.local_connid = num;  
+
+	msg->maxsize     = dn_htons(1500);
+	msg->latver      = LAT_VERSION;
+	msg->latver_eco  = LAT_VERSION_ECO;
+	msg->maxsessions = 16;  // Probably ought to be 254
+	msg->exqueued    = 0;   // TODO: A decision here
+	msg->circtimer   = LATServer::Instance()->get_circuit_timer();
+	msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
+	msg->facility    = dn_htons(0); // Eh?
+	msg->prodtype    = 3;   // Wot do we use here???
+	msg->prodver     = 3;   // and here ???
+
+	add_string(buf, &ptr, remnode);
+	add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+	add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
+
+	return send_message(buf, ptr, LATConnection::DATA);
+    }
 }
 
 int LATConnection::create_client_session()
@@ -756,6 +849,43 @@ int LATConnection::disconnect_client()
 	cs->restart_pty();
     }
     return 0;
+}
+
+
+// Extract "parameter 2" from the packet. If there is one then
+// it means this is a connection from the terminal server for
+// a queued *client* port so we...
+// do "something clever..."
+bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
+{
+    int ptr = sizeof(LAT_SessionCmd)+3;
+    
+    ptr += buf[ptr]+1; // Skip over destination service
+    if (ptr >= len) return false;
+
+    ptr += buf[ptr]+1; // Skip over source service
+    if (ptr >= len) return false;
+
+// Do parameters -- look for a 2
+    while (ptr < len)
+    {
+	int param_type = buf[ptr++];
+	if (param_type == 2)
+	{
+	    ptr++; //Skip over parameter length (it's 2)
+	    unsigned short param = dn_ntohs(*(unsigned short *)(buf+ptr));
+
+	    debuglog(("found Parameter 2: request ID is %d\n", param));
+	    *conn = param;
+	    queued_slave = true;
+	    return true;
+	}
+	else
+	{
+	    ptr += buf[ptr]+1; // Skip over it
+	}
+    }
+    return false;
 }
 
 int LATConnection::pending_msg::send(unsigned char *macaddr)

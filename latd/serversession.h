@@ -21,7 +21,10 @@ class ServerSession: public LATSession
 
   virtual int new_session(unsigned char *remote_node, unsigned char c);
 
- private:
+
+ protected:
   int  send_login_response();
+
+ private:
   int  create_session(unsigned char *remote_node);    
 };

@@ -526,7 +526,7 @@ void add_service(int argc, char *argv[])
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:s")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ")) != EOF)
     {
 	switch(opt) 
 	{

@@ -61,11 +61,14 @@ class LATConnection
     unsigned char  last_message_acked;
     bool           need_ack;
     bool           queued;             // Client for queued connection.
-
+    bool           queued_slave;       // We are a slave connection for a queued client
+    LATConnection *master_conn;        // Client connection we a re slave to
+    
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);
-    static const unsigned int MAX_SESSIONS = 256;
-
+    bool is_queued_reconnect(unsigned char *buf, int len, int *conn);
+	
+    static const unsigned int MAX_SESSIONS = 254;
     enum {CLIENT, SERVER} role;
 
     // A class for keeping pending messages.

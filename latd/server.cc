@@ -517,6 +517,11 @@ void LATServer::read_lat(int sock)
     case LAT_CCMD_ENQUIRE:
 	reply_to_enq(buf, len, (unsigned char *)&sock_info.sll_addr);
 	break;
+
+    case LAT_CCMD_STATUS:
+	debuglog(("got STATUS message\n"));
+	// TODO something with this.
+	break;
     }
 }
 

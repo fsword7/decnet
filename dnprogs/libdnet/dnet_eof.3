@@ -1,0 +1,30 @@
+.TH DNET_EOF 3 "July 28, 1998" "DECnet functions"
+.SH NAME
+dnet_eof \- Is DECnet socket at End of File ?
+.SH SYNOPSIS
+.B #include <netdnet/dn.h>
+.br
+.B #include <netdnet/dnetdb.h>
+.br
+.sp
+.B int dnet_eof (int fd)
+.sp
+.SH DESCRIPTION
+
+.B dnet_eof
+returns 1 if the socket is at EOF (state LL_DISCONNECTING) or 0 if not. 
+It may also return -1 in case of an error. errno will be set accordingly.
+.br
+.B dnet_eof
+is only supported on Linux 2.4.0 or later. On earlier kernels it will
+return -1 and errno will be set to EINVAL.
+
+.SH SEE ALSO
+
+.BR dnet_addr (3),
+.BR dnet_htoa (3),
+.BR dnet_ntoa (3),
+.BR getnodeadd (3),
+.BR getnodebyname (3),
+.BR getnodebyaddr (3),
+.BR setnodeent (3)

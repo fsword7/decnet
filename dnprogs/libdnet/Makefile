@@ -8,15 +8,15 @@ AR=ar
 ARFLAGS=rcs
 MANPAGES3=dnet_htoa.3 dnet_ntoa.3 dnet_addr.3 dnet_conn.3 \
 	getnodeadd.3 getnodebyname.3 setnodeent.3 libdnet.3 \
-	getnodebyaddr.3 dnet_getnode.3
+	getnodebyaddr.3 dnet_getnode.3 dnet_eof.3
 LIBOBJS :=dnet_htoa.o dnet_ntoa.o dnet_addr.o dnet_conn.o getnodeadd.o \
 	getnodebyname.o getnodebyaddr.o setnodeent.o getexecdev.o \
 	getnodename.o setnodename.o dnet_getnode.o dnet_pton.o dnet_ntop.o \
-	dnet_recv.o
+	dnet_recv.o dnet_eof.o
 PICOBJS:=dnet_htoa.po dnet_ntoa.po dnet_addr.po dnet_conn.po getnodeadd.po \
 	getnodebyname.po getnodebyaddr.po setnodeent.po getexecdev.po \
 	getnodename.po setnodename.po dnet_getnode.po dnet_pton.po dnet_ntop.po\
-	dnet_recv.o
+	dnet_recv.po dnet_eof.po
 
 LIBNAME=libdnet
 SHAREDLIB=$(LIBNAME).so.$(VERSION)

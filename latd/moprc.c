@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2002 patrick Caulfield                 patrick@debian.org
+    (c) 2001-2003 patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -182,11 +182,21 @@ int main(int argc, char *argv[])
     int opt;
     int interface = find_interface("eth0");
     int trigger=0;
+    char *env;
     struct ether_addr addr;
 
     if (argc < 2)
     {
         return usage(stdout, argv[0]);
+    }
+
+    /* Look for MOPRC_INTERFACE environment variable */
+    env = getenv("MOPRC_INTERFACE");
+    if (env)
+    {
+	int envif = find_interface(env);
+	if (envif > 1)
+	    interface = envif;
     }
 
 /* Get command-line options */

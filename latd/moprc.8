@@ -25,7 +25,7 @@ will probably need to be root or have privileges to use moprc.
 .TP
 .I \-i
 Selects the ethernet interface to use to connect to the device. By
-default eth0 is used.
+default the value of environment variable MOPRC_INTERFACE or "eth0" is used.
 
 .TP
 .I \-v
@@ -49,6 +49,12 @@ Shows the version of moprc.
 .br
 .br
   moprc -i eth1 08:00:2B:2B:AD:99
+
+.SH ENVIRONMENT VARIABLES
+
+MOPRC_INTERFACE defines the default interface to use if 
+not specified on the command line. If not present the interface "eth0"
+will be used.
 
 .SS SEE ALSO
 .BR latd "(8), " latd.conf "(5), " ethers "(5), " llogin "(1)"

@@ -186,7 +186,7 @@ This distribution also contains uulib from the uudeview suite by Frank Pilhofer
 (fp@informatik.uni-frankfurt.de).
 
 I have supplied it here pre-configured for Linux and it seems OK for me on
-libc5 and 6 systems, Intel, SPARC and Alpha.
+libc5 and 6 systems of various architectures.
 
 If you have problems or you want the rest of the uudeview distribution or want
 to try a later version of uulib you can download it from
@@ -226,9 +226,7 @@ And to everyone who has submitted bug reports - please don't stop.
 SUPPORT
 -------
 These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3 & 2.4 on Intel,
-Alpha and SPARC machines (though not necessarily all combinations!) userland
-compiles on HPPA machines but there seems to be a kernel problem with that
-architecture at the moment.
+Alpha, SPARC and parisc machines (though not necessarily all combinations!).
 
 I encourage all users to join the linux-decnet mailing list by visiting the
 mailing list web site at

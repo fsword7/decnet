@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+    (c) 1999-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -70,16 +70,27 @@ void task_server(int newsock, int verbosity, int secure)
 	close(newsock);
 	return; // Don't do object numbers !
     }
-    
+
 // Convert the name to lower case
     for (i=0; i<strlen(name); i++)
     {
 	if (isupper(name[i])) name[i] = tolower(name[i]);
     }
 
-    
+
     if (verbosity) DNETLOG((LOG_INFO, "got connection for %s\n", name));
-    
+
+    // Reject anything starting / or containing .. as
+    // a security problem
+    if (name[0] == '/' ||
+	strstr(name, ".."))
+    {
+	DNETLOG((LOG_WARNING, "Rejecting %s as a security risk", name));
+	dnet_reject(newsock, DNSTAT_OBJECT, NULL, 0);
+	return;
+    }
+
+
     // Look for the file.
     //
     // a) in the home directory (if not secure)
@@ -146,18 +157,18 @@ static void execute_file(char *name, int newsock, int verbose)
 	exit(-1);
     }
 #else
-    
+
     for (c='p'; c <= 'z'; c++)
     {
 	line = ptyname;
 	line[strlen("/dev/pty")] = c;
 	line[strlen("/dev/ptyC")] = '0';
 	if (stat(line,&stb) < 0)
-	    break; 
+	    break;
 	for (i=0; i < 16; i++)
 	{
 	    line[strlen("/dev/ptyC")]= "0123456789abcdef"[i];
-	    if ( (pty=open(line,O_RDWR)) > 0)	
+	    if ( (pty=open(line,O_RDWR)) > 0)
 	    {
 		gotpty = 1;
 		break;
@@ -166,27 +177,27 @@ static void execute_file(char *name, int newsock, int verbose)
 	if (gotpty) break;
     }
 
-    if (!gotpty) 
+    if (!gotpty)
     {
 	DNETLOG((LOG_ERR, "No ptys available for connection"));
 	return;
     }
-    
+
 
     line[strlen("/dev/")] = 't';
-    if ( (t=open(line,O_RDWR)) < 0) 
+    if ( (t=open(line,O_RDWR)) < 0)
     {
 	DNETLOG((LOG_ERR, "Error connecting to physical terminal: %m"));
 	return;
     }
 #endif
-    
+
     if ( ( pid=fork() ) < 0)
     {
 	DNETLOG((LOG_ERR, "Error forking"));
 	return;
     }
-    
+
     if (pid)  // Parent
     {
 	close(t); // close slave
@@ -195,16 +206,16 @@ static void execute_file(char *name, int newsock, int verbose)
 	copy(pty, newsock, pid);
 	return ;
     }
-    
+
     setsid();
-    
+
     close(pty); close(newsock);
     if (t != 0) dup2 (t,0);
     if (t != 1) dup2 (t,1);
     if (t != 2) dup2 (t,2);
-    
+
     if (t > 2) close(t);
-    
+
     putenv("TERM=vt100");
     execve(name, argv, env);
     DNETLOG((LOG_ERR, "Error executing command"));
@@ -218,9 +229,9 @@ static void sigchild(int s)
     int status, pid;
 
     // Make sure we reap all children
-    do 
-    { 
-	pid = waitpid(-1, &status, WNOHANG); 
+    do
+    {
+	pid = waitpid(-1, &status, WNOHANG);
     }
     while (pid > 0);
 }
@@ -244,13 +255,13 @@ static void copy (int pty, int sock, pid_t pid)
     siga.sa_mask  = ss;
     siga.sa_flags = SA_NOCLDSTOP;
     sigaction(SIGCHLD, &siga, NULL);
-    
+
     for (;;)
     {
 	FD_ZERO(&rdfs);
 	FD_SET(pty,&rdfs);
 	FD_SET(sock,&rdfs);
-	
+
 	if (select(FD_SETSIZE,&rdfs,NULL,NULL,NULL) > 0)
 	{
 	    if (FD_ISSET(pty,&rdfs))

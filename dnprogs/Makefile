@@ -6,6 +6,7 @@ include Makefile.common
 # PKGNAME determines the .tar.gz file name and also is the directory name
 #
 PKGNAME=dnprogs
+DATE="$(shell date +'%Y%m%d')"
 
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask mail phone dnetd dnroute scripts
@@ -56,8 +57,7 @@ dist:
 #
 # Make a snapshot release
 #
-snap:	DATE = $(shell date +'%Y%m%d')
-snap:
+snap:	
 	for i in $(SUBDIRS); do cd $$i; rm -f .depend; cd ..; done	
 	if [ -L ../$(PKGNAME)-$(DATE) ]; then rm ../$(PKGNAME)-$(DATE); fi
 	if [ ! -d ../$(PKGNAME)-$(DATE) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(DATE); fi
@@ -98,6 +98,7 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
+	rm -f dnlogin/*.o dnlogin/dnlogin
 	dpkg-buildpackage -rfakeroot
 
 #

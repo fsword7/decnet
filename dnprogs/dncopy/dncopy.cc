@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -12,13 +12,14 @@
     GNU General Public License for more details.
  ******************************************************************************
  */
+#include <sys/types.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include <netdnet/dn.h>
-#include <sys/types.h>
 #include <regex.h>
 #include "connection.h"
 #include "protocol.h"
@@ -33,11 +34,11 @@ static bool  dntype = false;
 static void usage(char *name, int dntype, FILE *f);
 static file *getFile(char *name, int verbosity);
 static void get_env_as_args(char **argv[], int &argc, char *env);
-static void do_options(int argc, char *argv[], 
+static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &verbose);
-    
+		       int &remove_cr, int &show_stats, int &verbose);
+
 // Start here:
 int main(int argc, char *argv[])
 {
@@ -56,7 +57,10 @@ int main(int argc, char *argv[])
     int   keep_version = FALSE;
     int   last_infile;
     int   remove_cr = 0;
+    int   show_stats = 0;
     char  opt;
+    struct timeval start_tv;
+    unsigned long bytes_copied = 0;
 
     if (argc < 2)
     {
@@ -78,14 +82,14 @@ int main(int argc, char *argv[])
 	do_options(env_argc, env_argv,
 		   rfm, rat,org,
 		   interactive, keep_version, user_bufsize,
-		   remove_cr, verbose);
-	    
+		   remove_cr, show_stats, verbose);
+
 
 // Parse the command-line options
     do_options(argc, argv,
 	       rfm, rat,org,
 	       interactive, keep_version, user_bufsize,
-	       remove_cr, verbose);
+	       remove_cr, show_stats, verbose);
 
     // Work out the buffer size. The default for block transfers is 512
     // bytes unless the user specified otherwise.
@@ -103,10 +107,10 @@ int main(int argc, char *argv[])
 	if (rat == file::RAT_DEFAULT) rat = file::RAT_NONE;
         if (rfm == file::RFM_DEFAULT) rfm = file::RFM_FIX;
     }
-    
+
     // Get the input file name(s)
     num_input_files = argc - optind - 1;
-    
+
     // If the command is dntype then output to stdout
     if (dntype)
     {
@@ -159,8 +163,8 @@ int main(int argc, char *argv[])
     {
 	in = getFile(argv[filenum], verbose);
 
-	// Now we have the first file name, if it is the only input file then 
-	// we can check to see if it is a wildcard. If that is so then the 
+	// Now we have the first file name, if it is the only input file then
+	// we can check to see if it is a wildcard. If that is so then the
 	// output must be a directory.
 	if (in->iswildcard())
 	{
@@ -176,41 +180,47 @@ int main(int argc, char *argv[])
 	    in->perror("Error setting up input link");
 	    return 1;
 	}
-	
+
+	// Start the timer after the link setup. You may think that's
+	// a bit of a cheat, well - tough.
+	if (show_stats)
+	    gettimeofday(&start_tv, NULL);
+
 	// Copy the file(s)
 	do
 	{
 	    int buflen;
 	    int blocks = 0;
 	    int do_copy = !interactive;
-	    
+
+
 	    // Open the input file
 	    if (in->open("r"))
 	    {
 		in->perror("Error opening file for input");
 		return 1;
 	    }
-	    
-	    if (interactive) 
+
+	    if (interactive)
 	    {
 		char response[80];
-		
+
 		if (dntype)
 		    printf("Type %s ? ",
 		       in->get_printname());
 		else
 		    printf("Copy %s to %s ? ",
-			   in->get_printname(), 
+			   in->get_printname(),
 			   out->get_printname(in->get_basename(keep_version)));
-		
+
 		fgets(response, sizeof(response), stdin);
 		if (tolower(response[0]) == 'y')
 		    do_copy = TRUE;
 	    }
-	    
+
 	    if (do_copy)
 	    {
-		// If the output is a directory so we need to add the 
+		// If the output is a directory so we need to add the
 		// input file's basename to it.
 		if (out->isdirectory())
 		{
@@ -230,14 +240,14 @@ int main(int argc, char *argv[])
 			return 1;
 		    }
 		}
-		
+
 		if (dntype && verbose) printf("\n%s\n\n", in->get_printname());
 
 		// Copy the data
 		while ( ((buflen = in->read(buf, bufsize))) >= 0 )
 		{
 		    // Remove trailing CRs if required
-		    if (remove_cr && 
+		    if (remove_cr &&
 			org == file::MODE_RECORD &&
 			buf[buflen-2] == '\r')
 		    {
@@ -253,8 +263,9 @@ int main(int argc, char *argv[])
 			return 3;
 		    }
 		    blocks++;
+		    bytes_copied += buflen;
 		}
-		
+
 		// If we finished with an error then display it
 		if (!in->eof())
 		{
@@ -262,7 +273,7 @@ int main(int argc, char *argv[])
 		    out->close();
 		    return 3;
 		}
-		
+
 		// Set the file protection.
 		if (out->set_umask(in->get_umask()) && !dntype)
 		{
@@ -274,14 +285,33 @@ int main(int argc, char *argv[])
 		// Log the operation if we were asked
 		if (verbose && !dntype)
 		    printf("'%s' copied to '%s', %d %s\n",
-			   in->get_printname(), 
-			   out->get_printname(), 
+			   in->get_printname(),
+			   out->get_printname(),
 			   blocks,
 			   in->get_format_name());
+
 	    }
 	    in->close();
 	}
 	while(in->next());
+    }
+
+    // Show stats
+    if (show_stats)
+    {
+	struct timeval stop_tv;
+	long centi_seconds;
+	double rate;
+	double show_secs;
+	
+	gettimeofday(&stop_tv, NULL);
+	centi_seconds = (stop_tv.tv_sec - start_tv.tv_sec) * 100 +
+	    (stop_tv.tv_usec - start_tv.tv_usec) / 10000;
+	show_secs = (double)centi_seconds/100.0;
+	
+	rate = (double)(bytes_copied/1024) / (double)centi_seconds * 100.0;
+	printf("Sent %ld bytes in %1.2f seconds: %4.2fK/s\n",
+	       bytes_copied, show_secs, rate);
     }
 }
 
@@ -301,6 +331,7 @@ static void usage(char *name, int dntype, FILE *f)
     fprintf(f, " Options\n");
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -v           verbose operation.\n");
+    fprintf(f, "  -s           show transfer statistics.\n");
     if (!dntype)
     {
         fprintf(f, "  -i           interactive. Prompt before copying\n");
@@ -322,7 +353,7 @@ static void usage(char *name, int dntype, FILE *f)
     fprintf(f, "\n");
     fprintf(f, "NOTE: It is a good idea to put VMS filenames in single quotes\n");
     fprintf(f, "to stop the shell from swallowing special characters such as double\n");
-    fprintf(f, "quotes and dollar signs. eg:\n");    
+    fprintf(f, "quotes and dollar signs. eg:\n");
     fprintf(f, "\n");
     fprintf(f, "%s 'mynode\"patrick password\"::sys$manager:sylogin.com'", name);
     if (!dntype)
@@ -357,7 +388,7 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
     // Take a copy of the arglist as we mangle it.
     char *arglist = (char *)malloc(strlen(env)+1);
     strcpy(arglist, env);
-    
+
 // Quickly run through the variable to see how many options there are.
     ptr = strtok(arglist, " ");
     while(ptr)
@@ -371,7 +402,7 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
     char **pargv = *argv;
     strcpy(arglist, env);
 
-// Now build the array of args, starting at 1 
+// Now build the array of args, starting at 1
 // 'cos 0 is the program name, remember?
     count = 1;
     ptr = strtok(arglist, " ");
@@ -387,18 +418,18 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
 }
 
 // Process the options
-static void do_options(int argc, char *argv[], 
+static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &verbose)
-{   
+		       int &remove_cr, int &show_stats, int &verbose)
+{
     int opt;
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kim:")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kism:")) != EOF)
     {
 	switch(opt) {
-	case 'h': 
+	case 'h':
 	    usage(argv[0], dntype, stdout);
 	    exit(0);
 
@@ -406,7 +437,7 @@ static void do_options(int argc, char *argv[],
 	    usage(argv[0], dntype, stderr);
 	    exit(0);
 
-	case 'v': 
+	case 'v':
 	    verbose++;
 	    break;
 
@@ -447,9 +478,13 @@ static void do_options(int argc, char *argv[],
 		exit(1);
 	    }
 	    break;
-	    
+
 	case 'i':
 	    interactive++;
+	    break;
+
+	case 's':
+	    show_stats++;
 	    break;
 
 	case 'k':

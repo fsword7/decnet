@@ -1,9 +1,11 @@
-0.8
+0.8 25th July 2000
 ------------------
 - Don't die if a terminal server user presses ^C
 - Added groups for incoming and outgoing services
 - latcp is no longer on the path in latd.conf. Instead use the environment
   variable $LATCP to invoke latcp.
+- Added support for queued outgoing connections
+- Don't accept services until latcp has finished
 
 
 

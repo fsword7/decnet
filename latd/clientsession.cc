@@ -238,10 +238,8 @@ void ClientSession::do_read()
 void ClientSession::got_connection(unsigned char _remid)
 {
     unsigned char buf[1600];
-    unsigned char slotbuf[256];
     LAT_SessionReply *reply = (LAT_SessionReply *)buf;
     int ptr = 0;
-    int slotptr = 0;
 
     debuglog(("ClientSession:: got connection for rem session %d\n", _remid));
     LATServer::Instance()->set_fd_state(master_fd, false);
@@ -255,15 +253,18 @@ void ClientSession::got_connection(unsigned char _remid)
     reply->slot.local_session = 0;
     reply->slot.remote_session = 0;
 
-    slotbuf[slotptr++] = 0x26; // Flags
-    slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
-    slotbuf[slotptr++] = 0x11; // Start output char XON
-    slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
-    slotbuf[slotptr++] = 0x11; // Start input char  XON
-
     // data_b slots count against credit
     if (credit)
     {
+	unsigned char slotbuf[256];
+	int slotptr = 0;
+
+	slotbuf[slotptr++] = 0x26; // Flags
+	slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
+	slotbuf[slotptr++] = 0x11; // Start output char XON
+	slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
+	slotbuf[slotptr++] = 0x11; // Start input char  XON
+	
 	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
 	credit--;
     }

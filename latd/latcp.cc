@@ -786,7 +786,6 @@ void start_latd(int argc, char *argv[])
 	char *newargv[argc+1];
 	char *newenv[4];
 	int   i;
-	char  latcp_proc[PATH_MAX];
 	char  latcp_bin[PATH_MAX];
 	char  latcp_env[PATH_MAX+7];
 
@@ -795,6 +794,8 @@ void start_latd(int argc, char *argv[])
 // /proc/<pid>/exe
 
 #ifdef __linux__
+	char  latcp_proc[PATH_MAX];
+
 	sprintf(latcp_proc, "/proc/%d/exe", getpid());
 	if ( (i=readlink(latcp_proc, latcp_bin, sizeof(latcp_bin))) == -1)
 	{

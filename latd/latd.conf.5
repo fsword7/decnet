@@ -37,8 +37,11 @@ $LATCP -m 30
 # Add another login service
 $LATCP -A -a LINUX -r 100
 
-# Add a reverse LAT service to a printer on a DECserver
-$LATCP -A -p /dev/lat/printer -Hdecserver -Vdecserver
+# Add a queued reverse LAT service to a printer on a DECserver
+$LATCP -A -p /dev/lat/printer -Hdecserver -Vdecserver -Q
+
+# Only advertise our service in groups 1-10 and 200
+$LATCP -G 1-10,200
 
 exit
 

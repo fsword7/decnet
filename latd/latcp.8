@@ -24,7 +24,8 @@ runs the file
 as a shell script (using /bin/sh). Any customisations you need to do to the
 LAT system should be put in this file as latcp commands. The latcp command
 should be invoked using the environment variable $LATCP.
-An example latd.conf file is shipped with the package.
+An example latd.conf file is shipped with the package and shown in the man page
+.B latd.conf(5).
 .br
 .B latcp -s 
 passes any extra switches onto latd itself so you can customise latd this way,
@@ -42,11 +43,21 @@ The syntax for creating a login service is:
 .br
 latcp -A -a service [-i description] [-r rating] [-s]
 .br
+The 
+.B -s
+flag indicates that the service rating is static. Without this the
+service rating is regarded as a maximum and will be reduced according
+the the load average of the machine.
+.br
 The syntax for creating a reverse LAT port is:
 .br
-latcp -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]
+latcp -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q]
 .br
-The tty name should start /dev/lat and must not exist.
+The tty name should start /dev/lat and must not exist. The 
+.B -Q
+flag indicates that connections to the service is queued. If you
+connect to a queued service and it is busy then your connection
+will be forced to wait until it is available.
 
 .TP
 .I \-D
@@ -134,8 +145,9 @@ Displays latd configuration or the learned service table.
 on it's own will display the latd configuration and the services
 that are advertised by this node.
 .B -d -l
-will display the learned service table.
-
+will display the learned service table. Adding 
+.B -v
+will show the learned service table in a verbose manner.
 
 .TP
 .I \-?
@@ -156,9 +168,12 @@ Disable groups using syntax as above.
 
 .TP
 .I \-U
-Add to the list of groups that the server will accept for incoming
-services. this affects the services that are available using the
+Add to the list of groups that the server will accept when listening
+for services. this affects the services that are available using the
 "reverse LAT" feature. See -G for the syntax.
+.br
+If you are using the "responder" feature it's best make sure that this
+group list contains all the groups that are likely to be used on the LAN.
 
 .TP
 .I \-u

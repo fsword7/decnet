@@ -1,7 +1,7 @@
 /*
     read.cc from librms
 
-    Copyright (C) 1999 Patrick Caulfield       patrick@pandh.demon.co.uk
+    Copyright (C) 1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

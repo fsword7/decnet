@@ -97,9 +97,16 @@ unsigned char *LATServer::get_local_node(void)
 	struct utsname uts;
 	uname(&uts);
 	if (strchr(uts.nodename, '.'))
-	{
 	    *strchr(uts.nodename, '.') = '\0';
-	}
+
+        // This gets rid of the name-Computer bit on Darwin
+	if (strchr(uts.nodename, '-'))
+	    *strchr(uts.nodename, '-') = '\0';
+
+	// LAT node names must be <= 16 characters long
+	if (strlen(uts.nodename) > 16)
+	    uts.nodename[16] = '\0';
+
 	strcpy((char *)local_name, uts.nodename);
 
 	// Make it all upper case

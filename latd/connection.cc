@@ -21,6 +21,7 @@
 #include <string>
 #include <strstream>
 #include <iterator>
+#include <iomanip>
 
 #include "lat.h"
 #include "utils.h"
@@ -891,4 +892,14 @@ bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
 int LATConnection::pending_msg::send(unsigned char *macaddr)
 {
     return LATServer::Instance()->send_message(buf, len, macaddr);
+}
+
+void LATConnection::show_client_info(ostrstream &output)
+{
+    if (role == SERVER) return; // No client info for servers!
+
+    output << lta_name << setw(24-strlen((char*)lta_name)) << " " << servicename
+	   << setw(16-strlen((char*)servicename)) << " " 
+	   << remnode << setw(16-strlen((char*)remnode)) << " " << portname
+	   << setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No") << endl;
 }

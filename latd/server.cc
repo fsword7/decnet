@@ -1160,7 +1160,14 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
 	output << setw(16) << i->get_name() << setw(15-i->get_name().size()) << " " << "Enabled" << setw(6) << i->get_rating() <<
 	    (i->get_static()?"    ":" D  ") << i->get_id() << endl;
     }
+
+    output << endl << "Port                    Node            Service         Remote Port     Queued" << endl;
     
+    // Show allocated ports
+    for (int i=1; i< MAX_CONNECTIONS; i++)
+    {
+	if (connections[i]) connections[i]->show_client_info(output);
+    }	
     
     // NUL-terminate it.
     output << endl << ends;

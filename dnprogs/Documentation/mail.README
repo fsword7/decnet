@@ -92,7 +92,7 @@ You can also send to any SMTP accessible email address, suppose your Linux
 box is connected to the internet and is called 'linux', you can mail me from 
 VMS by using the following address:
 
-linux::"patrick@pandh.demon.co.uk"
+linux::"patrick@tykepenguin.com"
 
 
 Sending mail from Linux to VMS
@@ -140,5 +140,4 @@ mail to the gateway - it seems that it doesn't like the multi-part names.
 dtmail and mailx seem to work fine though so use those (mailx is a 
 proper replacement for mail anyway).
 
-With Eduardo's kernel, binary files will only work if you start vmsmaild - they
-will not work if you run vmsmaild from dnetd.
+With Eduardo's kernel, binary files will only work if you start vmsmaild seperately - they will not work if you run vmsmaild from dnetd.

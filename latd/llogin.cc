@@ -61,14 +61,16 @@ static int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 static bool send_msg(int fd, int cmd, char *buf, int len);
 static bool open_socket(bool);
 static int  terminal(int latfd, int, int, int, int);
-static int  do_use_port(char *service, int quit_char, int crlf, int bsdel, int lfvt);
+static int  do_use_port(char *service, int quit_char, int crlf, int bsdel, int lfvt, int nolock);
+
 static int usage(char *cmd)
 {
     printf ("Usage: llogin [<option>] <service>\n");
     printf ("     where option is one of the following:\n");
     printf ("       -d         show learned services\n");
     printf ("       -d -v      show learned services verbosely\n");
-    printf ("       -p         connect to a local port rather than a service\n");
+    printf ("       -p         connect to a local device rather than a service\n");
+    printf ("       -L         Don't do device locking when using -p\n");
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
     printf ("       -r <port>  remote port name\n");
@@ -100,6 +102,7 @@ int main(int argc, char *argv[])
     int use_port = 0;
     int is_queued = 0;
     int quit_char = 0x1d; // Ctrl-]
+    int nolock = 0;
 
     if (argc == 1)
     {
@@ -109,7 +112,7 @@ int main(int argc, char *argv[])
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhlbQWH:R:r:q:n:w:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQWLH:R:r:q:n:w:")) != EOF)
     {
 	switch(opt)
 	{
@@ -127,6 +130,10 @@ int main(int argc, char *argv[])
 
 	case 'l':
 	    lfvt = 1;
+	    break;
+
+	case 'L':
+	    nolock = 1;
 	    break;
 
 	case 'p':
@@ -188,7 +195,7 @@ int main(int argc, char *argv[])
     // This is just a bit like microcom...
     if (use_port)
     {
-	do_use_port(service, quit_char, crlf, bsdel, lfvt);
+	do_use_port(service, quit_char, crlf, bsdel, lfvt, nolock);
 	return 0;
     }
 
@@ -427,16 +434,19 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
     return 0;
 }
 
-static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt)
+static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt, int nolock)
 {
     int termfd;
     struct termios old_term;
     struct termios new_term;
 
-    if (dev_lock(portname))
+    if (!nolock)
     {
-	fprintf(stderr, "Device %s is locked\n", portname);
-	return -1;
+	if (dev_lock(portname))
+	{
+	    fprintf(stderr, "Can't lock Device %s\n", portname);
+	    return -1;
+	}
     }
 
     termfd = open(portname, O_RDWR);
@@ -466,8 +476,8 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
 
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
-	close(termfd);
+    close(termfd);
 
-	dev_unlock(portname, getpid());
+    if (!nolock) dev_unlock(portname, getpid());
     return 0;
 }

@@ -58,6 +58,7 @@ static char last_message[1500];
 static int  last_message_len;
 static int  show_info = 0;
 static int  do_moprc(char *, int);
+static int  send_boot(char *macaddr, int interface);
 
 static int usage(FILE *f, char *cmd)
 {
@@ -67,12 +68,14 @@ static int usage(FILE *f, char *cmd)
     fprintf(f, "   -h         Show this usage message\n");
     fprintf(f, "   -V         Show the version of moprc\n");
     fprintf(f, "   -i         Ethernet interface to use (default eth0)\n");
+    fprintf(f, "   -t         Trigger (reboot) the server\n");
     fprintf(f, "   -v         Show target information\n");
     fprintf(f, "\n");
     fprintf(f, "Node names are read from /etc/ethers\n");
     fprintf(f, "MAC addresses in colon-seperated form. eg:\n");
     fprintf(f, "\n%s -i eth1 08:00:2B:2B:AD:99\n", cmd);
-    fprintf(f, "\nYou will probably need to be root to run this program.\n");
+    if (geteuid() != 0)
+	fprintf(f, "\nYou will probably need to be root to run this program.\n");
     fprintf(f, "\n");
     return -1;
 }
@@ -178,6 +181,7 @@ int main(int argc, char *argv[])
 {
     int opt;
     int interface = find_interface("eth0");
+    int trigger=0;
     struct ether_addr addr;
 
     if (argc < 2)
@@ -188,7 +192,7 @@ int main(int argc, char *argv[])
 /* Get command-line options */
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hVvi:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hVvti:")) != EOF)
     {
 	switch(opt)
 	{
@@ -200,6 +204,10 @@ int main(int argc, char *argv[])
 
 	case 'v':
 	    show_info++;
+	    break;
+
+	case 't':
+	    trigger++;
 	    break;
 
 	case 'i':
@@ -243,6 +251,11 @@ int main(int argc, char *argv[])
 
     mop_socket = open_mop_socket(interface);
     if (mop_socket == -1) exit(4);
+
+    if (trigger)
+    {
+	return send_boot(addr.ether_addr_octet, interface);
+    }
 
     return do_moprc(addr.ether_addr_octet, interface);
 }
@@ -312,6 +325,19 @@ static int send_reqid(char *macaddr, int interface)
     buf[2] = MOPRC_CMD_REQUESTID;
 
    return  send_message(buf, 7, interface, macaddr);
+}
+
+static int send_boot(char *macaddr, int interface)
+{
+    unsigned char buf[32];
+    memset(buf, 0, sizeof(buf));
+
+    buf[0] = 12;
+    buf[1] = 0;
+    buf[2] = MOPRC_CMD_BOOT;
+    buf[13] = 0xFF;
+
+   return  send_message(buf, 14, interface, macaddr);
 }
 
 static int send_data(char *data, int len, char *macaddr, int interface)
@@ -388,7 +414,7 @@ static int show_system_info(unsigned char *info, int len)
 
 		/* Other stuff */
 	    case 201:
-		printf("Operating Syetem:    ");
+		printf("Operating System:    ");
 		print_ascic(&info[index], infolen);
 		break;
 	    case 202:

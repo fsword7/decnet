@@ -20,7 +20,7 @@
 #include "utils.h"
 
 void add_string(unsigned char *packet, int *ptr, 
-		unsigned char *string)
+		const unsigned char *string)
 {
     int len = strlen((char *)string);
     

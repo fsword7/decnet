@@ -109,6 +109,55 @@ void LATServer::alarm_signal(int sig)
 
 }
 
+
+// Send ENQUIRY for a service - mainly needed for DS90L servers that
+// don't advertise.
+void LATServer::send_enq(unsigned char *service)
+{
+    unsigned char packet[1600];
+    LAT_Enquiry *enqmsg = (LAT_Enquiry *)packet;
+    int ptr = sizeof(LAT_Enquiry);
+
+    enqmsg->cmd = LAT_CCMD_ENQUIRE;
+    enqmsg->dummy = 0;
+    enqmsg->hiver = 5;
+    enqmsg->lover = 5;
+    enqmsg->latver = 5;
+    enqmsg->latver_eco = 2;
+    enqmsg->mtu = 1500;
+    enqmsg->id  = 1; /* Something here */
+    enqmsg->retrans_timer = 2;
+
+    add_string(packet, &ptr, service);
+    packet[ptr++] = 1; /* Length of group data */
+    packet[ptr++] = 1; /* Group mask */
+
+    add_string(packet, &ptr, (unsigned char*)"GRILLOCKS");
+
+    unsigned char addr[6];
+    /* This is the LAT multicast address */
+    addr[0]  = 0x09;
+    addr[1]  = 0x00;
+    addr[2]  = 0x2b;
+    addr[3]  = 0x00;
+    addr[4]  = 0x00;
+    addr[5]  = 0x0f;
+
+    for (int i=0; i<num_interfaces;i++)
+    {
+	if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
+	{
+	    interface_error(interface_num[i], errno);
+	}
+	else
+	{
+	    interface_errs[interface_num[i]] = 0; // Clear errors
+	}
+    }
+
+
+}
+
 /* Called on the multicast timer - advertise our service on the LAN */
 void LATServer::send_service_announcement(int sig)
 {
@@ -465,7 +514,7 @@ void LATServer::read_lat(int sock)
     len = iface->recv_packet(sock, ifn, macaddr, buf, sizeof(buf));
     if (len <= 0)
     {
-	if (errno != EINTR)
+	if (errno != EINTR && errno != EAGAIN)
 	{
 	    syslog(LOG_ERR, "recvmsg: %m");
 	    return;
@@ -526,8 +575,13 @@ void LATServer::read_lat(int sock)
 
     case LAT_CCMD_CONACK:
         {
+	    LATConnection *conn = NULL;
 	    debuglog(("Got connect ACK for %d\n", header->remote_connid));
-	    LATConnection *conn = connections[header->remote_connid];
+	    if (header->remote_connid <= MAX_CONNECTIONS)
+	    {
+		conn = connections[header->remote_connid];
+	    }
+
 	    if (conn)
 	    {
 		conn->got_connect_ack(buf);
@@ -584,6 +638,10 @@ void LATServer::read_lat(int sock)
 
     case LAT_CCMD_ENQUIRE:
 	reply_to_enq(buf, len, ifn, macaddr);
+	break;
+
+    case LAT_CCMD_ENQREPLY:
+	got_enqreply(buf, len, ifn, macaddr);
 	break;
 
     case LAT_CCMD_STATUS:
@@ -912,6 +970,27 @@ void LATServer::delete_connection(int conn)
     dead_connection_list.push_back(conn);
 }
 
+// Got a reply from a DS90L - add it to the services list
+void LATServer::got_enqreply(unsigned char *buf, int len, int interface, unsigned char *macaddr)
+{
+    int ptr = 23;
+
+/* Dont know the format of this packet before this... */
+
+    ptr += buf[ptr++]; /* Skip group codes; */
+
+    unsigned char nodename[32];
+    get_string(buf, &ptr, nodename);
+
+/* Add it as a service. This is, technically, wrong but it will
+   do for the mo. */
+    LATServices::Instance()->add_service(std::string((char*)nodename),
+					 std::string((char*)nodename),
+					 std::string((char*)"DS90L"),
+					 0,
+					 interface, macaddr);
+}
+
 // Add services received from a service announcement multicast
 void LATServer::add_services(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
@@ -1165,7 +1244,7 @@ int LATServer::get_service_info(char *name, string &cmd, int &maxcon, uid_t &uid
     // Look for it.
     std::list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
-    if (sii != servicelist.end()) 
+    if (sii != servicelist.end())
     {
 	cmd = sii->get_command();
 	maxcon = sii->get_max_connections();
@@ -1384,10 +1463,10 @@ int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *
 }
 
 
-// Called when activity is detected on a LocalPort - we connect it 
+// Called when activity is detected on a LocalPort - we connect it
 // to the service.
 int LATServer::make_port_connection(int fd, LocalPort *lport,
-				    const char *service, const char *rnode, 
+				    const char *service, const char *rnode,
 				    const char *port,
 				    const char *localport,
 				    const char *password,
@@ -1449,7 +1528,7 @@ int LATServer::make_port_connection(int fd, LocalPort *lport,
     debuglog(("localport for %s has connid %d\n", service, connid));
 
     // TODO: Different call into Connection()
-    ret = connections[connid]->create_localport_session(fd, lport, service, 
+    ret = connections[connid]->create_localport_session(fd, lport, service,
 							port, localport, password);
 
     return ret;
@@ -1497,7 +1576,7 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
 
     output << "Service Responder : " << (responder?"Enabled":"Disabled") << std::endl;
     output << "Interfaces        : ";
-    for (int i=0; i<num_interfaces; i++) 
+    for (int i=0; i<num_interfaces; i++)
     {
 	output << iface->ifname(interface_num[i]) << " ";
     }

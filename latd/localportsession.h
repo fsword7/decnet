@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@ class localportSession: public lloginSession
 
     virtual ~localportSession();
     virtual void do_read();
-    
+
+
  private:
     LocalPort *localport;
 

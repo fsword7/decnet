@@ -38,6 +38,20 @@ typedef struct
 
 } LAT_Header;
 
+typedef struct
+{
+  unsigned char  cmd             __attribute__ ((packed));
+  unsigned char  dummy           __attribute__ ((packed));
+  unsigned char  hiver           __attribute__ ((packed)); // Highest protocol version
+  unsigned char  lover           __attribute__ ((packed)); // Lowest protocol version
+  unsigned char  latver          __attribute__ ((packed)); // LAT version No. (5)
+  unsigned char  latver_eco      __attribute__ ((packed)); // LAT version No. (LSB)
+  unsigned short mtu             __attribute__ ((packed)); // 1500
+  unsigned short id              __attribute__ ((packed));
+  unsigned short retrans_timer   __attribute__ ((packed));
+
+} LAT_Enquiry;
+
 // Service Announcement message
 typedef struct
 {

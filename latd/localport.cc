@@ -78,6 +78,10 @@ void LocalPort::init_port()
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return;
 
+    // Send a request for the service if we are queued so that
+    // by the time the user comes to use this port, we know about it.
+    LATServer::Instance()->send_enq((unsigned char *)remnode.c_str());
+
     // Set terminal characteristics
     struct termios tio;
     tcgetattr(master_fd, &tio);

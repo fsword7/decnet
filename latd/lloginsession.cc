@@ -59,6 +59,8 @@ int lloginSession::new_session(unsigned char *_remote_node,
     strcpy(remote_port, port);
     strcpy(remote_pass, password);
 
+    debuglog(("lloginSession::new_session\n"));
+
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 

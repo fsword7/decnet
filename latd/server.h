@@ -53,6 +53,7 @@ class LATServer
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
     int   find_connection_by_node(const char *node);
+    void  send_enq(unsigned char *);
 
  private:
     LATServer():
@@ -94,6 +95,7 @@ class LATServer
     int   get_next_connection_number();
 
     void  add_services(unsigned char *, int, int, unsigned char *);
+    void  got_enqreply(unsigned char *, int, int, unsigned char *);
     void  accept_latcp(int);
     void  accept_llogin(int);
     void  read_latcp(int);

@@ -14,7 +14,7 @@
 
 
 void add_string(unsigned char *packet, int *ptr, 
-		unsigned char *string);
+		const unsigned char *string);
 
 void get_string(unsigned char *packet, int *ptr, 
 		unsigned char *string);

@@ -966,9 +966,9 @@ int LATConnection::create_localport_session(int fd, LocalPort *lport,
 // Create a localportSession for a /dev/lat port
     int newsessionnum = next_session_number();
 
-    LATSession *newsession = new localportSession(*this, lport, 0, newsessionnum,
+    lloginSession *newsession = new localportSession(*this, lport, 0, newsessionnum,
 						  (char *)localport, fd);
-    if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, 0) == -1)
+    if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, (char *)password, 0) == -1)
     {
 	delete newsession;
 	return -1;

@@ -264,7 +264,7 @@ int LinuxInterfaces::close_connection(int ifn)
     if (setsockopt(fd, SOL_PACKET, PACKET_DROP_MEMBERSHIP,
 		   &pack_info, sizeof(pack_info)))
     {
-	syslog(LOG_ERR, "can't add remove socket multicast : %m\n");
+	syslog(LOG_ERR, "can't remove socket multicast : %m\n");
 	return -1;
     }
     return 0;

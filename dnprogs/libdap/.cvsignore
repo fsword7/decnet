@@ -1,0 +1,7 @@
+*.o
+*.po
+*~
+.depend
+Makefile.bak
+core
+libdap*

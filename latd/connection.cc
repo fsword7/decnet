@@ -121,13 +121,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     unsigned int command;
     int  i;
     int  newsessionnum;
-    LATSession *newsession;
     int  ptr = sizeof(LAT_Header);
-    int  replylen   = 0;
-    bool replyhere  = false;
-    int  replyslots = 1;
-    unsigned char retcmd = 0;
-    LAT_SessionCmd *msg = (LAT_SessionCmd *)buf;
+    LATSession *newsession;    
+    LAT_SessionCmd *msg = (LAT_SessionCmd *)buf;  
+    int num_replies = 0;
+    LAT_SlotCmd reply[4];
+    bool replyhere = false;
     
     debuglog(("process_session_cmd: %d slots, %d bytes\n",
              msg->header.num_slots, len));
@@ -161,9 +160,14 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     // No blocks? just ACK it (if we're a server)
     if (msg->header.num_slots == 0)
     {
-	if (role == SERVER) replyhere=true;
-
-	replyslots=0;
+	if (role == SERVER) 
+	{
+	    reply[0].remote_session = msg->slot.local_session;
+	    reply[0].local_session = msg->slot.remote_session;
+	    reply[0].length = 0;
+	    reply[0].cmd = 0;
+	    replyhere = true;
+	}
 
 	LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(buf+ptr);
 	unsigned char credits = slotcmd->cmd & 0x0F;
@@ -177,10 +181,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	}       
 	if (replyhere && session && session->get_remote_credit() < 1)
 	{
-	    retcmd |= 15;
+	    reply[0].cmd |= 15; // Add credit
 	    session->inc_remote_credit(15);
 	}
-
     }
     else
     {
@@ -209,7 +212,15 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                     if (session->send_data_to_process(buf+ptr, msglen))
                     {
                         // No echo.
-                        if (role == SERVER) replyhere = true;
+                        if (role == SERVER) 
+			{
+			    reply[num_replies].remote_session = slotcmd->local_session;
+			    reply[num_replies].local_session = slotcmd->remote_session;
+			    reply[num_replies].length = 0;
+			    reply[num_replies].cmd = 0;
+//			    num_replies++;
+			    replyhere = true;
+			}
                     }
                     // We are expecting an echo - don't send anything now
 		    // but still increment the remote credit if the other end
@@ -217,20 +228,22 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		    debuglog(("Remote credit is %d\n", session->get_remote_credit()));
 		    if (session->get_remote_credit() <= 2)
 		    {
-			replyhere = true;
-			retcmd |= 15;
+			reply[num_replies].remote_session = slotcmd->local_session;
+			reply[num_replies].local_session = slotcmd->remote_session;
+			reply[num_replies].length = 0;
+			reply[num_replies].cmd = 15; // Just credit
+			num_replies++;
 			session->inc_remote_credit(15);
-// TODO BUG: This will fail if more than one slot needs more credit
-			msg->slot.remote_session = slotcmd->remote_session;
-			msg->slot.local_session  = slotcmd->local_session;
 		    }
                 }
                 else
                 {
                     // An error - send a disconnect.
-		    replyhere  = true;
-		    replyslots = 1;
-		    retcmd = 0xd3; // Invalid slot recvd
+		    reply[num_replies].remote_session = slotcmd->local_session;
+		    reply[num_replies].local_session = slotcmd->remote_session;
+		    reply[num_replies].length = 0;
+		    reply[num_replies].cmd = 0xD3; // Invalid slot recvd
+		    num_replies++;
                 }
             }
             break;
@@ -247,9 +260,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    debuglog(("Got queued reconnect for non-existant request ID\n"));
 
 			    // Not us mate...
-			    retcmd = 0xd7;  // No such service
-			    replyslots = 1;
-			    replyhere = true;
+			    reply[num_replies].remote_session = slotcmd->local_session;
+			    reply[num_replies].local_session = slotcmd->remote_session;
+			    reply[num_replies].length = 0;
+			    reply[num_replies].cmd = 0xD7; // No such service
+			    num_replies++;
 			}
 			else
 			{
@@ -284,10 +299,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			
 			if (!LATServer::Instance()->is_local_service((char *)name))
 			{
-			    // Not us mate...
-			    retcmd = 0xd7;  // No such service
-			    replyslots = 1;
-			    replyhere = true;
+			    reply[num_replies].remote_session = slotcmd->local_session;
+			    reply[num_replies].local_session = slotcmd->remote_session;
+			    reply[num_replies].length = 0;
+			    reply[num_replies].cmd = 0xD7; // No such service
+			    num_replies++;
 			}
 			else
 			{
@@ -320,7 +336,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		// Data_b message - port information
 		if (session)
 		    session->set_port((unsigned char *)slotcmd);
-		replyhere=true;
+
+		reply[num_replies].remote_session = slotcmd->local_session;
+		reply[num_replies].local_session = slotcmd->remote_session;
+		reply[num_replies].length = 0;
+		reply[num_replies].cmd = 0;
+		num_replies++;
 		break;
 	  
 	    case 0xb0:
@@ -339,11 +360,16 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		{
 		    queued_slave = false;
 		}
-#if 0
-		retcmd = 0xd0;
-		replyslots = 1;
-		replyhere = true;
-#endif
+
+		// If we have no sessions left then disconnect
+		if (num_clients() == 0)
+		{
+		    reply[num_replies].remote_session = slotcmd->local_session;
+		    reply[num_replies].local_session = slotcmd->remote_session;
+		    reply[num_replies].length = 0;
+		    reply[num_replies].cmd = 0xD1;/* No more slots on circuit */
+		    num_replies++;
+		}
 		break;	  
 
 	    default:
@@ -362,28 +388,27 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     {
 	debuglog(("Sending response because we were told to (%x)\n", msg->header.cmd));
 	replyhere = true;
-	replyslots=0;
-
     }
     last_ack_number = last_message_acked;
  
-    // ACK the message if we did nothing else
-    if (replyhere)
+    // Send any replies
+    if (replyhere || num_replies)
     {
+	debuglog(("Sending %d slots in reply\n", num_replies));
 	unsigned char replybuf[1600];
-	LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
+	LAT_Header *header  = (LAT_Header *)replybuf;
+	ptr = sizeof(LAT_Header);
 	
-	reply->header.cmd          = LAT_CCMD_SREPLY;
-	reply->header.num_slots    = replyslots;
-	reply->slot.remote_session = msg->slot.local_session;
-	reply->slot.local_session  = msg->slot.remote_session;
-	reply->slot.length         = replylen;
-	reply->slot.cmd            = retcmd;
+	header->cmd       = LAT_CCMD_SREPLY;
+	header->num_slots = num_replies;
+	if (role == CLIENT) header->cmd |= 2; // To Host
 
-	if (role == CLIENT) reply->header.cmd |= 2; // To Host
-
-	ptr = sizeof(LAT_SessionReply);
-	memcpy(replybuf+ptr, replybuf, replylen);
+	if (num_replies == 0) num_replies = 1;
+	for (int i=0; i < num_replies; i++)
+	{
+	    memcpy(replybuf + ptr, &reply[i], sizeof(LAT_SlotCmd));
+	    ptr += sizeof(LAT_SlotCmd); // Already word-aligned
+	}
 
 	send_message(replybuf, ptr, REPLY);
 	return true;
@@ -704,6 +729,13 @@ void LATConnection::remove_session(unsigned char id)
     {
         delete sessions[id];
 	sessions[id] = NULL;
+    }
+
+// TODO: Disconnect & Remove connection if no sessions active...
+    if (num_clients() == 0)
+    {
+//  //	send_disconnect_error(3, msg???, interface, macaddr)
+	LATServer::Instance()->delete_connection(num);
     }
 }
 

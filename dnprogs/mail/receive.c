@@ -561,6 +561,9 @@ int send_body(int dnsock, FILE *unixfile)
 	do
 	{
 	    stat = read(dnsock, buf, sizeof(buf));
+            if (stat == -1 && errno == EINTR)
+                continue;
+
 	    if (stat == -1 && errno != ENOTCONN)
 	    {
 		DNETLOG((LOG_ERR, "Error reading message text: %m\n"));

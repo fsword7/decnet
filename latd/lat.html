@@ -8,7 +8,6 @@
   <title>DECnet for Linux - LAT</title>
 </head>
  <body text="#000000" bgcolor="#ffffff" link="#0000ef" vlink="#51188e" alink="#ff0000">
- &nbsp;
 <table cols="2" width="100%" nosave="">
    <tbody>
      <tr nosave="">
@@ -17,10 +16,10 @@
 
       <p><font size="+3">A project to provide DECnet phase IV connectivity
  forLinux</font><br>
- &nbsp;</p>
+</p>
 
       <p><b><font color="#cc0000"><font size="+3">LAT</font></font></b><br>
- &nbsp;</p>
+</p>
        </td>
      </tr>
 
@@ -28,22 +27,24 @@
 </table>
 
 <h1>LAT</h1>
- This is a quick guide to using LAT on Linux systems. I am assuming that
+This is a quick guide to using LAT on Linux systems. I am assuming that
 you already have the latd package installed and that the latcp command is
 on root's PATH. All the terminal server examples are for the (very
-obsolete) DECserver 200 but the syntax is similar for other models.
+obsolete) DECserver 200 but the syntax is similar for other models (apart
+from the DECserver 90L+ which has an odd menu-type system but which is
+fairly intuitive for its limited feature set).
 <p>In this document I refer to <b>latd</b> as the daemon that is running in
 the background accepting incoming connections and marshalling outgoing ones,
 <b>latcp</b> is the LAT control program which is the user interface to latd.
 </p>
 
 <p>The latcp commands are based on those used in Compaq Tru64 Unix, so if
- you are familiar with that then this should all look very familiar to you.
- However, they are <i>not</i> identical to Tru64 so you should still at least
- skim this document or the man page for latcp.</p>
+you are familiar with that then this should all look very familiar to you.
+However, they are <i>not</i> identical to Tru64 so you should still at least
+skim this document or the man page for latcp.</p>
 
 <p>The examples here are for latd 1.12. Not all the features are available
-in earlier versions.&nbsp; </p>
+in earlier versions. </p>
 
 <p></p>
 
@@ -69,91 +70,90 @@ latcp command line eg: <samp><b>latcp -s -i eth1 -i eth2</b></samp>. It is
 not currently possible to change this in the startup script.<br>
 
 <p>When you stop latd all users are instantly disconnected. They will get
- no warning and work will not be saved.</p>
+no warning and work will not be saved.</p>
 
 <p></p>
 
 <h1>Service names</h1>
- latd can advertise many services, not just one for the host name. So (for
- example) you could add a new service called LINUX on all linux machines running
+latd can advertise many services, not just one for the host name. So (for
+example) you could add a new service called LINUX on all linux machines running
 latd and then users can connect to LINUX and they will be attached  to the
 server with the lowest load average.
-<p>To add such a service use the command <tt><b>latcp -A -a LINUX</b></tt>
- . This tells latd to advertise the new service along with the default one
+<p>To add such a service use the command <tt><b>latcp -A -a LINUX</b></tt>.
+This tells latd to advertise the new service along with the default one
 using the same rating.</p>
 
-<p>To remove this service use the command <tt><b>latcp -D -a LINUX</b></tt>
- .</p>
+<p>To remove this service use the command <tt><b>latcp -D -a LINUX</b></tt>.
+</p>
 
 <p>Services have an optional description associated with them  which can show
 up on some terminal servers if the user issues a SHOW SERVICE command.  The
 description is added to the service with the -i switch. eg:<tt><b>latcp
 -A -a LINUX -i "Linux login service"</b></tt><br>
- Note that the description must be enclosed in quotes if it contains spaces.
- To change the description of an existing service use the following command:<br>
- <tt><b>latcp -i "Linux is wonderful" -a LINUX</b></tt><br>
- </p>
+Note that the description must be enclosed in quotes if it contains spaces.
+To change the description of an existing service use the following command:<br>
+<tt><b>latcp -i "Linux is wonderful" -a LINUX</b></tt><br>
+</p>
 
 <p></p>
 
 <h1>Service ratings</h1>
- Every advertised service has a <i>rating</i> associated with it. This rating
- is used in the terminal servers' load balancing algorithm to determine which
- node to connect to when more than one system advertises the same service
- name. By default, services advertised by latd have <i>dynamic</i> ratings,
- that is they vary according to the load on the system. The value you specify
- on the latcp command line is a maximum, this value is divided by the current
- load average plus one each time the service is advertised on the LAN.
+Every advertised service has a <i>rating</i> associated with it. This rating
+is used in the terminal servers' load balancing algorithm to determine which
+node to connect to when more than one system advertises the same service
+name. By default, services advertised by latd have <i>dynamic</i> ratings,
+that is they vary according to the load on the system. The value you specify
+on the latcp command line is a maximum, this value is divided by the current
+load average plus one each time the service is advertised on the LAN.
 <p>So, if you create a service with rating of 100 using the following command:<br>
- <tt><b>latcp -A -a LINUX -r 100</b></tt><br>
- and the load average is 1.00, then the advertised rating will be 50. If
+<tt><b>latcp -A -a LINUX -r 100</b></tt><br>
+and the load average is 1.00, then the advertised rating will be 50. If
 you  have several machines advertising the the same service then, to achieve
 effective  load balancing, the rating specified on the command-line should
 reflect the relative power of the machines offering that service.</p>
 
 <p>In addition, ratings can be <i>static</i>. A static rating does not vary
- with the system load average. If you create a service with the following
+with the system load average. If you create a service with the following
 command:<br>
- <tt><b>latcp -A -a LINUX -r 100 -s</b></tt><br>
- Then the rating will always be 100 regardless of how busy the system is.</p>
+<tt><b>latcp -A -a LINUX -r 100 -s</b></tt><br>
+Then the rating will always be 100 regardless of how busy the system is.</p>
 
 <p></p>
 
 <h1>Reverse LAT</h1>
- The "normal" use of LAT is to allow a terminal, connected to a terminal
+The "normal" use of LAT is to allow a terminal, connected to a terminal
 server to log into a computer. "Reverse-LAT" goes the other way, the computer
 makes a connection to a port on the terminal server. This has a number of
 uses: the most popular are<br>
 
 <ul>
 
-  <li>Connect a printer to a terminal server port and let computers print
- to that printer by mappinga device on the computer to the terminal server
- port and</li>
+ <li>Connect a printer to a terminal server port and let computers print
+   to that printer by mappinga device on the computer to the terminal server
+   port and</li>
 
-  <li>Connect a computer console to a terminal server so that the computer
-can be remotelymanaged from another computer.</li>
+ <li>Connect a computer console to a terminal server so that the computer
+   can be remotelymanaged from another computer.</li>
 
-  <li>Connect a modem to a terminal server port and allow users to dial in,
-or dial out.<br>
-   </li>
+ <li>Connect a modem to a terminal server port and allow users to dial in,
+   or dial out.</li>
 
 </ul>
- To do this you first need to create a service on the terminal server. How
- to do this varies on the model of terminal server you have so consult the
- documentation for your device. The command for a DECserver 200 is as follows:<br>
- <tt><b>DEFINE SERVICE MYVAX PORT 4</b></tt><br>
- This creates a service called MYVAX which is associated with port 4 on the
- terminal server. Note,you may also have to set the port characteristics to
+To do this you first need to create a service on the terminal server. How
+to do this varies on the model of terminal server you have so consult the
+documentation for your device. The command for a DECserver 200 is as follows:<br>
+<tt><b>DEFINE SERVICE MYVAX PORT 4</b></tt><br>
+This creates a service called MYVAX which is associated with port 4 on the
+terminal server. Note,you may also have to set the port characteristics to
 match those of the printer and set the access type to "Remote". Now, assuming
 you have connected the serial console of your VAX to port 4 of the terminal
 server and the server is called DS200, you can issue the following command
 on the linux machine:<br>
- <tt><b>latcp -A -p /dev/lat/myvax -Hds200 -Vmyvax</b></tt><br>
- If you now connect a terminal emulator program (say minicom, seyon or microcom)
- to /dev/lat/myvax you can log in to the console of the VAX and issue commands
- as if the terminal was local. If it doesn't work then there are a few things
- to check:<br>
+<tt><b>latcp -A -p /dev/lat/myvax -Hds200 -Vmyvax</b></tt><br>
+If you now connect a terminal emulator program (say minicom, seyon or microcom)
+to /dev/lat/myvax you can log in to the console of the VAX and issue commands
+as if the terminal was local. If it doesn't work then there are a few things
+to check:<br>
 
 <ul>
 
@@ -178,7 +178,7 @@ may have to wait that long before the service is seen by latd. Use  the command
 </ul>
 
 <p>In the case of a printer that is shared by several machines you may want
- to make it a queued connection. This means that if the printer is busy,
+to make it a queued connection. This means that if the printer is busy,
 any other machine that tries to connect to it will be forced to wait until
 it is ready. To do this set the port to be queued on the terminal server
 and specify the reverse-lat port to be queued by adding -Q to the command
@@ -195,17 +195,29 @@ this group does not affect normal, "forward" use for LAT for those  users.</p>
  shifted to you actually have to press Ctrl-Shift-' on a British keyboard
 for example.</p>
 
-<p>To use "printer" ports on a DECserver 90L you must make the port queued
-because that device does not support reverse LAT.
+<p>To use "printer" ports on a DECserver 90L+ you must make the port queued
+because that device does not support reverse LAT. You should also use
+<i>only</i> the node name (no service name) when creating the port. eg: <br>
+<tt><b>latcp -A -p /dev/lat/printer -Hds90l1 -Q</b></tt><br>
+
+<p>Note that queued connections are not really "reverse" LAT in the strict sense
+that the computer contacts the server, it sends a command to the server requesting
+it to make a connection back to it. The reason this is useful to know is that
+actual reverse LAT is not very efficient on the ethernet (tcpdump it!) so
+if you are bothered by excessive packets then -Q ports are better.<BR>
+Also note that the -Q flag is the opposite way round from Tru64 Unix(R),
+sorry about that, but it seems more intuitive to me and also I didn't read the
+man page carefully enough.
 
 <h1>Groups</h1>
- Groups on LAT are a method of restricting the visible services to a manageable
- subset. They are<i>not</i> a security feature, merely a method of making
- a large number of services more manageable.
+Groups on LAT are a method of restricting the visible services to a manageable
+subset. They are<i>not</i> a security feature, merely a method of making
+a large number of services more manageable.
+
 <p>When a service is advertised on the LAN it can have any number of groups
- associated with it. A group is a number from 0 to 255. By default all services
- are in group 0. On the terminal server you can restrict the group numbers
- that it will listen for services on. So, for example, a terminal server inthe
+associated with it. A group is a number from 0 to 255. By default all services
+are in group 0. On the terminal server you can restrict the group numbers
+that it will listen for services on. So, for example, a terminal server inthe
 sales department could have only group 10 enabled, a terminal service  in
 the production department could have only group 20 enabled. The host machines
 providing these services would advertise sales service in group 10 and production
@@ -213,50 +225,51 @@ services in group 20. The computer department servers would probably have
 all the groups enabled so that they could connect to all the services.</p>
 
 <p>Because latd is both a client and a server it has two sets of group codes.
- One set (that manipulated by the -G and -g switches) determines the group
- numbers that the advertised services use. So, if we execute the following
- latcp commands:<br>
- <tt><b>latcp -G 10<br>
- latcp -A -a LINUX -i "Linux login service"</b></tt><br>
- Then the service LINUX will be advertised in groups 0 and 10 (group 0 is
+One set (that manipulated by the -G and -g switches) determines the group
+numbers that the advertised services use. So, if we execute the following
+latcp commands:<br>
+<tt><b>latcp -G 10<br>
+latcp -A -a LINUX -i "Linux login service"</b></tt><br>
+Then the service LINUX will be advertised in groups 0 and 10 (group 0 is
 always on by default). You could remove it from group 0 with the following
- command:<tt><b>latcp -g 0</b></tt><br>
- Set up like this, only terminal services listening for services in group
+command:<br>
+<tt><b>latcp -g 0</b></tt><br>
+Set up like this, only terminal services listening for services in group
 10 would see the LINUX service.</p>
 
 <p>The other group set (that manipulated by the -U and -u switches) determines
- which services can be used by the reverse-LAT ports. So, if you issue the
- following commands:<br>
- <tt><b>latcp -u 0<br>
- latcp -U 20</b></tt><br>
- Then you would only be able to connect reverse LAT ports to services that
- were advertised in group 20 (ie you could not connect to the LINUX service!).
+which services can be used by the reverse-LAT ports. So, if you issue the
+following commands:<br>
+<tt><b>latcp -u 0<br>
+latcp -U 20</b></tt><br>
+Then you would only be able to connect reverse LAT ports to services that
+were advertised in group 20 (ie you could not connect to the LINUX service!).
 </p>
 
 <p></p>
 
 <h1>Other things you can fiddle with</h1>
- Most of the operational parameters of latd can be configured with latcp.
+Most of the operational parameters of latd can be configured with latcp.
 I recommend you leave these alone unless you know what you are doing though.
 <ul>
 
   <li>Multicast timer(latcp -m). This timer specifies how often latd advertises
- its services on the LAN. It is specified in seconds and the default is 60.</li>
+    its services on the LAN. It is specified in seconds and the default is 60.</li>
 
   <li>Keepalive Timer(latcp -k). This timer specifies how often latd will
- send a "keepalive packet" to a remote connection to see if it is still alive.
- This timer is restarted each time a valid packet is received. If &lt;retransmit
- limit&gt; keepalive packets are sent with no response then the connection
- is terminated. It is specified in seconds and the default is 20.</li>
+    send a "keepalive packet" to a remote connection to see if it is still alive.
+    This timer is restarted each time a valid packet is received. If &lt;retransmit
+    limit&gt; keepalive packets are sent with no response then the connection
+    is terminated. It is specified in seconds and the default is 20.</li>
 
   <li>Retransmit Limit(latcp -r). This is the number of keepalive packets
- sent before terminating a connection on the assumption that it is dead.
-The default is 20.</li>
+    sent before terminating a connection on the assumption that it is dead.
+    The default is 20.</li>
 
   <li>Service responder(latcp -J or -j). Enables (-J) or disables (-j) service
- responder mode. This is needed if you have terminal servers on your network
- which don't collect advertised services but expect other machines to do
-it for them</li>
+    responder mode. This is needed if you have terminal servers on your network
+    which don't collect advertised services but expect other machines to do
+    it for them</li>
 
 </ul>
 
@@ -267,13 +280,13 @@ few extras. It's purpose is to allow users to log into remote LAT services.
 These services must be made available to latd using the groups feature mentioned
 above. In its most basic form you can connect to an advertised LAT service
 with the command:<br>
-<pre>$ llogin trillian</pre>
+<pre><b>$ llogin trillian</b></pre>
 This command will connect you to the/a machine that advertises the service
 trillian and prompt you to log in. You can also specify a particular node
 or port number to connect to using command-line switches (see the man page
 for more details). One useful feature is the ability to connect to queued
 services by supplying the -Q switch to the command eg:<br>
-<pre>$ llogin ds200 -Rport_6 -Q</pre>
+<pre><b>$ llogin ds200 -Rport_6 -Q</b></pre>
 Will connect to a queued port on a DECserver. Note that the service name,
 port name (and node name if supplied) will be converted to uppercase.<br>
 <br>
@@ -286,9 +299,9 @@ will see the login prompt quite soon after entering the command.<br>
  You can show the status of the server with the <tt><b>latcp -d</b></tt>
 command  which produces output something like this:<br>
  <pre><br>Node Name:  TYKE                LAT Protocol Version:       5.2<br>Node State: On                  LATD Version:               1.01<br>Node Ident: A Linux box<br><br>Service Responder : Disabled<br>Interfaces        : eth1 eth0 <br><br>Circuit Timer (msec):     80    Keepalive Timer (sec):     20<br>Retransmit Limit:         20<br>Multicast Timer (sec):    30<br><br>User Groups:     0<br>Service Groups:  0<br><br>Service Name   Status   Rating  Identification<br>TYKE           Enabled    12 D  <br>LINUX          Enabled   100 D  <br><br>Port                    Node            Service         Remote Port     Queued<br>/dev/lat/marsinta       	        DS200           PORT_8          Yes <br>/dev/lat/trillian      	                DS200           PORT_7          Yes <br>/dev/lat/zaphod                         DS200           PORT_3          Yes <br>/dev/lat/roosta                         DS200           PORT_2          Yes <br>/dev/lat/loginmarsha                    MARSHA                          No  <br>/dev/lat/ddcmp                          DS200           PORT_6          Yes 8<br></pre>
- The services shown are the services advertised by this machine. If you want&nbsp;
-to&nbsp; see a list of services that are on the network that have been seen
-by&nbsp; this machine(remember groups!) then use the command <tt><b>latcp
+ The services shown are the services advertised by this machine. If you want
+to see a list of services that are on the network that have been seen
+by this machine(remember groups!) then use the command <tt><b>latcp
 -d -l</b></tt> which gives output like this: <pre>BACON             Available     Welcome to VAX/VMS V5.5    <br>BALTI             Available    Compaq Tru64 UNIX V5.0A LAT SERVICE<br>DS200             Available                                            <br>LAT_VT_GTWY       Available    LAT/VT Gateway<br>LINUX             Available    Linux 2.2.18<br>MARSHA            Available    VAX node MARSHA<br>TRISHA            Available    <br>TYKE              Available    Linux 2.2.18<br><br></pre>
  If you really want the full lowdown on the services that latd has seen then
  the command <tt><b>latcp -d -l -v</b></tt> will tell you everything you
@@ -319,10 +332,10 @@ script that sets up the services shown in the above example output:</p>
 <br>
 
 <hr width="100%"><br>
- <i>Compaq</i> and <i>Tru64 Unix</i> are trademarks of Compaq Computers Inc
-and <i>DECserver </i>probably is too.<br>
+<i>Compaq</i> and <i>Tru64 Unix</i> are trademarks of Compaq Computers Inc
+and <i>DECserver</i> probably is too.<br>
 <br>
- Go back to the <a href="index.html">DECnet for Linux Home Page</a>
+Go back to the <a href="index.html">DECnet for Linux Home Page</a>
 
 
 </body>

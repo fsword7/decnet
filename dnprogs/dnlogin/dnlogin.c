@@ -37,12 +37,14 @@ int exit_char = 035; /* Default to ^] */
 int finished = 0;    /* terminate mainloop */
 
 int debug = 0;
+int char_timeout = 0;
 
 static int mainloop(void)
 {
     while (!finished)
     {
 	char inbuf[1024];
+	struct timeval tv;
 
 	fd_set in_set;
 	FD_ZERO(&in_set);

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2003      P.J. Caulfield          patrick@debian.org
 
     Portions based on code (c) 2000 Eduardo M Serrat
 
@@ -151,29 +151,37 @@ static int cterm_process_start_read(unsigned char *buf, int len)
     unsigned short lowwater;
     unsigned char  term_len;
     int ptr = 0;
+    unsigned char ZZ;
 
-    flags = buf[1] | buf[2] << 8 | buf[3] << 16;
+    flags = buf[1] | (buf[2] << 8) | (buf[3] << 16);
     ptr = 4;
 
-    maxlength = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
-    eodata    = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
-    timeout   = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
-    eoprompt  = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
-    sodisplay = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
-    lowwater  = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
+    maxlength = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
+    eodata    = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
+    timeout   = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
+    eoprompt  = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
+    sodisplay = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
+    lowwater  = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
     term_len  = buf[ptr++];
 
+    ZZ = (flags>>14)&3;
+
 // TODO more flags
-    if (debug & 2) fprintf(stderr, "CTERM: flags = %x\n",flags);
+    if (debug & 2) fprintf(stderr, "CTERM: flags = %x (ZZ=%d)\n",flags, ZZ);
+    if (debug & 2) fprintf(stderr, "CTERM: len=%d, term_len=%d, ptr=%d\n",
+			   len, term_len, ptr);
+    if (debug & 2) fprintf(stderr, "CTERM: timeout = %d\n", timeout);
+
     if (flags & 4) tty_clear_typeahead();
     if (flags & 0x800) tty_set_noecho();
 
-    if (debug & 2) fprintf(stderr, "term_len = %d\n", term_len);
+    if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
+    if (ZZ==2) tty_set_default_terminators();
 
-    tty_set_terminators(buf+ptr, term_len);
-    tty_start_read(buf+ptr+term_len, len-term_len-ptr-1, eoprompt);
+    tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
     tty_set_timeout(timeout);
     tty_set_maxlen(maxlength);
+    tty_echo_terminator((flags>>12)&1);
 
     return len;
 }

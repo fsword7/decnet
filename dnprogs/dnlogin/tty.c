@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2003      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,10 +52,26 @@ static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
 static int  reading = 0;
 static int  insert_mode = 0;
+static int  echo_terminator = 0;
+
+/* in dnlogin.c */
+extern int  char_timeout;
 
 /* Output processors */
 int (*send_input)(unsigned char *buf, int len, int flags);
 int (*send_oob)(char oobchar, int discard);
+
+static void send_input_buffer(int flags)
+{
+    char buf[1024];
+
+    memcpy(buf, input_buf, input_len);
+
+    send_input(buf, input_len, flags);
+    input_len = input_pos = 0;
+    reading = 0;
+    echo = 1;
+}
 
 /* Raw write to terminal */
 int tty_write(unsigned char *buf, int len)
@@ -77,9 +93,32 @@ void tty_set_noecho()
     echo = 0;
 }
 
+void tty_echo_terminator(int a)
+{
+    if (debug & 4)
+	fprintf(stderr, "TTY: echo terminators = %d\n", a);
+
+    echo_terminator = a;
+}
+
+void tty_set_default_terminators()
+{
+    if (debug & 4)
+	fprintf(stderr, "TTY: set default terminators\n");
+
+    /* All control chars except ^R ^U ^W, BS & HT */
+    /* ie 18, 21, 23, 8, 9 */
+    memset(terminators, 0, sizeof(terminators));
+    terminators[0] = 0x7F;
+    terminators[1] = 0xFE;
+    terminators[2] = 0xAD;
+    terminators[3] = 0xFF;
+}
 
 void tty_set_terminators(unsigned char *buf, int len)
 {
+    if (debug & 4)
+	fprintf(stderr, "TTY: set terminators... %d bytes\n", len);
     memset(terminators, 0, sizeof(terminators));
     memcpy(terminators, buf, len);
 }
@@ -87,7 +126,7 @@ void tty_set_terminators(unsigned char *buf, int len)
 void tty_start_read(char *prompt, int len, int promptlen)
 {
     if (debug & 4)
-	fprintf(stderr, "TTY start_read promptlen = %d, maxlen=%d\n",
+	fprintf(stderr, "TTY: start_read promptlen = %d, maxlen=%d\n",
 		promptlen, len);
     if (promptlen) write(termfd, prompt, promptlen);
     if (len < 0) len = sizeof(input_buf);
@@ -102,13 +141,14 @@ void tty_start_read(char *prompt, int len, int promptlen)
     input_pos = input_len;
     max_read_len = len;
 
-    /* Now add in any typeahead
-       TODO: Are there flags to disable this? */
+    /* Now add in any typeahead */
     if (rahead_len)
     {
 	int copylen = rahead_len;
 
-	fprintf(stderr, "PJC: readahead = %d bytes\n", rahead_len);
+	if (debug & 4)
+	    fprintf(stderr, "TTY: readahead = %d bytes\n", rahead_len);
+
 	/* Don't overflow the input buffer */
 	if (input_len + copylen > sizeof(input_buf))
 	    copylen = sizeof(input_buf)-input_len;
@@ -122,7 +162,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 
 void tty_set_timeout(unsigned short to)
 {
-    // TODO:
+    char_timeout = to;
 }
 
 void tty_clear_typeahead()
@@ -196,17 +236,6 @@ static void move_cursor_abs(int hpos)
     write(termfd, buf, strlen(buf));
 }
 
-static void send_input_buffer(int flags)
-{
-    char buf[1024];
-
-    memcpy(buf, input_buf, input_len);
-
-    send_input(buf, input_len, flags);
-    input_len = input_pos = 0;
-    reading = 0;
-    echo = 1;
-}
 
 void tty_send_unread()
 {
@@ -226,17 +255,32 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    return 0;
 	}
 
-	/* Terminators */
-	// TODO: flag for echoing terminators
-	if (is_terminator(buf[i]))
+	/* Swap LF for CR */
+	//PJC: is this right??
+	if (buf[i] == '\n')
+	    buf[i] = '\r';
+
+	/* Is it ESCAPE ? */
+	if (buf[i] == ESC && esc_len == 0)
 	{
-	    send_input(&buf[i], 1, 1); /* last "1" is "terminator" */
+	    esc_buf[esc_len++] = buf[i];
+	    continue;
+	}
+
+	/* Terminators */
+	if (!esc_len && is_terminator(buf[i]))
+	{
+	    if (echo_terminator)
+	    {
+		write(termfd, &buf[i], 1);
+	    }
+	    input_buf[input_len++] = buf[i];
+	    send_input_buffer(1);
 	    reading = 0;
 	    return 0;
 	}
 
-
-	/* Check for OOB - these discard input*/
+	/* Check for OOB - these discard input */
 	if (buf[i] == CTRL_C || buf[i] == CTRL_Y)
 	{
 	    send_oob(buf[i], 1);
@@ -247,19 +291,6 @@ int tty_process_terminal(unsigned char *buf, int len)
 	if (buf[i] == CTRL_Z || buf[i] == CTRL_T)
 	{
 	    send_oob(buf[i], 0);
-	    continue;
-	}
-
-	/* Swap LF for CR */
-	//PJC: is this right??
-	if (buf[i] == '\n')
-	    buf[i] = '\r';
-
-
-	/* Is it ESCAPE ? */
-	if (buf[i] == ESC && esc_len == 0)
-	{
-	    esc_buf[esc_len++] = buf[i];
 	    continue;
 	}
 

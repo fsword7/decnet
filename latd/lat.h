@@ -121,7 +121,7 @@ typedef struct
 typedef LAT_SessionCmd LAT_SessionReply;
 typedef LAT_SessionCmd LAT_SessionData; // Unsolicited output
 
-// Slot disconnect reasons (d(x) slot message):
+// Slot disconnect reasons (0xd(x) & 0xc(x) slot messages):
 // 0x0 Unknown
 // 0x1 User requested disconnect
 // 0x2 System shutdown in progress
@@ -151,3 +151,5 @@ typedef LAT_SessionCmd LAT_SessionData; // Unsolicited output
 // 0x07 Insufficient resources to satisfy request
 // 0x08 Server circuit timer out of range
 // 0x09 Number of virtual circuits exceeded
+
+

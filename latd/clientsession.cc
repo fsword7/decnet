@@ -40,13 +40,14 @@ ClientSession::ClientSession(class LATConnection &p,
     if (ttyname) strcpy(ltaname, ttyname);
 }
 
-int ClientSession::new_session(unsigned char *remote_node, unsigned char c)
+int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
     credit = c;
     if (openpty(&master_fd,
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return -1; /* REJECT */
   
+    strcpy(remote_node, (char *)_remote_node);
     strcpy(ptyname, ttyname(slave_fd));
     strcpy(mastername, ttyname(master_fd));
     state = STARTING;
@@ -80,26 +81,28 @@ void ClientSession::connect_parent()
 
 void ClientSession::connect()
 {
-    debuglog(("connecting client session\n"));
+    debuglog(("connecting client session to '%s'\n", remote_node));
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
+    memset(buf, 0, sizeof(buf));
     LAT_SessionData *reply = (LAT_SessionData *)buf;
     int ptr = sizeof(LAT_SessionData);
     
     buf[ptr++] = 0x01; // Service Class
-    buf[ptr++] = 0x01; // Min Attention slot size
-    buf[ptr++] = 0xfe; // Min Data slot size
+    buf[ptr++] = 0x01; // Max Attention slot size
+    buf[ptr++] = 0xfe; // Max Data slot size
     
     add_string(buf, &ptr, (unsigned char *)remote_node); 
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
     buf[ptr++] = 0x02; // Param Length 2
-    buf[ptr++] = 0x00; // Value 1024
+    buf[ptr++] = 0x04; // Value 1024
     buf[ptr++] = 0x00; // 
 
-    buf[ptr++] = 0x04; // Param type 4 (PTY name)
+    buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
+                       // INFO: Param type 4 is remote port name.
     add_string(buf, &ptr, (unsigned char *)ltaname);
     buf[ptr++] = 0x00; // NUL terminated (??)
  
@@ -113,6 +116,20 @@ void ClientSession::connect()
 
     parent.send_message(buf, ptr, LATConnection::DATA);
 
+}
+
+void ClientSession::disconnect()
+{
+    
+    // Close it all down so the local side gets EOF
+    unlink(ltaname);
+    
+    close (slave_fd);
+    close (master_fd);
+    LATServer::Instance()->remove_fd(master_fd);
+    
+    // Now open it all up again ready for a new connection
+    new_session((unsigned char *)remote_node, 0);    
 }
 
 ClientSession::~ClientSession()

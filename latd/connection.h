@@ -38,7 +38,9 @@ class LATConnection
 		  const char *_lta);
     int connect();
     int create_client_session();
+    int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
+    bool isClient() { return role==CLIENT;}
     
  private:
     int            num;           // Local connection ID

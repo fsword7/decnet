@@ -23,6 +23,7 @@ class ClientSession: public LATSession
   virtual void do_read();
 
   void connect();
+  void disconnect();
   void connect_parent();
   void got_connection(unsigned char);
   

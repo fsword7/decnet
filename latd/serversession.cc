@@ -42,15 +42,16 @@ ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 
 }
 
-int ServerSession::new_session(unsigned char *remote_node, unsigned char c)
+int ServerSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
     credit = c;
-    int status = create_session(remote_node);
+    int status = create_session(_remote_node);
     if (status == 0)
     {
 	status = send_login_response();
 	if (credit) send_issue();
     }
+    strcpy(remote_node, (char *)_remote_node);
     return status;
 }
 

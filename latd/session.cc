@@ -76,15 +76,26 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 
 	// Replace LF/CR with LF
         // TODO There MUST be an option for this...
-	char newbuf[len];
+	char newbuf[len+1];
 	int newlen = 0;
 	int i;
 	for (i=0; i<len; i++)
 	{
-	    if (i>0 && buf[i] == '\r' && buf[i-1] == '\n') break;
-	    if (i>0 && buf[i] == '\n' && buf[i-1] == '\r') break;
+	    if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
+	    {
+		continue;
+	    }
+	    if (i>0 && i<len && (buf[i] == '\n') && (buf[i-1] == '\r'))
+	    {
+		newbuf[newlen-1] = '\n';
+		continue;
+	    }
 	    newbuf[newlen++] = buf[i];
 	}
+
+	newbuf[newlen] = '\0';
+	debuglog(("REALLY To PTY(%d): %s\n", newlen, newbuf));
+
 
 	write(master_fd, newbuf, newlen);
     }
@@ -96,7 +107,7 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
     sleep(0); // Give it a slight chance of generating an echo
     ioctl(master_fd,FIONREAD,&numbytes);
     debuglog(("%d echo bytes available\n", numbytes));
-    //    if (numbytes == 0 || numbytes != len)
+    if (numbytes == 0 || numbytes != len)
     {
 	echo_expected = false;
 	return 1;

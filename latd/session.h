@@ -24,7 +24,7 @@ class LATSession
     int  get_remote_credit() { return remote_credit; }
     void inc_remote_credit(int inc) { remote_credit+=inc; }
     
-    virtual int new_session(unsigned char *remote_node, unsigned char c)=0;
+    virtual int new_session(unsigned char *_remote_node, unsigned char c)=0;
     virtual void do_read() {}
     
  protected:

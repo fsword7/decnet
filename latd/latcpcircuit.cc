@@ -161,8 +161,6 @@ bool LATCPCircuit::do_command()
 	debuglog(("latcp: add port: %s:%s (%s)\n",
 		  service, remport, localport));
 
-	// TODO: not sure what to do with remnode yet either.
-
 	if (LATServer::Instance()->make_client_connection(service, 
 							  remport,
 							  localport,

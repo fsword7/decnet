@@ -78,7 +78,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 LATConnection::LATConnection(int _num, const char *_remnode,
 			     const char *_macaddr, const char *_lta):
     num(_num),
-    last_sequence_number(0),
+    last_sequence_number(0xff),
     last_ack_number(0xff),
     role(CLIENT)
 {
@@ -245,8 +245,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	        break;
 		
 
-	    case 0xc0: // Don't know what this is
-		replyhere = true;
+	    case 0xc0:  // Reject - we will get disconnected
+		debuglog(("Reject code %d\n", credits));
+		// Deliberate fall-through.
 
 	    case 0xd0:  // Disconnect
 		// TODO: something not quite right here.
@@ -586,6 +587,7 @@ int LATConnection::connect()
 
     add_string(buf, &ptr, remnode);
     add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
 
     return send_message(buf, ptr, LATConnection::DATA);
 }
@@ -635,6 +637,17 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     return 0;
 }
 
+
+// Called when the client needs disconnecting
+int LATConnection::disconnect_client()
+{
+    ClientSession *cs = (ClientSession *)sessions[1];
+    if (cs)
+    {
+	cs->disconnect();
+    }
+    return 0;
+}
 
 int LATConnection::pending_msg::send(unsigned char *macaddr)
 {

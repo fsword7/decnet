@@ -434,17 +434,7 @@ void LATServer::read_lat(int sock)
 	}
 	break;
 
-    case LAT_CCMD_CONREF: // Connection refused
-        {
-	    debuglog(("Got connect REFUSED for %d\n", header->remote_connid));
-	    LATConnection *conn = connections[header->remote_connid];
-	    if (conn)
-	    {
-		delete conn;
-		connections[header->remote_connid] = NULL;
-	    }
-	}
-
+    case LAT_CCMD_CONREF: 
     case LAT_CCMD_DISCON:
         {
 	    debuglog(("Disconnecting connection %d: status %x\n", 
@@ -455,8 +445,16 @@ void LATServer::read_lat(int sock)
 		LATConnection *conn = connections[header->remote_connid];
 		if (conn)
 		{
-		    delete conn;
-		    connections[header->remote_connid] = NULL;
+		    // We don't delete clients, we just quiesce them.
+		    if (conn->isClient())
+		    {
+			conn->disconnect_client();
+		    }
+		    else
+		    {
+			delete conn;
+			connections[header->remote_connid] = NULL;
+		    }
 		}
 	    }
 	    else

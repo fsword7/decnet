@@ -74,15 +74,15 @@ automatically when you first install a binary distribution.
 You may also want to configure a DECnet proxies file. See the FAL 
 documentation and the decnet.proxy(5) man page for more information.
 
-UPGRADING
----------
+UPGRADING FROM 1.x
+------------------
 All the libraries in the distribution carry the version number of the 
 distribution itself rather than an ABI-type number. This is purely for
 my convenience and there are many people who will tell me that this is just
 plain wrong. Well so be it. The V2 libraries are all backward compatible
 with the V1 libraries - the reverse is most certainly not true. If you build
-any programs against libdnet.so.1 then it sill still work against libdnet.so.2
-to you can safely symlink here. The binary distributions contain these symlinks
+any programs against libdnet.so.1 then they will still work against libdnet.so.2
+so you can safely symlink here. The binary distributions contain these symlinks
 so nothing should break.
 
 The programs are all (externally) compatible with the older versions - some
@@ -126,7 +126,7 @@ sendvmsmail -  mail delivery filter to send mail from Linux to VMS
 phoned      -  phone server (needed for any phone functionality)
 dnetd       -  DECnet super server
 decnetconf  -  Shell script to help in setting up /etc/decnet.conf
-dnmount     -  mount a VMS filesystem (still beta - requires dapfs in kernel 2.1/2.2)
+dnmount     -  mount a VMS filesystem (still beta - requires dapfs)
 
 Libraries in /usr/lib
 ---------------------

@@ -14,23 +14,9 @@ ctermd:
   In fact line-editting doesn't work at all. This is quite a large problem
   ...I need volunteers for this.
 
-TODO: FEATURES
---------------
-
-mail:
-  vmsmaild hangs when sending a binary file with no subject 
-  man pages for programs
-  Can we differentiate between TO: and CC: ??
-  Possibly use multi-part MIME for binary messages - does anyone have any
-                                                     opinions on this ??
-
 Debian Package
 --------------
-Write two missing man pages
-Fix changelog format
 Check startup messages
-Remove bashisms (& use tempfile)
-Do .changes stuff
 Split setting MAC address from daemon startup (and do all I/Fs)
 Split into three packages:
    libs

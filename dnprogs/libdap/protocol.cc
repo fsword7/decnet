@@ -220,7 +220,6 @@ bool dap_image::read(dap_connection &c)
 {
     char *b = c.getbytes(1);
     if (!b) return false;
-
     real_length = *b;
 
     b = c.getbytes(real_length);
@@ -394,14 +393,12 @@ int dap_message::get_header(dap_connection &c)
 	c.getbytes(1);
     }
 
-    if (flags & 16) // SYSPEC is hard.
+    if (flags & 32) // SYSPEC is impossible
     {
-	fprintf(stderr, "SYSPEC field not supported yet.\n\
-                         Please email patrick@tykepenguin.cix.co.uk if you REALLY want it.\n");
+	DAPLOG((LOG_WARNING, "got SYSPEC field - aborting\n"));
 	exit(999);
     }
 
-    // TODO SYSPEC
     return true;
 }
 
@@ -2103,9 +2100,6 @@ bool dap_key_message::read(dap_connection &c)
 	    siz[i] = new dap_bytes(1);
 	    pos[i]->read(c);
 	    siz[i]->read(c);
-
-	    fprintf(stderr, "key %d, pos= %d, size=%d\n",
-		    i, pos[i]->get_int(),siz[i]->get_int());
 	}
     }
     if (keymenu.get_bit(4) && !ref.read(c)) return false;

@@ -125,7 +125,7 @@ class dap_image : public dap_item // "I" field
 class dap_message
 {
  public:
-    dap_message() {};
+    dap_message() {}
     virtual ~dap_message() {};
 
     virtual bool read(dap_connection&)=0;
@@ -161,7 +161,6 @@ class dap_message
     unsigned char msg_type;
     int           length;
     unsigned char flags;
-
 
     int send_header(dap_connection &c);
     int send_long_header(dap_connection &c);

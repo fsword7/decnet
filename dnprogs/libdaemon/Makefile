@@ -39,8 +39,8 @@ install:
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(libprefix)/lib/$(LIBNAME).so
 	install -d $(prefix)/man/man3
 	install -m 0644 $(MANPAGES3) $(prefix)/man/man3
-	ln -sf dnet_accept.3 $(prefix)/man/man3/dnet_daemon.3
-	ln -sf dnet_reject.3 $(prefix)/man/man3/dnet_daemon.3
+	ln -sf dnet_daemon.3 $(prefix)/man/man3/dnet_accept.3
+	ln -sf dnet_daemon.3 $(prefix)/man/man3/dnet_reject.3
 
 .SUFFIXES: .po
 

@@ -65,35 +65,30 @@ snap:
 # Make RPM package for Red Hat systems.
 #
 rpm:
-	@if [ $$UID != 0 ]; then echo You must be root to make RPMs; exit 1; fi
-	rm -rf rpmbuild
+	rm -rf rpmbuild BUILD RPMS
+	echo "%_topdir `pwd`" > ~/.rpmmacros
+	echo "macrofiles $(HOME)/.rpmmacros"
 	make clean
 	make prefix=/usr RELEASE=true -j
 	make DESTDIR=`pwd`/rpmbuild install
 	make dist
-	cp /var/tmp/$(PKGNAME)-$(VERSION).tar.gz /usr/src/redhat/SOURCES
 	install -d rpmbuild/etc/rc.d/init.d
 	install -d rpmbuild/etc/rc.d/rc3.d
 	install -d rpmbuild/usr/doc
 	install scripts/decnet.sh rpmbuild/etc/rc.d/init.d/decnet
 	ln -sf ../init.d/decnet rpmbuild/etc/rc.d/rc3.d/S09decnet
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
-	LIBCPPLINK=`ldd $(prefix)/sbin/fal|grep stdc++|cut -d' ' -f3` ; \
-	LIBCPPNAME=`ls -l $$LIBCPPLINK|sed 's/.*-> \(\)/\1/g'` ;        \
-	install -m 755 $$LIBCPPLINK `pwd`/rpmbuild/usr/lib;             \
-	install -m 755 /usr/lib/$$LIBCPPNAME `pwd`/rpmbuild/usr/lib;    \
 	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'                          \
 	    -e's/%%VERSION%%/$(VERSION)/g'                              \
 	    -e's/%%MAJOR_VERSION%%/$(MAJOR_VERSION)/g'                  \
 	    -e's@%%PREFIX%%@/usr@g'                                     \
 	    -e's@%%LIBPREFIX%%@/usr@g'                                  \
 	    -e's@%%CONFPREFIX%%@/@g'                                    \
-	    -e"s@%%LIBCPPLINK%%@$$LIBCPPLINK@g"                         \
-	    -e"s@%%LIBCPPNAME%%@/usr/lib/$$LIBCPPNAME@g"                \
 	   < rpm.spec >$(PKGNAME).spec
-	cp README NEWS Documentation/*.README /usr/src/redhat/BUILD
+	mkdir -p BUILD RPMS/$(ARCH)
+	cp README NEWS Documentation/*.README BUILD
 	rpm -bb --buildroot `pwd`/rpmbuild -v $(PKGNAME).spec
-	rm -f $(PKGNAME).spec
+	rm -f $(PKGNAME).spec  ~/.rpmrc ~/.rpmmacros
 
 #
 # Make Debian package. It's best to do this immediately after 'make rpm'

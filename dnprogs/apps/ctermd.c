@@ -33,6 +33,9 @@
 #include <sys/time.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
+#ifdef DNETUSE_DEVPTS
+#include <pty.h>
+#endif
 
 #include "dn_endian.h"
 
@@ -389,7 +392,7 @@ int main(int argc, char *argv[])
 {
     int verbosity;
     int debug = 0;
-    char log_char = 'l';
+    char log_char = 's';
     char opt;
     
     // Deal with command-line arguments.

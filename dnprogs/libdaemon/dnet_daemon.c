@@ -347,7 +347,7 @@ static int waitfor(int sockfd)
     }
 
     // We were interrupted, return a bad fd
-    if (status < 0 && errno == EINTR) return -1;
+    if (newsock < 0 && errno == EINTR) return -1;
 
     // Return the new fd
     return newsock;

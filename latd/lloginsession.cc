@@ -56,18 +56,29 @@ int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 
     LATServer::Instance()->add_pty(this, master_fd);
-    return 0;
-}
 
-int lloginSession::connect_parent()
-{
-    debuglog(("connecting parent for llogin\n"));
-    return parent.connect();
+
+// Auto-connect
+    if (!connect_parent())
+    {
+	state = STARTING;
+	
+	// Disable reads on the PTY until we are connected (or it fails)
+	LATServer::Instance()->set_fd_state(master_fd, true);
+    }
+    else
+    {
+	// Service does not exist or we haven't heard of it yet.
+	write(master_fd, "Connect failed\n", 15);
+	disconnect_sock();
+    }
+
+    return 0;
 }
 
 void lloginSession::connect(char *service, char *port)
 {
-    debuglog(("connecting llogin session to '%s'\n", remote_node));
+    debuglog(("connecting llogin session to '%s'\n", service));
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
@@ -94,13 +105,14 @@ void lloginSession::connect(char *service, char *port)
     // into the message
     if (port[0] != '\0')
     {
+	debuglog(("Adding port %s\n", port));
 	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
 	add_string(buf, &ptr, (unsigned char *)port);
 	buf[ptr++] = 0x00; // NUL terminated (??)
     }
- 
+
     // Send message...
-    reply->header.cmd          = LAT_CCMD_SDATA;
+    reply->header.cmd          = LAT_CCMD_SESSION;
     reply->header.num_slots    = 1;
     reply->slot.remote_session = local_session;
     reply->slot.local_session  = remote_session;
@@ -145,6 +157,7 @@ lloginSession::~lloginSession()
 
 void lloginSession::do_read()
 {
+#if 0
     debuglog(("lloginSession::do_read(), connected: %d\n", connected));
     if (!connected)
     {
@@ -161,54 +174,9 @@ void lloginSession::do_read()
 	    disconnect_sock();
 	}
     }
-
+#endif
     if (connected)
     {
 	read_pty();
     }
-}
-
-void lloginSession::got_connection(unsigned char _remid)
-{
-    unsigned char buf[1600];
-    unsigned char slotbuf[256];
-    LAT_SessionReply *reply = (LAT_SessionReply *)buf;
-    int ptr = 0;
-    int slotptr = 0;
-
-    debuglog(("lloginSession:: got connection for rem session %d\n", _remid));
-    LATServer::Instance()->set_fd_state(master_fd, false);
-    remote_session = _remid;
-
-    // Send a data_b slot
-    reply->header.cmd       = LAT_CCMD_SDATA;
-    reply->header.num_slots = 0;
-    reply->slot.length      = 0;
-    reply->slot.cmd         = 0x0;
-    reply->slot.local_session = 0;
-    reply->slot.remote_session = 0;
-
-    slotbuf[slotptr++] = 0x26; // Flags
-    slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
-    slotbuf[slotptr++] = 0x11; // Start output char XON
-    slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
-    slotbuf[slotptr++] = 0x11; // Start input char  XON
-
-    // data_b slots count against credit
-    if (credit)
-    {
-	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
-	credit--;
-    }
-    parent.queue_message(buf, ptr);
-
-
-    connected = true;
-}
-
-// Called from the slave connection - return the master fd so it can 
-// can do I/O on it and close the slave so it gets EOF notification.
-int lloginSession::get_port_fd()
-{
-    return master_fd;
 }

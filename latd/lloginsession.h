@@ -24,9 +24,6 @@ class lloginSession: public ClientSession
   virtual void disconnect_session(int reason);
     
   virtual void connect(char *service, char *port);
-  virtual int  connect_parent();
-  virtual void got_connection(unsigned char);
-  virtual int  get_port_fd();
   virtual void restart_pty() {disconnect_sock();};
 
 

@@ -16,8 +16,7 @@ class LocalPort
 {
  public:
     LocalPort(unsigned char *service, unsigned char *portname, unsigned char *devname,
-	      unsigned char *remnode,
-	      bool queued, bool clean);
+	      unsigned char *remnode, bool queued, bool clean, unsigned char *password);
 
     LocalPort(const LocalPort &p);
     ~LocalPort();
@@ -39,6 +38,7 @@ class LocalPort
   std::string portname;
   std::string devname;
   std::string remnode;
+  std::string password;
   bool queued;
   bool clean;
   bool slave_fd_open;

@@ -35,13 +35,14 @@
 #include "server.h"
 #include "lat_messages.h"
 
-LocalPort::LocalPort(unsigned char *_service, unsigned char *_portname, 
+LocalPort::LocalPort(unsigned char *_service, unsigned char *_portname,
 		     unsigned char *_devname, unsigned char *_remnode,
-		     bool _queued, bool _clean):
+		     bool _queued, bool _clean, unsigned char *_password):
     service((char*)_service),
     portname((char*)_portname),
     devname((char*)_devname),
     remnode((char*)_remnode),
+    password((char*)_password),
     queued(_queued),
     clean(_clean),
     slave_fd_open(false),
@@ -56,6 +57,7 @@ LocalPort::LocalPort(const LocalPort &p)
     portname = p.portname;
     devname = p.devname;
     remnode = p.remnode;
+    password = p.password;
     queued = p.queued;
     clean = p.clean;
     slave_fd_open = p.slave_fd_open;
@@ -80,15 +82,15 @@ void LocalPort::init_port()
     struct termios tio;
     tcgetattr(master_fd, &tio);
     tio.c_iflag |= IGNBRK|BRKINT;
-    tio.c_oflag &= ~ONLCR; 
-    tio.c_oflag &= ~OCRNL; 
-    tio.c_iflag &= ~INLCR; 
-    tio.c_iflag &= ~ICRNL; 
+    tio.c_oflag &= ~ONLCR;
+    tio.c_oflag &= ~OCRNL;
+    tio.c_iflag &= ~INLCR;
+    tio.c_iflag &= ~ICRNL;
     tcsetattr(master_fd, TCSANOW, &tio);
 
     strcpy(ptyname, ttyname(slave_fd));
     slave_fd_open = true;
-    
+
     // Check for /dev/lat & create it if necessary
     struct stat st;
     if (stat(LAT_DIRECTORY, &st) == -1)
@@ -135,15 +137,15 @@ void LocalPort::restart_pty()
 {
     debuglog(("LocalPort::restart_pty()\n"));
     connected = false;
-    
+
     // Close it all down so the local side gets EOF
     unlink(devname.c_str());
-    
+
     if (slave_fd_open) close (slave_fd);
     close (master_fd);
     LATServer::Instance()->set_fd_state(master_fd, true);
     LATServer::Instance()->remove_fd(master_fd);
-    
+
     // Now open it all up again ready for a new connection
     init_port();
 }
@@ -153,7 +155,7 @@ void LocalPort::restart_pty()
 void LocalPort::disconnect_session(int reason)
 {
     debuglog(("LocalPort::disconnect_session()\n"));
-    // If the reason was some sort of error then send it to 
+    // If the reason was some sort of error then send it to
     // the PTY
     if (reason >= 1)
     {
@@ -171,10 +173,10 @@ void LocalPort::disconnect_session(int reason)
 // Connect up the session
 bool LocalPort::connect_session()
 {
-    return LATServer::Instance()->make_port_connection(master_fd, this, 
+    return LATServer::Instance()->make_port_connection(master_fd, this,
 						       service.c_str(), remnode.c_str(),
 						       portname.c_str(), devname.c_str(),
-						       queued);
+						       password.c_str(), queued);
 }
 
 
@@ -211,8 +213,8 @@ void LocalPort::do_read()
 void LocalPort::show_info(bool verbose, std::ostrstream &output)
 {
     output << devname << std::setw(24-devname.length()) << " " << service
-	   << std::setw(16-service.length()) << " " 
+	   << std::setw(16-service.length()) << " "
 	   << remnode << std::setw(16-remnode.length()) << " " << portname
-	   << std::setw(16-portname.length()) << " " << (queued?"Yes":"No ") 
+	   << std::setw(16-portname.length()) << " " << (queued?"Yes":"No ")
 	   << (clean?" 8":" ") << std::endl;
 }

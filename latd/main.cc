@@ -97,16 +97,16 @@ int main(int argc, char *argv[])
     memset(interfaces, 0, sizeof(interfaces));
 
     strcpy(service, (char *)LATServer::Instance()->get_local_node());
-    
+
     // Deal with command-line arguments. Do these before the check for root
     // so we can check the version number and get help without being root.
     opterr = 0;
     optind = 0;
     while ((opt=getopt(argc,argv,"?vVhdl:r:s:t:g:i:c:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(argv[0], stdout);
 	    exit(0);
 
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
 	    printf("\nlatd version %s\n\n", VERSION);
 	    exit(1);
 	    break;
-	    	    
+
 	case 'l':
 	    if (optarg[0] != 's' &&
 		optarg[0] != 'm' &&
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
 
     // Unset it so our children don't inherit it.
     unsetenv("LATCP_STARTED");
-    
+
 #ifndef NO_FORK
     if (!debug) // Also available at run-time
     {
@@ -196,15 +196,15 @@ int main(int argc, char *argv[])
 	case -1:
 	    perror("server: can't fork");
 	    exit(2);
-	    
+
 	case 0: // child
 	    break;
-	    
+
 	default: // Parent.
 	    if (verbosity > 1) printf("server: forked process %d\n", pid);
-	    exit(0); 
+	    exit(0);
 	}
-    
+
 	// Detach ourself from the calling environment
 	int devnull = open("/dev/null", O_RDWR);
 	close(0);
@@ -217,10 +217,10 @@ int main(int argc, char *argv[])
 	chdir("/");
     }
 #endif
-    
+
     struct   sigaction siga;
     sigset_t ss;
-  
+
     sigemptyset(&ss);
     siga.sa_handler=sigchild;
     siga.sa_mask  = ss;
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
-   
+
     openlog("latd", LOG_PID, LOG_DAEMON);
 
     // Go!
@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
     server->init(static_rating, rating, service, greeting,
 		 interfaces, verbosity, circuit_timer);
     server->run();
-    
+
     return 0;
 }
 
@@ -257,9 +257,9 @@ static void sigchild(int s)
     int status, pid;
 
     // Make sure we reap all children
-    do 
-    { 
-	pid = waitpid(-1, &status, WNOHANG); 
+    do
+    {
+	pid = waitpid(-1, &status, WNOHANG);
     }
     while (pid > 0);
 }

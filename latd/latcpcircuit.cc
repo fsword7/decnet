@@ -336,6 +336,7 @@ bool LATCPCircuit::do_command()
 	unsigned char remport[255];
 	unsigned char localport[255];
 	unsigned char remnode[255];
+	unsigned char password[255];
 	int  ptr=0;
 
 	get_string((unsigned char*)cmdbuf, &ptr, service);
@@ -344,6 +345,7 @@ bool LATCPCircuit::do_command()
 	get_string((unsigned char*)cmdbuf, &ptr, remnode);
 	bool queued = cmdbuf[ptr++];
 	bool clean = cmdbuf[ptr++];
+	get_string((unsigned char*)cmdbuf, &ptr, password);
 
 	debuglog(("latcp: add port: %s:%s (%s)\n",
 		  service, remport, localport));
@@ -353,7 +355,8 @@ bool LATCPCircuit::do_command()
 						     localport,
 						     remnode,
 						     queued,
-						     clean) < 0)
+						     clean,
+						     password) < 0)
 	{
 	    debuglog(("sending failure back to LATCP\n"));
 	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);

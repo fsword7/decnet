@@ -36,19 +36,6 @@
 #include <signal.h>
 #include <assert.h>
 #include <netinet/in.h>
-#include <features.h>    /* for the glibc version number */
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
-#include <netpacket/packet.h>
-#include <net/ethernet.h>     /* the L2 protocols */
-#include <net/if_arp.h>
-#include <linux/if.h>
-#else
-#include <asm/types.h>
-#include <linux/if.h>
-#include <linux/if_arp.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>   /* The L2 protocols */
-#endif
 
 #include <list>
 #include <queue>
@@ -69,96 +56,10 @@
 #include "llogincircuit.h"
 #include "server.h"
 #include "services.h"
+//#include "interfaces.h"
+#include "interfaces-linux.h"
 #include "lat_messages.h"
 #include "dn_endian.h"
-
-
-// Get all ethernet interfaces
-void LATServer::get_all_interfaces()
-{
-    struct ifreq ifr;
-    int iindex = 1;
-
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-    num_interfaces = 0;
-
-    ifr.ifr_ifindex = iindex;
-
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-    {
-	// Only use ethernet interfaces
-	ioctl(sock, SIOCGIFHWADDR, &ifr);
-	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
-	{
-	    debuglog(("interface %d: %d\n", num_interfaces, iindex));
-	    interface_num[num_interfaces++] = iindex;
-	}
-	ifr.ifr_ifindex = ++iindex;
-    }
-
-    close(sock);
-}
-
-std::string LATServer::print_interfaces()
-{
-    struct ifreq ifr;
-    std::string str;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    for (int i=0; i<num_interfaces;i++)
-    {
-	ifr.ifr_ifindex = interface_num[i];
-
-	if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-	{
-	    str.append(ifr.ifr_name);
-	    str.append(" ");
-	}
-	else
-	{
-	    char num[10];
-	    snprintf(num, sizeof(num), "%d ", interface_num[i]);
-	    str.append(num);
-	}
-    }
-
-    close(sock);
-    return str;
-}
-
-
-/* Find the interface named <ifname> and return it's number
-   Also save the MAC address in <macaddr>.
-   Return -1 if we didn't find it or it's not ethernet,
-*/
-int LATServer::find_interface(char *ifname)
-{
-    struct ifreq ifr;
-    int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    ifr.ifr_ifindex = iindex;
-
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-    {
-	if (strcmp(ifr.ifr_name, ifname) == 0)
-	{
-	    // Also check it's ethernet while we are here
-	    ioctl(sock, SIOCGIFHWADDR, &ifr);
-	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
-	    {
-		syslog(LOG_ERR, "Device %s is not ethernet\n", ifname);
-		return -1;
-	    }
-	    close(sock);
-	    return iindex;
-	}
-	ifr.ifr_ifindex = ++iindex;
-    }
-    // Didn't find it
-    close(sock);
-    return -1;
-}
 
 // Remove any dangling symlinks in the /dev/lat directory
 void LATServer::tidy_dev_directory()
@@ -215,7 +116,6 @@ void LATServer::send_service_announcement(int sig)
 {
     unsigned char packet[1600];
     int ptr;
-    struct sockaddr_ll sock_info;
     struct utsname uinfo;
     char  *myname;
 
@@ -317,33 +217,23 @@ void LATServer::send_service_announcement(int sig)
 					         id, real_rating, 0, dummy_macaddr);
     }
 
-
-
     // Not sure what node service classes are
     // probably somthing to do with port services and stuff.
     packet[ptr++] = 0x01; // Node service classes length
     packet[ptr++] = 0x01; // Node service classes
 
-    /* Build the sockaddr_ll structure */
-    sock_info.sll_family   = AF_PACKET;
-    sock_info.sll_protocol = htons(ETH_P_LAT);
-    sock_info.sll_hatype   = 0;//ARPHRD_ETHER;
-    sock_info.sll_pkttype  = PACKET_MULTICAST;
-    sock_info.sll_halen    = 6;
-
+    unsigned char addr[6];
     /* This is the LAT multicast address */
-    sock_info.sll_addr[0]  = 0x09;
-    sock_info.sll_addr[1]  = 0x00;
-    sock_info.sll_addr[2]  = 0x2b;
-    sock_info.sll_addr[3]  = 0x00;
-    sock_info.sll_addr[4]  = 0x00;
-    sock_info.sll_addr[5]  = 0x0f;
+    addr[0]  = 0x09;
+    addr[1]  = 0x00;
+    addr[2]  = 0x2b;
+    addr[3]  = 0x00;
+    addr[4]  = 0x00;
+    addr[5]  = 0x0f;
 
     for (int i=0; i<num_interfaces;i++)
     {
-	sock_info.sll_ifindex  = interface_num[i];
-	if (sendto(lat_socket, packet, ptr, 0,
-		   (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+	if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
 	{
 	    interface_error(interface_num[i], errno);
 	}
@@ -361,17 +251,7 @@ void LATServer::send_service_announcement(int sig)
 // If that means we have no interfaces, then closedown.
 void LATServer::interface_error(int ifnum, int err)
 {
-    struct ifreq ifr;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    ifr.ifr_ifindex = ifnum;
-
-    if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-	syslog(LOG_ERR, "Error on interface %s: %s\n", ifr.ifr_name, strerror(err));
-    else
-	syslog(LOG_ERR, "Error on interface %d: %s\n", ifnum, strerror(err));
-
-    close(sock);
+    syslog(LOG_ERR, "Error on interface %s: %s\n", iface->ifname(ifnum).c_str(), strerror(err));
 
     // Too many errors, remove it
     if (++interface_errs[ifnum] > 3)
@@ -416,60 +296,24 @@ void LATServer::run()
 {
     int status;
 
-    // Open LAT protocol socket
-    lat_socket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_LAT));
-    if (lat_socket < 0)
-    {
-	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
-	exit(1);
-    }
-
-    struct sockaddr_ll sock_info;
-    /* Build the sockaddr_ll structure */
-    sock_info.sll_family   = AF_PACKET;
-    sock_info.sll_protocol = htons(ETH_P_LAT);
-
-    // If there's only one interface then bind to it.
-    if (num_interfaces == 1)
-    {
-	sock_info.sll_ifindex  = interface_num[0];
-	if (bind(lat_socket, (struct sockaddr *)&sock_info, sizeof(sock_info)))
-	{
-	    syslog(LOG_ERR, "can't bind lat socket: %m\n");
-	    exit(1);
-	}
-    }
-
-
-    // Add Multicast membership for LAT on socket
-    struct packet_mreq pack_info;
-
-    /* Fill in socket options */
-    pack_info.mr_type        = PACKET_MR_MULTICAST;
-    pack_info.mr_alen        = 6;
-
-    /* This is the LAT multicast address */
-    pack_info.mr_address[0]  = 0x09;
-    pack_info.mr_address[1]  = 0x00;
-    pack_info.mr_address[2]  = 0x2b;
-    pack_info.mr_address[3]  = 0x00;
-    pack_info.mr_address[4]  = 0x00;
-    pack_info.mr_address[5]  = 0x0f;
-
+    // Bind interfaces
     for (int i=0; i<num_interfaces;i++)
     {
-	pack_info.mr_ifindex = interface_num[i];
-
-	if (setsockopt(lat_socket, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
-		       &pack_info, sizeof(pack_info)))
-	{
-	    syslog(LOG_ERR, "can't add lat socket multicast : %m\n");
-	    exit(1);
-	}
+	iface->open_connection(interface_num[i]);
     }
 
-    // Add it to the sockets list
-    fdlist.push_back(fdinfo(lat_socket, 0, LAT_SOCKET));
+    // Add it/them to the sockets list
+    if (iface->one_fd_per_interface())
+    {
+	for (int i=0; i<num_interfaces;i++)
+	{
+	    fdlist.push_back(fdinfo(iface->get_fd(interface_num[i]), 0, LAT_SOCKET));
+	}
+    }
+    else
+    {
+	fdlist.push_back(fdinfo(iface->get_fd(0), 0, LAT_SOCKET));
+    }
 
     // Open LATCP socket
     unlink(LATCP_SOCKNAME);
@@ -613,23 +457,15 @@ void LATServer::run()
 /* LAT socket has something for us */
 void LATServer::read_lat(int sock)
 {
-    unsigned char   buf[1600];
+    unsigned char buf[1600];
+    unsigned char macaddr[6];
     int    len;
     int    i;
-    struct msghdr msg;
-    struct iovec iov;
-    struct sockaddr_ll sock_info;
+    int    ifn;
     LAT_Header *header = (LAT_Header *)buf;
 
-    msg.msg_name = &sock_info;
-    msg.msg_namelen = sizeof(sock_info);
-    msg.msg_iovlen = 1;
-    msg.msg_iov = &iov;
-    iov.iov_len = sizeof(buf);
-    iov.iov_base = buf;
-
-    len = recvmsg(sock, &msg, 0);
-    if (len < 0)
+    len = iface->recv_packet(sock, ifn, macaddr, buf, sizeof(buf));
+    if (len <= 0)
     {
 	if (errno != EINTR)
 	{
@@ -642,13 +478,6 @@ void LATServer::read_lat(int sock)
     // we will spin until latcp unlocks us.
     if (locked) return;
 
-    // Ignore packets captured in promiscuous mode.
-    if (sock_info.sll_pkttype == PACKET_OTHERHOST)
-    {
-	debuglog(("Got a rogue packet .. interface probably in promiscuous mode\n"));
-	return;
-    }
-
     // Parse & dispatch it.
     switch(header->cmd)
     {
@@ -660,13 +489,12 @@ void LATServer::read_lat(int sock)
 	    LATConnection *conn = connections[header->remote_connid];
 	    if (conn)
 	    {
-	        conn->process_session_cmd(buf, len, (unsigned char *)&sock_info.sll_addr);
+	        conn->process_session_cmd(buf, len, macaddr);
 	    }
 	    else
 	    {
 		// Message format error
-		send_connect_error(2, header, sock_info.sll_ifindex,
-				   (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, ifn, macaddr);
 	    }
 	}
 	break;
@@ -685,13 +513,12 @@ void LATServer::read_lat(int sock)
 	    if (strcmp((char *)name, (char *)get_local_node()))
 	    {
 		// How the &?* did that happen?
-		send_connect_error(2, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, ifn, macaddr);
 		return;
 	    }
 
      	    // Make a new connection.
-	    if ( ((i=make_new_connection(buf, len, sock_info.sll_ifindex,
-					 header, (unsigned char *)&sock_info.sll_addr) )) > 0)
+	    if ( ((i=make_new_connection(buf, len, ifn, header, macaddr) )) > 0)
 	    {
 		debuglog(("Made new connection: %d\n", i));
 		connections[i]->send_connect_ack();
@@ -710,7 +537,7 @@ void LATServer::read_lat(int sock)
 	    else
 	    {
 		// Insufficient resources
-		send_connect_error(7, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(7, header, ifn, macaddr);
 	    }
 	}
 	break;
@@ -747,18 +574,18 @@ void LATServer::read_lat(int sock)
 	    else
 	    {
 		// Message format error
-		send_connect_error(2, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, ifn, macaddr);
 	    }
 	}
 	break;
 
     case LAT_CCMD_SERVICE:
 	// Keep a list of known services
-	add_services(buf, len, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
+	add_services(buf, len, ifn, macaddr);
 	break;
 
     case LAT_CCMD_ENQUIRE:
-	reply_to_enq(buf, len, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
+	reply_to_enq(buf, len, ifn, macaddr);
 	break;
 
     case LAT_CCMD_STATUS:
@@ -810,28 +637,14 @@ void LATServer::set_fd_state(int fd, bool disabled)
 /* Send a LAT message to a specified MAC address */
 int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
-  struct sockaddr_ll sock_info;
-
   if (len < 46) len = 46; // Minimum packet length
   if (len%2) len++;       // Must be an even number
-
-  /* Build the sockaddr_ll structure */
-  sock_info.sll_family   = AF_PACKET;
-  sock_info.sll_protocol = htons(ETH_P_LAT);
-  sock_info.sll_ifindex  = interface;
-  sock_info.sll_hatype   = 0;//ARPHRD_ETHER;
-  sock_info.sll_pkttype  = PACKET_MULTICAST;
-  sock_info.sll_halen    = 6;
-  memcpy(sock_info.sll_addr, macaddr, 6);
-
 
   if (interface == 0) // Send to all
   {
       for (int i=0; i<num_interfaces;i++)
       {
-	  sock_info.sll_ifindex  = interface_num[i];
-	  if (sendto(lat_socket, buf, len, 0,
-		     (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+	  if (iface->send_packet(interface_num[i], macaddr, buf, len) < 0)
 	  {
 	      interface_error(interface_num[i], errno);
 	  }
@@ -842,8 +655,7 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
   }
   else
   {
-      if (sendto(lat_socket, buf, len, 0,
-		 (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+      if (iface->send_packet(interface, macaddr, buf, len) < 0)
       {
 	  interface_error(interface, errno);
 	  return -1;
@@ -988,6 +800,15 @@ void LATServer::init(bool _static_rating, int _rating,
     // Server is locked until latcp has finished
     locked = true;
 
+    /* Initialise the platform-specific interface code */
+    iface = new LinuxInterfaces();
+    if (iface->Start() == -1)
+    {
+	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
+	exit(1);
+
+    }
+
     // Add the default session
     servicelist.push_back(serviceinfo(_service,
 				      _rating,
@@ -1002,7 +823,7 @@ void LATServer::init(bool _static_rating, int _rating,
 	int i=0;
 	while (_interfaces[i])
 	{
-	    interface_num[num_interfaces] = find_interface(_interfaces[i]);
+	    interface_num[num_interfaces] = iface->find_interface(_interfaces[i]);
 	    if (interface_num[num_interfaces] == -1)
 	    {
 		syslog(LOG_ERR, "Can't use interface %s: ignored\n", _interfaces[i]);
@@ -1022,7 +843,7 @@ void LATServer::init(bool _static_rating, int _rating,
     }
     else
     {
-	get_all_interfaces();
+	iface->get_all_interfaces(interface_num, num_interfaces);
     }
 
     // Remove any old /dev/lat symlinks
@@ -1570,7 +1391,9 @@ int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *
 int LATServer::make_port_connection(int fd, LocalPort *lport,
 				    const char *service, const char *rnode, 
 				    const char *port,
-				    const char *localport, bool queued)
+				    const char *localport,
+				    const char *password,
+				    bool queued)
 {
     int ret;
     unsigned char macaddr[6];
@@ -1628,7 +1451,8 @@ int LATServer::make_port_connection(int fd, LocalPort *lport,
     debuglog(("localport for %s has connid %d\n", service, connid));
 
     // TODO: Different call into Connection()
-    ret = connections[connid]->create_localport_session(fd, lport, service, port, localport);
+    ret = connections[connid]->create_localport_session(fd, lport, service, 
+							port, localport, password);
 
     return ret;
 }
@@ -1642,10 +1466,11 @@ int LATServer::create_local_port(unsigned char *service,
 				 unsigned char *devname,
 				 unsigned char *remnode,
 				 bool queued,
-				 bool clean)
+				 bool clean,
+				 unsigned char *password)
 {
     debuglog(("Server::create_local_port: %s\n", devname));
-    portlist.push_back(LocalPort(service, portname, devname, remnode, queued, clean));
+    portlist.push_back(LocalPort(service, portname, devname, remnode, queued, clean, password));
 
 // Find the actual port in the list and start it up, this is because
 // the STL containers hold actual objects rather then pointers
@@ -1673,8 +1498,12 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
     output << std::endl;
 
     output << "Service Responder : " << (responder?"Enabled":"Disabled") << std::endl;
-    output << "Interfaces        : " << print_interfaces() << std::endl;
-    output << std::endl;
+    output << "Interfaces        : ";
+    for (int i=0; i<num_interfaces; i++) 
+    {
+	output << iface->ifname(interface_num[i]) << " ";
+    }
+    output << std::endl << std::endl;
 
     output << "Circuit Timer (msec): " << std::setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << std::setw(6) << keepalive_timer << std::endl;
     output << "Retransmit Limit:     " << std::setw(6) << retransmit_limit << std::endl;

@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhlbQH:R:r:q:n:w:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQWH:R:r:q:n:w:")) != EOF)
     {
 	switch(opt)
 	{
@@ -153,6 +153,10 @@ int main(int argc, char *argv[])
 
 	case 'w':
 	    strcpy(password, optarg);
+	    break;
+
+	case 'W':
+	    strcpy(password, "-");
 	    break;
 
 	case 'R':

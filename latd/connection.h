@@ -43,7 +43,8 @@ class LATConnection
     int connect(class ClientSession *);
     int create_llogin_session(int, char *service, char *port, char *localport, char *password);
     int create_localport_session(int, class LocalPort *, const char *service,
-				 const char *port, const char *localport);
+				 const char *port, const char *localport,
+				 const char *password);
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}

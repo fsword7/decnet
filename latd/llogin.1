@@ -9,7 +9,7 @@ llogin \- Connect to a LAT service
 .br
 Options:
 .br
-[\-dvcpblhQ] [\-H node] [\-R port] [-n name] [-w password] [\-q quit char]
+[\-dvcpblhQ] [\-H node] [\-R port] [-n name] [-w password | -W] [\-q quit char]
 .SH DESCRIPTION
 .PP
 llogin connects your terminal to a LAT service via latd, the service name
@@ -74,6 +74,9 @@ Sends the password for the service. Only needed for services that require
 a password for access. If the password given is "-" then you will be prompted
 for a password and it will not be echoed. This avoids having passwords
 visible on the screen.
+.TP
+.I "\-W"
+Prompts for the service password. This is the same as -w- (see above).
 .TP
 .I "\-p"
 Tells llogin to connect to the device named instead of a LAT service. This

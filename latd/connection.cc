@@ -961,7 +961,7 @@ int LATConnection::create_llogin_session(int fd, char *service, char *port, char
 
 int LATConnection::create_localport_session(int fd, LocalPort *lport,
 					    const char *service, const char *port,
-					    const char *localport)
+					    const char *localport, const char *password)
 {
 // Create a localportSession for a /dev/lat port
     int newsessionnum = next_session_number();

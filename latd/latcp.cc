@@ -520,6 +520,7 @@ void add_service(int argc, char *argv[])
     char localport[255] = {'\0'};
     char remnode[255] = {'\0'};
     char remservice[255] = {'\0'};
+    char password[255] = {'\0'};
     char command[1024] = {'\0'};
     signed char opt;
     bool got_service=false;
@@ -537,7 +538,7 @@ void add_service(int argc, char *argv[])
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8C:m:u:")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:w:sQ8C:m:u:")) != EOF)
     {
 	switch(opt)
 	{
@@ -550,6 +551,10 @@ void add_service(int argc, char *argv[])
 	case 'i':
 	    got_service=true;
 	    strcpy(ident, optarg);
+	    break;
+
+	case 'w':
+	    strcpy(password, optarg);
 	    break;
 
 	case 'p':
@@ -664,6 +669,7 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)remnode);
 	message[ptr++] = queued;
 	message[ptr++] = clean;
+	add_string((unsigned char*)message, &ptr, (unsigned char*)password);
 	send_msg(latcp_socket, LATCP_ADDPORT, message, ptr);
 
 	// Wait for ACK or error

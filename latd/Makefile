@@ -10,7 +10,7 @@ PROG1OBJS=main.o utils.o server.o connection.o session.o \
 PROG2OBJS=latcp.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\"
-DEFS+=-DVERBOSE_DEBUG -DNO_FORK #-DOLDSTUFF 
+DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DOLDSTUFF 
 
 #  Look for libdnet and use it if it's there
 ifeq (/usr/lib/libdnet.a,$(wildcard /usr/lib/libdnet.a))

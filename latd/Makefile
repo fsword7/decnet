@@ -23,6 +23,13 @@ OPTDEBUG=-g -O
 CXX=g++
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
 
+#
+# For DEB builds
+#
+ifdef DESTDIR
+prefix=$(DESTDIR)/usr
+endif
+
 
 # Look for libdnet and use it if it's there. Unless we are building a
 # release package in which case don't use it at all.

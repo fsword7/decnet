@@ -392,9 +392,6 @@ void LATServer::read_lat(int sock)
     struct sockaddr_ll sock_info;
     LAT_Header *header = (LAT_Header *)buf;
 
-    // Not listening yet.
-    if (locked) return;
-  
     msg.msg_name = &sock_info;
     msg.msg_namelen = sizeof(sock_info);
     msg.msg_iovlen = 1;
@@ -412,6 +409,10 @@ void LATServer::read_lat(int sock)
 	}
     }
 
+    // Not listening yet, but we must read the message otherwise we  
+    // we will spin until latcp unlocks us.
+    if (locked) return;
+ 
     // Ignore packets captured in promiscuous mode.
     if (sock_info.sll_pkttype == PACKET_OTHERHOST)
     {

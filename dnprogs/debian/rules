@@ -26,12 +26,11 @@ binary-indep: checkroot build
 
 binary-arch: checkroot build
 	$(checkdir)
-	-rm -rf debian/tmp `find debian/* -type d`
+	-rm -rf debian/tmp `find debian/* -type d ! -name CVS `
 	install -d debian/tmp
-	cd debian/tmp && install -d `cat ../dirs`
-	install -m 0644 include/netdnet/dn.h debian/tmp/usr/include/netdnet
-	install -m 0644 include/netdnet/dnetdb.h debian/tmp/usr/include/netdnet
-	install -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
+	install -D -m 0644 include/netdnet/dn.h debian/tmp/usr/include/netdnet
+	install -D -m 0644 include/netdnet/dnetdb.h debian/tmp/usr/include/netdnet
+	install -D -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
 	debstd -p 

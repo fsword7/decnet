@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2003 patrick Caulfield                 patrick@debian.org
+    (c) 2001-2004 patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ static int  mop_socket;
 static unsigned char last_message[1500];
 static int  last_message_len;
 static int  show_info = 0;
-static int  do_moprc(u_int8_t *, int, int);
+static int  do_moprc(u_int8_t *, int, int, int);
 static int  send_boot(u_int8_t *macaddr, int interface);
 static LATinterfaces *iface;
 
@@ -74,6 +74,7 @@ static int usage(FILE *f, char *cmd)
     fprintf(f, "   -t         Trigger (reboot) the server\n");
     fprintf(f, "   -b         Make ^H send DEL\n");
     fprintf(f, "   -v         Show target information\n");
+    fprintf(f, "   -p <ms>    Set poll interval (default 200)\n");
     fprintf(f, "\n");
     fprintf(f, "Node names are read from /etc/ethers\n");
     fprintf(f, "MAC addresses in colon-seperated form. eg:\n");
@@ -111,6 +112,7 @@ int main(int argc, char *argv[])
     int interface = -1;
     int trigger=0;
     int convert_bs = 0;
+    int poll_interval = 200; /* in ms */
     char ifname_buf[255];
     char *ifname;
     struct ether_addr addr;
@@ -125,7 +127,7 @@ int main(int argc, char *argv[])
 
 /* Get command-line options */
     opterr = 0;
-    while ((opt=getopt(argc,argv,"?hVvtbi:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hVvtbi:p:")) != EOF)
     {
 	switch(opt)
 	{
@@ -150,6 +152,10 @@ int main(int argc, char *argv[])
 	case 'i':
 	    strcpy(ifname_buf, optarg);
 	    ifname = ifname_buf;
+	    break;
+
+	case 'p':
+	    poll_interval = atoi(optarg);
 	    break;
 
 	case 'V':
@@ -212,7 +218,7 @@ int main(int argc, char *argv[])
 	return send_boot(addr.ether_addr_octet, interface);
     }
 
-    return do_moprc(addr.ether_addr_octet, interface, convert_bs);
+    return do_moprc(addr.ether_addr_octet, interface, convert_bs, poll_interval*1000);
 }
 
 static int readmop(unsigned char *buf, int buflen)
@@ -369,7 +375,7 @@ static int show_system_info(unsigned char *info, int len)
     return functions & 0x20; /* Do we do CCP? */
 }
 
-static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
+static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs, int timeout)
 {
     enum {STARTING, CONNECTED} state=STARTING;
     fd_set         in;
@@ -380,10 +386,11 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
     int            len;
     int            last_msg_tag = 99; /* Dummy */
     int            status;
-    int            timeout = 200000; /* Poll interval */
     int            waiting_ack;
     int            resends = 0;
     int            termfd = STDIN_FILENO;
+    int            stdin_is_tty;
+    int            last_packet_was_empty=1;
 
     tcgetattr(termfd, &old_term);
     new_term = old_term;
@@ -409,16 +416,16 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
     tv.tv_sec  = 5;
     tv.tv_usec = 0;
 
+    stdin_is_tty = isatty(STDIN_FILENO);
+
     /* Loop for input */
     while ( (status = select(FD_SETSIZE, &in, NULL, NULL, &tv)) >= 0)
     {
-	/* No data, poll for any input from the terminal server */
-	if (status == 0 && !waiting_ack)
+	/* No response after 3 tries */
+	if (waiting_ack && resends >= 3)
 	{
-	    unsigned char dummybuf[1];
-	    send_data(dummybuf, 0, macaddr, interface);
-	    waiting_ack = 1;
-	    resends = 0;
+	    printf("\nTarget does not respond\n");
+	    break;
 	}
 
 	/* Waiting for an ACK but not got one. Resend the last
@@ -426,11 +433,17 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 	if (status == 0 && waiting_ack)
 	{
 	    send_last_message(interface, macaddr);
-	    if (++resends == 3)
-	    {
-		printf("\nTarget does not respond\n");
-		break;
-	    }
+	    resends++;
+	    continue;
+	}
+
+	/* No data, poll for any input from the terminal server */
+	if (status == 0 && !waiting_ack)
+	{
+	    unsigned char dummybuf[1];
+	    send_data(dummybuf, 0, macaddr, interface);
+	    waiting_ack = 1;
+	    resends = 0;
 	}
 
 	/* Data from the terminal server */
@@ -466,14 +479,15 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 
 		/* Got some data to display */
 	    case MOPRC_CMD_RESPONSE:
-		if (datalen >= 2)
+		if (datalen > 2)
 		{
-		    int i;
-		    for (i=0; i<datalen-2; i++)
-		    {
-		        fputc(buf[4+i], stdout);
-		    }
+		    fwrite(buf+4, datalen-2, 1, stdout);
 		    fflush(stdout);
+		    last_packet_was_empty = 0;
+		}
+		else
+		{
+		    last_packet_was_empty = 1;
 		}
 		break;
 
@@ -488,7 +502,7 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 			goto finished;
 		    }
 
-		    if (isatty(STDIN_FILENO))
+		    if (stdin_is_tty)
 			printf("Console connected (press CTRL/D when finished)\n");
 
 		    state = CONNECTED;
@@ -504,7 +518,7 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 	if (FD_ISSET(STDIN_FILENO, &in))
 	{
 	    int i;
-	    len = read(STDIN_FILENO, buf, sizeof(buf));
+	    len = read(STDIN_FILENO, buf, stdin_is_tty ? sizeof(buf) : 1);
 	    if (len < 0)
 	    {
 	        perror("reading from stdin");
@@ -530,7 +544,7 @@ static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 
 	FD_ZERO(&in);
 	FD_SET(mop_socket, &in);
-	if (!waiting_ack) FD_SET(STDIN_FILENO, &in);
+	if (!waiting_ack && last_packet_was_empty) FD_SET(STDIN_FILENO, &in);
     }
 
  finished:

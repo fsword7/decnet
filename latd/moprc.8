@@ -36,8 +36,16 @@ Trigger the node. This normally reboots the server so use this
 with care!
 
 .TP
+.I \-p <n>
+Changes the poll interval of moprc from 200 ms to <n> ms. Changing
+this down will increase the risk of timeouts, increasing it will
+decrease the speed of the link.
+
+
+.TP
 .I \-h \-?
 Shows the usage message.
+
 
 .TP
 .I \-V
@@ -56,6 +64,13 @@ not specified on the command line. If not present the interface "eth0"
 will be used.
 
 .SH BUGS
-On Darwin you MUST use /etc/ethers
+On Darwin you cannot specify an ethernet address on the command-line, 
+the name MUST be in /etc/ethers.
+.br
+You can script moprc but it sends one character per ethernet packet so
+is very slow.
+.br
+There is no locking in moprc so be careful to only run once instance
+at a time.
 .SS SEE ALSO
 .BR latd "(8), " latd.conf "(5), " ethers "(5), " llogin "(1)"

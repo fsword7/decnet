@@ -47,10 +47,10 @@ install: libdnet.a $(SHAREDLIB)
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(libprefix)/lib/$(LIBNAME).so
 
-	install -d $(prefix)/man/man3
-	install -m 0644 $(MANPAGES3) $(prefix)/man/man3
-	ln -sf dnet_getnode.3 $(prefix)/man/man3/dnet_nextnode.3
-	ln -sf dnet_getnode.3 $(prefix)/man/man3/dnet_endnode.3
+	install -d $(manprefix)/man/man3
+	install -m 0644 $(MANPAGES3) $(manprefix)/man/man3
+	ln -sf dnet_getnode.3 $(manprefix)/man/man3/dnet_nextnode.3
+	ln -sf dnet_getnode.3 $(manprefix)/man/man3/dnet_endnode.3
 
 clean:
 	rm -f *.a *.o *.po *.so* *~

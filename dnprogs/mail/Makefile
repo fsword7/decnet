@@ -33,12 +33,12 @@ $(PROG2): $(PROG2OBJS) $(DEPLIBDNET) $(UULIB)
 
 install:
 	install -d $(prefix)/bin
-	install -d $(prefix)/man/man5
-	install -d $(prefix)/man/man8
+	install -d $(manprefix)/man/man5
+	install -d $(manprefix)/man/man8
 	install -m 0755 -s $(PROG1) $(prefix)/sbin
 	install -m 0755 -s $(PROG2) $(prefix)/sbin
-	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
-	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
+	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5
+	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8
 
 dep depend:	
 	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null

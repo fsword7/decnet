@@ -1,6 +1,6 @@
 # Common Makefile elements and configurable bits
 ###############################################################################
-# Where the binaries and man pages will be installed
+# Where the binaries will be installed
 #
 prefix=/usr/local
 
@@ -10,6 +10,10 @@ prefix=/usr/local
 # /usr/local/lib to /etc/ld.so.conf or your LD_LIBRARY_PATH
 #
 libprefix=/usr
+
+# Where the man pages will be installed
+#
+manprefix=/usr/local
 
 #
 # Where the configuration data will be installed
@@ -67,6 +71,7 @@ ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/ar
 ifdef DESTDIR
 prefix=$(DESTDIR)/usr
 libprefix=$(DESTDIR)/usr
+manprefix=$(DESTDIR)/usr
 sysconfprefix=$(DESTDIR)
 endif
 
@@ -111,7 +116,7 @@ endif
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 INCLUDES=-I../libdap -I../include
-CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
 CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
 
 # Conditional for shared/static libs

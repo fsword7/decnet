@@ -22,7 +22,7 @@ ifndef MAKEDEB
 	fi
 endif
 	install -m 0755 setup.sh $(prefix)/sbin/decnetconf
-	install -m 0644 decnetconf.8 $(prefix)/man/man8
+	install -m 0644 decnetconf.8 $(manprefix)/man/man8
 
 dep depend:	
 

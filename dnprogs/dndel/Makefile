@@ -15,9 +15,9 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 
 install:
 	install -d $(prefix)/bin
-	install -d $(prefix)/man/man1
+	install -d $(manprefix)/man/man1
 	install -m 0755 -s $(PROG1) $(prefix)/bin
-	install -m 0644 $(MANPAGES) $(prefix)/man/man1
+	install -m 0644 $(MANPAGES) $(manprefix)/man/man1
 
 dep depend:	
 	$(CXX) $(CXXFLAGS) -MM *.cc >.depend 2>/dev/null

@@ -19,11 +19,11 @@ $(PROG2): $(PROG1)
 
 install:
 	install -d $(prefix)/bin
-	install -d $(prefix)/man/man1
+	install -d $(manprefix)/man/man1
 	install -m 0755 -s $(PROG1) $(prefix)/bin
 	ln -sf $(PROG1) $(prefix)/bin/$(PROG2)
-	install -m 0644 $(MANPAGES) $(prefix)/man/man1
-	ln -sf $(PROG1).1 $(prefix)/man/man1/$(PROG2).1
+	install -m 0644 $(MANPAGES) $(manprefix)/man/man1
+	ln -sf $(PROG1).1 $(manprefix)/man/man1/$(PROG2).1
 
 
 dep depend:	

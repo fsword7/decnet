@@ -16,11 +16,11 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBS) $(DEPLIBDAEMON)
 
 install:
 	install -d $(prefix)/sbin
-	install -d $(prefix)/man/man8
-	install -d $(prefix)/man/man5
+	install -d $(manprefix)/man/man8
+	install -d $(manprefix)/man/man5
 	install -m 0755 -s $(PROG1) $(prefix)/sbin
-	install -m 0644 fal.8 $(prefix)/man/man8
-	install -m 0644 decnet.proxy.5 $(prefix)/man/man5
+	install -m 0644 fal.8 $(manprefix)/man/man8
+	install -m 0644 decnet.proxy.5 $(manprefix)/man/man5
 
 dep depend:	
 	$(CXX) $(CXXFLAGS) -MM *.cc >.depend 2>/dev/null

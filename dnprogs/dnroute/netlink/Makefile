@@ -1,3 +1,4 @@
+include ../../Makefile.common
 
 NLOBJ=ll_map.o libnetlink.o
 

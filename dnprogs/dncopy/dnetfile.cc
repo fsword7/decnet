@@ -61,6 +61,12 @@ dnetfile::~dnetfile()
     dap_close_link();
 }
 
+void dnetfile::set_protection(char *vmsprot)
+{
+    if (vmsprot[0] != '\0')
+	protection = vmsprot;
+}
+
 int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
 {
 // If there was a parse error in the file name then fail here

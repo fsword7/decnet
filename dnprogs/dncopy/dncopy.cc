@@ -37,7 +37,7 @@ static void get_env_as_args(char **argv[], int &argc, char *env);
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose);
+		       int &remove_cr, int &show_stats, int &verbose, char *protection);
 
 // Start here:
 int main(int argc, char *argv[])
@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
     int   remove_cr = 0;
     int   show_stats = 0;
     char  opt;
+    char  protection[255];
     struct timeval start_tv;
     unsigned long long bytes_copied = 0;
 
@@ -82,14 +83,14 @@ int main(int argc, char *argv[])
 	do_options(env_argc, env_argv,
 		   rfm, rat,org,
 		   interactive, keep_version, user_bufsize,
-		   remove_cr, show_stats, verbose);
+		   remove_cr, show_stats, verbose, protection);
 
 
 // Parse the command-line options
     do_options(argc, argv,
 	       rfm, rat,org,
 	       interactive, keep_version, user_bufsize,
-	       remove_cr, show_stats, verbose);
+	       remove_cr, show_stats, verbose, protection);
 
     // Work out the buffer size. The default for block transfers is 512
     // bytes unless the user specified otherwise.
@@ -222,6 +223,7 @@ int main(int argc, char *argv[])
 	    {
 		// If the output is a directory so we need to add the
 		// input file's basename to it.
+		out->set_protection(protection);
 		if (out->isdirectory())
 		{
 		    if (out->open(in->get_basename(keep_version), "w+"))
@@ -432,12 +434,12 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose)
+		       int &remove_cr, int &show_stats, int &verbose, char *protection)
 {
     int opt;
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kism:")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kism:p:")) != EOF)
     {
 	switch(opt) {
 	case 'h':
@@ -504,6 +506,19 @@ static void do_options(int argc, char *argv[],
 
 	case 'b':
 	    user_bufsize = atoi(optarg);
+	    break;
+
+	case 'p':
+	    strcpy(protection, optarg);
+	    {
+	        // Validate protection
+		dap_protect_message prot;
+		if (prot.set_protection(protection) == -1) 
+		{
+		    fprintf(stderr, "Invalid VMS protection string\n");
+		    exit(1);
+		}
+	    }
 	    break;
 
 	case 'd':

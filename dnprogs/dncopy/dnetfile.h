@@ -30,6 +30,7 @@ public:
     virtual bool  isdirectory();
     virtual bool  iswildcard();
     virtual int   max_buffersize(int biggest);
+    virtual void  set_protection(char *prot);
 
  private:
 /* Parameters */
@@ -67,6 +68,7 @@ public:
 
     bool  ateof;
     unsigned int prot;
+    char *protection; /* VMS style protection string from cmdline */
 
     char  filname[80];
     char  volname[80];

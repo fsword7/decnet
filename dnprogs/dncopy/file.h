@@ -35,7 +35,8 @@ class file
     virtual bool  isdirectory() = 0;
     virtual bool  iswildcard() = 0;
     virtual int   max_buffersize(int biggest) = 0;
-
+    virtual void  set_protection(char *vmsprot) {};
+    
 // Some constants
 
     static const int MODE_DEFAULT = -1;

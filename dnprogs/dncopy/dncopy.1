@@ -1,4 +1,4 @@
-.TH DNCOPY 1 "September 5 2002" "DECnet utilities"
+.TH DNCOPY 1 "January 26 2005" "DECnet utilities"
 
 .SH NAME
 dncopy \- Copy files to/from a VMS system
@@ -16,7 +16,7 @@ source...
 Options:
 .br
 [\-vdiskVh] [\-m mode] [\-a record attributes] [\-r record format]
-[\-b block size]
+[\-b block size] [\-p VMS protection]
 .SH DESCRIPTION
 .PP
 dncopy copies files to and from VMS systems.
@@ -141,6 +141,13 @@ typically what you would want (I hope).
 Remove any trailing CR characters at the end of a line. This is useful for
 sending DOS files to VMS. Only works when transferring in record mode.
 .TP
+.I "\-p 'protection'"
+When sending files to VMS, sets the protection of the newly created remote file.
+Without this option, VMS will set the protection to be the default for the remote user.  The protection should be in VMS-style format and enclosed in single 
+quotes to protect it from the shell (see example). 
+.br
+This option is ignored when copying from VMS.
+.TP
 .I \-h \-?
 Displays help for using the command.
 .TP
@@ -197,6 +204,13 @@ Copy an executable to VMS:
     dncopy -mblock test.exe 'tramp"patrick pjc123"::[.BIN]'
 .br
 
+.PP
+.br
+Copy a file to VMS and set its protection
+.br
+.PP
+    dncopy secret.dat  marsha:: -p (s:, o:rwed, g:re, w:)'
+.br
 .br
 .PP
 .br

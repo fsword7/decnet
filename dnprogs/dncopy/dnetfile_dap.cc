@@ -87,11 +87,13 @@ int dnetfile::dap_send_access()
     else // We build our own attributes message when writing.
     {
 	dap_attrib_message att;
+
 	att.set_fop_bit(dap_attrib_message::FB$SQO);
 	att.set_org(dap_attrib_message::FB$SEQ);
 	att.set_rfm(dap_attrib_message::FB$VAR);
 	att.set_mrs(0);
 	att.set_datatype(dap_attrib_message::IMAGE);
+
 	att.write(conn);
     }
     acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |
@@ -332,6 +334,12 @@ int dnetfile::dap_send_attributes()
     if (conn.get_remote_os() == 7)
 	all.write(conn);
 
+    if (protection)
+    {
+	dap_protect_message prot;
+	prot.set_protection(protection);
+	prot.write(conn);
+    }
     return conn.set_blocked(false);
 }
 

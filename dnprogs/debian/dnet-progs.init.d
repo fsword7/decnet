@@ -21,7 +21,7 @@ case $1 in
        exit 1
      fi
 
-     echo -n "Starting DECnet daemons: "
+     echo -n "Starting DECnet daemons:"
 
      for i in $DNET_DAEMONS
      do
@@ -35,7 +35,7 @@ case $1 in
      ;;
 
    stop)
-     echo -n "Stopping DECnet daemons: "
+     echo -n "Stopping DECnet daemons:"
      for i in $DNET_DAEMONS
      do
        echo -n " $i"
@@ -45,7 +45,7 @@ case $1 in
      ;;
 
    restart|force-reload)
-     echo -n "Restarting DECnet daemons: "
+     echo -n "Restarting DECnet daemons:"
      for i in $DNET_DAEMONS
      do
        echo -n " $i"

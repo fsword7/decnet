@@ -1,3 +1,18 @@
+dnprogs (2.29) unstable; urgency=low
+
+  * Add -p switch to dncopy, sets the protection of a file
+    uploaded to VMS.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 28 Jan 2005 15:32:03 +0000
+
+dnprogs (2.28) unstable; urgency=low
+
+  * Makefile fixups from Maciej W. Rozycki
+  * FAL now accepts VMS directories with "][" in them, eg those
+    produced by concatenated logicals.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 15 Dec 2004 10:50:44 +0000
+
 dnprogs (2.27.1) unstable; urgency=low
 
   * Add Dutch debconf translation. Closes: #254842

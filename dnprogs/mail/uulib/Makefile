@@ -25,7 +25,7 @@ CC	=	gcc
 #
 # C Compiler Options
 #
-CFLAGS	=	-O -I.  -DHAVE_CONFIG_H
+CFLAGS	=	-fsigned-char -O -I.  -DHAVE_CONFIG_H
 #
 # the ranlib program
 #

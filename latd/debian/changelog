@@ -1,3 +1,20 @@
+latd (1.16-1) unstable; urgency=low
+
+  * Don't use an IP socket for finding interfaces. So now you
+    can use LAT (& moprc) with a kernel that doesn't have IP.
+  * Fix latcp man page (-J and -j were wrong way round)
+  * llogin -L disables locking when using -p
+  * latd now expires services if it doesn't receive HELLOs
+  * Expand escape sequences in /etc/issue.net or /etc/issue.lat
+  * Fix crash on queued connections referencing freed memory.
+  * moprc now ignores duplicate messages it receives. This fixes
+    odd behaviour with some Emulex targets
+  * Put a timeout on CONNECT and COMMAND messages so we can resend
+    them if we get no reply.
+  * Check connection IDs more carefully.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 10 Jan 2003 10:18:00 +0000
+
 latd (1.15-1) unstable; urgency=low
 
   * More DS90L+ fixes (keepalive message format)

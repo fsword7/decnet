@@ -1,3 +1,71 @@
+latd (1.16-1) unstable; urgency=low
+
+  * Don't use an IP socket for finding interfaces. So now you
+    can use LAT (& moprc) with a kernel that doesn't have IP.
+  * Fix latcp man page (-J and -j were wrong way round)
+  * llogin -L disables locking when using -p
+  * latd now expires services if it doesn't receive HELLOs
+  * Expand escape sequences in /etc/issue.net or /etc/issue.lat
+  * Fix crash on queued connections referencing freed memory.
+  * moprc now ignores duplicate messages it receives. This fixes
+    odd behaviour with some Emulex targets
+  * Put a timeout on CONNECT and COMMAND messages so we can resend
+    them if we get no reply.
+  * Check connection IDs more carefully.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 10 Jan 2003 10:18:00 +0000
+
+latd (1.15-1) unstable; urgency=low
+
+  * More DS90L+ fixes (keepalive message format)
+  * Fix iostreams so they produce the correct output in gcc 3.0 & 2.95.
+    Now I know why people really hate iostreams.
+  * Use getloadavg() rather than /proc to get load average.
+  * Close all FDs before forking server processes.
+  * Always send an ACK for a packet with data in it.
+  * llogin uses lock files for device connections
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 14 Aug 2002 08:56:28 +0100
+
+latd (1.14-1) unstable; urgency=low
+
+  * gcc-3.0 compilation fixes in the new bits
+  * Rewritten ethernet flow control
+  * Increase moprc timeout a little.
+  * Don't try to process zero-length packets
+  * Include lat.html documentation
+  * Tested on DECserver 700
+  * Send "no more slots on circuit" message when closing a connection for
+    that reason. Fixes reconnection on DECserver 90L+
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 19 Mar 2002 19:23:34 +0000
+
+latd (1.13-1) unstable; urgency=low
+
+  * Fail attempts to create /dev/lat ports twice
+  * Delete /dev/lat ports when latcp -D -p is run
+    (thanks to Denis Komissarov) for those two.
+  * Use local name in ENQ message for DS90L servers instead of the
+    stupid one I left in there after testing.
+  * Get rid of spurious "Queued" status messages and put the
+    service name in there.
+  * Fix multiple queued connections to the same server that I broke in 1.11
+  * Don't make queued connection queries interfere with existing services table
+  * Restrict data slots to 250 bytes so as not to break DECserver 200s
+  * Made the keepalive timer less susceptible to drift on busy systems.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 16 Feb 2002 16:25:52 +0000
+
+latd (1.12-1) unstable; urgency=low
+
+  * llogin -r is an alias for llogin -R (easier to type!)
+  * New moprc program for remote administration of terminal servers
+  * llogin can now connect to passworded services using llogin -w
+  * Split out Linux-specific code into its own class
+  * Primitive, but functional support for DS90L terminal servers
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 11 Feb 2002 17:02:13 +0000
+
 latd (1.11-1) unstable; urgency=low
 
   * Added -l switch to llogin to replace LF with VT
@@ -11,7 +79,7 @@ latd (1.11-1) unstable; urgency=low
 
 latd (1.10-1) unstable; urgency=low
 
-  * Can now handle multiple reverse-LAT connections via the same connection 
+  * Can now handle multiple reverse-LAT connections via the same connection
     (llogin only)
   * Can specify a command to run (and user to run it under) for a named service.
 
@@ -21,7 +89,7 @@ latd (1.03-1) unstable; urgency=low
 
   * Use std:: namespace so it compiles with GCC 3.0
   * Don't use makedepend for dependancy management.
-  * Don't depend on libstdc++2.10-dev. 
+  * Don't depend on libstdc++2.10-dev.
     Closes: bug#104954
   * Fix includes in server.cc that depend for GLIBC version
 
@@ -38,7 +106,7 @@ latd (1.02-1) unstable; urgency=low
   * Move sockets into /var/run as per FHS
   * Fixed EOF trapping on local ports
   * Fixed latcp -d display of local ports (node & service were swapped)
-  * Changed example latd.conf to show we can connect to services without 
+  * Changed example latd.conf to show we can connect to services without
     specifying a node name now
   * Closes: bug#85288
 
@@ -65,7 +133,7 @@ latd (1.00-1) unstable; urgency=low
     in /etc/groups then users with that group can connect to reverse-LAT
     ports with no other privileges
   * Added startup script
-  * Remove "LAT started", "LAT stopped" messages from latcp as they interfere 
+  * Remove "LAT started", "LAT stopped" messages from latcp as they interfere
     with the startup script and it's "not the Unix way"
   * Added RPM build target
   * Added DEB build target

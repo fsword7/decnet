@@ -175,6 +175,20 @@ or
 
 rms_t_find(handle, "krf=2,key=PATRICK,rop='rlk,kge'");
 
+You can also specify the values to keys as variables in a printf-type way eg:
+
+rms_t_find(handle, "krf=%d,key=%s,rop='rlk,kge'", keynum, keybuf);
+
+is functionally identical to the line above (if keynum==2 and keybuf=="PATRICK").
+To specify a binary key you need to do the following incantation:
+
+rms_t_find(handle, "ksz=%d,key=%*s,kop=kge", keylen, keylen, key);
+
+ksz= *MUST* be specified before key= and the length must be passed in twice:
+once to ksz= and once to replace the * in %*s so that librms knows how much data
+to copy into its internal buffer. This form of substitution only works for values, not
+keys so parameters of the form "%s=%d" are not valid.
+
 
 For more information on the particular function see the description of
 the non _t functions above.
@@ -188,7 +202,7 @@ rfm=udf,fix,var,vfc,stm,stmcr,stmcr
 rat=ftn,cr,prn,blk
 
 
->>> int   rms_read(RMSHANDLE h, char *buf, int maxlen, char *options);
+>>> int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options);
 
 rac=seq,key,rfa 
 rop=eof,fdl,uif,hsh,loa,ulk,tpt,rah,wbh,kge,kgt,nlk,rlk,bio,nxr

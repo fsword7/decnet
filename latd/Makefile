@@ -64,7 +64,7 @@ $(PROG2): depend $(PROG2OBJS)
 	$(CXX) -o $@ $(PROG2OBJS)
 
 $(PROG3): depend $(PROG3OBJS)
-	$(CXX) -o $@ $(PROG3OBJS) -llockfile
+	$(CXX) -o $@ $(PROG3OBJS) -llockdev
 
 $(PROG4): depend $(PROG4OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PROG4OBJS)
@@ -126,7 +126,7 @@ rpm:
 	mkdir BUILD
 	install README NEWS BUILD
 	mkdir -p RPMS
-	rpm -bb --target=$(ARCH) --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
+	rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
 #

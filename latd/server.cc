@@ -145,7 +145,7 @@ int LATServer::find_interface(char *ifname)
 	    ioctl(sock, SIOCGIFHWADDR, &ifr);
 	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
 	    {
-		fprintf(stderr, "Device %s is not ethernet\n", ifname);
+		syslog(LOG_ERR, "Device %s is not ethernet\n", ifname);
 		return -1;
 	    }	    
 	    close(sock);

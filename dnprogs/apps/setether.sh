@@ -9,6 +9,11 @@
 # $2 - optional list of ethernet card names to set.
 #
 
+# Use the "ip" command if available
+if [ -x /sbin/ip ]; then
+  IPCMD="/sbin/ip"
+fi
+
 calc_ether()
 {
   MACADDR=""
@@ -50,7 +55,14 @@ fi
 set_default=""
 for i in $CARDS
 do
-  ifconfig $i hw ether $MACADDR allmulti up
+  if [ -n "$IPCMD" ]
+  then
+    $IPCMD link set $i address $MACADDR
+    $IPCMD link set $i up
+  else
+    ifconfig $i hw ether $MACADDR allmulti up
+  fi
+
   if [ -z "$set_default" -a -f /proc/sys/net/decnet/default_device ]
   then
     echo $i >/proc/sys/net/decnet/default_device

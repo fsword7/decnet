@@ -7,7 +7,8 @@ PROG2=sendvmsmail
 
 UULIB=uulib/libuu.a
 
-MANPAGES=vmsmaild.8 sendvmsmail.8
+MANPAGES5=vmsmail.conf.5
+MANPAGES8=vmsmaild.8 sendvmsmail.8
 
 PROG1OBJS=vmsmaild.o receive.o configfile.o
 PROG2OBJS=sendvmsmail.o configfile.o
@@ -30,10 +31,12 @@ $(PROG2): $(PROG2OBJS) $(DEPLIBDNET) $(UULIB)
 
 install:
 	install -d $(prefix)/bin
-	install -d $(prefix)/man/man1
+	install -d $(prefix)/man/man5
+	install -d $(prefix)/man/man8
 	install -m 0755 -s $(PROG1) $(prefix)/sbin
 	install -m 0755 -s $(PROG2) $(prefix)/sbin
-	install -m 0644 $(MANPAGES) $(prefix)/man/man8
+	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
+	install -m 0644 $(MANPAGES8) $(prefix)/man/man8
 
 dep depend:	
 	makedepend *.cc *.c 2>/dev/null

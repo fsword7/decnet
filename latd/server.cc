@@ -1438,7 +1438,7 @@ void LATServer::delete_entry(deleted_session &dsl)
 	break;
 
     default:
-        debuglog(("Unknown LAT message: %d, 0x%X\n", header->cmd, header->cmd));
+       debuglog(("Unknown socket type: %d\n", dsl.get_type()));
        break;
     }
 }

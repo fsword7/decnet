@@ -20,7 +20,7 @@ LAT implementation for Linux
 %%PREFIX%%/man/man8/latcp.8
 %%PREFIX%%/man/man8/moprc.8
 %%PREFIX%%/man/man8/latd.8
-/etc/latd.conf
+/etc/latd.conf.sample
 /etc/rc.d/init.d/lat
 /etc/rc.d/rc3.d/S79lat
 /etc/rc.d/rc3.d/K79lat

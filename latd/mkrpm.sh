@@ -23,7 +23,7 @@ make DESTDIR=`pwd`/rpmbuild install
 install -d rpmbuild/usr/doc
 install -d rpmbuild/etc
 install -d rpmbuild/usr/doc/${PACKAGE}-${VERSION}
-install latd.conf rpmbuild/etc/latd.conf
+install latd.conf.sample rpmbuild/etc/latd.conf.sample
 install -Dm 0700 startlat.sh rpmbuild/etc/rc.d/init.d/lat
 install -d rpmbuild/etc/rc.d/rc3.d
 ln -sf ../init.d/lat rpmbuild/etc/rc.d/rc3.d/S79lat

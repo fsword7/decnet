@@ -8,7 +8,7 @@ INCLUDES = -DLATD_CONF=\"$(sysconfdir)/latd.conf\" -DSBINDIR=\"$(sbindir)\" -DBI
 
 sbin_PROGRAMS = latd latcp moprc
 bin_PROGRAMS = llogin
-sysconf_DATA = latd.conf
+sysconf_DATA = latd.conf.sample
 man_MANS = latd.8 latcp.8 llogin.1 moprc.8 latd.conf.5
 latd_SOURCES = main.cc \
 	circuit.h circuit.cc \

@@ -59,7 +59,7 @@ static int  mop_socket;
 static unsigned char last_message[1500];
 static int  last_message_len;
 static int  show_info = 0;
-static int  do_moprc(u_int8_t *, int);
+static int  do_moprc(u_int8_t *, int, int);
 static int  send_boot(u_int8_t *macaddr, int interface);
 static LATinterfaces *iface;
 
@@ -72,6 +72,7 @@ static int usage(FILE *f, char *cmd)
     fprintf(f, "   -V         Show the version of moprc\n");
     fprintf(f, "   -i         Ethernet interface to use (default to first found)\n");
     fprintf(f, "   -t         Trigger (reboot) the server\n");
+    fprintf(f, "   -b         Make ^H send DEL\n");
     fprintf(f, "   -v         Show target information\n");
     fprintf(f, "\n");
     fprintf(f, "Node names are read from /etc/ethers\n");
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
     int opt;
     int interface = -1;
     int trigger=0;
+    int convert_bs = 0;
     char ifname_buf[255];
     char *ifname;
     struct ether_addr addr;
@@ -123,7 +125,7 @@ int main(int argc, char *argv[])
 
 /* Get command-line options */
     opterr = 0;
-    while ((opt=getopt(argc,argv,"?hVvti:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hVvtbi:")) != EOF)
     {
 	switch(opt)
 	{
@@ -139,6 +141,10 @@ int main(int argc, char *argv[])
 
 	case 't':
 	    trigger++;
+	    break;
+
+	case 'b':
+	    convert_bs++;
 	    break;
 
 	case 'i':
@@ -206,7 +212,7 @@ int main(int argc, char *argv[])
 	return send_boot(addr.ether_addr_octet, interface);
     }
 
-    return do_moprc(addr.ether_addr_octet, interface);
+    return do_moprc(addr.ether_addr_octet, interface, convert_bs);
 }
 
 static int readmop(unsigned char *buf, int buflen)
@@ -363,7 +369,7 @@ static int show_system_info(unsigned char *info, int len)
     return functions & 0x20; /* Do we do CCP? */
 }
 
-static int do_moprc(u_int8_t *macaddr, int interface)
+static int do_moprc(u_int8_t *macaddr, int interface, int convert_bs)
 {
     enum {STARTING, CONNECTED} state=STARTING;
     fd_set         in;
@@ -511,6 +517,7 @@ static int do_moprc(u_int8_t *macaddr, int interface)
 	    {
 		if (buf[i] == 4) goto finished;
 		if (buf[i] == '\n') buf[i] = '\r';
+		if (convert_bs && buf[i] == '\b') buf[i] = 127;
 	    }
 	    waiting_ack = 1;
 	    resends = 0;

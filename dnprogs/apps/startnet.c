@@ -148,9 +148,15 @@ static int set_hwaddr(int argc, char *argv[])
 {
     struct ifreq ifr;
     int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    //int sock = socket(AF_DECnet, SOCK_STREAM, DNPROTO_NSP);
     int ifdone = 0;
     int ret = 0;
+    int force = 0;
+
+    /* Don't down the interface unless we have to. */
+    if (argc > 1 && strcmp(argv[0], "-f")==0)
+	force = 1;
 
     ifr.ifr_ifindex = iindex;
 
@@ -162,20 +168,17 @@ static int set_hwaddr(int argc, char *argv[])
 	{
 	    if (use_if(ifr.ifr_name, argc, argv))
 	    {
-		int downed = 0;
-		
-		/* Down the interface so we can change the MAC address */
+		/* Down the interface so we can change the MAC address */		
 		ioctl(sock, SIOCGIFFLAGS, &ifr);
-		if (ifr.ifr_flags & IFF_UP)
+		if (ifr.ifr_flags & IFF_UP && force)
 		{
 		    ifr.ifr_flags &= ~IFF_UP;
 		    ioctl(sock, SIOCSIFFLAGS, &ifr);
-		    downed++;
 		}
 
 		/* Need to refresh this */
+		ifr.ifr_ifindex = iindex;				
 		ioctl(sock, SIOCGIFHWADDR, &ifr);
-		ifr.ifr_ifindex = iindex;		
 		memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
 
 		/* Do the deed */
@@ -186,13 +189,10 @@ static int set_hwaddr(int argc, char *argv[])
 		    ret = errno;		
 		}
 
-		/* And UP the interface again if we downed it */
-		if (downed)
-		{
-		    ioctl(sock, SIOCGIFFLAGS, &ifr);		    
-		    ifr.ifr_flags |= IFF_UP;
-		    ioctl(sock, SIOCSIFFLAGS, &ifr);
-		}
+		/* "UP" the interface. Just in case TCP/IP is not running */
+		ioctl(sock, SIOCGIFFLAGS, &ifr);		    
+		ifr.ifr_flags |= IFF_UP;
+		ioctl(sock, SIOCSIFFLAGS, &ifr);
 		    
 		ifdone++;
 	    }

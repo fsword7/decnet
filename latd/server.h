@@ -48,10 +48,12 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, int interface, unsigned char *macaddr);
     bool  is_local_service(char *);
+    string get_service_cmd(char *name);
     gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
-    
+    int   find_connection_by_node(char *node);
+
  private:
     LATServer():
 	circuit_timer(8),
@@ -101,7 +103,6 @@ class LATServer
     void  read_llogin(int);
     void  print_bitmap(std::ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
-    int   find_connection_by_node(char *node);
     
     static void alarm_signal(int sig);
 
@@ -182,17 +183,24 @@ class LATServer
     class serviceinfo
     {
     public:
-	serviceinfo(std::string n, int r, bool s, std::string i = std::string("") ):
+	serviceinfo(std::string n, int r, bool s, std::string i = std::string(""), int mc=0, char* comm=""):
 	    name(n),
 	    id(i),
+	    command(std::string(comm)),
 	    rating(r),
+	    max_connections(mc),
 	    static_rating(s)
-	    {}
+	    {
+		if (command == std::string(""))
+		    command = std::string("/bin/login");
+	    }
 	const std::string &get_name() {return name;}
 	const std::string &get_id() {return id;}
-	int                get_rating() {return rating;}
-	bool               get_static() {return static_rating;}
-	void              set_rating(int _new_rating, bool _static)
+	const std::string &get_command() {return command;}
+	int           get_max_connections() {return max_connections;}
+	int           get_rating() {return rating;}
+	bool          get_static() {return static_rating;}
+	void          set_rating(int _new_rating, bool _static)
 	    { rating = _new_rating; static_rating = _static; }
 	void          set_ident(char *_ident)
 	    { id = std::string(_ident);}
@@ -205,7 +213,9 @@ class LATServer
     private:
 	std::string name;
 	std::string id;
+	std::string command;
 	int rating;
+	int max_connections;
 	bool static_rating;
     };
     
@@ -242,7 +252,7 @@ class LATServer
  public:
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
-    bool add_service(char *name, char *ident, int _rating, bool _static_rating);
+    bool add_service(char *name, char *ident, char *command, int maxcon, int _rating, bool _static_rating);
     bool set_rating(char *name, int _rating, bool _static_rating);
     bool set_ident(char *name, char *ident);
     bool remove_service(char *name);

@@ -1337,8 +1337,21 @@ bool LATServer::is_local_service(char *name)
     return false;
 }
 
+// Return the command string for a service
+string LATServer::get_service_cmd(char *name)
+{
+    // Look for it.
+    std::list<serviceinfo>::iterator sii;
+    sii = find(servicelist.begin(), servicelist.end(), name);
+    if (sii != servicelist.end()) return sii->get_command();
+
+// Always return a decent default
+    return std::string("/bin/login");
+}
+
 // Add a new service from latcp
-bool LATServer::add_service(char *name, char *ident, int _rating, bool _static_rating)
+bool LATServer::add_service(char *name, char *ident, char *command, int max_conn,
+			    int _rating, bool _static_rating)
 {
     // Look for it.
     std::list<serviceinfo>::iterator sii;
@@ -1351,7 +1364,9 @@ bool LATServer::add_service(char *name, char *ident, int _rating, bool _static_r
     servicelist.push_back(serviceinfo(name, 
 				      _rating,
 				      _static_rating, 
-				      ident));
+				      ident,
+				      max_conn,
+				      command));
 
     // Resend the announcement message.
     send_service_announcement(-1);

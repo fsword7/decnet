@@ -223,19 +223,24 @@ bool LATCPCircuit::do_command()
     {
 	unsigned char name[255];
 	unsigned char ident[255];
+	unsigned char command[1024];
 	bool static_rating;
 	int  rating;
 	int  ptr=2;
+	int  max_connections;
 
 	static_rating = (bool)cmdbuf[0];
 	rating = cmdbuf[1];
 	get_string((unsigned char*)cmdbuf, &ptr, name);
 	get_string((unsigned char*)cmdbuf, &ptr, ident);
+	max_connections = cmdbuf[ptr++];
+	get_string((unsigned char*)cmdbuf, &ptr, command);
 
 	debuglog(("latcp: add service: %s (%s)\n",
 		  name, ident));
 
-	if (LATServer::Instance()->add_service((char*)name, (char*)ident, rating, static_rating))
+	if (LATServer::Instance()->add_service((char*)name, (char*)ident, (char*)command,
+					       max_connections, rating, static_rating))
 	    send_reply(LATCP_ACK, "", -1);
 	else
 	    send_reply(LATCP_ERRORMSG, "Local service already exists", -1);

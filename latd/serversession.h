@@ -17,6 +17,7 @@ class ServerSession: public LATSession
  public:
   ServerSession(class LATConnection &p,
 		LAT_SessionStartCmd *cmd,
+		std::string shellcmd, 
 		unsigned char remid, unsigned char localid, bool clean);
 
   virtual int new_session(unsigned char *remote_node,
@@ -25,7 +26,8 @@ class ServerSession: public LATSession
 
  protected:
   int  send_login_response();
+  std::string command;
 
  private:
-  int  create_session(unsigned char *remote_node);    
+  int  create_session(unsigned char *remote_node);
 };

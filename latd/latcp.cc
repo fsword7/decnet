@@ -89,9 +89,10 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i description] [-r rating] [-s]\n");
+    printf ("       -A -a service [-i description] [-r rating] [-s] [-C command] [-m max conn]\n");
     printf ("       -A -p tty -V learned_service [-R rem_port] [-H rem_node] [-Q] [-8]\n");
     printf ("       -D {-a service | -p tty}\n");
+    printf ("       -C service command}\n");
     printf ("       -i description -a service\n");
     printf ("       -g list\n");
     printf ("       -G list\n");
@@ -518,6 +519,7 @@ void add_service(int argc, char *argv[])
     char localport[255] = {'\0'};
     char remnode[255] = {'\0'};
     char remservice[255] = {'\0'};
+    char command[1024] = {'\0'};
     signed char opt;
     bool got_service=false;
     bool got_port=false;
@@ -525,11 +527,12 @@ void add_service(int argc, char *argv[])
     int  rating = 0;
     int  queued = 0;
     int  clean = 0;
+    int  max_connections = 0;
     
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8C:m:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -585,6 +588,13 @@ void add_service(int argc, char *argv[])
 	    clean = true;
 	    break;
 
+	case 'C':
+	    strcpy(command, optarg);
+	    break;
+
+	case 'm':
+	    max_connections = atoi(optarg);
+	    break;
 
 	case 'r':
 	    rating = atoi(optarg);
@@ -618,6 +628,9 @@ void add_service(int argc, char *argv[])
 	message[1] = rating;
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
+	message[ptr++] = max_connections;
+	add_string((unsigned char*)message, &ptr, (unsigned char*)command);
+
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);
 
 	// Wait for ACK or error

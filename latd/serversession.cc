@@ -34,11 +34,14 @@
 #include "serversession.h"
 
 ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
+			     std::string shellcmd,
 			     unsigned char remid, 
 			     unsigned char localid, bool clean):
-  LATSession(p, remid, localid, clean)
+    LATSession(p, remid, localid, clean),
+    command(shellcmd)
 {
     max_read_size = cmd->dataslotsize;
+    
     
     debuglog(("new server session: localid %d, remote id %d, data slot size: %d\n",
 	    localid, remid, max_read_size));
@@ -170,14 +173,14 @@ int ServerSession::create_session(unsigned char *remote_node)
 	
 	setsid();
 
-	// Older login programs don't take the -h flag
-#ifdef SET_LOGIN_HOST
-	execlp("/bin/login", "login", "-h", remote_node, (char *)0);
-#else
-	execlp("/bin/login", "login", (char *)0);
-#endif
+	const char *cmd = command.c_str();
+	const char *cmdname = strrchr(cmd, '/');
+	if (!cmdname) cmdname = cmd;
+	
+	execlp(cmd, cmdname, (char *)0);
+
 	// Argh!
-	syslog(LOG_ERR, "Error in starting /bin/login: %m");
+	syslog(LOG_ERR, "Error in starting %s: %m", cmd);
 
 	// Exit now so that the parent will get EOF on the channel
 	exit(-1);

@@ -46,7 +46,7 @@ use Linux and Darwin.
 The following systems I know to work on the other end of LATD because I have 
 tested them, others may also work.
 
-OpenVMS 7.2 (VAX & Alpha)
+OpenVMS 7.2 & 7.3 (VAX & Alpha)
 DEC Unix v4.0d
 DECserver 200/MC
 DECserver 90M
@@ -83,6 +83,10 @@ There are several things you can tweak in the configuration process:
                  also want to set --sysconfdir to / so that the config 
                  file goes in /etc rather than /usr/etc
 
+PRINTING
+--------
+You can use latd and Linux as a printer server. See latprint.sh for 
+for more information.
 
 CREDITS
 -------
@@ -93,10 +97,7 @@ I'd like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
 I am also very much indebted to Real Dupeux for sending me a DECserver 200
-for
-the project, without which it would be much impoverished. I use it a for
-reverse-LAT every day of the week to log in to the consoles of my various
-machines.
+for the project, without which it would be much impoverished.
 
 I would also like to express gratitude to ABB for providing a DECserver 90M and
 to Rob Davies for DECserver 90L+s.

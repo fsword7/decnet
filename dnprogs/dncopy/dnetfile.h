@@ -7,11 +7,11 @@ public:
 // Is this one of my filenames?
     static bool   isMine(char *name);
 
-// Constructor and destructor    
+// Constructor and destructor
     dnetfile(char *name, int verbosity);
     ~dnetfile();
 
-// Stuff overriden from file.    
+// Stuff overriden from file.
     virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode);
     virtual int   open(char *mode);
     virtual int   open(char *basename, char *mode);
@@ -39,8 +39,8 @@ public:
     static const int MAX_ACCOUNT   = 12;
     static const int MAX_NAME      = MAX_PATH;
     static const int MAX_BASENAME  = 76;
-    
-/* Misc class-globals */    
+
+/* Misc class-globals */
     bool  wildcard; // Is a wildcard file name
     bool  isOpen;   // Set when we have an open connection
     bool  writing;  // if FALSE then we are reading.
@@ -48,7 +48,7 @@ public:
     char  errstring[80];
     int   verbose;
 
-    
+
 /* File attributes, requested and actual */
     int          file_rat, file_rfm;
     int          user_rat, user_rfm;
@@ -56,7 +56,7 @@ public:
     int          file_fsz; // Size of VFC fixed part.
     unsigned int user_bufsize;
     dap_connection conn;
-    
+
 /* Connection attribute strings */
     char  fname[MAX_NAME+1]; // Full name as supplied by the user
     char  node[MAX_NODE+1];

@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1998-1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -49,7 +49,7 @@ dnetfile::dnetfile(char *n, int verbosity):
     strcpy(name, n);
 
     // Is this a wildcard filename?
-    if (strchr(name, '*') || 
+    if (strchr(name, '*') ||
 	strchr(name, '%'))
 	wildcard = TRUE;
     else
@@ -112,7 +112,7 @@ int dnetfile::open(char *filename,char *mode)
     return open(mode);
 }
 
-// Open a file already named 
+// Open a file already named
 int dnetfile::open(char *mode)
 {
     int real_rfm, real_rat;
@@ -140,7 +140,7 @@ int dnetfile::open(char *mode)
 	if (writing)
 	{
 	    status = dap_send_attributes();
-	    
+
 	    // Send default file name
 	    if (wildcard)
 	    {
@@ -169,7 +169,7 @@ int dnetfile::open(char *mode)
 // Use the file's real attributes if the user just wants defaults.
 	    if (user_rfm == RFM_DEFAULT)  file_rfm = real_rfm;
 	    if (user_rat == RAT_DEFAULT)  file_rat = real_rat;
-	    
+
 // Get the file's real name in case the user specified a wildcard
 	    strcpy(name, filname);
 	}
@@ -205,12 +205,12 @@ int dnetfile::read(char *buf, int len)
 
 // If the file has implied carriage control then add an LF to the end of the
 // line
-    if ((file_rfm != RFM_STMLF) && 
+    if ((file_rfm != RFM_STMLF) &&
 	(file_rat & RAT_CR || file_rat & RAT_PRN))
 	buf[retlen++] = '\n';
 
 // Print files have a two-byte header indicating the line length.
-    if (file_rat & RAT_PRN) 
+    if (file_rat & RAT_PRN)
     {
 	memmove(buf, buf+file_fsz, retlen-file_fsz);
 	retlen -= file_fsz;
@@ -219,13 +219,13 @@ int dnetfile::read(char *buf, int len)
 // FORTRAN files have a leading character that indicates carriage control
     if (file_rat & RAT_FTN)
     {
-	switch (buf[0]) 
+	switch (buf[0])
 	{
-	  
+
 	case '+': // No new line
 	  buf[0] = '\r';
 	  break;
-	  
+
 	case '1': // Form Feed
 	  buf[0] = '\f';
 	  break;
@@ -259,7 +259,7 @@ int dnetfile::next()
     int status;
     int real_rfm, real_rat;
 
-    if (!wildcard) 
+    if (!wildcard)
     {
 	return FALSE;
     }
@@ -330,7 +330,7 @@ void dnetfile::make_basename(int keep_version)
     char        *start;
     char        *end;
     unsigned int i;
-		    
+
     /* Find the start of the name */
     start = rindex(name, ']');
     if (!start) start = rindex(name, ':');
@@ -356,9 +356,9 @@ void dnetfile::make_basename(int keep_version)
 char *dnetfile::get_printname(char *filename)
 {
     static char pname[1024];
-    
+
     strcpy(pname, node);
-    if (*user) 
+    if (*user)
     {
 	strcat(pname, "\"");
 	strcat(pname, user);
@@ -396,7 +396,7 @@ char *dnetfile::get_format_name()
 	{
 	case RAT_NONE:
 	    return "blocks";
-	    
+
 	default:
 	    return "records";
 	}

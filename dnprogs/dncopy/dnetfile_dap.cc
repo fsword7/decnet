@@ -71,20 +71,26 @@ int dnetfile::dap_send_access()
 
     if (transfer_mode == MODE_BLOCK)
     {
-	acc.set_fac( (1<<dap_access_message::FB$GET) ||
-		     (1<<dap_access_message::FB$BIO) );
-	acc.set_shr(1<<dap_access_message::FB$BRO); // No sharing PJC CHECK
+	acc.set_fac( (1<<dap_access_message::FB$GET) |
+		     (1<<dap_access_message::FB$BRO));
+	acc.set_shr(1<<dap_access_message::FB$GET);
     }
 
     if (writing)
     {
 	acc.set_accfunc(dap_access_message::CREATE);
 	acc.set_fac(dap_access_message::FB$PUT);
-	acc.set_shr(1<<dap_access_message::FB$BRO); // No sharing PJC CHECK
+	acc.set_shr(1<<dap_access_message::FB$BRO);
     }
     else // We build our own attributes message when writing.
     {
 	dap_attrib_message att;
+	att.set_fop_bit(dap_attrib_message::FB$SQO);
+	att.set_org(dap_attrib_message::FB$SEQ);
+	att.set_rfm(dap_attrib_message::FB$VAR);
+	att.set_rat(dap_attrib_message::FB$PRN);
+	att.set_mrs(0);
+	att.set_datatype(1);
 	att.write(conn);
     }
     acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |

@@ -904,7 +904,7 @@ void fal_task::meta_filename(const char *file, char *metafile)
     struct stat st;
     if (stat(metafile, &st) == -1 && errno == ENOENT)
     {
-	mkdir(metafile, 0700);
+	mkdir(metafile, 0777);
     }
     strcat(metafile, "/");
     strcat(metafile, endpath);

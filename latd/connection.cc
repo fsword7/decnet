@@ -106,6 +106,7 @@ LATConnection::LATConnection(int _num, const char *_service,
 
     max_slots_per_packet = 1; // TODO: Calculate
     max_window_size = 1;      // Gets overridden later on.
+    window_size = 0 ;
     next_session = 1;
 }
 
@@ -426,6 +427,7 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 	retransmit_count = 0;
 	last_sent_sequence = last_sequence_number;
 	window_size++;
+	debuglog(("send_message, window_size now %d\n", window_size));
 	need_ack = true;
     }
 
@@ -555,14 +557,14 @@ void LATConnection::circuit_timer(void)
 	    unsigned char replybuf[1600];
 	    LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
 	    
-	    reply->header.cmd          = LAT_CCMD_SDATA;
+	    reply->header.cmd          = LAT_CCMD_SESSION;
 	    reply->header.num_slots    = 0;
 	    reply->slot.remote_session = 0;
 	    reply->slot.local_session  = 0;
 	    reply->slot.length         = 0;
 	    reply->slot.cmd            = 0;
 	    
-	    if (role == CLIENT) reply->header.cmd |= 2; // To Host
+	    if (role == CLIENT) reply->header.cmd          = LAT_CCMD_SESSION | 2;
 	    
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;
@@ -938,9 +940,12 @@ int LATConnection::pending_msg::send(int interface, unsigned char *macaddr)
     return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
-void LATConnection::show_client_info(ostrstream &output)
+void LATConnection::show_client_info(bool verbose, ostrstream &output)
 {
     if (role == SERVER) return; // No client info for servers!
+
+    // Only show llogin ports if verbose is requested.
+    if (!verbose && strcmp(lta_name, "llogin")==0) return;
 
     output << lta_name << setw(24-strlen((char*)lta_name)) << " " << servicename
 	   << setw(16-strlen((char*)servicename)) << " " 

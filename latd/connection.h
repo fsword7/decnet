@@ -46,7 +46,7 @@ class LATConnection
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
     const char *getLocalPortName() { return lta_name; }
-    void show_client_info(ostrstream &);
+    void show_client_info(bool verbose, ostrstream &);
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
     

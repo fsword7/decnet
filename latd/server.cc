@@ -1474,7 +1474,7 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
     // Show allocated ports
     for (int i=1; i< MAX_CONNECTIONS; i++)
     {
-	if (connections[i]) connections[i]->show_client_info(output);
+	if (connections[i]) connections[i]->show_client_info(verbose, output);
     }	
     
     // NUL-terminate it.

@@ -24,3 +24,16 @@ mail:
   Possibly use multi-part MIME for binary messages - does anyone have any
                                                      opinions on this ??
 
+Debian Package
+--------------
+Write two missing man pages
+Fix changelog format
+Check startup messages
+Remove bashisms (& use tempfile)
+Do .changes stuff
+Split setting MAC address from daemon startup (and do all I/Fs)
+Split into three packages:
+   libs
+   progs
+   dev
+   ..maybe just phone too(with gtk support)

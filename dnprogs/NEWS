@@ -8,7 +8,9 @@
 - A small number of potential buffer overflows removed from dnetd & 
   libdnet_daemon
 - Fixed compilation of phone on SuSE 6.2 & RedHat 6.2 systems
-- rms_open with O_CREAT is now useful
+- librms rms_open with O_CREAT is now useful
+- Fixed several memory leaks in libdnet_daemon (and thus dnetd)
+- dnetd now really re-reads the proxy DB every time
 
 
 2.05  3 Apr 2000
@@ -34,8 +36,7 @@
 - Removed dncopy.README as it didn't say anything anyway
 - Include a modified dnping with all sorts of new features, submitted by 
   Rob Davies. man page by me.
-- Sethost now supports RSTS/RSX and (allegedly) TOPS-20! Thanks to
-  Paul Koning for the patch.
+- Sethost now supports RSTS and TOPS-20. Thanks to Paul Koning for the patch.
 - Include rmtermd from Paul Koning so you can connect your PDP machines to 
   Linux too.
 

@@ -1357,6 +1357,7 @@ void LATServer::unlock()
 
 int LATServer::make_llogin_connection(int fd, char *service, char *node, char *port, bool queued)
 {
+    int ret;
     int connid = get_next_connection_number();
     if (connid == -1)
     {
@@ -1373,15 +1374,14 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
 					    false);
 
     debuglog(("lloginSession for %s has connid %d\n", service, connid));    
-    if (connections[connid]->create_llogin_session(fd) < 0)
-	return -1;
+    ret = connections[connid]->create_llogin_session(fd);
 
     // Remove LLOGIN socket from the list as it's now been
     // added as a PTY (honest!)
     deleted_session s(LLOGIN_SOCKET, NULL, 0, fd);
     dead_session_list.push_back(s);    
 
-    return 0;
+    return ret;
 }
 
 

@@ -127,7 +127,7 @@ bool LLOGINCircuit::do_command()
 							  queued) < 0)
 	{
 	    debuglog(("sending failure back to llogin\n"));
-	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);
+	    send_reply(LATCP_ERRORMSG, "Error creating client service.", -1);
 	}
 	else
 	{

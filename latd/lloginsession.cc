@@ -68,8 +68,8 @@ int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
     else
     {
 	// Service does not exist or we haven't heard of it yet.
-	write(master_fd, "Connect failed\n", 15);
 	disconnect_sock();
+	return -1;
     }
 
     return 0;

@@ -60,6 +60,7 @@ void LATSession::add_credit(signed short c)
     {
 	debuglog(("Got some more credit, (+%d=%d) carrying on\n", c, credit));
 	stopped = false;
+	LATServer::Instance()->set_fd_state(master_fd, false);
     }
 }
 
@@ -115,7 +116,13 @@ int LATSession::read_pty()
     int  command = 0x00;
     int  msglen;
 
-    if (credit <= 0) return 0; // Not allowed!
+    if (credit <= 0) 
+    {
+	// Disable the FD so we don't start looping
+	LATServer::Instance()->set_fd_state(master_fd, true);
+	stopped = true;
+	return 0; // Not allowed!
+    }
     
     msglen = read(master_fd, buf, max_read_size);
 

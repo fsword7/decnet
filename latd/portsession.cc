@@ -60,6 +60,7 @@ int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
     {
 	fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 	connected = true;
+
 	send_login_response();
     }
     else

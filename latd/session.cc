@@ -77,25 +77,12 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 	remote_credit--;
 
 	// Replace LF/CR with LF if we are a server.
-        // TODO There MUST be an option for this...
 	if (!parent.isClient() && !clean)
 	{
-	    char newbuf[len+1];
-	    int newlen = 0;
-	    int i;
-	    for (i=0; i<len; i++)
-	    {
-		if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
-		{
-		    continue;
-		}
-		if (i>0 && i<len && (buf[i] == '\n') && (buf[i-1] == '\r'))
-		{
-		    newbuf[newlen-1] = '\n';
-		    continue;
-		}
-		newbuf[newlen++] = buf[i];
-	    }
+	    unsigned char newbuf[len*2];
+	    int  newlen;
+
+	    crlf_to_lf(buf, len, newbuf, &newlen);
 	    write(master_fd, newbuf, newlen);
 	}
 	else
@@ -136,12 +123,14 @@ int LATSession::read_pty()
     {
       	buf[msglen] = '\0';
 	char tmp = buf[10];
-	buf[10] = '\0'; // Just a sample	    
+	buf[10] = '\0'; // Just a sample
 	debuglog(("Session %d From PTY(%d): '%s%s'\n", local_session, msglen, 
 		  buf, (msglen>10)?"...":""));
 	buf[10] = tmp;
     }
 #endif
+
+    
 	
     // EOF or error on PTY - tell remote end to disconnect
     if (msglen <= 0)
@@ -172,9 +161,13 @@ int LATSession::read_pty()
 
     // Got break!
     if (msglen == 1 && buf[0] == '\0' && !clean)
+    {
 	return send_break();
+    }
     else
+    {
 	return send_data(buf, msglen, command);
+    }
 }
 
 int LATSession::send_break()
@@ -354,4 +347,28 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
     LAT_Header *header = (LAT_Header *)buf;
     header->num_slots++;
     header->cmd = LAT_CCMD_SDATA;
+}
+
+void LATSession::crlf_to_lf(unsigned char *buf, int len, 
+			    unsigned char *newbuf, int *newlen)
+{
+    int i;
+    int len2 = 0;
+
+    len2 = 0;
+
+    for (i=0; i<len; i++)
+    {
+	if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
+	{
+	    continue;
+	}
+	if (i>0 && i<len && (buf[i] == '\n') && (buf[i-1] == '\r'))
+	{
+	    newbuf[len2-1] = '\n';
+	    continue;
+	}
+	newbuf[len2++] = buf[i];
+    }
+    *newlen = len2;
 }

@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -61,7 +61,7 @@ int dnetfile::dap_get_reply(void)
     }
     DAPLOG((LOG_ERR, "dap_get_reply error: %s\n",conn.get_error()));
 
-    return -1; 
+    return -1;
 }
 /*-------------------------------------------------------------------------*/
 int dnetfile::dap_send_access()
@@ -91,7 +91,7 @@ int dnetfile::dap_send_access()
 		    dap_access_message::DISPLAY_PROT_MASK |
 		    dap_access_message::DISPLAY_NAME_MASK);
     acc.set_filespec(filname);
-    return !acc.write(conn); 
+    return !acc.write(conn);
 }
 
 /*-------------------------------------------------------------------------*/
@@ -130,7 +130,7 @@ int dnetfile::dap_get_file_entry(int *rfm, int *rat)
 		}
 	    }
 	    break;
-	    
+
 	case dap_message::ACCOMP:
 	    return -2; // End of wildcard list
 
@@ -138,7 +138,7 @@ int dnetfile::dap_get_file_entry(int *rfm, int *rat)
 	    {
 		dap_attrib_message *am =(dap_attrib_message *)m;
 		*rfm = am->get_rfm();
-		*rat = am->get_rat(); 
+		*rat = am->get_rat();
 		file_fsz = am->get_fsz();
 	    }
 	    break;
@@ -155,7 +155,7 @@ int dnetfile::dap_get_file_entry(int *rfm, int *rat)
 	case dap_message::STATUS:
 	    {
 		dap_status_message *sm = (dap_status_message *)m;
-		if (sm->get_code() == 0x4030) // Locked
+		if (wildcard && sm->get_code() == 0x4030) // Locked
 		{
 		    dap_send_skip();
 		    break;
@@ -218,7 +218,7 @@ int dnetfile::dap_send_accomp()
     if (!accomp.write(conn)) return -1;
     conn.set_blocked(false); //PJC
 
-    if (writing) 
+    if (writing)
 	return dap_get_reply();
     else
 	return 0;
@@ -257,7 +257,7 @@ int dnetfile::dap_get_record(char *rec, int reclen)
 	unsigned int len = dm->get_datalen();
 	rec[len] = 0;
 	memcpy(rec, dm->get_dataptr(), len);
-	
+
 	return len;
     }
     lasterror = conn.get_error();
@@ -290,7 +290,7 @@ int dnetfile::dap_send_attributes()
 
     dap_attrib_message att;
     dap_alloc_message  all;
-    
+
 
     att.set_org(dap_attrib_message::FB$SEQ);
     att.set_rfm(dap_attrib_message::FB$STMLF);

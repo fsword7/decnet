@@ -2,8 +2,8 @@ TODO in no particular order
 ----
 
 - Test service responder.
-- Allow reverse-LAT to DECserver 90L+
-- Find out we send so many more packets than Tru64
+- Find out we send so many more packets than Tru64. Probably related 
+  to the second item below.
 
 THINGS I MAY NOT DO
 -------------------

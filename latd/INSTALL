@@ -25,6 +25,6 @@ terminal server/host you came from.
 
 -DNO_FORK prevent the daemon from forking into the background when run. Without
 this and without the -d flag, latd wil detach itself from the current process
-and run independantly. If you want to see the debug messges from 
+and run independently. If you want to see the debug messges from 
 -DVERBOSE_DEBUG then leave this option on or specify -d when you run latd.
 

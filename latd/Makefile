@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.12
+VERSION=1.13
 PKGNAME=latd
 
 
@@ -97,7 +97,7 @@ dist:
 		latd/BUGS latd/README latd/NEWS latd/Makefile latd/rpm.spec \
                 latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
 		latd/*.[1-8] latd/latd.conf latd/startlat.sh \
-		latd/rpm.spec latd/debian/*
+		latd/rpm.spec latd/*.html latd/debian/*
 
 rpm:
 	echo "%_topdir `pwd`" > .rpmmacros

@@ -26,7 +26,7 @@ LAT implementation for Linux
 /etc/rc.d/rc3.d/K79lat
 
 
-%doc README NEWS
+%doc README NEWS latd.html
 
 
 %post

@@ -59,8 +59,8 @@ static void make_upper(char *str);
 static int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 static bool send_msg(int fd, int cmd, char *buf, int len);
 static bool open_socket(bool);
-static int terminal(int latfd, int, int, int);
-
+static int  terminal(int latfd, int, int, int);
+static int  do_use_port(char *service, int quit_char, int crlf, int bsdel);
 static int usage(char *cmd)
 {
     printf ("Usage: llogin [<option>] <service>\n");
@@ -84,12 +84,12 @@ int main(int argc, char *argv[])
     char port[256];
     signed char opt;
     int verbose = 0;
-    int crlf = 0;
+    int crlf = 1;
     int bsdel = 0;
     int show_services = 0;
     int use_port = 0;
     int is_queued = 0;
-    int quit_char = 0;
+    int quit_char = 0x1d; // Ctrl-]
 
     if (argc == 1)
     {
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'c':
-	    crlf = 1;
+	    crlf = 0;
 	    break;
 
 	case 'b':
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 	    if (optarg[0] == '0')
 		quit_char = -1;
 	    else
-		quit_char = toupper(optarg[0]) - 'A' + 1;
+		quit_char = toupper(optarg[0]) - '@';
 	    break;
 
 	case 'Q':
@@ -177,7 +177,7 @@ int main(int argc, char *argv[])
 // This is just a bit like microcom...
     if (use_port)
     {
-//	do_use_port(service)
+	do_use_port(service, quit_char, crlf, bsdel);
 	return 0;
     }
 
@@ -290,11 +290,10 @@ static bool send_msg(int fd, int cmd, char *buf, int len)
     return true;
 }
 
-// TODO: Make this nicer and more robust.
+// Pretend to be a terminal connected to a LAT service
 static int terminal(int latfd, int endchar, int crlf, int bsdel)
 {
     int termfd = STDIN_FILENO;
-    bool done = false;
     struct termios old_term;
     struct termios new_term;
 
@@ -311,7 +310,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
     new_term.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
     tcsetattr(termfd, TCSANOW, &new_term);
 
-    while(!done)
+    while(true)
     {
 	char inchar;
 	char inbuf[1024];
@@ -359,4 +358,41 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
     tcsetattr(termfd, TCSANOW, &old_term);
 
     return 0;
+}
+
+static int do_use_port(char *portname, int quit_char, int crlf, int bsdel)
+{
+    int termfd;
+    struct termios old_term;
+    struct termios new_term;
+
+    termfd = open(portname, O_RDWR);
+    if (termfd < 0)
+    {
+	fprintf(stderr, "Cannot open device %s: %s\n", portname, strerror(errno));
+	return -1;
+    }
+
+    tcgetattr(termfd, &old_term);
+    new_term = old_term;
+
+// Set local terminal characteristics
+    new_term.c_iflag &= ~BRKINT;
+    new_term.c_iflag |= IGNBRK;
+    new_term.c_lflag &= ~ISIG;
+    new_term.c_cc[VMIN] = 1;
+    new_term.c_cc[VTIME] = 0;
+    new_term.c_lflag &= ~ICANON;
+    new_term.c_lflag &= ~(ECHO | ECHOCTL | ECHONL);
+    tcsetattr(termfd, TCSANOW, &new_term);
+
+    terminal(termfd, quit_char, crlf, bsdel);
+    
+    // Reset terminal attributes
+    tcsetattr(termfd, TCSANOW, &old_term);
+    close(termfd);
+
+    return 0;
+
+
 }

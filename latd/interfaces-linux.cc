@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2002-2004 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -88,10 +88,10 @@ void LinuxInterfaces::get_all_interfaces(int *ifs, int &num)
     int sock = socket(PF_PACKET, SOCK_RAW, 0);
     num = 0;
 
-    ifr.ifr_ifindex = iindex;
-
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+    for (iindex = 1; iindex < 256; iindex++)
     {
+	ifr.ifr_ifindex = iindex;
+        ioctl(sock, SIOCGIFNAME, &ifr);
 	// Only use ethernet interfaces
 	ioctl(sock, SIOCGIFHWADDR, &ifr);
 	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
@@ -99,7 +99,6 @@ void LinuxInterfaces::get_all_interfaces(int *ifs, int &num)
 	    debuglog(("interface %d: %d\n", num, iindex));
 	    ifs[num++] = iindex;
 	}
-	ifr.ifr_ifindex = ++iindex;
     }
 
     close(sock);

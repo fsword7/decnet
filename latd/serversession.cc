@@ -162,10 +162,10 @@ int ServerSession::create_session(unsigned char *remote_node)
 	setsid();
 
 	// Older login programs don't take the -h flag
-#ifdef OLDSTUFF
-	execlp("/bin/login", "login", (char *)0);
-#else
+#ifdef SET_LOGIN_HOST
 	execlp("/bin/login", "login", "-h", remote_node, (char *)0);
+#else
+	execlp("/bin/login", "login", (char *)0);
 #endif
 	// Argh!
 	syslog(LOG_ERR, "Error in starting /bin/login: %m");

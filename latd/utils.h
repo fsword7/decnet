@@ -19,7 +19,7 @@ void add_string(unsigned char *packet, int *ptr,
 void get_string(unsigned char *packet, int *ptr, 
 		unsigned char *string);
 
-#ifdef OLDSTUFF
+#ifndef USE_OPENPTY
 #define INTERNAL_OPENPTY
 #else
 #include <pty.h>

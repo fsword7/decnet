@@ -14,7 +14,7 @@ PROG1OBJS=main.o utils.o server.o connection.o session.o \
 PROG2OBJS=latcp.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\"
-DEFS+=-DOLDSTUFF
+DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
 #DEFS+=-DVERBOSE_DEBUG -DNO_FORK
 
 prefix=/usr/local

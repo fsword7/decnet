@@ -29,7 +29,7 @@ This code is a clean-room reverse-engineering effort. I have no access to
 Compaq technical documentation or source code for LAT and nor do I want any.
 
 This software should work on all Linux architectures. I have tested it on
-Intel and SPARC.
+Intel, SPARC and PowerPC.
 
 
 CREDITS

@@ -1,9 +1,14 @@
 1.0
 --------------------
 - Support BREAK character
-- Remove "LAT started", "LAT stopped" messages from latcp as they interfere with the
-  startup script and it's "not the Unix way".
+- Added startup script
+- Remove "LAT started", "LAT stopped" messages from latcp as they interfere 
+  with the startup script and it's "not the Unix way".
 - Added RPM build target
+- Forced all node names & service names to be uppercase in latcp
+- Split -DOLDSTUFF into two bits: -DUSE_OPENPTY and -DSETLOGIN_HOST. The
+  second option only seems to work on Debian, the first should be fine on
+  anything later than RedHat 5.2 (libc 2.0 I think that means).
 
 
 0.9 14th August 2000

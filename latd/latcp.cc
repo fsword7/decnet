@@ -274,6 +274,7 @@ void set_rating(int argc, char *argv[])
 
 	case 'a':
 	    strcpy(service, optarg);
+	    make_upper(service);
 	    break;
 
 	default:
@@ -322,6 +323,7 @@ void set_ident(int argc, char *argv[])
 	{
 	case 'a':
 	    strcpy(service, optarg);
+	    make_upper(service);
 	    break;
 	case 'i':
 	    strcpy(ident, optarg);
@@ -532,6 +534,7 @@ void add_service(int argc, char *argv[])
 	case 'a':
 	    got_service=true;
 	    strcpy(name, optarg);
+	    make_upper(name);
 	    break;
 
 	case 'i':
@@ -648,11 +651,13 @@ void del_service(int argc, char *argv[])
 	case 'a':
 	    got_service = true;
 	    strcpy(name, optarg);
+	    make_upper(name);
 	    break;
 	    
 	case 'p':
 	    got_port = true;
 	    strcpy(name, optarg);
+	    make_upper(name);
 	    break;
 
 	default:

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -718,7 +718,25 @@ void start_latd(int argc, char *argv[])
     char *latd_bin = NULL;
     char *latd_path = NULL;
 
-    if (!stat("/usr/sbin/latd", &st))
+    // Look for latd in the same place as latcp
+    char *name = (char *)malloc(strlen(argv[0])+1);
+    char *path = (char *)malloc(strlen(argv[0])+1);
+    strcpy(name, argv[0]);
+    
+    char *slash = rindex(name, '/');
+    if (slash)
+    {
+	*slash='\0';
+	strcpy(path, name);
+	strcat(name, "/latd");
+	if (!stat(name, &st))
+	{
+	    latd_bin = name;
+	    latd_path = path;
+	}
+    }
+    // Otherwise look in some well-known places
+    else if (!stat("/usr/sbin/latd", &st))
     {
 	latd_bin = "/usr/sbin/latd";
 	latd_path = "/usr/sbin";
@@ -727,25 +745,6 @@ void start_latd(int argc, char *argv[])
     {
 	latd_bin = "/usr/local/sbin/latd";
 	latd_path = "/usr/local/sbin";
-    }
-    else
-    {
-	char *name = (char *)malloc(strlen(argv[0])+1);
-	char *path = (char *)malloc(strlen(argv[0])+1);
-	strcpy(name, argv[0]);
-
-	char *slash = rindex(name, '/');
-	if (slash)
-	{
-	    *slash='\0';
-	    strcpy(path, name);
-	    strcat(name, "/latd");
-	    if (!stat(name, &st))
-	    {
-		latd_bin = name;
-		latd_path = path;
-	    }
-	}
     }
 
     // Did we find it?
@@ -758,7 +757,7 @@ void start_latd(int argc, char *argv[])
 	char  latcp_bin[PATH_MAX];
 	char  latcp_env[PATH_MAX+7];
 
-// This is VERY Linux specific and need /proc mounted. 
+// This is VERY Linux specific and needs /proc mounted. 
 // we get the full path of the current executable by doing a readlink.
 // /proc/<pid>/exe
 

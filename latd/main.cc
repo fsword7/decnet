@@ -238,8 +238,7 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
-
-    
+   
     openlog("latd", LOG_PID, LOG_DAEMON);
 
     // Go!

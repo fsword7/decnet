@@ -48,6 +48,7 @@
 #include <string>
 #include <strstream>
 
+#include "lat.h"
 #include "latcp.h"
 #include "utils.h"
 #include "dn_endian.h"
@@ -545,9 +546,9 @@ void add_service(int argc, char *argv[])
 	case 'p':
 	    got_port=true;
 	    strcpy(localport, optarg);
-	    if (strncmp(localport, "/dev/lat/", 9) != 0)
+	    if (strncmp(localport, LAT_DIRECTORY, strlen(LAT_DIRECTORY)) != 0)
 	    {
-		fprintf(stderr, "Local port name must start /dev/lat\n");
+		fprintf(stderr, "Local port name must start " LAT_DIRECTORY "\n");
 		return;
 	    }
 	    break;

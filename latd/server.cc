@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <string.h>
 #include <fcntl.h>
+#include <dirent.h>
 #include <syslog.h>
 #include <ctype.h>
 #include <regex.h>
@@ -150,6 +151,28 @@ int LATServer::find_interface(char *ifname, char *macaddr)
     // Didn't find it
     close(sock);
     return -1;
+}
+
+// Remove any dangling symlinks in the /dev/lat directory
+void LATServer::tidy_dev_directory()
+{
+    DIR *dir;
+    struct dirent *de;
+    char current_dir[PATH_MAX];
+
+    getcwd(current_dir, sizeof(current_dir));
+    chdir(LAT_DIRECTORY);
+
+    dir = opendir(LAT_DIRECTORY);
+    if (!dir) return; // Doesn't exist - this is OK
+    
+    while ( (de = readdir(dir)) )
+    {
+	if (de->d_name[0] != '.')
+	    unlink(de->d_name);	
+    }
+    closedir(dir);
+    chdir(current_dir);
 }
 
 unsigned char *LATServer::get_local_node(void)
@@ -486,10 +509,12 @@ void LATServer::run()
 	
     } while (!do_shutdown);
 
+    send_service_announcement(-1); // Say we are unavailable
+
     close(latcp_socket);
     unlink(LATCP_SOCKNAME);
 
-    send_service_announcement(-1); // Say we are unavailable
+    tidy_dev_directory();
 }
 
 /* LAT socket has something for us */
@@ -856,8 +881,10 @@ void LATServer::init(bool _static_rating, int _rating,
 	get_all_interfaces((char *)our_macaddr);
     }
 
-
-// Save these two for any newly added services
+    // Remove any old /dev/lat symlinks
+    tidy_dev_directory();
+    
+    // Saave these two for any newly added services
     rating = _rating;
     static_rating = _static_rating;
     

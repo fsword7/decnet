@@ -7,6 +7,9 @@
 #define LAT_VERSION     5
 #define LAT_VERSION_ECO 2
 
+// Name of the /dev/lat directory for local "ports"
+#define LAT_DIRECTORY "/dev/lat"
+
 /* Command types */
 // NOTE: Bit 0 is "Response Requested"
 //       Bit 1 is "To Host"

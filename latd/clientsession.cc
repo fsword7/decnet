@@ -73,15 +73,15 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     
     // Check for /dev/lat & create it if necessary
     struct stat st;
-    if (stat("/dev/lat", &st) == -1)
+    if (stat(LAT_DIRECTORY, &st) == -1)
     {
-	mkdir("/dev/lat", 0755);
+	mkdir(LAT_DIRECTORY, 0755);
     }
 
     // Link the PTY to the actual LTA name we were passed
     if (ltaname[0] == '\0')
     {
-	sprintf(ltaname, "/dev/lat/lta%d", local_session);
+	sprintf(ltaname, LAT_DIRECTORY "lta%d", local_session);
     }
     unlink(ltaname);
     symlink(ptyname, ltaname);

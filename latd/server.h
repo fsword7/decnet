@@ -96,7 +96,8 @@ class LATServer
     void  accept_latcp(int);
     void  read_latcp(int);
     void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);
- 
+    void  tidy_dev_directory();
+    
     static void alarm_signal(int sig);
 
     class fdinfo

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2005 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -926,7 +926,7 @@ void LATConnection::circuit_timer(void)
 	msg.remote_connid = num;
 	msg.sequence_number = ++last_sent_seq;
 	msg.ack_number = last_recv_ack;
-	LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+	LATServer::Instance()->send_connect_error(1, &msg, interface, macaddr);
 	LATServer::Instance()->delete_connection(num);
     }
 
@@ -987,7 +987,7 @@ void LATConnection::remove_session(unsigned char id)
 	    msg.remote_connid = num;
 	    msg.sequence_number = ++last_sent_seq;
 	    msg.ack_number = last_recv_ack;
-	    LATServer::Instance()->send_connect_error(3, &msg, interface, macaddr);
+	    LATServer::Instance()->send_connect_error(1, &msg, interface, macaddr);
 	    LATServer::Instance()->delete_connection(num);
 	}
 	else

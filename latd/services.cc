@@ -62,7 +62,7 @@ bool LATServices::get_highest(const std::string &service, std::string &node, uns
 bool LATServices::serviceinfo::get_highest(std::string &node, unsigned char *macaddr, int *interface)
 {
   int                  highest_rating=0;
-  std::string               highest_node;
+  std::string          highest_node;
   const unsigned char *highest_macaddr = NULL;
   
   std::map<std::string, nodeinfo, std::less<std::string> >::iterator i;
@@ -208,43 +208,3 @@ bool LATServices::list_services(bool verbose, std::ostrstream &output)
 }
 
 LATServices *LATServices::instance = NULL;
-
-
-/* SERVICE LIST EXAMPLES (VMS):
-/FULL:
-
-
-Service Name:    BACON                    Service Type:  General
-Service Status:  Available
-Service Ident:   .Welcome to VAX/VMS V5.5    
-
-Node Name            Status      Rating   Identification
-BACON                On            83 D   .Welcome to VAX/VMS V5.5    
-
---------------------------------------------------------------------------------
-
-Service Name:    BALTI            
-Service Status:  Available
-Service Ident:   Digital UNIX Version V4.0 LAT SERVICE
-
-Node Name            Status      Rating   Identification
-BALTI                Reachable    126     Digital UNIX Version V4.0 LAT SERVICE
-
---------------------------------------------------------------------------------
-
-Service Name:    GROT                     Service Type:  General
-Service Status:  Available
-Service Ident:   Perrin
-
-Node Name            Status      Rating   Identification
-BACON                On           100 S   Perrin
-
---------------------------------------------------------------------------------
-
-Service Name:    PATRIK           
-Service Status:  Available
-Service Ident:   Linux 2.2.14
-
-Node Name            Status      Rating   Identification
-PATRIK               Reachable      5     Linux 2.2.14
-*/

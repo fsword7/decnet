@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include <string>
 #include <strstream>
 #include <iterator>
-#include <iomanip>
+
 
 #include "lat.h"
 #include "utils.h"
@@ -29,7 +29,9 @@
 #include "serversession.h"
 #include "clientsession.h"
 #include "lloginsession.h"
-#include "portsession.h"
+#include "localportsession.h"
+#include "queuedsession.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -70,6 +72,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 
     remote_connid = msg->header.local_connid;
     next_session = 1;
+    highest_session = 1;
     max_window_size = msg->exqueued+1;
     max_window_size = 1; // All we can manage
     window_size = 0;
@@ -111,6 +114,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     max_window_size = 1;      // Gets overridden later on.
     window_size = 0 ;
     next_session = 1;
+    highest_session = 1;
 }
 
 
@@ -272,7 +276,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
 
 			    newsessionnum = next_session_number();
-			    newsession = new PortSession(*this,
+			    newsession = new QueuedSession(*this,
 							 (LAT_SessionStartCmd *)buf,
 							 cs,
 							 slotcmd->remote_session, 
@@ -543,7 +547,7 @@ LATConnection::~LATConnection()
     else
     {
 	// Delete all server sessions
-	for (unsigned int i=1; i<MAX_SESSIONS; i++)
+	for (unsigned int i=1; i<=highest_session; i++)
 	{
 	    if (sessions[i])
 	    {
@@ -565,6 +569,7 @@ int LATConnection::next_session_number()
 	if (!sessions[i])
 	{
 	    next_session = i+1;
+	    highest_session = i;
 	    return i;
 	}
     }
@@ -607,12 +612,12 @@ void LATConnection::circuit_timer(void)
 	    
 	    // If we get into this block then there is no chance that there is
 	    // an outstanding ack (or if there is then it's all gone horribly wrong anyway
-	    // so it's safe to just send a NULL messae out.
+	    // so it's safe to just send a NULL message out.
 	    // If we do exqueued properly this may need revisiting.
 	    unsigned char replybuf[1600];
 	    LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
 	    
-	    reply->header.cmd          = LAT_CCMD_SESSION;
+	    reply->header.cmd          = LAT_CCMD_SREPLY;
 	    reply->header.num_slots    = 0;
 	    reply->slot.remote_session = 0;
 	    reply->slot.local_session  = 0;
@@ -664,13 +669,10 @@ void LATConnection::circuit_timer(void)
     }
 
     // Poll our sessions
-    if (role == SERVER)
+    for (unsigned int i=0; i<=highest_session; i++)
     {
-	for (unsigned int i=0; i<MAX_SESSIONS; i++)
-	{
-	    if (sessions[i])
-		sessions[i]->read_pty();
-	}
+	if (sessions[i] && sessions[i]->isConnected())
+	    sessions[i]->read_pty();    
     }
     
     // Coalesce pending messages and queue them
@@ -885,22 +887,6 @@ int LATConnection::connect(ClientSession *session)
     return 0;
 }
 
-int LATConnection::create_client_session(char *service, char *port)
-{
-// Create a ClientSession
-    int newsessionnum = next_session_number();
-    LATSession *newsession = new ClientSession(*this, 0,
-					       newsessionnum, lta_name, 
-					       eightbitclean);
-    if (newsession->new_session(remnode, service, port, 0) == -1)
-    {
-	delete newsession;
-	return -1;
-    }
-    sessions[newsessionnum] = newsession;
-    return 0;
-}
-
 void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 {
     debuglog(("Got status %d from node %s, queue pos = %d,%d. session: %d\n", 
@@ -931,6 +917,24 @@ int LATConnection::create_llogin_session(int fd, char *service, char *port, char
     return 0;
 }
 
+int LATConnection::create_localport_session(int fd, LocalPort *lport, 
+					    const char *service, const char *port, 
+					    const char *localport)
+{
+// Create a localportSession for a /dev/lat port
+    int newsessionnum = next_session_number();
+
+    LATSession *newsession = new localportSession(*this, lport, 0, newsessionnum, 
+						  (char *)localport, fd);
+    if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, 0) == -1)
+    {
+	delete newsession;
+	return -1;
+    }
+    sessions[newsessionnum] = newsession;
+    return 0;
+}
+
 int LATConnection::got_connect_ack(unsigned char *buf)
 {
     LAT_StartResponse *reply = (LAT_StartResponse *)buf;
@@ -949,7 +953,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
 	      last_sequence_number, last_message_acked));
 
 // Start clientsessions
-    for (unsigned int i=1; i<MAX_SESSIONS; i++)
+    for (unsigned int i=1; i<=highest_session; i++)
     {
 	ClientSession *cs = (ClientSession *)sessions[i];
 	if (cs && cs->waiting_start())
@@ -964,7 +968,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
 int LATConnection::disconnect_client()
 {
 // Reset all clients - remote end has disconnected the connection
-    for (unsigned int i=0; i<MAX_SESSIONS; i++)
+    for (unsigned int i=0; i<=highest_session; i++)
     {
 	ClientSession *cs = (ClientSession *)sessions[i];
 	if (cs)
@@ -1022,23 +1026,8 @@ int LATConnection::num_clients()
     unsigned int i;
     int num = 0;
     
-    for (i=1; i<MAX_SESSIONS; i++)
+    for (i=1; i<=highest_session; i++)
 	if (sessions[i]) num++;
 
     return num;
-}
-
-
-void LATConnection::show_client_info(bool verbose, std::ostrstream &output)
-{
-    if (role == SERVER) return; // No client info for servers!
-
-    // Only show llogin ports if verbose is requested.
-    if (!verbose && strcmp(lta_name, "llogin")==0) return;
-
-    output << lta_name << std::setw(24-strlen((char*)lta_name)) << " " << servicename
-	   << std::setw(16-strlen((char*)servicename)) << " " 
-	   << remnode << std::setw(16-strlen((char*)remnode)) << " " << portname
-	   << std::setw(16-strlen((char*)portname)) << " " << (queued?"Yes":"No ") 
-	   << (eightbitclean?" 8":" ") << std::endl;
 }

@@ -2,7 +2,7 @@ Source: latd
 Section: net
 Priority: extra
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: fakeroot, debhelper(>=2.0), libstdc++2.10-dev
+Build-Depends: debhelper(>=2.0)
 Standards-Version: 3.5.0
 
 Package: latd

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,16 +40,16 @@ class LATConnection
 		  const char *_lta, const char *remnode,
 		  bool queued, bool clean);
     int connect(class ClientSession *);
-    int create_client_session(char *, char *);
     int create_llogin_session(int, char *service, char *port, char *localport);
+    int create_localport_session(int, class LocalPort *, const char *service,
+				 const char *port, const char *localport);
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
     const char *getLocalPortName() { return lta_name; }
-    void show_client_info(bool verbose, std::ostrstream &);
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
-    bool node_is(char *node) { return strcmp(node, (char *)remnode)==0;}
+    bool node_is(const char *node) { return strcmp(node, (char *)remnode)==0;}
     int  num_clients();
     const char *get_servicename() { return (const char *)servicename; }
 
@@ -61,6 +61,7 @@ class LATConnection
     unsigned char  last_sequence_number;
     unsigned char  last_ack_number;
     unsigned int   next_session;
+    unsigned int   highest_session;
     unsigned char  macaddr[6];
     unsigned char  servicename[255];
     unsigned char  portname[255];

@@ -42,6 +42,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -270,7 +271,6 @@ void LATSession::send_disabled_message()
 
 LATSession::~LATSession()
 {
-    debuglog(("Session dtor start\n"));
     if (pid != -1) kill(pid, SIGTERM);
     if (master_fd > -1) close(master_fd);
     disconnect_session(0);
@@ -370,10 +370,10 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
     // Increment the number of slots.
     LAT_Header *header = (LAT_Header *)buf;
     header->num_slots++;
-//    if (parent.isClient())
+    if (parent.isClient())
 	header->cmd = LAT_CCMD_SESSION;
-//    else
-//	header->cmd = LAT_CCMD_SDATA;
+    else
+	header->cmd = LAT_CCMD_SDATA;
 }
 
 void LATSession::crlf_to_lf(unsigned char *buf, int len, 

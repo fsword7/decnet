@@ -27,6 +27,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -60,9 +61,7 @@ int lloginSession::new_session(unsigned char *_remote_node,
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 
-    LATServer::Instance()->add_pty(this, master_fd);
-
-// Auto-connect
+    // Auto-connect
     if (!connect_parent())
     {
 	state = STARTING;
@@ -132,7 +131,6 @@ void lloginSession::connect()
 void lloginSession::disconnect_sock()
 {
     LATServer::Instance()->set_fd_state(master_fd, false);
-//    LATServer::Instance()->remove_fd(master_fd);
     LATServer::Instance()->delete_session(parent.get_connection_id(), local_session, master_fd);
 }
 
@@ -163,10 +161,7 @@ lloginSession::~lloginSession()
 
 void lloginSession::do_read()
 {
-//    if (connected)
-    {
-	read_pty();
-    }
+    read_pty();    
 }
 
 void lloginSession::show_status(unsigned char *node, LAT_StatusEntry *entry)

@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.10
+VERSION=1.11
 PKGNAME=latd
 
 
@@ -11,8 +11,9 @@ MANPAGES1=llogin.1
 MANPAGES5=latd.conf.5
 MANPAGES8=latd.8 latcp.8
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
-	  serversession.o clientsession.o portsession.o services.o \
-	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o circuit.o
+	  serversession.o clientsession.o queuedsession.o services.o \
+	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o \
+	  circuit.o localport.o localportsession.o
 PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
 
@@ -26,6 +27,10 @@ LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++ 
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
+
+# ARCH code taken from the Linux kernel sources.
+#
+ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
 
 #
 # For DEB builds
@@ -71,9 +76,11 @@ dep depend:
 
 clean:
 	rm -f .depend
-	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend 
+	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend core
 	rm -rf debian/tmp
 
+debclean:
+	debian/rules clean
 dist:
 	rm  -f .depend
 	rm -rf debian/tmp
@@ -107,7 +114,7 @@ rpm:
 	mkdir BUILD
 	install README NEWS BUILD
 	mkdir -p RPMS
-	rpm -bb --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
+	rpm -bb --target=$(ARCH) --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
 #

@@ -1,3 +1,11 @@
+latd (1.10-1) unstable; urgency=low
+
+  * Can now handle multiple reverse-LAT connections via the same connection 
+    (llogin only)
+  * Can specify a command to run (and user to run it under) for a named service.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat,  3 Mar 2001 13:29:08 +0000
+
 latd (1.02-1potato) unstable; urgency=low
 
   * Fixed bug where you *had* to specify a node name in reverse connections

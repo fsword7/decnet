@@ -23,7 +23,7 @@ class ClientSession: public LATSession
 			  char *service, char *port, unsigned char c);
   virtual void do_read();
   virtual void disconnect_session(int reason);
-    
+
   virtual void connect();
   virtual int  connect_parent();
   virtual void got_connection(unsigned char);
@@ -32,9 +32,9 @@ class ClientSession: public LATSession
   virtual void start_port();
   int get_port_fd();
 
- protected: 
+ protected:
   char ltaname[255];
-  
+
  private:
   int slave_fd;
   bool slave_fd_open;

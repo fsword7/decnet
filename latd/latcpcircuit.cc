@@ -27,6 +27,7 @@
 #include "utils.h"
 #include "services.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -347,12 +348,12 @@ bool LATCPCircuit::do_command()
 	debuglog(("latcp: add port: %s:%s (%s)\n",
 		  service, remport, localport));
 
-	if (LATServer::Instance()->make_client_connection(service, 
-							  remport,
-							  localport,
-							  remnode,
-							  queued,
-							  clean) < 0)
+	if (LATServer::Instance()->create_local_port(service, 
+						     remport,
+						     localport,
+						     remnode,
+						     queued,
+						     clean) < 0)
 	{
 	    debuglog(("sending failure back to LATCP\n"));
 	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);

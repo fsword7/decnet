@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -45,10 +46,16 @@ ClientSession::ClientSession(class LATConnection &p,
     if (ttyname) strcpy(ltaname, ttyname);
 }
 
+// This should never be called now as it is overridden
+// by all self-respecting superclasses.
 int ClientSession::new_session(unsigned char *_remote_node, 
 			       char *service, char *port,
 			       unsigned char c)
 {
+
+    assert(!"Should never get here!!");
+
+
     credit = c;
     strcpy(remote_service, service);
     strcpy(remote_port, port);
@@ -106,7 +113,7 @@ int ClientSession::new_session(unsigned char *_remote_node,
 #endif
 
     debuglog(("made symlink %s to %s\n", ltaname, ptyname));
-    LATServer::Instance()->add_pty(this, master_fd);
+//    LATServer::Instance()->add_pty(this, master_fd);
     return 0;
 }
 
@@ -166,7 +173,7 @@ void ClientSession::connect()
 // Disconnect the local PTY
 void ClientSession::restart_pty()
 {
-    debuglog(("ClientSession::restart_pty()\n"));
+    assert(!"ClientSession::restart_pty()\n");
     connected = false;
     remote_session = 0;
     
@@ -203,12 +210,13 @@ void ClientSession::disconnect_session(int reason)
 
 
 ClientSession::~ClientSession()
-{
-    if (ltaname[0]) unlink(ltaname);
-    
+{    
     if (slave_fd_open) close (slave_fd);
-    close (master_fd);
-    LATServer::Instance()->remove_fd(master_fd);
+    if (master_fd > -1) 
+    {
+	close (master_fd);
+	LATServer::Instance()->remove_fd(master_fd);
+    }
 }
 
 void ClientSession::do_read()

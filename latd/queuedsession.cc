@@ -28,15 +28,16 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
 #include "server.h"
 #include "serversession.h"
 #include "clientsession.h"
-#include "portsession.h"
+#include "queuedsession.h"
 
-PortSession::PortSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
+QueuedSession::QueuedSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 			 ClientSession *_client,
 			 unsigned char remid, unsigned char localid, 
 			 bool clean):
@@ -50,7 +51,7 @@ PortSession::PortSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 	    localid, remid, max_read_size, master_fd));
 }
 
-int PortSession::new_session(unsigned char *_remote_node, 
+int QueuedSession::new_session(unsigned char *_remote_node, 
 			       char *service, char *port,
 			       unsigned char c)
 {
@@ -78,7 +79,7 @@ int PortSession::new_session(unsigned char *_remote_node,
     return 0;
 }
 
-PortSession::~PortSession()
+QueuedSession::~QueuedSession()
 {
     /* Make sure the parent class doesn't close this FD:
        it's not ours. */

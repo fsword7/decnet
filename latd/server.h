@@ -35,7 +35,7 @@ class LATServer
     void shutdown();
     void add_fd(int fd, fd_type type);
     void remove_fd(int fd);
-    void add_pty(LATSession *session, int fd);
+    void add_pty(LocalPort *port, int fd);
     void set_fd_state(int fd, bool disabled);
     int  send_message(unsigned char *buf, int len, int interface, unsigned char *macaddr);
     void delete_session(int, unsigned char, int);
@@ -52,7 +52,7 @@ class LATServer
     gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
-    int   find_connection_by_node(char *node);
+    int   find_connection_by_node(const char *node);
 
  private:
     LATServer():
@@ -109,14 +109,14 @@ class LATServer
     class fdinfo
     {
     public:
-	fdinfo(int _fd, LATSession *_session, fd_type _type):
+	fdinfo(int _fd, LocalPort *_port, fd_type _type):
 	    fd(_fd),
-	    session(_session),
+	    localport(_port),
 	    type(_type)
 	    {}
 
 	int get_fd(){return fd;}
-	LATSession *get_session(){return session;}
+	LocalPort *get_localport(){return localport;}
 	fd_type get_type(){return type;}
 	void set_disabled(bool d)
 	    {
@@ -154,7 +154,7 @@ class LATServer
 
     private:
 	int  fd;
-	LATSession *session;
+	LocalPort *localport;
 	fd_type type;
     };
 
@@ -238,6 +238,7 @@ class LATServer
     std::list<deleted_session> dead_session_list;
     std::list<int>             dead_connection_list;
     std::list<serviceinfo>     servicelist;
+    std::list<LocalPort>       portlist;
 
     // Connections indexed by ID
     LATConnection *connections[MAX_CONNECTIONS];
@@ -269,9 +270,11 @@ class LATServer
     void set_nodename(unsigned char *);
     void unlock();
     bool show_characteristics(bool verbose, std::ostrstream &output);
-    int  make_client_connection(unsigned char *, unsigned char *,
-				unsigned char *, unsigned char *, bool, bool);
+    int  create_local_port(unsigned char *, unsigned char *,
+			   unsigned char *, unsigned char *, bool, bool);
     int  make_llogin_connection(int fd, char *, char *,	char *, char *, bool);
+    int  make_port_connection(int fd, LocalPort *, const char *, const char *, const char *,
+			      const char *, bool);
     int  set_servergroups(unsigned char *bitmap);
     int  unset_servergroups(unsigned char *bitmap);
     int  set_usergroups(unsigned char *bitmap);

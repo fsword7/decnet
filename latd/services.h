@@ -22,7 +22,7 @@ class LATServices
 	    else
 		return instance;
 	}
-    
+
     // Get the highest rated node for this service name.
     bool get_highest(const std::string &service,
 		     std::string &node,
@@ -40,7 +40,7 @@ class LATServices
     bool remove_node(const std::string &node);
     bool list_services(bool verbose, std::ostrstream &output);
     void purge() {servicelist.clear(); }
-    
+
  private:
     LATServices()
       {};                         // Private constructor to force singleton
@@ -56,7 +56,7 @@ class LATServices
 	      ident = _ident;
 	      nodes[node] = nodeinfo(macaddr, rating, ident, interface);
 	  }
-      
+
       void add_or_replace_node(const std::string &node, const std::string &_ident,
 			       const unsigned char *macaddr, int rating,
 			       int interface)
@@ -72,7 +72,7 @@ class LATServices
       bool         remove_node(const std::string &node);
       void         serviceinfo::list_service(std::ostrstream &output);
 
-    private:      
+    private:
       class nodeinfo
 	{
 	public:
@@ -91,7 +91,7 @@ class LATServices
 	  bool                 is_available()        { return available; }
 	  void                 set_available(bool a) { available = a; }
 	  std::string          get_ident()           { return ident; }
-	  
+
 	private:
 	  unsigned char macaddr[6];
 	  int           rating;
@@ -103,6 +103,6 @@ class LATServices
       std::map<std::string, nodeinfo, std::less<std::string> > nodes;
       std::string ident;
     };// class LATServices::serviceinfo
-    
+
     std::map<std::string, serviceinfo, std::less<std::string> > servicelist;
 };

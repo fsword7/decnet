@@ -13,38 +13,55 @@
 ******************************************************************************/
 
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
-
-#include <strstream>
+#include <termios.h>
 #include <list>
+#include <queue>
 #include <string>
 #include <map>
-#include <queue>
-#include <iterator>
+#include <strstream>
 
 #include "lat.h"
-#include "latcp.h"
 #include "utils.h"
-#include "services.h"
 #include "session.h"
 #include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
 #include "server.h"
+#include "clientsession.h"
+#include "lloginsession.h"
+#include "localportsession.h"
+#include "lat_messages.h"
 
-
-bool Circuit::send_reply(int cmd, char *buf, int len)
+localportSession::localportSession(class LATConnection &p, LocalPort *port,
+				   unsigned char remid, unsigned char localid,
+				   char *lta, int fd):
+    lloginSession(p, remid, localid, lta, clean),
+    localport(port)
 {
-    char outhead[3];
+    master_fd = fd; 
 
-    if (len == -1) len=strlen(buf)+1;
-    
-    outhead[0] = cmd;
-    outhead[1] = len/256;
-    outhead[2] = len%256;
-    if (write(fd, outhead, 3) != 3) return false;
-    if (write(fd, buf, len) != len) return false;
-    return true;
+    debuglog(("new localport session: localid %d, remote id %d\n",
+	      localid, remid));
+
+    state = STARTING;
 }
 
+
+localportSession::~localportSession()
+{
+    close (master_fd);
+
+    // Invalidate the FD number so it doesn't get closed when
+    // the superclass destructors get called.
+    master_fd = -1;
+    LATServer::Instance()->remove_fd(master_fd);
+
+    // Restart PTY so it can accept new connections
+    debuglog(("Restarting PTY for local session\n"));
+    localport->restart_pty();
+}

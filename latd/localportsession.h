@@ -12,26 +12,15 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class lloginSession: public ClientSession
+class localportSession: public lloginSession
 {
  public:
-  lloginSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *lta, int);
+    localportSession(class LATConnection &p, class LocalPort *port,
+		     unsigned char remid, unsigned char localid, char *lta, int);
 
-  virtual ~lloginSession();
-  virtual int new_session(unsigned char *remote_node,
-			  char *service, char *port, unsigned char c);
-  virtual void do_read();
-  virtual void disconnect_session(int reason);
-
-  virtual void connect();
-  virtual void restart_pty() {disconnect_sock();};
-  virtual void show_status(unsigned char *node, LAT_StatusEntry *entry);
-  virtual void start_port();
+    virtual ~localportSession();
 
  private:
-  void disconnect_sock();
-
-  bool have_been_queued;
+    LocalPort *localport;
 
 };

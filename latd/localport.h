@@ -12,26 +12,39 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class lloginSession: public ClientSession
+class LocalPort
 {
  public:
-  lloginSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *lta, int);
+    LocalPort(unsigned char *service, unsigned char *portname, unsigned char *devname,
+	      unsigned char *remnode,
+	      bool queued, bool clean);
 
-  virtual ~lloginSession();
-  virtual int new_session(unsigned char *remote_node,
-			  char *service, char *port, unsigned char c);
-  virtual void do_read();
-  virtual void disconnect_session(int reason);
+    LocalPort(const LocalPort &p);
+    ~LocalPort();
 
-  virtual void connect();
-  virtual void restart_pty() {disconnect_sock();};
-  virtual void show_status(unsigned char *node, LAT_StatusEntry *entry);
-  virtual void start_port();
+  void do_read();
+  void disconnect_session(int reason);
+  void restart_pty();
+  int get_port_fd();
+  void show_info(bool verbose, std::ostrstream &output);
+  void close_and_delete();
+  const string &get_devname() { return devname; };
+  void init_port();
 
  private:
-  void disconnect_sock();
 
-  bool have_been_queued;
+  bool connect_session();
 
+  std::string service;
+  std::string portname;
+  std::string devname;
+  std::string remnode;
+  bool queued;
+  bool clean;
+  bool slave_fd_open;
+  bool connected;
+  char ptyname[255];
+
+  int master_fd;
+  int slave_fd;
 };

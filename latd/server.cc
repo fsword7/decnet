@@ -62,6 +62,7 @@
 #include "lat.h"
 #include "utils.h"
 #include "session.h"
+#include "localport.h"
 #include "connection.h"
 #include "circuit.h"
 #include "latcpcircuit.h"
@@ -1164,9 +1165,9 @@ void LATServer::add_services(unsigned char *buf, int len, int interface, unsigne
 }
 
 // Wait for data available on a client PTY
-void LATServer::add_pty(LATSession *session, int fd)
+void LATServer::add_pty(LocalPort *port, int fd)
 {
-    fdlist.push_back(fdinfo(fd, session, LOCAL_PTY));
+    fdlist.push_back(fdinfo(fd, port, LOCAL_PTY));
 }
 
 
@@ -1271,7 +1272,7 @@ void LATServer::process_data(fdinfo &fdi)
 	break; // do nothing;
 
     case LOCAL_PTY:
-	fdi.get_session()->do_read();
+	fdi.get_localport()->do_read();
 	break;
 
     case LAT_SOCKET:
@@ -1421,19 +1422,19 @@ bool LATServer::set_ident(char *name, char *ident)
 // Remove reverse-LAT port via latcp
 bool LATServer::remove_port(char *name)
 {
+    debuglog(("remove port %s\n", name));
+
     // Search for it.
-    for (int i=1; i<MAX_CONNECTIONS; i++)
+
+    std::list<LocalPort>::iterator p(portlist.begin());
+    for (; p != portlist.end(); p++)
     {
-	if (connections[i])
+	if (strcmp(p->get_devname().c_str(), name) == 0)
 	{
-	    if (connections[i]->isClient() &&
-		strcmp(connections[i]->getLocalPortName(), name) == 0)
-	    {
-		delete connections[i];
-		connections[i] = NULL;
-		return true;
-	    }
+	    portlist.erase(p);
+	    return true;
 	}
+
     }
     return false;
 }
@@ -1495,13 +1496,18 @@ void LATServer::unlock()
     alarm_signal(SIGALRM);
 }
 
-int LATServer::make_llogin_connection(int fd, char *service, char *node, char *port,
+
+int LATServer::make_llogin_connection(int fd, char *service, char *rnode, char *port,
 				      char *localport, bool queued)
 {
     int ret;
     unsigned char macaddr[6];
     std::string servicenode;
     int this_int;
+    char node[255];
+
+    // Take a local copy of the node so we can overwrite it.
+    strcpy(node, rnode);
 
     // If no node was specified then use the highest rated one
     if (node[0] == '\0')
@@ -1559,21 +1565,24 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
 }
 
 
-// Create a new client connection
-int LATServer::make_client_connection(unsigned char *service,
-				      unsigned char *portname,
-				      unsigned char *devname,
-				      unsigned char *remnode,
-				      bool queued,
-				      bool clean)
+// Called when activity is detected on a LocalPort - we connect it 
+// to the service.
+int LATServer::make_port_connection(int fd, LocalPort *lport,
+				    const char *service, const char *rnode, 
+				    const char *port,
+				    const char *localport, bool queued)
 {
-#if 0
+    int ret;
     unsigned char macaddr[6];
     std::string servicenode;
     int this_int;
+    char node[255];
+
+    // Take a local copy of the node so we can overwrite it.
+    strcpy(node, rnode);
 
     // If no node was specified then use the highest rated one
-    if (remnode[0] == '\0')
+    if (node[0] == '\0')
     {
 	if (!LATServices::Instance()->get_highest(std::string((char*)service),
 						  servicenode, macaddr,
@@ -1582,38 +1591,75 @@ int LATServer::make_client_connection(unsigned char *service,
 	    debuglog(("Can't find service %s\n", service));
 	    return -2; // Never eard of it!
 	}
-	strcpy((char *)remnode, servicenode.c_str());
+	strcpy((char *)node, servicenode.c_str());
     }
     else
     {
 	// Try to find the node
 	if (!LATServices::Instance()->get_node(std::string((char*)service),
-					       std::string((char*)remnode),
-					       macaddr,
+					       std::string((char*)node), macaddr,
 					       &this_int))
 	{
-	    debuglog(("Can't find node %s in service\n", remnode, service));
+	    debuglog(("Can't find node %s in service\n", node, service));
 
 	    return -2;
 	}
     }
-#endif
-    int connid = get_next_connection_number();
+
+/* Look for a connection that's already in use for this node */
+    int connid = find_connection_by_node(node);
+    if (connid == -1)
+    {
+	// None: create a new one
+	connid = get_next_connection_number();
+	connections[connid] = new LATConnection(connid,
+						(char *)service,
+						(char *)port,
+						(char *)localport,
+						(char *)node,
+						queued,
+						false);
+    }
     if (connid == -1)
     {
 	return -1; // Failed
     }
 
-    // Create a new connection instance.
-    connections[connid] = new LATConnection(connid,
-					    (char *)service,
-					    (char *)portname,
-					    (char *)devname,
-					    (char *)remnode,
-					    queued,
-					    clean);
-    return connections[connid]->create_client_session((char *)service,
-						      (char *)portname);
+    debuglog(("localport for %s has connid %d\n", service, connid));
+
+    // TODO: Different call into Connection()
+    ret = connections[connid]->create_localport_session(fd, lport, service, port, localport);
+
+    return ret;
+}
+
+
+// Called from latcp to create a /dev/lat/ port
+// Here we simply add it to a lookaside list and wait
+// for it to be activated by a user.
+int LATServer::create_local_port(unsigned char *service,
+				 unsigned char *portname,
+				 unsigned char *devname,
+				 unsigned char *remnode,
+				 bool queued,
+				 bool clean)
+{
+    debuglog(("Server::create_local_port: %s\n", devname));
+    portlist.push_back(LocalPort(service, portname, devname, remnode, queued, clean));
+
+// Find the actual port in the list and start it up, this is because
+// the STL containers hold actual objects rather then pointers
+
+    std::list<LocalPort>::iterator p(portlist.begin());
+    for (; p != portlist.end(); p++)
+    {
+	if (strcmp(p->get_devname().c_str(), (char *)devname) == 0)
+	{
+	    p->init_port();
+	}
+    }
+
+    return 0;
 }
 
 
@@ -1654,9 +1700,10 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
     output << std::endl << "Port                    Service         Node            Remote Port     Queued" << std::endl;
 
     // Show allocated ports
-    for (int i=1; i< MAX_CONNECTIONS; i++)
+    std::list<LocalPort>::iterator p(portlist.begin());
+    for (; p != portlist.end(); p++)
     {
-	if (connections[i]) connections[i]->show_client_info(verbose, output);
+	p->show_info(verbose, output);
     }
 
     // NUL-terminate it.
@@ -1743,7 +1790,7 @@ int LATServer::unset_usergroups(unsigned char *bitmap)
 
 // Look for a connection for this node name, if not found then
 // return -1
-int LATServer::find_connection_by_node(char *node)
+int LATServer::find_connection_by_node(const char *node)
 {
     debuglog(("Looking for connection to node %s\n", node));
     for (int i=1; i<MAX_CONNECTIONS; i++)

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,18 +12,19 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class PortSession: public ServerSession
+
+class QueuedSession: public ServerSession
 {
  public:
-  PortSession(class LATConnection &p,
+  QueuedSession(class LATConnection &p,
 	      LAT_SessionStartCmd *cmd,
 	      ClientSession *_client,
 	      unsigned char remid, unsigned char localid, bool clean);
-  virtual ~PortSession();
+  virtual ~QueuedSession();
 
   virtual int new_session(unsigned char *remote_node,
 			  char *service, char *port, unsigned char c);
 
- private:  
+ private:
   ClientSession *client_session;
 };

@@ -23,7 +23,7 @@ PROG6 = dnmount
 PROG7 = rmtermd
 MANPAGES1 = sethost.1 dnping.1
 MANPAGES5 = decnet.conf.5
-MANPAGES8 = startnet.8 ctermd.8 rmtermd.8
+MANPAGES8 = startnet.8 ctermd.8 rmtermd.8 setether.8
 
 ALLPROGS=$(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) 
 ifeq (/usr/include/linux/dap_fs.h,$(wildcard /usr/include/linux/dap_fs.h))

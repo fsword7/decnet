@@ -95,7 +95,7 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
 
     // VMS needs an attrib message so give it one.
     dap_attrib_message att;
-    if (mode & O_CREAT) att.set_fop_bit(dap_attrib_message::FB$CIF);
+    att.set_rfm(dap_attrib_message::FB$VAR);
     if (fab) build_attrib_message(&att, fab);
 
     conn->set_blocked(true);     
@@ -116,6 +116,8 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
     // Set up the access method
     dap_access_message acc;
     acc.set_accfunc(dap_access_message::OPEN);
+    if (mode & O_CREAT) acc.set_accfunc(dap_access_message::CREATE);
+
     if (mode & O_RDWR || mode & O_CREAT)
 	acc.set_fac(1<<dap_access_message::FB$PUT |
 		    1<<dap_access_message::FB$GET |

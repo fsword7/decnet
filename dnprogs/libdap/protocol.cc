@@ -2280,6 +2280,82 @@ void dap_protect_message::set_protection(mode_t mode)
 
 }
 
+int dap_protect_message::set_protection(char *prot)
+{
+    // Parse protection string
+    int i = 0;
+    int len = strlen(prot);
+
+    if (prot[i] == '(') 
+	    i++;
+
+    while (i < len)
+    {
+	dap_ex *user = NULL;
+	int entry;
+
+	switch (prot[i] & 0x5F)
+	{
+	case 'S':
+		user = &protsys;
+		entry = 1;
+		break;
+	case 'O':
+		user = &protown;
+		entry = 2;
+		break;
+	case 'G':
+		user = &protgrp;
+		entry = 3;
+		break;
+	case 'W':
+		user = &protwld;
+		entry = 4;
+		break;
+	default:
+		return -1;
+	}
+	if (prot[++i] != ':')
+	    return -1;
+	i++;
+
+	int protbyte = 0x1F;
+        while (i < len && prot[i] != ',' && prot[i] != ')')
+	{
+	    switch (prot[i] & 0x5F)
+	    {
+	    case 'R':
+		    protbyte &= ~0x1;
+		    break;
+	    case 'W':
+		    protbyte &= ~0x2;
+		    break;
+	    case 'E':
+		    protbyte &= ~0x4;
+		    break;
+	    case 'D':
+		    protbyte &= ~0x8;
+		    break;
+	    default:
+		    return -1;
+	    }
+	    i++;
+	}
+	user->set_byte(0, protbyte);
+	protmenu.set_bit(entry);
+
+	if (prot[i] == ',')
+	    i++;
+
+	while (i < len && prot[i] == ' ')
+	    i++;
+
+	if (prot[i] == ')')
+	    return 0;
+    }
+    return 0;
+}
+
 //------------------------ dap_summary_message() ------------------------------
 
 bool dap_summary_message::read(dap_connection &c)

@@ -946,6 +946,7 @@ class dap_protect_message: public dap_message
     void set_owner(gid_t, uid_t); // Converts GID/UID to names
     void set_owner(const char *); // Any old name will do here.
     void set_protection(mode_t);
+    int  set_protection(char *);
 
     char    *get_owner();
     char    *get_protection(); // In VMS format

@@ -31,7 +31,6 @@ binary-arch: checkroot build
 	install -m 0600 latd.conf debian/tmp/etc/latd.conf
 	make install DESTDIR=`pwd`/debian/tmp RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
-	dh_testversion 2
 	dh_installdirs
 	dh_installchangelogs
 	dh_installdocs

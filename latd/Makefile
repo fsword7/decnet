@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.13
+VERSION=1.14
 PKGNAME=latd
 
 
@@ -21,14 +21,17 @@ PROG4OBJS=moprc.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
 DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
+
+# These are debugging options, know what you are doing before setting these.
 #DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC
 #DEFS+=-DREALLY_VERBOSE_DEBUGLOG
+#DEFS+=-DPACKET_LOSS=8
 
 prefix=/usr/local
 LATCPSOCK="/var/run/latcp"
 LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
-CXX=g++ 
+CXX=g++
 CC=gcc
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
 CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
@@ -54,13 +57,13 @@ endif
 #
 all: $(PROG1) $(PROG2) $(PROG3) $(PROG4)
 
-$(PROG1): depend $(PROG1OBJS) 
+$(PROG1): depend $(PROG1OBJS)
 	$(CXX) -o $@ $(PROG1OBJS) -lutil
 
-$(PROG2): depend $(PROG2OBJS) 
+$(PROG2): depend $(PROG2OBJS)
 	$(CXX) -o $@ $(PROG2OBJS)
 
-$(PROG3): depend $(PROG3OBJS) 
+$(PROG3): depend $(PROG3OBJS)
 	$(CXX) -o $@ $(PROG3OBJS)
 
 $(PROG4): depend $(PROG4OBJS)

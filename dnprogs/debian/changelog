@@ -2,11 +2,11 @@ dnprogs (2.04-1) stable; urgency=medium
 
   * See below
 
- -- Patrick <patrick@pandh.demon.co.uk>  Sat,  5 Feb 2000 13:39:13 +0000
+ -- Patrick <patrick@tykepenguin.cix.co.uk>  Sat,  5 Feb 2000 13:39:13 +0000
 
 Local variables:
 mode: debian-changelog
-add-log-mailing-address: "patrick@pandh.demon.co.uk"
+add-log-mailing-address: "patrick@tykepenguin.cix.co.uk"
 End:
 
 

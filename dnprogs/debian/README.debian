@@ -4,4 +4,4 @@ dnprogs for DEBIAN
 The only difference between the Debian version of this package and
 the others is the it installs into /usr rather than /usr/local.
 
-Patrick <patrick@pandh.demon.co.uk>, Mon, 16 Nov 1998 14:26:12 +0000
+Patrick <patrick@tykepenguin.cix.co.uk>, Mon, 16 Nov 1998 14:26:12 +0000

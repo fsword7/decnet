@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998      P.J. Caulfield          patrick@pandh.demon.co.uk
+    (c) 1998      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
                   K.   Humborg            kenn@avalon.wombat.ie
     
     This program is free software; you can redistribute it and/or modify

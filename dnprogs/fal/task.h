@@ -24,7 +24,7 @@ class fal_task
 		delete[] record_lengths;
 	}
     void set_crc(bool);
-    void calculate_crc(char *, int);
+    void calculate_crc(unsigned char *, int);
 
   protected:  
     dap_connection &conn;

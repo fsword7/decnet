@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2000 P.J. Caulfield               patrick@pandh.demon.co.uk
+    (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ void fal_task::set_crc(bool onoff)
     need_crc = onoff;
 }
 
-void fal_task::calculate_crc(char *buf, int len)
+void fal_task::calculate_crc(unsigned char *buf, int len)
 {
     crc.calc4shift(buf, len);
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999 P.J. Caulfield               patrick@pandh.demon.co.uk
+    (c) 1998-1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

@@ -1,5 +1,5 @@
-2.06
-----------------
+2.06 28th Oct 2000
+------------------
 - Fix build of phone on Debian Potato systems
 - Fix bug in FAL where it truncated some binary files in stream mode.
 - Improve performance and system overhead of ctermd & sethost
@@ -7,11 +7,12 @@
 - Fixed phone bug so you can dial users by node number now
 - A small number of potential buffer overflows removed from dnetd & 
   libdnet_daemon
-- Fixed compilation of phone on SuSE 6.2 & RedHat 6.2 systems
+- Fixed compilation of phone on SuSE 6.4 & RedHat 6.2 systems
 - librms rms_open with O_CREAT is now useful
 - Fixed several memory leaks in libdnet_daemon (and thus dnetd)
 - dnetd now really re-reads the proxy DB every time
 - ctermd no longer goes into a tight loop if you ^Y^Y the session
+- Updated my email address
 
 
 2.05  3 Apr 2000

@@ -539,7 +539,12 @@ void LATServer::read_lat(int sock)
     case LAT_CCMD_SESSION:
         {
 	    debuglog(("session cmd for connid %d\n", header->remote_connid));
-	    LATConnection *conn = connections[header->remote_connid];
+	    LATConnection *conn = NULL;
+            if(header->remote_connid < MAX_CONNECTIONS)
+            {
+                conn = connections[header->remote_connid];
+            }
+            
 	    if (conn)
 	    {
 	        conn->process_session_cmd(buf, len, macaddr);
@@ -583,7 +588,7 @@ void LATServer::read_lat(int sock)
         {
 	    LATConnection *conn = NULL;
 	    debuglog(("Got connect ACK for %d\n", header->remote_connid));
-	    if (header->remote_connid <= MAX_CONNECTIONS)
+	    if (header->remote_connid < MAX_CONNECTIONS)
 	    {
 		conn = connections[header->remote_connid];
 	    }
@@ -607,7 +612,7 @@ void LATServer::read_lat(int sock)
 		      header->remote_connid,
 		      buf[sizeof(LAT_Header)],
 		      lat_messages::connection_disconnect_msg(buf[sizeof(LAT_Header)]) ));
-	    if (header->remote_connid <= MAX_CONNECTIONS)
+	    if (header->remote_connid < MAX_CONNECTIONS)
 	    {
 		LATConnection *conn = connections[header->remote_connid];
 		if (conn)

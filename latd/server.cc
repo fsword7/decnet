@@ -1326,7 +1326,6 @@ bool LATServer::remove_port(char *name)
     {
 	if (strcmp(p->get_devname().c_str(), name) == 0)
 	{
-	    p->close_and_delete();
 	    portlist.erase(p);
 	    return true;
 	}

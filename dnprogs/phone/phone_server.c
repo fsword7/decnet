@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <ctype.h>
-#include <signal.h>
 #include <string.h>
 #include <syslog.h>
 #include <limits.h>

@@ -80,41 +80,6 @@ static void usage(char *prog, FILE *f)
     fprintf(f," -V        Show version number\n\n");
 }
 
-/* Find the interface named <ifname> and return it's number
-   Also save the MAC address in <macaddr>.
-   Return -1 if we didn't find it or it's not ethernet,
-*/
-int find_interface(char *ifname, char *macaddr)
-{
-    struct ifreq ifr;
-    int iindex = 1;
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    ifr.ifr_ifindex = iindex;
-
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-    {
-	if (strcmp(ifr.ifr_name, ifname) == 0)
-	{
-	    /* And also get the MAC address and check it's ethernet
-	       while we are here */
-	    ioctl(sock, SIOCGIFHWADDR, &ifr);
-	    memcpy(macaddr, &ifr.ifr_hwaddr.sa_data, 6);
-	    if (ifr.ifr_hwaddr.sa_family != 1)
-	    {
-		fprintf(stderr, "Device %s is not ethernet\n", ifname);
-		return -1;
-	    }	    
-	    close(sock);
-	    return iindex;
-	}
-	ifr.ifr_ifindex = ++iindex;
-    }
-    // Didn't find it
-    close(sock);
-    return -1;
-}
-
 /* Start Here */
 int main(int argc, char *argv[])
 {
@@ -128,10 +93,12 @@ int main(int argc, char *argv[])
     char service[256];
     char greeting[256];
     int  static_rating = 0;
-    int  interface_num = 0;
+    char *interfaces[256];
+    int num_interfaces = 0;
 
     strcpy(greeting,  "A Linux box");
     interface[0] = '\0';
+    memset(interfaces, 0, sizeof(interfaces));
 
     strcpy(service, (char *)LATServer::Instance()->get_local_node());
     
@@ -173,7 +140,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'i':
-	    strcpy(interface, optarg);
+	    interfaces[num_interfaces++] = optarg;
 	    break;
 
 	case 's':
@@ -271,25 +238,14 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     signal(SIGINT,  SIG_IGN);
     signal(SIGQUIT, SIG_IGN);
-    
-    // Find network interface & our MAC address
-    char macaddr[6];
-    if (interface[0])
-    {
-	if ( (interface_num=find_interface(interface, macaddr)) == -1)
-	{
-	    fprintf(stderr, "Can't find interface %s\n", interface);
-	    exit(2);
-	}
-	debuglog(("interface %s is number %d\n", interface, interface_num));
-    }
 
+    
     openlog("latd", LOG_PID, LOG_DAEMON);
 
     // Go!
     LATServer *server = LATServer::Instance();
     server->init(static_rating, rating, service, greeting,
-		 interface_num, verbosity, circuit_timer, macaddr);
+		 interfaces, verbosity, circuit_timer);
     server->run();
     
     return 0;

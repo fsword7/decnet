@@ -29,8 +29,8 @@ class LATServer
 	}
     
     void init(bool _static_rating, int _rating,
-	      char *_service, char *_greeting, int _interface_num,
-	      int _verbosity, int _timer, char *_our_macaddr);
+	      char *_service, char *_greeting, char **_interfaces,
+	      int _verbosity, int _timer);
     void run();
     void shutdown();
     void add_fd(int fd, fd_type type);
@@ -80,7 +80,8 @@ class LATServer
     int  next_connection;
     gid_t lat_group;
 
-    void  get_all_interfaces();
+    void  get_all_interfaces(char *macaddr);
+    int   find_interface(char *ifname, char *macaddr);
     void  read_lat(int sock);
     float get_loadavg();
     void  reply_to_enq(unsigned char *inbuf, int len, int interface,

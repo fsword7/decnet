@@ -68,10 +68,8 @@
 #include "dn_endian.h"
 
 
-
-
 // Get all ethernet interfaces
-void LATServer::get_all_interfaces()
+void LATServer::get_all_interfaces(char *macaddr)
 {
     struct ifreq ifr;
     int iindex = 1;
@@ -87,6 +85,7 @@ void LATServer::get_all_interfaces()
 	ioctl(sock, SIOCGIFHWADDR, &ifr);		    
 	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
 	{
+	    memcpy(macaddr, &ifr.ifr_hwaddr.sa_data, 6);
 	    debuglog(("interface %d: %d\n", num_interfaces, iindex));
 	    interface_num[num_interfaces++] = iindex;
 	}	    
@@ -96,6 +95,41 @@ void LATServer::get_all_interfaces()
     close(sock);
 }
 
+
+/* Find the interface named <ifname> and return it's number
+   Also save the MAC address in <macaddr>.
+   Return -1 if we didn't find it or it's not ethernet,
+*/
+int LATServer::find_interface(char *ifname, char *macaddr)
+{
+    struct ifreq ifr;
+    int iindex = 1;
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    ifr.ifr_ifindex = iindex;
+
+    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+    {
+	if (strcmp(ifr.ifr_name, ifname) == 0)
+	{
+	    /* And also get the MAC address and check it's ethernet
+	       while we are here */
+	    ioctl(sock, SIOCGIFHWADDR, &ifr);
+	    memcpy(macaddr, &ifr.ifr_hwaddr.sa_data, 6);
+	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+	    {
+		fprintf(stderr, "Device %s is not ethernet\n", ifname);
+		return -1;
+	    }	    
+	    close(sock);
+	    return iindex;
+	}
+	ifr.ifr_ifindex = ++iindex;
+    }
+    // Didn't find it
+    close(sock);
+    return -1;
+}
 
 unsigned char *LATServer::get_local_node(void)
 {
@@ -758,8 +792,8 @@ void LATServer::shutdown()
 }
 
 void LATServer::init(bool _static_rating, int _rating,
-		     char *_service, char *_greeting, int _interface_num,
-		     int _verbosity, int _timer, char *_our_macaddr)
+		     char *_service, char *_greeting, char **_interfaces,
+		     int _verbosity, int _timer)
 {
     // Server is locked until latcp has finished
     locked = true;
@@ -772,14 +806,33 @@ void LATServer::init(bool _static_rating, int _rating,
     strcpy((char *)greeting, _greeting);
     verbosity = _verbosity;
 
-    if (_interface_num)
+/* Convert all the interface names to numbers and check they are usable */
+    if (_interfaces[0])
     {
-	interface_num[0] = _interface_num;
-	num_interfaces = 1;
+	int i=0;
+	while (_interfaces[i])
+	{
+	    interface_num[num_interfaces] = find_interface(_interfaces[i], (char*)our_macaddr);
+	    if (interface_num[num_interfaces] == -1)
+	    {
+		syslog(LOG_ERR, "Can't use interface %s: ignored\n", _interfaces[i]);
+	    }
+	    else
+	    {
+		num_interfaces++;
+	    }
+	    i++;
+	}
+	if (num_interfaces == 0)
+	{
+	    syslog(LOG_ERR, "No usable interfaces, latd exiting.\n");
+	    exit(9);
+	}
+
     }
     else
     {
-	get_all_interfaces();
+	get_all_interfaces((char *)our_macaddr);
     }
 
 
@@ -787,7 +840,6 @@ void LATServer::init(bool _static_rating, int _rating,
     rating = _rating;
     static_rating = _static_rating;
     
-    memcpy(our_macaddr, _our_macaddr, 6);
     next_connection = 1;
     multicast_incarnation = 0;
     circuit_timer = _timer/10;

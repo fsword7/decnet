@@ -1,4 +1,4 @@
-.TH LATD 8 "June 2 2000" "LAT Server"
+.TH LATD 8 "November 25 2000" "LAT Server"
 
 .SH NAME
 latd \- LAT daemon for Linux
@@ -20,15 +20,18 @@ The parameters for LATD are just defaults, they can all be changed using
 
 latd should not be started directly but should be invoked using the command
 .B latcp -s.
-Any arguments for latd can be added to the latcp -s command line or set in
+Any arguments for latd can be added to the latcp -s command line and many
+can be set in
 .B /etc/latd.conf(5).
 
 .SS OPTIONS
 .TP
 .I "\-i"
 Set the interface to be used for LAT communication. If this is not specified
-then all ethernet interfaces will be used. Only one interface is allowed
-on the command-line so you can use either all interfaces or just one.
+then all ethernet interfaces will be used. This option can be specified 
+multiple times to enable several interfaces. eg:
+.br 
+-i eth0 -i eth2
 
 .TP
 .I "\-g"

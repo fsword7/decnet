@@ -413,18 +413,17 @@ bool fal_open::send_file(int rac, long vbn)
 	    }
 	    else
 	    {
-		if (::fgets(buf, bs-1, stream))
+		// Read up to the next LF or EOF
+		int newchar;
+		buflen = 0;
+		do 
 		{
-		    // Make sure there's a NUL on the end for strlen to find.
-		    buf[bs] = '\0';
-		    buflen = strlen(buf); // Leave the LF on the end.
-		}
-		else
-		{
-		    DAPLOG((LOG_INFO, "fgets returned nothing\n"));
-		    send_eof();
-		    return true;
-		}
+		    newchar = getc(stream);
+		    if (newchar != EOF)
+		    {
+			buf[buflen++] = (char) newchar;
+		    }
+		} while (newchar != EOF && newchar != '\n' && buflen < conn.get_blocksize());
 	    }
 	}
 	else // Block read

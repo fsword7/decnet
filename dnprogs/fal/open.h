@@ -9,7 +9,7 @@ class fal_open: public fal_task
 
     virtual ~fal_open();
     virtual bool process_message(dap_message *m);
-    
+
   protected:
 
     glob_t        gl;
@@ -23,11 +23,11 @@ class fal_open: public fal_task
     char         *buf;
     bool          create;
     unsigned int  block_size;
-    
+
     dap_attrib_message  *attrib_msg;
     dap_alloc_message   *alloc_msg;
     dap_protect_message *protect_msg;
-    
+
     bool send_file(int, long);
     void print_file();
     void delete_file();
@@ -36,5 +36,5 @@ class fal_open: public fal_task
     void set_control_options(dap_control_message *);
     bool create_file(char *);
     void send_eof();
-    
+
 };

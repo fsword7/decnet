@@ -92,7 +92,11 @@ int main(int argc, char *argv[])
     mtrace();
 #endif
 
-    strcpy(greeting,  "GPL LATD by Patrick Caulfield");
+// Make a default greeting.
+    struct utsname uts;
+    uname(&uts);
+
+    snprintf(greeting, sizeof(greeting), "LATD for %s\n", uts.sysname);
     interface[0] = '\0';
     memset(interfaces, 0, sizeof(interfaces));
 

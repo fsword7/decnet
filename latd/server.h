@@ -55,6 +55,8 @@ class LATServer
     int   find_connection_by_node(const char *node);
     void  send_enq(unsigned char *);
 
+    static unsigned char greeting[255];
+
  private:
     LATServer():
 	circuit_timer(8),
@@ -69,7 +71,6 @@ class LATServer
     bool static_rating;
     int  rating;
 
-    unsigned char greeting[255];
     unsigned char local_name[256]; //  Node name
     int  interface_num[MAX_INTERFACES];
     int  interface_errs[MAX_INTERFACES];

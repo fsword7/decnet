@@ -1725,3 +1725,4 @@ void LATServer::print_bitmap(std::ostrstream &output, bool isset, unsigned char 
 }
 
 LATServer *LATServer::instance = NULL;
+unsigned char LATServer::greeting[255] = {'\0'};

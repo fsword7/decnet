@@ -514,7 +514,7 @@ void LATConnection::send_connect_ack()
     ptr = sizeof(LAT_StartResponse);
     add_string(reply, &ptr, server->get_local_node());
     add_string(reply, &ptr, remnode);
-    add_string(reply, &ptr, (unsigned char*)"GPL LATD");
+    add_string(reply, &ptr, (unsigned char*)LATServer::greeting);
     reply[ptr++] = '\0';
 
     send_message(reply, ptr, DATA);
@@ -926,7 +926,7 @@ int LATConnection::connect(ClientSession *session)
 
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    buf[ptr++] = 0; // ASCIC source port
-	    add_string(buf, &ptr, (unsigned char *)"GPL LATD");
+	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
 	    add_string(buf, &ptr, servicename);
 	    add_string(buf, &ptr, portname);
 
@@ -959,7 +959,7 @@ int LATConnection::connect(ClientSession *session)
 
 	    add_string(buf, &ptr, remnode);
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
-	    add_string(buf, &ptr, (unsigned char *)"GPL LATD");
+	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
 
 	    return send_message(buf, ptr, LATConnection::DATA);
 	}

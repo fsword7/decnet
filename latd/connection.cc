@@ -63,6 +63,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     delete_pending(false),
     request_id(0),
     last_msg_type(0),
+    last_msg_retries(0),
     role(SERVER),
     send_ack(false)
 {
@@ -110,6 +111,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     delete_pending(false),
     request_id(0),
     last_msg_type(0),
+    last_msg_retries(0),
     role(CLIENT),
     send_ack(false)
 {
@@ -319,6 +321,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			{
 			    last_msg_type = 0;
 			    (*master_conn)->last_msg_type = 0;
+
+			    last_msg_retries= 0;
+			    (*master_conn)->last_msg_retries = 0;
 
 			    // Connect a new port session to it
 			    ClientSession *cs = (ClientSession *)(*master_conn)->sessions[1];
@@ -678,11 +683,19 @@ void LATConnection::circuit_timer(void)
     if (last_msg_type)
     {
 	time_t tt;
-	tt =  time(NULL);
+	tt = time(NULL);
 
 	if (tt - last_msg_time > 5)
 	{
 	    last_msg_time = tt;
+
+	    // Too many retries ??
+	    if (++last_msg_retries >= 3)
+	    {
+		LATServer::Instance()->delete_connection(num);
+		last_msg_type = 0;
+		return;
+	    }
 	    switch (last_msg_type)
 	    {
 		// Connect
@@ -749,8 +762,8 @@ void LATConnection::circuit_timer(void)
 
 		    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 		    buf[ptr++] = 0; // ASCIC source port
-		    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-		    add_string(buf, &ptr, servicename);
+		    buf[ptr++] = 0; // add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
+		    add_string(buf, &ptr, remnode);
 		    add_string(buf, &ptr, portname);
 
 		    // Send it raw.
@@ -1071,14 +1084,15 @@ int LATConnection::connect(LATSession *session)
 
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    buf[ptr++] = 0; // ASCIC source port
-	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-	    add_string(buf, &ptr, servicename);
+	    buf[ptr++] = 0; // add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
+	    add_string(buf, &ptr, remnode); // woz servicename
 	    add_string(buf, &ptr, portname);
 
 	    // Save the time we sent the connect so we
             // know if we got a response.
 	    last_msg_time = time(NULL);
 	    last_msg_type = msg->cmd;
+	    last_msg_retries = 0;
 
 	    // Send it raw.
 	    return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
@@ -1115,6 +1129,7 @@ int LATConnection::connect(LATSession *session)
             // know if we got a response.
 	    last_msg_time = time(NULL);
 	    last_msg_type = msg->header.cmd;
+	    last_msg_retries = 0;
 
 	    return send_message(buf, ptr, DATA);
 	}
@@ -1167,6 +1182,7 @@ int LATConnection::rev_connect()
     // know if we got a response.
     last_msg_time = time(NULL);
     last_msg_type = msg->header.cmd;
+    last_msg_retries = 0;
 
     return send_message(buf, ptr, DATA);
 }
@@ -1181,6 +1197,7 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
     if (role == CLIENT && sessions[1])
     {
 	last_msg_type = 0;
+	last_msg_retries = 0;
 	ClientSession *s = (ClientSession *)sessions[1];
 	s->show_status(node, entry);
     }
@@ -1291,6 +1308,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
 //    need_ack = false;
 
     last_msg_type = 0;  // Not waiting anymore
+    last_msg_retries = 0;
 
     debuglog(("got connect ack. seq: %d, ack: %d\n",
 	      last_recv_seq, last_recv_ack));

@@ -87,6 +87,7 @@ class LATConnection
     // Keep track of non-flow-controlled messages
     time_t         last_msg_time;
     int            last_msg_type;
+    int            last_msg_retries;
 
     int next_session_number();
     bool is_queued_reconnect(unsigned char *buf, int len, int *conn);

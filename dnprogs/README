@@ -5,7 +5,7 @@ to get DECnet for Linux working. It assumes you already have the
 kernel patch installed and built.
 
 You MUST be running the latest Eduardo kernel patch (version number 0.0.11 or 
-later) or Steve Whitehouse's patch to use these programs. If you are not
+later) or a 2.4+ kernel to use these programs. If you are not
 then several things (particularly dnetd) will NOT work. You will be warned
 if you try to compile on old kernel versions.
 
@@ -28,19 +28,21 @@ environment variable LD_LIBRARY_PATH. See the man page for ld.so for more
 information.
 
 [Please don't send me mail about compiler warnings on libc5 based systems, I 
-know. It compiles fine on libc6 systems (I can recommend Debian 2) because the
+know. It compiles fine on libc6 systems (I can recommend Debian) because the
 header files are more POSIX compliant.]
 
 It will also install a startup script appropriate to your distribution. You
 will need to set up your system so that this script is run at system startup
 time. 
 
+NOTE: These startup scripts are out of date for everthimng except Debian. 
+If you can help with startup scripts for your particular distribution then
+please contact me.
+
 Debian 
 ------
-The startup script is "/etc/init.d/decnet.sh"
-Then run the command:
-
-# update-rc.d start 39 S .  stop 11 1 .
+DECnet is included in Debian woody (3.0) and later. "apt-get dnet-progs" will
+install all the bits you need.
 
 Redhat
 ------
@@ -127,7 +129,7 @@ phone       -  phone client
 
 Administrator programs and daemons in /usr/local/sbin:
 ------------------------------------------------------
-startnet    -  needed to start the DECnet socket layer
+startnet    -  needed to start the DECnet socket layer on Linux 2.2
 ctermd      -  SET HOST server
 rmtermd     -  DTERM server for older machines
 fal         -  file access listener
@@ -228,7 +230,9 @@ And to everyone who has submitted bug reports - please don't stop.
 SUPPORT
 -------
 These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3 & 2.4 on Intel, 
-Alpha and SPARC machines (though not necessarily all combinations!)
+Alpha and SPARC machines (though not necessarily all combinations!) userland
+compiles on HPPA machines but there seems to be a kernel problem with that
+architecture. atthe moment.
 
 I encourage all users to join the linux-decnet mailing list by visiting the
 mailing list web site at 

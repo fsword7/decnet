@@ -538,7 +538,8 @@ bool fal_open::put_record(dap_data_message *dm)
 
     // If we are writing variable-length records then keep a list of
     // their lengths in the metadata.
-    if (attrib_msg->get_rfm() == dap_attrib_message::FB$VAR && use_records)
+    if (attrib_msg->get_rfm() == dap_attrib_message::FB$VAR && use_records &&
+	params.use_metafiles)
     {
 	if (!record_lengths)
 	{

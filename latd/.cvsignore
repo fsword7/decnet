@@ -1,0 +1,8 @@
+*.o
+*~
+.depend
+Makefile.bak
+core
+latd
+latcp
+log

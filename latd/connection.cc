@@ -40,8 +40,8 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 			     unsigned char _svcount,
 			     unsigned char *_macaddr):
     num(_num),
-    last_sequence_number(_clcount),
-    last_ack_number(_svcount),
+    last_sequence_number(_svcount),
+    last_ack_number(_clcount),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -77,15 +77,20 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 LATConnection::LATConnection(int _num, const char *_remnode,
 			     const char *_macaddr, const char *_lta):
     num(_num),
-    last_sequence_number(0),
-    last_ack_number(0),
+    last_sequence_number(0xff),
+    last_ack_number(0xff),
     role(CLIENT)
 {
-    debuglog(("New client connection created\n"));
+    debuglog(("New client connection for %s created\n", remnode));
     memcpy(macaddr, _macaddr, 6);
     memset(sessions, 0, sizeof(sessions));
     strcpy((char *)remnode, _remnode);
     strcpy(lta_name, _lta);
+
+    max_slots_per_packet = 1; // TODO: Calculate
+    max_window_size = 1;      // Gets overridden later on.
+    next_session = 1;
+
 }
 
 
@@ -113,22 +118,10 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     // For duplicate checking
     unsigned char real_last_sequence_number = last_sequence_number;
     unsigned char real_last_message_acked   = last_message_acked;
-    
-    // Counter Swapping DOES NOT HAPPEN! They are always swapped.
-    // So why do I need this code in here???????????????????????????????????
 
-    if (msg->header.sequence_number < last_sequence_number)
-    {
-        debuglog(("counters swapped!\n"));
-        last_sequence_number = msg->header.ack_number;
-        last_message_acked   = msg->header.sequence_number;
-    }
-    else
-    {
-        last_sequence_number = msg->header.sequence_number;
-        last_message_acked   = msg->header.ack_number;
-    }
-    
+    last_sequence_number = msg->header.ack_number;
+    last_message_acked   = msg->header.sequence_number;
+  
     debuglog(("     seq: %d,      ack: %d\n", msg->header.sequence_number, msg->header.ack_number));
     debuglog(("last seq: %d, last ack: %d\n", last_sequence_number, last_message_acked));
     debuglog(("last seq: %d, last ack: %d\n", last_message_seq, last_ack_number));
@@ -141,11 +134,14 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	return false;
     }
 
-    
-    // No blocks? just ACK it.
+    // PJC:TODO: not sure about this. 
+    // It doesn't affect the server but it seems to help the client
+    last_ack_number = last_message_acked;
+
+    // No blocks? just ACK it (if we're a server)
     if (msg->header.num_slots == 0)
     {
-	replyhere=true;
+	if (role == SERVER) replyhere=true;
 	replyslots=0;
 
 	LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(buf+ptr);
@@ -208,21 +204,30 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
             break;
 	  
 	    case 0x90:
-	        newsessionnum = next_session_number();
-	        newsession = new ServerSession(*this,
-					       (LAT_SessionStartCmd *)buf,
-					       slotcmd->remote_session, 
-					       newsessionnum);
-		if (newsession->new_session(remnode, 
-					    credits) == -1)
+		if (role == SERVER)
 		{
-		    newsession->send_disabled_message();
-		    delete newsession;
+		    newsessionnum = next_session_number();
+		    newsession = new ServerSession(*this,
+						   (LAT_SessionStartCmd *)buf,
+						   slotcmd->remote_session, 
+						   newsessionnum);
+		    if (newsession->new_session(remnode, 
+						credits) == -1)
+		    {
+			newsession->send_disabled_message();
+			delete newsession;
+		    }
+		    else
+		    {
+			sessions[newsessionnum] = newsession;
+		    }
 		}
-		else
+		else // CLIENT
 		{
-                    sessions[newsessionnum] = newsession;
-		}
+		    if (session)
+			((ClientSession *)session)->got_connection(
+			    slotcmd->remote_session);
+		}    
 		break;
 
 	    case 0xa0:
@@ -258,6 +263,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
         }
     }
 
+    // ACK the message if we did nothing else
     if (replyhere)
     {
 	unsigned char replybuf[1600];
@@ -269,6 +275,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	reply->slot.local_session  = msg->slot.remote_session;
 	reply->slot.length         = replylen;
 	reply->slot.cmd            = retcmd;
+
+	if (role == CLIENT) reply->header.cmd |= 2; // To Host
 
 	ptr = sizeof(LAT_SessionReply);
 	memcpy(replybuf+ptr, replybuf, replylen);
@@ -308,7 +316,7 @@ void LATConnection::send_connect_ack()
     add_string(reply, &ptr, (unsigned char*)"LAT for Linux");
     reply[ptr++] = '\0';
     
-    send_message(reply, ptr, REPLY);
+    send_message(reply, ptr, DATA);
 }
 
 // Send a message on this connection NOW
@@ -461,6 +469,7 @@ void LATConnection::circuit_timer(void)
     // Coalesce pending messages and queue them
     while (!slots_pending.empty())
     {
+	debuglog(("circuit Timer:: slots pending = %d\n", slots_pending.size()));
         unsigned char buf[1600];
         LAT_Header *header = (LAT_Header *)buf;
         int len=sizeof(LAT_Header);
@@ -504,8 +513,6 @@ void LATConnection::circuit_timer(void)
     //  Send a pending message (if we can)
     if (!pending.empty() && window_size < max_window_size)
     {
-        debuglog(("Sending message on circuit timer\n"));
-
         // Send the top message
         pending_msg &msg(pending.front());
       
@@ -517,7 +524,10 @@ void LATConnection::circuit_timer(void)
         LAT_Header *header = msg.get_header();
         header->sequence_number = last_sequence_number;
         header->ack_number      = last_ack_number;
-      
+     
+        debuglog(("Sending message on circuit timer: seq: %d, ack: %d\n",
+		  last_sequence_number, last_ack_number));
+ 
         msg.send(macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
         pending.pop();
@@ -576,6 +586,7 @@ int LATConnection::create_client_session()
 	delete newsession;
 	return -1;
     }
+    sessions[newsessionnum] = newsession;
     return 0;
 }
 
@@ -583,6 +594,22 @@ int LATConnection::got_connect_ack(unsigned char *buf)
 {
     LAT_StartResponse *reply = (LAT_StartResponse *)buf;
     remote_connid = reply->header.local_connid;
+
+    last_sequence_number = reply->header.ack_number;
+    last_message_acked   = reply->header.sequence_number;
+    max_window_size = reply->exqueued+1;
+
+    last_ack_number = last_message_acked;
+
+
+
+// Start clientsession 1
+    ClientSession *cs = (ClientSession *)sessions[1];
+    if (cs) cs->connect();
+    else
+    {
+	// TODO Disconnect
+    }
 
     return 0;
 }

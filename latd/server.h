@@ -15,7 +15,8 @@
 
 class LATServer
 {
-    typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS, LATCP_SOCKET, LOCAL_PTY} fd_type;
+    typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS,
+		  LATCP_SOCKET, LOCAL_PTY, DISABLED_PTY} fd_type;
     
  public:
     static LATServer *Instance()
@@ -34,6 +35,7 @@ class LATServer
     void add_fd(int fd, fd_type type);
     void remove_fd(int fd);
     void add_pty(LATSession *session, int fd);
+    void set_fd_state(int fd, bool disabled);
     int  send_message(unsigned char *buf, int len, unsigned char *macaddr);
     void delete_session(LATConnection *, unsigned char, int);
     void delete_connection(int);
@@ -90,10 +92,18 @@ class LATServer
 	int get_fd(){return fd;}
 	LATSession *get_session(){return session;}
 	fd_type get_type(){return type;}
+	void set_disabled(bool d)
+	    {
+		if (d)
+		    type = DISABLED_PTY;
+		else
+		    type = LOCAL_PTY;
+		
+	    }
 
 	bool active()
 	{
-	  return (!(type == INACTIVE));
+	  return (!(type == INACTIVE || type == DISABLED_PTY));
 	}
 	
 	bool operator==(int _fd)

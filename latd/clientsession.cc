@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <list>
 #include <queue>
@@ -62,11 +63,19 @@ int ClientSession::new_session(unsigned char *remote_node, unsigned char c)
     {
 	sprintf(ltaname, "/dev/lat/lta%d", local_session);
     }
-    symlink(mastername, ltaname);
+    unlink(ltaname);
+    symlink(ptyname, ltaname);
 
-    debuglog(("made symlink %s to %s\n", ltaname, mastername));
+    fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
+
+    debuglog(("made symlink %s to %s\n", ltaname, ptyname));
     LATServer::Instance()->add_pty(this, master_fd);
     return 0;
+}
+
+void ClientSession::connect_parent()
+{
+    parent.connect();
 }
 
 void ClientSession::connect()
@@ -82,23 +91,23 @@ void ClientSession::connect()
     buf[ptr++] = 0x01; // Min Attention slot size
     buf[ptr++] = 0xfe; // Min Data slot size
     
-    buf[ptr++] = 0x00; // Dest service length/name
+    add_string(buf, &ptr, (unsigned char *)remote_node); 
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
     buf[ptr++] = 0x02; // Param Length 2
-    buf[ptr++] = 0x04; // Value 1024
+    buf[ptr++] = 0x00; // Value 1024
     buf[ptr++] = 0x00; // 
 
     buf[ptr++] = 0x04; // Param type 4 (PTY name)
     add_string(buf, &ptr, (unsigned char *)ltaname);
     buf[ptr++] = 0x00; // NUL terminated (??)
  
-    // Send response...
+    // Send message...
     reply->header.cmd          = LAT_CCMD_SDATA;
-    reply->header.num_slots    = 4;
-    reply->slot.remote_session = remote_session;
-    reply->slot.local_session  = local_session;
+    reply->header.num_slots    = 1;
+    reply->slot.remote_session = local_session;
+    reply->slot.local_session  = remote_session;
     reply->slot.length         = ptr - sizeof(LAT_SessionData);
     reply->slot.cmd            = 0x92;
 
@@ -109,8 +118,6 @@ void ClientSession::connect()
 
 ClientSession::~ClientSession()
 {
-    char ltaname[255];
-    sprintf(ltaname, "/dev/lat/lta%d", local_session);
     unlink(ltaname);
     
     close (slave_fd);
@@ -122,10 +129,23 @@ void ClientSession::do_read()
 {
     debuglog(("ClientSession::do_read()\n"));
     if (!connected)
-	connect();
+    {
+	connect_parent();
+	state = STARTING;
+
+	// Disable reads on the PTY until we are connected (or it failed)
+	LATServer::Instance()->set_fd_state(master_fd, true);
+    }
 
     if (connected)
     {
 	read_pty();
     }
+}
+
+void ClientSession::got_connection(unsigned char _remid)
+{
+    debuglog(("ClientSession:: got connection for rem session %d\n", _remid));
+    LATServer::Instance()->set_fd_state(master_fd, false);
+    remote_session = _remid;
 }

@@ -389,7 +389,9 @@ void LATServer::read_lat(int sock)
     
     // Parse & dispatch it.
     switch(header->cmd)
-    {
+    {    
+    case LAT_CCMD_SREPLY:
+    case LAT_CCMD_SDATA:
     case LAT_CCMD_SESSION:
         {
 	    debuglog(("session cmd for connid %d\n", header->remote_connid));
@@ -404,12 +406,6 @@ void LATServer::read_lat(int sock)
 		send_connect_error(2, header, (unsigned char *)&sock_info.sll_addr);
 	    }
 	}
-	break;
-      
-    case LAT_CCMD_SREPLY:
-    case LAT_CCMD_SDATA:
-	assert(false);
-	// Shouldn't get this until we've done reverse lat
 	break;
 
     case LAT_CCMD_CONNECT:
@@ -507,6 +503,19 @@ void LATServer::remove_fd(int fd)
 
     fdlist.remove(*fdi);
 }
+
+// Remove FD from the FD list
+void LATServer::set_fd_state(int fd, bool disabled)
+{
+    list<fdinfo>::iterator fdi;
+    debuglog(("set_fd_state: %d, %d\n", fd, disabled));
+
+    fdi = find(fdlist.begin(), fdlist.end(), fd);
+    if (fdi == fdlist.end()) return; // Does not exist
+
+    fdi->set_disabled(disabled);
+}
+
 
 
 /* Send a LAT message to a specified MAC address */
@@ -799,8 +808,12 @@ void LATServer::delete_entry(deleted_session &dsl)
 	break;
 	
     case LOCAL_PTY:
+    case DISABLED_PTY:
 	remove_fd(dsl.get_fd());	
 	dsl.get_conn()->remove_session(dsl.get_id());
+	break;
+
+
 	break;
     }
 }
@@ -810,6 +823,7 @@ void LATServer::process_data(fdinfo &fdi)
     switch (fdi.get_type())
     {
     case INACTIVE:
+    case DISABLED_PTY:
 	break; // do nothing;
 
     case LOCAL_PTY:
@@ -930,7 +944,7 @@ int LATServer::make_client_connection(unsigned char *service,
     }
     // TODO: what to do with queued???
     connections[connid] = new LATConnection(connid, 
-					    node.c_str(), 
+					    (char *)remnode, 
 					    (char *)macaddr,
 					    (char *)devname);
     connections[connid]->create_client_session();

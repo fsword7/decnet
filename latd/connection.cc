@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1136,7 +1136,7 @@ int LATConnection::create_localport_session(int fd, LocalPort *lport,
 // Create a localportSession for a /dev/lat port
     int newsessionnum = next_session_number();
 
-    lloginSession *newsession = new localportSession(*this, lport, 0, newsessionnum,
+    localportSession *newsession = new localportSession(*this, lport, 0, newsessionnum,
 						  (char *)localport, fd);
     if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, (char *)password, 0) == -1)
     {

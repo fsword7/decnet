@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,3 +86,9 @@ void localportSession::do_read()
 	ignored_read = false;
     }
 }
+
+void localportSession::show_status(unsigned char *node, LAT_StatusEntry *entry)
+{
+    // Dont show status.
+}
+

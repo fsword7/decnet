@@ -1,3 +1,10 @@
+latd (1.22) unstable; urgency=low
+
+  * Fix some silly code errors.
+    Closes: #261661
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 20 Aug 2004 14:22:40 +0100
+
 latd (1.21) unstable; urgency=low
 
   * Don't expect an ACK to an ACK. (duh)

@@ -12,3 +12,8 @@ you will need to change the Makefile.
 
 If you want to test DECnet routing please contact myself (patrick) or Steve
 Whitehouse via the linux-decnet-user mailing list.
+
+NOTES:
+insert the :grabulator: module dn_rtmsg.o
+echo "1" into /proc/sys/net/decnet/conf/eth<x>/forwarding
+echo "1" into /proc/sys/net/decnet/conf/eth<x>/priority (Must NOT be 0)

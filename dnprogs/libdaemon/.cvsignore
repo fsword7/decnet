@@ -4,4 +4,4 @@
 .depend
 Makefile.bak
 core
-libdaemon*
+libdnet*

@@ -98,9 +98,9 @@ static void sigchild(int s)
     int status, pid;
 
     // Make sure we reap all children
-    do 
-    { 
-	pid = waitpid(-1, &status, WNOHANG); 
+    do
+    {
+	pid = waitpid(-1, &status, WNOHANG);
 	if (pid > 0 && verbose) DNETLOG((LOG_INFO, "Reaped child process %d\n", pid));
     }
     while (pid > 0);
@@ -136,7 +136,7 @@ static void load_proxy_database(void)
     {
 	DNETLOG((LOG_ERR, "Can't open proxy database: %s\n", strerror(errno)));
 	return;
-    }	
+    }
 
     line = 0;
 
@@ -144,7 +144,7 @@ static void load_proxy_database(void)
     {
 	char *bufp = buf;
 	char *colons;
-	
+
 	line++;
 	if (!fgets(buf, sizeof(buf), f)) break;
 
@@ -155,7 +155,7 @@ static void load_proxy_database(void)
 
 	// Remove trailing LF
 	if (buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';
-	
+
 	colons = strstr(bufp, "::");
 	if (colons)
 	{
@@ -163,7 +163,7 @@ static void load_proxy_database(void)
 	    char *space = strchr(colons, ' ');
 	    char *end;
 	    char *local;
-	    
+
 	    if (!space) space = strchr(colons, '\t');
 	    if (!space)
 	    {
@@ -273,13 +273,13 @@ static bool error_return(char *txt)
 
 
 // Check the proxy database for authentication
-static bool check_proxy_database(char *nodename, 
-				 char *remoteuser, 
+static bool check_proxy_database(char *nodename,
+				 char *remoteuser,
 				 char *localuser)
 {
     bool found = FALSE;
     struct proxy *p;
-    
+
 // Re-read the proxy database 'cos it has changed.
     free_proxy();
     load_proxy_database();
@@ -308,7 +308,7 @@ static bool check_proxy_database(char *nodename,
     return found;
 }
 
-// 
+//
 // Wait for an incoming connection
 // Returns a new fd or -1
 static int waitfor(int sockfd)
@@ -318,7 +318,7 @@ static int waitfor(int sockfd)
     unsigned int         len;
     struct sockaddr_dn	 sockaddr;
     static bool listening = FALSE;
- 
+
     memset(&sockaddr, 0, sizeof(sockaddr));
 
     // Set up the listing context
@@ -377,7 +377,7 @@ static int fork_and_setuid(int sockfd)
     struct  passwd *pw;
     int     have_shadow = -1;
     memset(&sockaddr, 0, sizeof(sockaddr));
-    
+
     // Get the name (or address if we cant find the name) of the remote system.
     // (a) for logging and (b) for checking in the proxy database.
     // (c) for checking against the object database
@@ -388,12 +388,12 @@ static int fork_and_setuid(int sockfd)
     }
     else
     {
-	snprintf(nodename, sizeof(nodename), "%d.%d", 
+	snprintf(nodename, sizeof(nodename), "%d.%d",
 		(sockaddr.sdn_add.a_addr[1] >> 2),
 		(((sockaddr.sdn_add.a_addr[1] & 0x03) << 8) |
 		 sockaddr.sdn_add.a_addr[0]));
     }
-    
+
     // Only do this if we are dnetd
     if (object_db)
     {
@@ -419,7 +419,7 @@ static int fork_and_setuid(int sockfd)
 
 // Get the remote user spec.
     if (getsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
-		   &len) < 0) 
+		   &len) < 0)
     {
         snprintf(errstring, sizeof(errstring),
 		 "getsockopt failed: %s", strerror(errno));
@@ -445,16 +445,16 @@ static int fork_and_setuid(int sockfd)
     makelower(username);
 
 
-    if (verbose) 
+    if (verbose)
     {
 	if (username[0])
 	{
-	    DNETLOG((LOG_DEBUG, "Connection from: %s\"%s password\"::%s\n", 
+	    DNETLOG((LOG_DEBUG, "Connection from: %s\"%s password\"::%s\n",
 		     nodename, username, remote_user));
 	}
 	else
 	{
-	    DNETLOG((LOG_DEBUG, "Connection from: %s::%s\n", 
+	    DNETLOG((LOG_DEBUG, "Connection from: %s::%s\n",
 		     nodename, remote_user));
 	}
     }
@@ -528,7 +528,7 @@ static int fork_and_setuid(int sockfd)
 	    if (!spw)
 	    {
 		snprintf(errstring, sizeof(errstring),
-			 "Error reading /etc/shadow entry for %s: %s", 
+			 "Error reading /etc/shadow entry for %s: %s",
 			 username, strerror(errno));
 		lasterror=errstring;
 		if (verbose) DNETLOG((LOG_DEBUG, "UID is %d\n", getuid()));
@@ -536,35 +536,48 @@ static int fork_and_setuid(int sockfd)
 		return -1;
 	    }
 	    endspent(); // prevent caching of passwords
- 
-           // Check the shadow password
+
+	    // Check the shadow password
 	    cryptpass = crypt(password, spw->sp_pwdp);
 	    if (strcmp(cryptpass, spw->sp_pwdp))
 	    {
-		snprintf(errstring, sizeof(errstring),
-			 "Incorrect password for %s", username);
-		lasterror=errstring;
-		dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
-		return -1;
+		// If that failed then lower-case the password and try again.
+		// This is really for RSX which sends the password in all caps
+		makelower(password);
+		cryptpass = crypt(password, spw->sp_pwdp);
+		if (strcmp(cryptpass, spw->sp_pwdp))
+		{
+		    snprintf(errstring, sizeof(errstring),
+			     "Incorrect password for %s", username);
+		    lasterror=errstring;
+		    dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
+		    return -1;
+		}
 	    }
 	}
 	else
 #endif
 	{
-           // Check the (non-shadow) password
+	    // Check the (non-shadow) password
  	    cryptpass = crypt(password, pw->pw_passwd);
 	    if (strcmp(cryptpass, pw->pw_passwd))
 	    {
-		snprintf(errstring, sizeof(errstring),
-			 "Incorrect password for %s", username);
-		lasterror=errstring;
-		dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
-		return -1;
+		// Check lower-case password as above.
+		makelower(password);
+		cryptpass = crypt(password, pw->pw_passwd);
+		if (strcmp(cryptpass, pw->pw_passwd))
+		{
+		    snprintf(errstring, sizeof(errstring),
+			     "Incorrect password for %s", username);
+		    lasterror=errstring;
+		    dnet_reject(sockfd, DNSTAT_ACCCONTROL, NULL, 0);
+		    return -1;
+		}
 	    }
 	}
     }
 
-// NO_FORK is just for testing. It creates a single-shot server that is 
+// NO_FORK is just for testing. It creates a single-shot server that is
 // easier to debug.
 #ifdef NO_FORK
     newpid = 0;
@@ -621,10 +634,10 @@ static void load_dnetd_conf(void)
     f = fopen(dnetd_filename, "r");
     if (!f)
     {
-        DNETLOG((LOG_ERR, "Can't open dnetd.conf database: %s\n", 
+        DNETLOG((LOG_ERR, "Can't open dnetd.conf database: %s\n",
                  strerror(errno)));
 	return;
-    }	
+    }
 
     line = 0;
 
@@ -635,7 +648,7 @@ static void load_dnetd_conf(void)
 	char *comment;
 	struct object *newobj;
 	int    state = 1;
-		
+
 	line++;
 	if (!fgets(buf, sizeof(buf), f)) break;
 
@@ -653,7 +666,7 @@ static void load_dnetd_conf(void)
 	if (comment) *comment = '\0';
 
 	if (*bufp == '\0') continue; // Empty line
-	
+
 	// Split into fields
 	newobj = malloc(sizeof(struct object));
 	state = 1;
@@ -726,7 +739,7 @@ bool bind_number(int sockfd, int object)
     bind_sockaddr.sdn_objnum	= object;
     bind_sockaddr.sdn_objnamel	= 0;
 
-    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 		  sizeof(bind_sockaddr));
     if (status)
     {
@@ -743,7 +756,7 @@ bool bind_name(int sockfd, char *object)
 {
     struct sockaddr_dn bind_sockaddr;
     int status;
-    
+
     memset(&bind_sockaddr, 0, sizeof(bind_sockaddr));
     bind_sockaddr.sdn_family    = AF_DECnet;
     bind_sockaddr.sdn_flags	= 0;
@@ -751,7 +764,7 @@ bool bind_name(int sockfd, char *object)
     bind_sockaddr.sdn_objnamel	= dn_htons(strlen(object));
     strcpy(bind_sockaddr.sdn_objname, object);
 
-    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));
     if (status)
     {
@@ -768,14 +781,14 @@ bool bind_wild(int sockfd)
 {
     struct sockaddr_dn bind_sockaddr;
     int status;
-    
+
     memset(&bind_sockaddr, 0, sizeof(bind_sockaddr));
     bind_sockaddr.sdn_family    = AF_DECnet;
     bind_sockaddr.sdn_flags	= SDF_WILD;
     bind_sockaddr.sdn_objnum	= 0;
     bind_sockaddr.sdn_objnamel	= 0;
 
-    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));
     if (status)
     {
@@ -791,12 +804,12 @@ bool bind_wild(int sockfd)
 // Called by DECnet daemons. If stdin is already a DECnet socket then
 // just return 0 (stdin's file descriptor). otherwise we
 // bind to the object and wait. When we get a connection we fork
-// and (optionally) setuid, and return. The parent then loops back (ie it 
+// and (optionally) setuid, and return. The parent then loops back (ie it
 // never returns).
-// 
+//
 // This is the keystone of all DECnet daemons that can be called from dnetd
 //
-int dnet_daemon(int object, char *named_object, 
+int dnet_daemon(int object, char *named_object,
 		int verbosity, bool do_fork)
 {
     struct sockaddr_dn  sa;
@@ -810,7 +823,7 @@ int dnet_daemon(int object, char *named_object,
     sigset_t            ss;
 
     memset(&sa, 0, sizeof(sa));
-    
+
 // Are we the execed child of dnetd?
     if (getsockname(STDIN_FILENO, (struct sockaddr *)&sa, &namelen) == 0)
     {
@@ -840,15 +853,15 @@ int dnet_daemon(int object, char *named_object,
 	case -1:
 	    perror("server: can't fork");
 	    exit(2);
-	    
+
 	case 0: // child
 	    break;
-	    
+
 	default: // Parent.
 	    if (verbosity > 1) printf("server: forked process %d\n", pid);
-	    exit(0); 
+	    exit(0);
 	}
-    
+
 	// Detach ourself from the calling environment
 	for (i=0; i<FD_SETSIZE; i++)
 	    close(i);
@@ -868,7 +881,7 @@ int dnet_daemon(int object, char *named_object,
     siga.sa_mask  = ss;
     siga.sa_flags = 0;
     sigaction(SIGCHLD, &siga, NULL);
-    
+
     siga.sa_handler=sigterm;
     sigaction(SIGTERM, &siga, NULL);
 
@@ -876,7 +889,7 @@ int dnet_daemon(int object, char *named_object,
     verbose = verbosity;
 
     // Create the socket
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
         snprintf(errstring, sizeof(errstring), "socket failed: %s", strerror(errno));
 	lasterror = errstring;
@@ -886,12 +899,12 @@ int dnet_daemon(int object, char *named_object,
     if (have_optdata)
 	setsockopt(sockfd, DNPROTO_NSP, SO_CONDATA,
 		   &optdata, sizeof(optdata));
-	
+
 #ifdef DSO_ACCEPTMODE
     acceptmode = ACC_DEFER;
     setsockopt(sockfd, DNPROTO_NSP, DSO_ACCEPTMODE, &acceptmode, 4);
 #endif
-    
+
 // Bind the object
     if (object)
     {
@@ -901,7 +914,7 @@ int dnet_daemon(int object, char *named_object,
     {
 	if (named_object)
 	    bind_status = bind_name(sockfd, named_object);
-	else 
+	else
 	    bind_status = bind_wild(sockfd);
     }
 
@@ -911,7 +924,7 @@ int dnet_daemon(int object, char *named_object,
 	DNETLOG((LOG_ERR, "Can't bind: %m\n"));
 	return -1; // Can't bind
     }
-      
+
     if (verbose) DNETLOG((LOG_INFO, "Ready\n"));
 
     // Main loop.
@@ -919,7 +932,7 @@ int dnet_daemon(int object, char *named_object,
     {
 	int fork_fail = 0;
 	int newone;
-	
+
 	// Wait for a new connection.
 	newone = waitfor(sockfd);
 	if (newone > -1)
@@ -933,7 +946,7 @@ int dnet_daemon(int object, char *named_object,
 		    DNETLOG((LOG_ALERT, "fork failed too often. giving up\n"));
 		    exit(100);
 		}
-		
+
 		// Oh no, it all went horribly wrong.
 		DNETLOG((LOG_ERR, "Fork_and_setuid failed: %s\n", lasterror));
 		close(newone);
@@ -942,7 +955,7 @@ int dnet_daemon(int object, char *named_object,
 	    case 0: // child
 		return newone;
 		break;
-		
+
 	    default: // parent, just tidy up and loop back
 		fork_fail = 0;
 		close(newone);
@@ -964,7 +977,7 @@ void dnet_accept(int sockfd, short status, char *data, int len)
 	optdata.opt_sts=status;
 	optdata.opt_optl=len;
 	if (len && data) memcpy(optdata.opt_data, data, len);
-	
+
 	setsockopt(sockfd, DNPROTO_NSP, DSO_CONDATA,
 		   &optdata, sizeof(optdata));
     }

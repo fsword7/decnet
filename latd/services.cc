@@ -88,6 +88,36 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr)
   }
 }
 
+
+// Return the node macaddress if the node provides this service
+bool LATServices::get_node(const string &service, const string &node, 
+			   unsigned char *macaddr)
+{
+  map<string, serviceinfo, less<string> >::iterator test = servicelist.find(service);
+  if (test != servicelist.end())
+  {
+      return servicelist[test->first].get_node(node, macaddr);
+  }
+  return false; // Not found
+}
+
+
+// Return the node's macaddress
+bool LATServices::serviceinfo::get_node(const string &node, unsigned char *macaddr)
+{
+  map<string, nodeinfo, less<string> >::iterator test = nodes.find(node);
+  if (test != nodes.end())
+  {
+      memcpy(macaddr, nodes[node].get_macaddr(), 6);
+      return true;
+  }
+  else
+  {
+      return false;
+  }
+}
+
+
 // Remove node from all services...
 // Actually just mark as unavailable in all services
 bool LATServices::remove_node(const string &node)

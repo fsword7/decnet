@@ -28,6 +28,10 @@ class LATServices
 		     string &node,
 		     unsigned char *macaddr);
 
+    bool get_node(const string &service,
+		  const string &node,
+		  unsigned char *macaddr);
+
     // Add/update a service.
     bool add_service(const string &node, const string &service, const string &ident,
 		     int rating, unsigned char *macaddr);
@@ -60,6 +64,7 @@ class LATServices
 	      nodes[node] = nodeinfo(macaddr, rating);
 	  }
       bool         get_highest(string &node, unsigned char *macaddr);
+      bool         get_node(const string &node, unsigned char *macaddr);
       const string get_ident() { return ident; }
       bool         is_available();
       bool         remove_node(const string &node);

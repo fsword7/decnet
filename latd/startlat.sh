@@ -4,20 +4,16 @@
 #
 # Starts/Stops latd process
 #
-# This script should go in /etc/init.d      (Debian)
-#                          /etc/rc.d/init.d (RedHat)
-#                          /sbin/init.d     (SuSE)
+# chkconfig: - 79 79
+# description: latd
+# processname: latd
+# config: /etc/latd.conf
 #
-# and you should link to it from the relevant runlevel startup directory
-# eg: (Debian)
-#      ln -s /etc/init.d/startlat.sh /etc/rc2.d/S79lat.sh
+# This script should go in /etc/rc.d/init.d
 #
-#     (RedHat)
-#      ln -s /etc/rc.d/init.d/startlat.sh /etc/rc.d/rc3.d/S79lat
+# Yu can install it on a Red Hat system with:
 #
-#     (SuSE)
-#      ln -s /sbin/init.d/startlat.sh /sbin/init.d/rc2.d/S79lat
-#
+# chkconfig --level 345 latd on
 # -----------------------------------------------------------------------------
 #
 
@@ -25,13 +21,7 @@
 # See which distribution we are using and customise the start/stop 
 # commands and the console display.
 #
-if [ -d /etc/debian_version ]
-then
-  # Debian
-  startecho="\$i"
-  startendecho="."
-  stopendecho="done."
-elif [ -d /var/lib/YaST ]
+if [ -d /var/lib/YaST ]
 then
   # SuSE
   startendecho=""

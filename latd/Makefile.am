@@ -6,6 +6,7 @@ AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wstrict-prototypes -Wno-unused
 
 INCLUDES = -DLATD_CONF=\"$(sysconfdir)/latd.conf\" -DSBINDIR=\"$(sbindir)\" -DBINDIR=\"$(bindir)\"
 
+#BSDs need this
 LDFLAGS=$(DEFS)
 
 sbin_PROGRAMS = latd latcp moprc
@@ -35,7 +36,7 @@ latcp_SOURCES = latcp.h latcp.cc utils.h utils.cc \
 	 dn_endian.h lat.h
 llogin_SOURCES = llogin.cc utils.cc
 moprc_SOURCES = moprc.h moprc.cc interfaces.cc utils.cc
-EXTRA_DIST = $(man_MANS) BUGS WARRANTY latd.conf \
+EXTRA_DIST = $(man_MANS) BUGS WARRANTY latd.conf lat.html \
 	interfaces-linux.cc interfaces-linux.h \
 	interfaces-bpf.cc interfaces-bpf.h
 EXTRA_latd_SOURCES = @INTERFACE_SOURCE@

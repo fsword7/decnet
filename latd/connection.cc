@@ -628,7 +628,7 @@ void LATConnection::circuit_timer(void)
 	keepalive_timer += time_in_msec - last_time;
 	last_time = time_in_msec;
 
-	if (keepalive_timer > (LATServer::Instance()->get_keepalive_timer()-1)*1000 )
+	if (keepalive_timer > (LATServer::Instance()->get_keepalive_timer()-3)*1000 )
 	{
 	    // Send an empty message that needs an ACK.
 	    // If we don't get a response to this then we abort the circuit.

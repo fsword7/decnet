@@ -1,3 +1,11 @@
+dnprogs (2.27) unstable; urgency=low
+
+  * Fix signal handling in sethost so it doesn't die with an embarrassing
+    "Alarm clock" message.
+  * Add dependancy on modutils. Closes: #251508
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 30 May 2004 10:13:57 +0100
+
 dnprogs (2.26) unstable; urgency=low
 
   * dnetd: Fix log function that could cause daemons to segfault if 

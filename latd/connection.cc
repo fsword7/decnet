@@ -211,7 +211,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                     // We are expecting an echo - don't send anything now
 		    // but still increment the remote credit if the other end
 		    // has run out.
-		    if (session->get_remote_credit() < 1)
+		    debuglog(("Remote credit is %d\n", session->get_remote_credit()));
+		    if (session->get_remote_credit() <= 1)
 		    {
 			replyhere = true;
 			retcmd |= 15;

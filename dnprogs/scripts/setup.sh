@@ -4,8 +4,13 @@
 #
 
 # Use a temp file
-CONFFILE="/tmp/decnet.conf$$"
-REALFILE=$SYSCONF_PREFIX/etc/decnet.conf
+if [ -x /bin/tempfile ]
+then
+  CONFFILE="`tempfile`"
+else
+  CONFFILE="/tmp/decnet.conf$$"
+fi
+REALFILE=/etc/decnet.conf
 
 if [ -f "$REALFILE" ]
 then

@@ -48,7 +48,7 @@
 #include "submit.h"
 
 #define min(a,b) (a)<(b)?(a):(b)
-#define MAX_BUFSIZE 16000
+#define MAX_BUFSIZE 65535
 
 // Called to close down the FAL server process. Because child processes get 
 // deleted this ensures that things are tidied up in the right order.

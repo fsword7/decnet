@@ -7,6 +7,8 @@
 	                Made endian and alignment-independant
 			Paul Koning:
 			Support for other than VMS servers.
+                        ECalderon:
+
 -----------------------------------------------------------------------------*/
 
 #include <stdio.h>
@@ -40,7 +42,6 @@ struct	logical_terminal_characteristics
 					    ,TRUE,
 					    TRUE,TRUE,TRUE,TRUE,80,24,0,0,
 					    0,1,1,1,1};
-
 struct	physical_terminal_characteristics
 				phy_char = {9600,9600,8,FALSE,1,FALSE,FALSE,
 					    FALSE,0,0,FALSE,FALSE};
@@ -69,25 +70,72 @@ term_flavor			flavor;
 unsigned char exit_char = 0x1D;
 
 unsigned char escbuf[32];
+static int      debug=0; /*ed*/
+unsigned char tty; /*moved from dterm_bind_reply ed*/
+static int htype; /*ed*/
 
-
+/* Routines in this program:
 static void usage(char *prog, FILE *f)
+void set_exit_char(char *string)
+inline void set_short(short *dest, short src)
+static void ct_reset_term(void)
+short	escseq_terminator(char car)
+static void ct_terminate_read(char flgs)
+static	short	ct_is_terminator(char car)
+static void ct_timeout_proc(int x)
+static void ct_echo_input_char(char *c)
+static void ct_echo_input_char(char *c)
+static void ct_input_proc (char car)
+static int	ct_out_of_band (int car)
+static void	ct_setup(void)
+static unsigned char	read_ahead(void)
+static int	insert_ahead(char c)
+static void dterm_bind_reply (void)
+static void	ct_setup_link(void)
+static void	ct_init_term(void)
+static void ct_preinput_proc(int x)
+static void rsts_preinput_proc(int x)
+static void rsx_preinput_proc(int x)
+static void tops_preinput_proc(int x)
+static void ct_print_char(char *c)
+static void ct_echo_prompt(char *c)
+static void ct_read_req(void)
+static void ct_unread_req(void)
+static void ct_clearinput_req(void)
+static void ct_write_req(void)
+static void ct_readchar_req(void)
+static void ct_writechar_req(void)
+static void ct_checkinput_req(void)
+static void ct_read_pkt(void)
+static void proc_rsts_pkt(void)
+static void proc_rsx_pkt(void)
+static void proc_tops_pkt(void)
+static void proc_cterm_pkt (void)
+static void ct_proc_pkt(void)
+int main(int argc, char *argv[])
+*/
+/*-------------------------------------------------------------------------*/
+static void usage(char *prog, FILE *f)
+
 {
-  
+    if (debug == 2) { printf(" Entered static void usage...\n");}
+
     fprintf(f, "\nUSAGE: %s [OPTIONS] node\n\n", prog);
 
     fprintf(f,"\nOptions:\n");
     fprintf(f,"  -? -h        display this help message\n");
     fprintf(f,"  -V           show version number\n");
     fprintf(f,"  -e <char>    set escape char\n");
+    fprintf(f,"  -d           debug information\n");
+    fprintf(f,"  -t           trace procedure entry\n");
 
     fprintf(f,"\n");
 }
-
+/*-------------------------------------------------------------------------*/
 void set_exit_char(char *string)
 {
   int newchar = 0;
-  
+  if (debug == 2) { printf(" Entered void set_exit_char...\n");}
   if (string[0] == '^')
   {
       newchar = toupper(string[1]) - '@';
@@ -97,12 +145,12 @@ void set_exit_char(char *string)
 
   // Make sure it's resaonable
   if (newchar > 0 && newchar < 256) exit_char = newchar;
-  
+
 }
 
 /*-------------------------------------------------------------------------*/
 inline void set_short(short *dest, short src)
-{
+{       if (debug == 2) { printf(" Entered inline void set_short...\n");}
 /* I've assumed that BIG-ENDIAN means SPARC in this context and that SPARCs
    are fussy about alignment.
    Anything little-endian is assumed non-fussy.
@@ -116,7 +164,7 @@ inline void set_short(short *dest, short src)
 }
 /*-------------------------------------------------------------------------*/
 static void ct_reset_term(void)
-{
+{       if (debug == 2) { printf(" Entered static void ct_reset_term...\n");}
 	if ( ioctl(ttyfd,TCSETA,&cooked) < 0)
 	{
 		perror("ioctl TCSETA");
@@ -129,9 +177,11 @@ short	escseq_terminator(char car)
 {
 	char	escend [23] = {'A','B','C','D','M','P','Q','R','S',
 			     'l','m','n','p','q','r','s','t','u','v',
-			     'w','x','y','~'};
+			     'w','x','Y','~'};
+
 	int	i;
 
+        if (debug == 2) { printf(" Entered short escseq_terminator...\n");}
 	for (i=0; i < 23; i++) if (car==escend[i]) return 1;
 	return 0;
 }
@@ -142,6 +192,7 @@ static void ct_terminate_read(char flgs)
 	char	t;
 	short	*p;
 	int	i;
+        if (debug == 2) { printf(" Entered static void ct_terminate_read...\n");}
 
 	read_present = FALSE;
 	alarm(0);
@@ -183,7 +234,10 @@ static void ct_terminate_read(char flgs)
 static	short	ct_is_terminator(char car)
 {
 	short	termind,msk,aux;
-
+        if (debug == 2) { printf(" Entered static short ct_is_terminator...\n");}
+        /*printf(" Htype = %d",htype); ed*/
+        if (( htype == 12 ) && (car > 97) && (car < 123) ) { car = car - 32;}
+        if (debug == 1) {printf(" car = %d\n",car);} /*ed*/
 	termind=car / 8;
 	aux = car - (termind * 8);
 	msk= (1 << aux);
@@ -194,7 +248,7 @@ static	short	ct_is_terminator(char car)
 
 /*-------------------------------------------------------------------------*/
 static void ct_timeout_proc(int x)
-{
+{       if (debug == 2) { printf(" Entered static void ct_timeout_proc...\n");}
 	ct_terminate_read(5);
 	signal(SIGALRM,ct_timeout_proc);
 }
@@ -202,6 +256,8 @@ static void ct_timeout_proc(int x)
 static void ct_echo_input_char(char *c)
 {
 	char	car;
+        if (debug == 2) { printf(" Entered static void ct_echo_input_char...\n");}
+
 	if ((n) || ((t==0) && ct_is_terminator(*c))) return;
 	while (lockflg||hold) ;
 	if (ii==2)
@@ -217,6 +273,7 @@ static void ct_echo_input_char(char *c)
 static void ct_input_proc (char car)
 {
 	char	clrchar[3] = {0x08,0x20,0x08};
+        if (debug == 2) { printf(" Entered static void ct_input_proc...\n");}
 
 	if ((car == DEL) && ( (zz == 2) || (!ct_is_terminator(car))))
 	{
@@ -262,7 +319,8 @@ static int	ct_out_of_band (int car)
 {
 	char	msg[7] = {0x09,0x00,0x03,0x00,0x04,0x00,0x00};
 	char	oo,d,i,ee,f;
-	
+	if (debug == 2) { printf(" Entered static int ct_out_of_band...\n");}
+
 	if (flavor != CTERM) return 0;
 	
 	oo=char_attr[car] & 0x03;
@@ -303,6 +361,7 @@ static int	ct_out_of_band (int car)
 static void	ct_setup(void)
 {
 	int	i;
+        if (debug == 2) { printf(" Entered static void ct_setup...\n");}
 
 	for (i=0; i < 32; i++) term_tab[i]=0;
 	for (i=0; i < 256; i++) char_attr[i]=0;
@@ -319,7 +378,8 @@ static void	ct_setup(void)
 static unsigned char	read_ahead(void)
 {
 	char	c;
-	
+        if (debug == 2) { printf(" Entered static unsigned char read_ahead...\n");}
+
 	if ((rptr+wrpflg) == wptr) return -1;
 	c=ahead[rptr];
 	aheadcnt -= 1;
@@ -334,7 +394,7 @@ static int	insert_ahead(char c)
 	int	er;
 	char	buf[6] = {0x09,0x00,0x02,0x00,0x0E,0x01};
 
-
+        if (debug == 2) { printf(" Entered insert_ahead...\n");}
 	if (( rptr == wptr) && (wrpflg) ) return -1;
 	ahead[wptr] = c;
 	wptr=(wptr+1) & 31;
@@ -342,7 +402,7 @@ static int	insert_ahead(char c)
 	aheadcnt += 1;
 	if ( (aheadcnt == 1) && (han_char.input_count_state > 1) )
 	{
-		if (!read_present) 
+		if (!read_present)
 		{
 			if ( (er=write(sockfd,buf,6)) < 0 )
 			{
@@ -359,7 +419,11 @@ static void dterm_bind_reply (void)
 {
 	unsigned char	rsts_bind[3] = {0x01,0x03,0x00};
 	unsigned char	rsts_ctrl[8] = {0x02,0x08,0x00,0x01,0x09,0x01,0x00,0x00};
-	unsigned char	tty;
+	/* unsigned char	tty;  now declared global ED*/
+        unsigned char	rsxm_bind[3] = {0x01,0x03,0x00};
+        unsigned char	rsxm_ctrl[8] = {0x02,0x08,0x00,0x01,0x04,0x02,0x00,0x00};
+        int i; /*ed*/
+        if (debug == 2) { printf(" Entered static void dterm_bind_reply...\n");}
 
 	switch (flavor)
 	{
@@ -373,7 +437,7 @@ static void dterm_bind_reply (void)
 		tty = 0;
 		if (!(cooked.c_iflag & ISTRIP))
 			tty |= 64;	/* 8-bit support */
-		if ((cooked.c_oflag & TABDLY) != XTABS) 
+		if ((cooked.c_oflag & TABDLY) != XTABS)
 			tty |= 2;	/* hardware tab */
 		if (!(cooked.c_lflag & XCASE))
 			tty |= 4 | 8;	/* lower case support */
@@ -405,6 +469,7 @@ static void dterm_bind_reply (void)
 	}
 }
 /*-------------------------------------------------------------------------*/
+
 static const char *hosttype[] = {
 	"RT-11",
 	"RSTS/E",
@@ -419,13 +484,22 @@ static const char *hosttype[] = {
 	"RTS-8",
 	"RSX-11M+",
 	"??13", "??14", "??15", "??16", "??17",
-	"Ultrix-32"
-};
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","","","","",
+        "","","","","","","","","","","","","","","","","",
+        "Unix-dni"};
 
 static void	ct_setup_link(void)
 {
 	char		*local_user;
 	int		i;
+        int             loop;
 
 	unsigned char	initsq[31]={0x09,0x00,27,0x00,0x01,0x00,0x01,0x04,0x00,
 				    'L','n','x','C','T','E','R','M',
@@ -434,9 +508,11 @@ static void	ct_setup_link(void)
 				    0x03,0x04,0xFE,0x7F,0x00,/* Supp. Msgs   */
 				    0x00
 				   };
-	printf("sethost V1.0.3\n");
+        if (debug == 2) { printf(" Entered static void	ct_setup_link...\n");}
+
+	printf("sethost V1.0.4\n");
 	printf("Connecting to %s\n",nodename);
-  	if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+  	if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
 	{
     		perror("socket");
     		exit(-1);
@@ -473,8 +549,8 @@ static void	ct_setup_link(void)
  	sockaddr.sdn_add.a_len=0x02;
 	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 
-	if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+	if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
 	{
 		perror("socket");
 		exit(-1);
@@ -489,8 +565,11 @@ static void	ct_setup_link(void)
 		struct optdata_dn optdata;
 		unsigned int len = sizeof(optdata);
 		char *msg;
-
-		if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
+                if (debug == 1)
+                {
+                printf("ct_setup_link no-read trying old way!\n"); /*ed*/
+                }
+                if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
 			       &optdata, &len) != -1)
 		{
 			status = optdata.opt_status;
@@ -503,20 +582,20 @@ static void	ct_setup_link(void)
 				status);
 			exit(-1);
 		}
-		
-		if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+
+		if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
 		{
 			perror("socket, 2nd time");
 			exit(-1);
 		}
 		sockaddr.sdn_objnum	= DNOBJECT_DTERM;
-		if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-			    sizeof(sockaddr)) < 0) 
+		if (connect(sockfd, (struct sockaddr *)&sockaddr,
+			    sizeof(sockaddr)) < 0)
 		{
 			perror("connect, 2nd time");
 			exit(-1);
 		}
-		
+
 		if ( (cnt=read(sockfd,buf,sizeof(buf))) < 0)
 		{
 			printf("ct_setup_link: error receiving bind from host\n");
@@ -537,23 +616,33 @@ static void	ct_setup_link(void)
 		}
 		dterm_bind_reply ();
 		if (buf[4] > 18 || buf[4] < 1)
-			printf ("Connected to unknown host type %d.",
+			printf ("Dterm connection to unknown host type %d.",
 				buf[4]);
 		else
-			printf("Connected to %s host.",
+			printf("Dterm connection to %s host.",
 			       hosttype[buf[4] - 1]);
 		printf ("  Escape Sequence  is ^]\n\n\n");
 	}
 	else
 	{
 		flavor = CTERM;			/* speaking new protocol */
-		if (buf[0] != 0x01)
+                htype = buf[4];   /*save host type ed*/
+                if (debug == 1)
+                {
+                printf("ct_setup_link Debug Information:\n"); /*ed*/
+                printf(" ct_setup_link: prot buf[6]: %d\n",buf[6]); /*ed*/
+                printf(" ct_setup_link: osys buf[4]: %d\n",buf[4]); /*ed*/
+                printf(" ct_setup_link:      buf[3]: %d\n",buf[3]); /*ed*/
+                printf(" ct_setup_link:      buf[2]: %d\n",buf[2]); /*ed*/
+                printf(" ct_setup_link: cmd  buf[0]: %d\n",buf[0]); /*ed*/
+                }
+                if (buf[0] != 0x01)
 		{
 			printf("ct_setup_link: Not bind from host\n");
 			exit(-1);
 		}
-		buf[0]=0x04;				/* bind accept flag	*/	
-	
+		buf[0]=0x04;				/* bind accept flag	*/
+
 		if ( (cnt=write(sockfd,buf,6)) < 0)
 		{
 			printf("ct_setup_link: error sending bind accept\n");
@@ -568,13 +657,21 @@ static void	ct_setup_link(void)
 
 		if ( (cnt=write(sockfd,initsq,sizeof(initsq))) < 0)
 		{
-			printf("ct_setup_link: error sending init sequence\n");
-			exit(-1);
+                 if (debug == 1)
+                  {
+                   for (loop = 1; loop < 7 ; loop++)
+                    {  if ( (cnt=write(sockfd,initsq,sizeof(initsq))) < 0)
+		        printf("ct_setup_link: loop initsq error = %d\n",cnt);
+                         /*ed*/
+                    }
+                   }
+                    printf("ct_setup_link: error sending init sequence\n");
+		    exit(-1);
 		}
 
 		blklen=buf[2] | (buf[3]<<8);
 		bufptr=blklen+4;
-		printf("Connected. Escape Sequence  is ^]\n\n\n");
+		printf("Cterm connection. Escape Sequence  is ^]\n\n\n");
 	}
 }
 
@@ -582,6 +679,7 @@ static void	ct_setup_link(void)
 static void	ct_init_term(void)
 {
 	long	savflgs;
+        if (debug == 2) { printf(" Entered static void ct_init_term...\n");}
 
 	if ((ttyfd=open("/dev/tty",O_RDWR)) < 0)
 	{
@@ -622,6 +720,7 @@ static void ct_preinput_proc(int x)
 	char	c;
 	char	buf[80];
 	int	i,cntx;
+        if (debug == 2) { printf(" Entered static void ct_preinput_proc...\n");}
 
 	cntx=read(ttyfd,&buf,80);
 	for (i=0; i < cntx; i++)
@@ -670,6 +769,7 @@ static void rsts_preinput_proc(int x)
 	char	c;
 	char	buf[84];
 	int	i,cntx;
+        if (debug == 2) { printf(" Entered static void rsts_preinput_proc...\n");}
 
 	cntx=read(ttyfd, &buf[4], 80);
 	for (i=0; i < cntx; i++)
@@ -701,7 +801,7 @@ static void rsts_preinput_proc(int x)
 } 
 /*-------------------------------------------------------------------------*/
 static void rsx_preinput_proc(int x)
-{
+{       if (debug == 2) { printf(" Entered static void rsx_preinput_proc...\n");}
 	printf ("rsx_preinput_proc NYI\n");
 	exit(-1);
 }
@@ -711,6 +811,7 @@ static void tops_preinput_proc(int x)
 	char	c;
 	char	buf[80];
 	int	i,cntx;
+        if (debug == 2) { printf(" Entered static void tops_preinput_proc...\n");}
 
 	cntx=read(ttyfd, &buf, 80);
 	for (i=0; i < cntx; i++)
@@ -737,9 +838,10 @@ static void tops_preinput_proc(int x)
 } 
 /*-------------------------------------------------------------------------*/
 static void ct_print_char(char *c)
-{
+{       if (debug == 2) { printf(" Entered static void ct_print_char...\n");}
 	if (discard)
 	{
+         if (debug == 2) { printf(" ct_print_char...discard!!!\n");} /*ed*/
 		output_lost=TRUE;
 		return;
 	}
@@ -764,7 +866,7 @@ static void ct_print_char(char *c)
 
 
 static void ct_echo_prompt(char *c)
-{
+{       if (debug == 2) { printf(" Entered static void ct_echo_prompt...\n");}
 	while (lockflg||hold) ;
 	write(ttyfd,c,1);
 }
@@ -774,6 +876,7 @@ static void ct_read_req(void)
 	unsigned char	flg;
 	char		car;
 	short	*p,i,termlen,procnt;
+        if (debug == 2) { printf(" Entered static void ct_read_req...\n");}
 
 	bufptr += 1;				/* Point to first flag char*/
 	flg=buf[bufptr];
@@ -853,7 +956,7 @@ static void ct_read_req(void)
 }
 /*-------------------------------------------------------------------------*/
 static void ct_unread_req(void)
-{
+{       if (debug == 2) { printf(" Entered static void ct_unread_req...\n");}
 	bufptr += 1;				/* Point to unread flag	*/
 
 	if (buf[bufptr] == 0) ct_terminate_read(6);
@@ -863,7 +966,7 @@ static void ct_unread_req(void)
 }
 /*-------------------------------------------------------------------------*/
 static void ct_clearinput_req(void)
-{
+{       if (debug == 2) { printf(" Entered static void ct_clearinput_req...\n");}
 	bufptr += 2;
 	rptr=wptr=wrpflg=inpcnt=0;
 }
@@ -874,6 +977,7 @@ static void ct_write_req(void)
 	short	uu,l,d,b,e,pp,qq,s,t;
 	char	prefix,postfix,c,lf=0x0A;
 	char	msg[8] = {0x09,0x00,0x08,0x00,0x00,0x00,0x00,0x00};
+        if (debug == 2) { printf(" Entered static void ct_write_req...\n");}
 
 	bufptr += 1;				/* Skip op code		*/
 	flgs=buf[bufptr] | (buf[bufptr+1]<<8);
@@ -956,6 +1060,7 @@ static void ct_readchar_req(void)
 	short	*p;
 	short	selector,procnt,ouptr;
 	unsigned char	outbuf[300];
+        if (debug == 2) { printf(" Entered static void ct_readchar_req...\n");}
 
 	bufptr += 2;				/* Skip op code 	*/
 	procnt = 2;
@@ -973,6 +1078,7 @@ static void ct_readchar_req(void)
 		selector=dn_ntohs(*p);
 		if ((selector & 0x300) == 0x000) /* Physical Charac	*/
 		{
+        if (debug == 2) { printf(" ct_readchar_req...Phys char!\n");}
 		   switch (selector & 0xFF)	
 		   {
 			case 0x01:	/* Input speed			*/
@@ -1092,6 +1198,7 @@ static void ct_readchar_req(void)
 		}
 		if ((selector & 0x300) == 0x100) /* Logical Characteristics*/
 		{
+        if (debug == 2) { printf(" ct_readchar_req...Log char!\n");}
 		   switch(selector & 0xFF)
 		   {
 			case 0x01:	/* Mode writing allowed		*/
@@ -1278,9 +1385,11 @@ static void ct_readchar_req(void)
 		}
 		if ((selector & 0x300) == 0x200) /* Handler Charact	*/
 		{
+        if (debug == 2) { printf(" ct_readchar_req...Han char! %d\n",selector);}
 		   switch (selector & 0xFF)
 		   {
 			   case 0x01:	/* IGNORE INPUT 		*/
+                           if (debug == 2) { printf(" Han char case 1!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0201);
 					ouptr += 2;
@@ -1290,6 +1399,7 @@ static void ct_readchar_req(void)
 					bufptr += 2;
 					break;
 			   case 0x02:	/* Character Attributes 	*/
+                           if (debug == 2) { printf(" Han char case 2!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0202);
 					ouptr += 2;
@@ -1303,6 +1413,7 @@ static void ct_readchar_req(void)
 					bufptr += 3;
 					break;
 			   case 0x03:	/* Control-o pass through 	*/
+                           if (debug == 2) { printf(" Han char case 3!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0203);
 					ouptr += 2;
@@ -1313,6 +1424,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x04:	/* Raise Input			*/
+                           if (debug == 2) { printf(" Han char case 4!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0204);
 					ouptr += 2;
@@ -1323,6 +1435,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x05:	/* Normal Echo			*/
+                           if (debug == 2) { printf(" Han char case 5!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0205);
 					ouptr += 2;
@@ -1333,6 +1446,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x06:	/* Input Escape Seq Recognition */
+                           if (debug == 2) { printf(" Han char case 6!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0206);
 					ouptr += 2;
@@ -1343,6 +1457,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x07:	/* Output Esc Seq Recognition	*/
+                           if (debug == 2) { printf(" Han char case 7!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0207);
 					ouptr += 2;
@@ -1353,6 +1468,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x08:	/* Input count state		*/
+                           if (debug == 2) { printf(" Han char case 8!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0208);
 					ouptr += 2;
@@ -1364,6 +1480,7 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x09:	/* Auto Prompt			*/
+                           if (debug == 2) { printf(" Han char case 9!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0209);
 					ouptr += 2;
@@ -1374,8 +1491,20 @@ static void ct_readchar_req(void)
 					break;
 
 			   case 0x0A:	/* Error processing option	*/
+                           if (debug == 2) { printf(" Han char case A!\n");}
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x020A);
+					ouptr += 2;
+					outbuf[ouptr]=han_char.error_processing;
+					ouptr += 1;
+					procnt += 2;
+					bufptr += 2;
+					break;
+
+			   case 0x0B:	/* Error processing option rsxm+ ed*/
+                           if (debug == 2) { printf(" Han char case B!\n");}
+					p=(void *)&outbuf[ouptr];
+					set_short(p,0x020B);
 					ouptr += 2;
 					outbuf[ouptr]=han_char.error_processing;
 					ouptr += 1;
@@ -1400,6 +1529,7 @@ static void ct_writechar_req(void)
 	char	c;
 	short	*p;
 	short	selector, procnt;
+        if (debug == 2) { printf(" Entered static void ct_writechar_req...\n");}
 
 	bufptr += 2;				/* Skip op code		*/
 	procnt = 2;
@@ -1496,6 +1626,7 @@ static void ct_checkinput_req(void)
 {
 	unsigned char	msg[8] = {0x09,0x00,0x04,0x00,0x0D,0x00,0x00,0x00};
 	short 	*p = (void *)&msg[4];
+        if (debug == 2) { printf(" Entered static void ct_checkinput_req...\n");}
 
 	set_short(p, aheadcnt+inpcnt);
 	if (write(sockfd,msg,8) < 0)
@@ -1511,6 +1642,7 @@ static void ct_read_pkt(void)
 	fd_set	rdfs;
 	int	retval;
 	long	numbytes;
+        if (debug == 2) { printf(" Entered static void ct_read_pkt...\n");}
 
 	do {
 		FD_ZERO(&rdfs);
@@ -1549,7 +1681,8 @@ static void ct_read_pkt(void)
 static void proc_rsts_pkt(void)
 {
 	int data_cnt;
-	
+        if (debug == 2) { printf(" Entered static void proc_rsts_pkt...\n");}
+
 	if (buf[1] + (buf[2] << 8) != cnt)
 	{
 		printf ("proc_rsts_pkt: wrong packet length in header\n");
@@ -1576,20 +1709,21 @@ static void proc_rsts_pkt(void)
 }
 /*-------------------------------------------------------------------------*/
 static void proc_rsx_pkt(void)
-{
+{       if (debug == 2) { printf(" Entered static void proc_rsx_pkt...\n");}
 	printf ("not yet implemented -- proc_rsx_pkt\n");
 	exit(-1);
 }
 /*-------------------------------------------------------------------------*/
 static void proc_tops_pkt(void)
-{
+{       if (debug == 2) { printf(" Entered static void proc_tops_pkt...\n");}
 	/* message is just plain terminal output data */
 	write(ttyfd, buf, cnt);
 	bufptr = cnt;
 }
 /*-------------------------------------------------------------------------*/
 static void proc_cterm_pkt (void)
-{
+{       if (debug == 2) { printf(" Entered static void proc_cterm_pkt...\n");}
+
 	blklen=buf[bufptr] | (buf[bufptr+1]<<8);
 	bufptr += 2;	
 	switch(buf[bufptr])
@@ -1621,7 +1755,8 @@ static void proc_cterm_pkt (void)
 }
 /*-------------------------------------------------------------------------*/
 static void ct_proc_pkt(void)
-{
+{       if (debug == 2) { printf(" Entered static void ct_proc_pkt...\n");}
+
 	if (cnt==bufptr) ct_read_pkt();			/* Get next pkt    */
 	while (!unbind)
 	{
@@ -1655,14 +1790,15 @@ int main(int argc, char *argv[])
     sigset_t ss;
     
     int verbosity;
-    int debug = 0;
+    /*int debug = 0;*/
     char log_char = 'l';
     char opt;
-    
+    if (debug == 2) { printf(" Entered int main...\n");}
+
     // Deal with command-line arguments.
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vhe:")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vhdte:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -1683,6 +1819,13 @@ int main(int argc, char *argv[])
 	    set_exit_char(optarg);
 	    break;
 
+        case 'd':
+            debug = 1;
+            break;
+
+        case 't':
+            debug = 2;
+            break;
 	}
     }
 
@@ -1708,6 +1851,10 @@ int main(int argc, char *argv[])
     ct_init_term();				/* Set terminal in raw mode*/
     
     sigemptyset(&ss);
+    if (debug == 1)
+    {
+    printf("Connection to %d flavor",flavor); /*ed*/
+    }
     switch (flavor)
     {
     case CTERM:

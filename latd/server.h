@@ -50,7 +50,7 @@ class LATServer
     bool  is_local_service(char *);
     int   get_service_info(char *name, std::string &cmd, int &maxcon, uid_t &uid, gid_t &gid);
     gid_t get_lat_group() { return lat_group; }
-    LATConnection *get_connection(int id) { return connections[id]; }
+    LATConnection *get_connection(int id) { return (id < MAX_CONNECTIONS)?connections[id]:NULL; }
     const unsigned char *get_user_groups() { return user_groups; }
     int   find_connection_by_node(const char *node);
     void  send_enq(unsigned char *);

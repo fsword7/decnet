@@ -768,7 +768,8 @@ void LATServer::forward_status_messages(unsigned char *inbuf, int len)
 	ptr += inbuf[ptr]+1; // Past port name
 	ptr += inbuf[ptr]+1; // Past service description
 
-	if (connections[entry->request_id])
+	if (entry->request_id < MAX_CONNECTIONS &&
+	    connections[entry->request_id])
 	    connections[entry->request_id]->got_status(node, entry);
 
     }

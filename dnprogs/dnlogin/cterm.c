@@ -152,12 +152,8 @@ static int cterm_process_start_read(char *buf, int len)
     unsigned char  term_len;
     int ptr = 0;
 
-    flags = buf[1] | buf[2] << 8;
-    ptr = 3;
-    if (flags & 0x8000)
-    {
-	flags |= buf[ptr++] << 16;
-    }
+    flags = buf[1] | buf[2] << 8 | buf[3] << 16;
+    ptr = 4;
 
     maxlength = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
     eodata    = buf[ptr] | buf[ptr+1]<<8; ptr += 2;
@@ -170,13 +166,12 @@ static int cterm_process_start_read(char *buf, int len)
 // TODO more flags
     if (debug & 2) fprintf(stderr, "CTERM: flags = %x\n",flags);
     if (flags & 4) tty_clear_typeahead();
-//    if (flags & 8) tty_write("\n", 1);
     if (flags & 0x800) tty_set_noecho();
 
     if (debug & 2) fprintf(stderr, "term_len = %d\n", term_len);
 
     tty_set_terminators(buf+ptr, term_len);
-    tty_start_read(buf+ptr+term_len+1, len-term_len-ptr-1, eoprompt-1);
+    tty_start_read(buf+ptr+term_len, len-term_len-ptr-1, eoprompt);
     tty_set_timeout(timeout);
     tty_set_maxlen(maxlength);
 
@@ -190,7 +185,10 @@ static int cterm_process_oob(char *buf, int len)
 {return len;}
 
 static int cterm_process_unread(char *buf, int len)
-{return len;}
+{
+    tty_send_unread();
+    return len;
+}
 
 static int cterm_process_clear_input(char *buf, int len)
 {return len;}
@@ -515,6 +513,19 @@ int cterm_process_network(char *buf, int len)
     return 0;
 }
 
+
+int cterm_send_oob(char oobchar, int discard)
+{
+    char newbuf[3];
+    if (debug & 2) fprintf(stderr, "CTERM: sending OOB char %d\n", oobchar);
+
+    newbuf[0] = CTERM_MSG_OOB;
+    newbuf[1] = discard;
+    newbuf[2] = oobchar;
+
+    return found_common_write(newbuf, 3);
+
+}
 
 int cterm_send_input(char *buf, int len, int flags)
 {

@@ -34,7 +34,7 @@
 
 /* Foundation services messages */
 #define FOUND_MSG_BIND        1
-#define FOUND_MSG_UNBIND      2
+#define FOUND_MSG_UNBIND      3
 #define FOUND_MSG_BINDACCEPT  4
 #define FOUND_MSG_ENTERMODE   5
 #define FOUND_MSG_EXITMODE    6
@@ -126,7 +126,7 @@ int found_common_write(char *buf, int len)
     struct msghdr msg;
     struct common_header header;
 
-    if (debug) fprintf(stderr, "FOUND: snding %d bytes\n", len);
+    if (debug) fprintf(stderr, "FOUND: sending %d bytes\n", len);
     if (debug & 8)
     {
 	int i;
@@ -136,7 +136,7 @@ int found_common_write(char *buf, int len)
 	fprintf(stderr, "\n\n");
     }
 
-    
+
     memset(&msg, 0, sizeof(msg));
     vectors[0].iov_base = (void *)&header;
     vectors[0].iov_len  = sizeof(header);
@@ -200,6 +200,15 @@ int found_read()
 	    printf("Unbind from host. reason = %d\n", inbuf[1]);
 	return -1;
 
+    case FOUND_MSG_ENTERMODE:
+        {
+	    char nomode_msg[] = {0x8};
+	    if (debug)
+		fprintf(stderr, "FOUND: Request to enter node = %d\n", inbuf[1]);
+	    write(sockfd, nomode_msg, sizeof(nomode_msg));
+	    return 0;
+	}
+
 	/* Common data goes straight to the terminal processor */
     case FOUND_MSG_COMMONDATA:
         {
@@ -209,7 +218,7 @@ int found_read()
 		int msglen = inbuf[ptr] | inbuf[ptr+1]<<8;
 
 		if (debug)
-		    printf("FOUND: commondata: %d bytes\n",msglen);
+		    fprintf(stderr, "FOUND: commondata: %d bytes\n",msglen);
 
 		ptr += 2;
 		terminal_processor(inbuf+ptr, msglen);

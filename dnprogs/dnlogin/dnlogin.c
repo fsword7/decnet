@@ -70,6 +70,7 @@ static int mainloop(void)
 	if (found_read() == -1)
 	    break;
     }
+    write(termfd, "\n", 1);
     return 0;
 }
 
@@ -148,6 +149,7 @@ int main(int argc, char *argv[])
     }
 
     send_input = cterm_send_input;
+    send_oob = cterm_send_oob;
     if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
     {
 	tty_setup("/dev/tty", 1);

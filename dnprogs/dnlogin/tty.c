@@ -53,8 +53,9 @@ static int  echo = 1;
 static int  reading = 0;
 static int  insert_mode = 0;
 
-/* Output processor */
+/* Output processors */
 int (*send_input)(char *buf, int len, int flags);
+int (*send_oob)(char oobchar, int discard);
 
 /* Raw write to terminal */
 int tty_write(char *buf, int len)
@@ -89,6 +90,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	fprintf(stderr, "TTY start_read promptlen = %d, maxlen=%d\n",
 		promptlen, len);
     if (promptlen) write(termfd, prompt, promptlen);
+    if (len < 0) len = sizeof(input_buf);
 
     /* Save the actual prompt in one buffer and the prefilled
        data in the input buffer */
@@ -205,6 +207,11 @@ static void send_input_buffer(int flags)
     echo = 1;
 }
 
+void tty_send_unread()
+{
+    send_input_buffer(0);
+}
+
 /* Input from keyboard */
 int tty_process_terminal(unsigned char *buf, int len)
 {
@@ -225,6 +232,21 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    send_input(&buf[i], 1, 1); /* last "1" is "terminator" */
 	    reading = 0;
 	    return 0;
+	}
+
+
+	/* Check for OOB - these discard input*/
+	if (buf[i] == CTRL_C || buf[i] == CTRL_Y)
+	{
+	    send_oob(buf[i], 1);
+	    continue;
+	}
+
+	/* Check for OOB  - these don't */
+	if (buf[i] == CTRL_Z || buf[i] == CTRL_T)
+	{
+	    send_oob(buf[i], 0);
+	    continue;
 	}
 
 	/* Swap LF for CR */

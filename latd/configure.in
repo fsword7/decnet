@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 
 dnl Checks that we are given a good source directory.
 AC_INIT(latcp.cc)
-AM_INIT_AUTOMAKE(latd, 1.18)
+AM_INIT_AUTOMAKE(latd, 1.19)
 
 dnl Checks for programs.
 AC_PROG_CC

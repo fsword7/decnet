@@ -216,11 +216,6 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
 	remote_credit += 5;
 	command |= 0x5;
     }
-    else
-    {
-	remote_credit += 1;
-	command |= 0x1;
-    }
     
     // Send response...
     header->remote_session = local_session;

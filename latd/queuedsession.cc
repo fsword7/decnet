@@ -39,19 +39,19 @@
 
 QueuedSession::QueuedSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 			 ClientSession *_client,
-			 unsigned char remid, unsigned char localid, 
+			 unsigned char remid, unsigned char localid,
 			 bool clean):
     ServerSession(p, cmd, std::string(""), 0,0, remid, localid, clean),
     client_session(_client)
 {
     max_read_size = cmd->dataslotsize;
     master_fd = client_session->get_port_fd();
-    
-    debuglog(("new port session: localid %d, remote id %d, data slot size: %d, device fd: %d\n",
+
+    debuglog(("new queued session: localid %d, remote id %d, data slot size: %d, device fd: %d\n",
 	    localid, remid, max_read_size, master_fd));
 }
 
-int QueuedSession::new_session(unsigned char *_remote_node, 
+int QueuedSession::new_session(unsigned char *_remote_node,
 			       char *service, char *port,
 			       unsigned char c)
 {
@@ -61,7 +61,7 @@ int QueuedSession::new_session(unsigned char *_remote_node,
 
     if (!client_session) return -1;
 
-    debuglog(("starting port session: credit = %d\n", c));
+    debuglog(("starting queued session: credit = %d\n", c));
     strcpy(remote_node, (char *)_remote_node);
 
     if (master_fd != -1)
@@ -85,6 +85,6 @@ QueuedSession::~QueuedSession()
        it's not ours. */
     master_fd = -1;
 
-    /* Restart the client session */   
+    /* Restart the client session */
     client_session->restart_pty();
 }

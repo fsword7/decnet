@@ -48,8 +48,8 @@ localportSession::localportSession(class LATConnection &p, LocalPort *port,
 {
     master_fd = fd;
 
-    debuglog(("new localport session: localid %d, remote id %d\n",
-	      localid, remid));
+    debuglog(("new localport session: localid %d, remote id %d, fd=%d\n",
+	      localid, remid, fd));
 
     state = STARTING;
 }

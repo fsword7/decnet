@@ -54,66 +54,6 @@ int ClientSession::new_session(unsigned char *_remote_node,
 {
 
     assert(!"Should never get here!!");
-
-
-    credit = c;
-    strcpy(remote_service, service);
-    strcpy(remote_port, port);
-
-// A quick word of explanation here.
-// We keep the slave fd open after openpty because otherwise
-// the master would go away too (EOF). When the user connects to
-// the port we then close the slave fd so that we get EOF when she
-// disconnects. got that?
-
-    if (openpty(&master_fd,
-		&slave_fd, NULL, NULL, NULL) != 0)
-	return -1; /* REJECT */
-
-
-    // Set terminal characteristics
-    struct termios tio;
-    tcgetattr(master_fd, &tio);
-    tio.c_iflag |= IGNBRK|BRKINT;
-    tcsetattr(master_fd, TCSANOW, &tio);
-
-    strcpy(remote_node, (char *)_remote_node);
-    strcpy(ptyname, ttyname(slave_fd));
-    strcpy(mastername, ttyname(master_fd));
-    state = NEW;
-    slave_fd_open = true;
-
-    // Check for /dev/lat & create it if necessary
-    struct stat st;
-    if (stat(LAT_DIRECTORY, &st) == -1)
-    {
-	mkdir(LAT_DIRECTORY, 0755);
-    }
-
-    // Link the PTY to the actual LTA name we were passed
-    if (ltaname[0] == '\0')
-    {
-	sprintf(ltaname, LAT_DIRECTORY "lta%d", local_session);
-    }
-    unlink(ltaname);
-    symlink(ptyname, ltaname);
-
-    // Make it non-blocking so we can poll it
-    fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
-
-#ifdef USE_OPENPTY
-    // Set it owned by "lat" if it exists. We only do this for
-    // /dev/pts PTYs.
-    gid_t lat_group = LATServer::Instance()->get_lat_group();
-    if (lat_group)
-    {
-	chown(ptyname, 0, lat_group);
-	chmod(ptyname, 0660);
-    }
-#endif
-
-    debuglog(("made symlink %s to %s\n", ltaname, ptyname));
-//    LATServer::Instance()->add_pty(this, master_fd);
     return 0;
 }
 
@@ -174,19 +114,6 @@ void ClientSession::connect()
 void ClientSession::restart_pty()
 {
     assert(!"ClientSession::restart_pty()\n");
-    connected = false;
-    remote_session = 0;
-
-    // Close it all down so the local side gets EOF
-    unlink(ltaname);
-
-    if (slave_fd_open) close (slave_fd);
-    close (master_fd);
-    LATServer::Instance()->set_fd_state(master_fd, true);
-    LATServer::Instance()->remove_fd(master_fd);
-
-    // Now open it all up again ready for a new connection
-    new_session((unsigned char *)remote_node, remote_service, remote_port, 0);
 }
 
 
@@ -286,10 +213,9 @@ void ClientSession::got_connection(unsigned char _remid)
 }
 
 // Called from the slave connection - return the master fd so it can
-// can do I/O on it and close the slave so it gets EOF notification.
+// can do I/O on it.
 int ClientSession::get_port_fd()
 {
-    close(slave_fd);
     return master_fd;
 }
 

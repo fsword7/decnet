@@ -78,6 +78,8 @@ void LocalPort::init_port()
 		&slave_fd, NULL, NULL, NULL) != 0)
 	return;
 
+    debuglog(("openpty: master_fd=%d, slave_fd=%d\n", master_fd, slave_fd));
+
     // Send a request for the service if we are queued so that
     // by the time the user comes to use this port, we know about it.
     LATServer::Instance()->send_enq((unsigned char *)remnode.c_str());
@@ -177,6 +179,7 @@ void LocalPort::disconnect_session(int reason)
 // Connect up the session
 bool LocalPort::connect_session()
 {
+    debuglog(("localport::connect_session: master-fd = %d\n", master_fd));
     return LATServer::Instance()->make_port_connection(master_fd, this,
 						       service.c_str(), remnode.c_str(),
 						       portname.c_str(), devname.c_str(),

@@ -63,53 +63,6 @@ int ClientSession::connect_parent()
     return parent.connect(this);
 }
 
-void ClientSession::connect()
-{
-    state = RUNNING;
-    debuglog(("connecting client session to '%s'\n", remote_service));
-
-    // OK, now send a Start message to the remote end.
-    unsigned char buf[1600];
-    memset(buf, 0, sizeof(buf));
-    LAT_SessionData *reply = (LAT_SessionData *)buf;
-    int ptr = sizeof(LAT_SessionData);
-
-    buf[ptr++] = 0x01; // Service Class
-    buf[ptr++] = 0x01; // Max Attention slot size..
-    buf[ptr++] = 0xfe; // Max Data slot size
-
-    add_string(buf, &ptr, (unsigned char *)remote_service);
-    buf[ptr++] = 0x00; // Source service length/name
-
-    buf[ptr++] = 0x01; // Param type 1
-    buf[ptr++] = 0x02; // Param Length 2
-    buf[ptr++] = 0x04; // Value 1024
-    buf[ptr++] = 0x00; //
-
-    buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
-    add_string(buf, &ptr, (unsigned char *)ltaname);
-
-    // If the user wanted a particular port number then add it
-    // into the message
-    if (remote_port[0] != '\0')
-    {
-	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
-	add_string(buf, &ptr, (unsigned char *)remote_port);
-	buf[ptr++] = 0x00; // NUL terminated (??)
-    }
-
-    // Send message...
-    reply->header.cmd          = LAT_CCMD_SESSION;
-    reply->header.num_slots    = 1;
-    reply->slot.remote_session = local_session;
-    reply->slot.local_session  = remote_session;
-    reply->slot.length         = ptr - sizeof(LAT_SessionData);
-    reply->slot.cmd            = 0x9f;
-
-    parent.send_message(buf, ptr, LATConnection::DATA);
-
-}
-
 // Disconnect the local PTY
 void ClientSession::restart_pty()
 {
@@ -172,44 +125,6 @@ void ClientSession::do_read()
     {
 	read_pty();
     }
-}
-
-void ClientSession::got_connection(unsigned char _remid)
-{
-    unsigned char buf[1600];
-    LAT_SessionReply *reply = (LAT_SessionReply *)buf;
-    int ptr = 0;
-
-    debuglog(("ClientSession:: got connection for rem session %d\n", _remid));
-    LATServer::Instance()->set_fd_state(master_fd, false);
-    remote_session = _remid;
-
-    // Send a data_b slot
-    reply->header.cmd       = LAT_CCMD_SESSION;
-    reply->header.num_slots = 0;
-    reply->slot.length      = 0;
-    reply->slot.cmd         = 0x0;
-    reply->slot.local_session = 0;
-    reply->slot.remote_session = 0;
-
-    // data_b slots count against credit
-    if (credit)
-    {
-	unsigned char slotbuf[256];
-	int slotptr = 0;
-
-	slotbuf[slotptr++] = 0x26; // Flags
-	slotbuf[slotptr++] = 0x13; // Stop  output char XOFF
-	slotbuf[slotptr++] = 0x11; // Start output char XON
-	slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
-	slotbuf[slotptr++] = 0x11; // Start input char  XON
-
-	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
-	credit--;
-    }
-    parent.queue_message(buf, ptr);
-
-    connected = true;
 }
 
 // Called from the slave connection - return the master fd so it can

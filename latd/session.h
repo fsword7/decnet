@@ -24,6 +24,7 @@ class LATSession
     void set_port(unsigned char *inbuf);
     int  get_remote_credit() { return remote_credit; }
     void inc_remote_credit(int inc) { remote_credit+=inc; }
+    void got_connection(unsigned char _remid);
     bool isConnected() { return connected; }
     bool waiting_start() { return state == STARTING; }
 
@@ -31,6 +32,7 @@ class LATSession
     virtual int new_session(unsigned char *_remote_node,
 			    char *service, char *port, unsigned char c)=0;
     virtual void do_read() {}
+    virtual void connect();
 
 
  protected:
@@ -48,11 +50,14 @@ class LATSession
     unsigned char  local_session;
     int            max_read_size;
     bool           clean; // Connection should be 8bit clean
+    char           ltaname[255];
 
     // Flow control
     int            credit;
     bool           stopped;
     int            remote_credit;
+
+
 
  protected:
     int  send_data(unsigned char *buf, int msglen, int );

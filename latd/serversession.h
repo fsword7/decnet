@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,14 +26,15 @@ class ServerSession: public LATSession
 
 
  protected:
-  int  send_login_response();
+  virtual int  send_login_response();
+
+  int  create_session(unsigned char *remote_node);
 
   std::string command;
   uid_t cmd_uid;
   gid_t cmd_gid;
 
  private:
-  int  create_session(unsigned char *remote_node);
   void execute_command(const char *command);
   void close_all_fds();
 };

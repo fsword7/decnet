@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -197,7 +197,7 @@ int ServerSession::create_session(unsigned char *remote_node)
     }
 
     case -1: // Failed
-	syslog(LOG_ERR, "Error forking for /bin/login: %m");
+	syslog(LOG_ERR, "Error forking %s: %m", command.c_str());
       	perror("fork");
 	close(master_fd);
 	close(slave_fd);

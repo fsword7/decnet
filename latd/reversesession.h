@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,26 +12,20 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class ClientSession: public LATSession
+class ReverseSession: public ServerSession
 {
  public:
-  ClientSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *, bool clean);
+  ReverseSession(class LATConnection &p,
+		 LAT_SessionStartCmd *cmd,
+		 std::string shellcmd,
+		 uid_t uid, gid_t gid,
+		 unsigned char remid, unsigned char localid, bool clean);
 
-  virtual ~ClientSession();
   virtual int new_session(unsigned char *remote_node,
 			  char *service, char *port, unsigned char c);
-  virtual void do_read();
-  virtual void disconnect_session(int reason);
 
-  virtual int  connect_parent();
-  virtual void restart_pty();
-  virtual void show_status(unsigned char *node, LAT_StatusEntry *entry);
-  virtual void start_port();
-  int get_port_fd();
+
+ protected:
 
  private:
-  int slave_fd;
-  bool slave_fd_open;
-  char mastername[255];
 };

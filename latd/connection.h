@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2001 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,8 +40,11 @@ class LATConnection
 		  const char *_service, const char *_portname,
 		  const char *_lta, const char *remnode,
 		  bool queued, bool clean);
-    int connect(class ClientSession *);
+    int connect(class LATSession *);
+    int rev_connect();
     int create_llogin_session(int, const char *service, const char *port, const char *localport, const char *password);
+    int create_reverse_session(const char *, const char *, int, int,
+			      unsigned char *);
     int create_localport_session(int, class LocalPort *, const char *service,
 				 const char *port, const char *localport,
 				 const char *password);
@@ -80,6 +83,7 @@ class LATConnection
     bool           connected;
     LATConnection **master_conn;       // Client connection we are slave to
     bool           connecting;
+    unsigned short request_id;         // For incoming reverse-LATs
 
     // Keep track of non-flow-controlled messages
     time_t         last_msg_time;

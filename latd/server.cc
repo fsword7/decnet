@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -181,7 +181,7 @@ void LATServer::send_service_announcement(int sig)
     announce->latver          = LAT_VERSION;
     announce->latver_eco      = LAT_VERSION_ECO;
     announce->incarnation     = --multicast_incarnation;
-    announce->flags           = 0x6e;
+    announce->flags           = 0x1f;
     announce->mtu             = dn_htons(1500);
     announce->multicast_timer = multicast_timer;
     if (do_shutdown)
@@ -273,6 +273,8 @@ void LATServer::send_service_announcement(int sig)
     // probably somthing to do with port services and stuff.
     packet[ptr++] = 0x01; // Node service classes length
     packet[ptr++] = 0x01; // Node service classes
+    packet[ptr++] = 0x00;
+    packet[ptr++] = 0x00;
 
     unsigned char addr[6];
     /* This is the LAT multicast address */
@@ -708,6 +710,11 @@ void LATServer::read_lat(int sock)
     case LAT_CCMD_STATUS:
 	forward_status_messages(buf, len);
 	break;
+
+	// Request for a reverse-LAT connection.
+    case LAT_CCMD_COMMAND:
+	process_command_msg(buf, len, ifn, macaddr);
+	break;
     }
 }
 
@@ -1057,6 +1064,58 @@ void LATServer::got_enqreply(unsigned char *buf, int len, int interface, unsigne
 					 std::string((char*)"Dummy Service for DS90L servers"),
 					 0,
 					 interface, macaddr);
+}
+
+
+// Got a COMMAND message from a remote node. it probably wants
+// to set up a reverse-LAT session to us.
+void LATServer::process_command_msg(unsigned char *buf, int len, int interface, unsigned char *macaddr)
+{
+    LAT_Command *msg = (LAT_Command *)buf;
+    int ptr = sizeof(LAT_Command);
+    unsigned char remnode[256];
+    unsigned char remport[256];
+    unsigned char service[256];
+    unsigned char portname[256];
+
+// TODO: Check the params in the LAT_Command message...
+
+    ptr += buf[ptr++]; // Skip past groups for now.
+    ptr += buf[ptr++]; // Skip past groups for now.
+
+    // Get the remote node name.
+    get_string(buf, &ptr, remnode);
+    get_string(buf, &ptr, remport);
+    ptr+= buf[ptr++]; // Skip past greeting...
+    get_string(buf, &ptr, service);
+    get_string(buf, &ptr, portname);
+
+    debuglog(("Got request for reverse-LAT connection to %s/%s from %s/%s\n",
+	      service, portname, remnode, remport));
+
+    // Make a new connection
+    // TODO: can we reuse connections here ????
+    int connid = get_next_connection_number();
+    connections[connid] = new LATConnection(connid,
+					    (char *)service,
+					    (char *)remport,
+					    (char *)portname,
+					    (char *)remnode,
+					    false,
+					    true);
+
+    // make a serversession and connect it.
+    // make up a LAT_Start message and rem & local IDs.
+    LAT_SessionStartCmd startcmd;
+    memset(&startcmd, 0, sizeof(startcmd));
+    startcmd.dataslotsize = 255;
+    if (connections[connid]->create_reverse_session((const char *)service,
+						    (const char *)&startcmd,
+						    msg->request_id,
+						    interface, macaddr) == -1)
+    {
+	// TODO Destroy connection & send error message.
+    }
 }
 
 // Add services received from a service announcement multicast

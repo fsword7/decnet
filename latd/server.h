@@ -89,6 +89,8 @@ class LATServer
     double get_loadavg();
     void  reply_to_enq(unsigned char *inbuf, int len, int interface,
 		      unsigned char *remote_mac);
+    void  process_command_msg(unsigned char *inbuf, int len, int interface,
+			      unsigned char *remote_mac);
     void  forward_status_messages(unsigned char *inbuf, int len);
     void  send_service_announcement(int sig);
     int   make_new_connection(unsigned char *buf, int len, int interface,

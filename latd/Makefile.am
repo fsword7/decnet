@@ -26,6 +26,7 @@ latd_SOURCES = main.cc \
 	serversession.h serversession.cc \
 	services.h services.cc \
 	session.h session.cc \
+	reversesession.h reversesession.cc \
 	utils.h utils.cc \
 	dn_endian.h lat.h
 latcp_SOURCES = latcp.h latcp.cc utils.h utils.cc \

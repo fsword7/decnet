@@ -417,12 +417,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		// Data_b message - port information
 		if (session)
 		    session->set_port((unsigned char *)slotcmd);
-
-		reply[num_replies]->remote_session = slotcmd->local_session;
-		reply[num_replies]->local_session = slotcmd->remote_session;
-		reply[num_replies]->length = 0;
-		reply[num_replies]->cmd = 0;
-		num_replies++;
 		break;
 
 	    case 0xb0:

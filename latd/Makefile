@@ -37,10 +37,7 @@ endif
 # For a released binary, make it portable and optimised
 ifdef RELEASE
 OPTDEBUG=-O2
-DEFS+=-DOLDSTUFF
 endif
-
-
 
 #
 # Targets:
@@ -70,15 +67,18 @@ dep depend: .depend
 
 clean:
 	makedepend
-	rm -f $(PROG1) $(PROG2) *.o *.bak .depend
+	rm -f $(PROG1) $(PROG2) *.o *.bak .depend 
+	rm -rf debian/tmp
 
 dist:
 	makedepend
 	rm  -f .depend
+	rm -rf debian/tmp
 	cd ..; tar czf latd-$(VERSION).tar.gz latd/*.h latd/*.cc \
 		latd/BUGS latd/README latd/NEWS latd/Makefile \
                 latd/WARRANTY latd/COPYING latd/INSTALL latd/TODO \
-		latd/*.[1-8] latd/latd.conf latd/startlat.sh latd/rpm.spec
+		latd/*.[1-8] latd/latd.conf latd/startlat.sh \
+		latd/rpm.spec latd/debian-changelog latd/debian/*
 
 rpm:
 	echo "%_topdir `pwd`" > .rpmmacros
@@ -107,6 +107,24 @@ rpm:
 	rpm -bb --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
+#
+# Make Debian package.
+#
+deb:
+	@if [ $$UID != 0 ]; then echo You must be root to make DEBs; exit 1; fi
+	make clean
+	make prefix=/usr RELEASE=true
+	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'        \
+	    -e's/%%VERSION%%/$(VERSION)/g'            \
+	    -e's@%%PREFIX%%@$(prefix)@g'              \
+	    -e"s/%%DATE%%/`date --rfc-822`/g"         \
+	   <debian-changelog >debian/changelog
+	echo >>debian/changelog
+	cat NEWS >>debian/changelog
+	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
+	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
+	cd ../$(PKGNAME)-$(VERSION); debian/rules binary-arch
+	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 
 
 # DO NOT DELETE THIS LINE -- make  depend  depends  on it.

@@ -15,6 +15,8 @@ features:
 - Group codes can be used for to restrict incoming and outgoing sessions
 - User-space daemon. No kernel patching or recompiling necessary
 - Does not need DECnet support from the kernel or libraries
+- Supports a group called "lat" to restrict users of reverse-LAT ports
+- To send BREAK to a remote server in a revsese-LAT session press ^@
 	   
 You will need Packet Socket support in the kernel, but I think that's
 usually the default anyway.
@@ -37,6 +39,7 @@ CREDITS
 I'd very much like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
-I am also indebted to Real Dupeux for sending me a DECserver 200 for
-the project.
+I am also very much indebted to Real Dupeux for sending me a DECserver 200 for
+the project, in fact I use it a for reverse-LAT every day of the week - who
+need multi-port serial boards !
 

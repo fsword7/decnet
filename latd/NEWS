@@ -1,14 +1,19 @@
-1.0
---------------------
+1.0 17th September 2000
+-----------------------
 - Support BREAK character
+- Added support for a group (gid) called "lat". If you have one of these
+  in /etc/groups then users with that group can connect to reverse-LAT
+  ports with no other privileges
 - Added startup script
 - Remove "LAT started", "LAT stopped" messages from latcp as they interfere 
-  with the startup script and it's "not the Unix way".
+  with the startup script and it's "not the Unix way"
 - Added RPM build target
+- Added DEB build target
 - Forced all node names & service names to be uppercase in latcp
 - Split -DOLDSTUFF into two bits: -DUSE_OPENPTY and -DSETLOGIN_HOST. The
-  second option only seems to work on Debian, the first should be fine on
-  anything later than RedHat 5.2 (libc 2.0 I think that means).
+  second option doesn't work on SuSE 6.4, but does on Debian 2.2 and RedHat
+  6.2, the first should be fine on anything later than RedHat 5.2 (libc 2.0
+  I think that means)
 
 
 0.9 14th August 2000

@@ -1,0 +1,12 @@
+%%PACKAGENAME%% (%%VERSION%%-1) stable; urgency=medium
+
+  * See below
+
+ -- Patrick <patrick@pandh.demon.co.uk>  %%DATE%%
+
+Local variables:
+mode: debian-changelog
+add-log-mailing-address: "patrick@pandh.demon.co.uk"
+End:
+
+

@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=0.8
+VERSION=0.9
 
 PROG1=latd
 PROG2=latcp
@@ -12,7 +12,7 @@ PROG1OBJS=main.o utils.o server.o connection.o session.o \
 PROG2OBJS=latcp.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\"
-DEFS+=-DOLDSTUFF #-DVERBOSE_DEBUG -DNO_FORK
+DEFS+=#-DOLDSTUFF # -DVERBOSE_DEBUG -DNO_FORK
 
 prefix=/usr/local
 

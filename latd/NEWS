@@ -2,7 +2,11 @@
 ------------------
 - latcp now shows local ports too
 - Send group numbers with queued connect request
-- Increased maximum number of connections to 255
+- Increased maximum number of connections to 254
+- Fixed confusion when you had a reverse LAT session to the
+  same terminal server and referred to them by port names.
+- Fixed disappearing ports when using two queued reverse LAT
+  connections to the same terminal server
 
 
 0.8 25th July 2000

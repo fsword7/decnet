@@ -27,8 +27,8 @@
 #include "utils.h"
 #include "session.h"
 #include "serversession.h"
-#include "portsession.h"
 #include "clientsession.h"
+#include "portsession.h"
 #include "connection.h"
 #include "latcpcircuit.h"
 #include "server.h"
@@ -132,12 +132,14 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
     last_sequence_number = msg->header.ack_number;
     last_message_acked   = msg->header.sequence_number;
-  
+
+#ifdef REALLY_VERBOSE_DEBUGLOG  
     debuglog(("MSG:      seq: %d,        ack: %d\n", 
 	      msg->header.sequence_number, msg->header.ack_number));
 
     debuglog(("PREV:last seq: %d,   last ack: %d\n", 
 	      last_sent_sequence, last_ack_number));
+#endif
 
     // Is this a duplicate?
     if (saved_last_sequence_number == last_sequence_number &&
@@ -232,15 +234,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			else
 			{
 			    // Connect a new port session to it
-
 			    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
-			    int port_fd = -1;
-			    if (cs) port_fd = cs->get_port_fd();
 
 			    newsessionnum = next_session_number();
 			    newsession = new PortSession(*this,
 							 (LAT_SessionStartCmd *)buf,
-							 port_fd,
+							 cs,
 							 slotcmd->remote_session, 
 							 newsessionnum);
 			    if (newsession->new_session(remnode, 
@@ -318,8 +317,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		if (session) session->disconnect_session(credits);
 		if (queued_slave)
 		{
-		    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
-		    if (cs) cs->restart_pty();
 		    queued_slave = false;
 		}
 		break;	  
@@ -470,15 +467,17 @@ LATConnection::~LATConnection()
 	ClientSession *cs = (ClientSession *)master_conn->sessions[1];
 	if (cs) cs->restart_pty();
     }
-
-    // Delete all sessions
-    for (unsigned int i=1; i<MAX_SESSIONS; i++)
+    else
     {
-        if (sessions[i])
-        {
-            delete sessions[i];
-            sessions[i] = NULL;
-        }
+	// Delete all server sessions
+	for (unsigned int i=1; i<MAX_SESSIONS; i++)
+	{
+	    if (sessions[i])
+	    {
+		delete sessions[i];
+		sessions[i] = NULL;
+	    }
+	}
     }
 // Send a "shutting down" message to the other end
     
@@ -775,6 +774,8 @@ int LATConnection::connect()
 	LAT_Start *msg = (LAT_Start *)buf;
 	ptr = sizeof(LAT_Start);
 
+	debuglog(("Requesting connect to service\n"));
+
 	msg->header.cmd          = LAT_CCMD_CONNECT;
 	msg->header.num_slots    = 0;
 	msg->header.local_connid = num;  
@@ -782,7 +783,7 @@ int LATConnection::connect()
 	msg->maxsize     = dn_htons(1500);
 	msg->latver      = LAT_VERSION;
 	msg->latver_eco  = LAT_VERSION_ECO;
-	msg->maxsessions = 16;  // Probably ought to be 254
+	msg->maxsessions = 254;
 	msg->exqueued    = 0;   // TODO: A decision here
 	msg->circtimer   = LATServer::Instance()->get_circuit_timer();
 	msg->keepalive   = LATServer::Instance()->get_keepalive_timer();

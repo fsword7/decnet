@@ -65,15 +65,18 @@ void LATSession::add_credit(signed short c)
 /* Got some data from the terminal - send it to the PTY */
 int LATSession::send_data_to_process(unsigned char *buf, int len)
 {
-    char debugbuf[1024];
+
     
     // If there's anything to send, do so
     if (len)
     {
-	remote_credit--;
+#ifdef REALLY_VERBOSE_DEBUGLOG  
+	char debugbuf[1024];
         memcpy(debugbuf, buf, len);
 	debugbuf[len] = 0;
 	debuglog(("To PTY(%d): %s\n", len, debugbuf));
+#endif
+	remote_credit--;
 
 	// Replace LF/CR with LF if we are a server.
         // TODO There MUST be an option for this...
@@ -129,7 +132,8 @@ int LATSession::read_pty()
     if (credit <= 0) return 0; // Not allowed!
     
     msglen = read(master_fd, buf, max_read_size);
-#ifdef VERBOSE_DEBUG
+
+#ifdef REALLY_VERBOSE_DEBUGLOG  
     if (msglen > 0)
     {
       	buf[msglen] = '\0';
@@ -177,8 +181,10 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
     LAT_SlotCmd *header = (LAT_SlotCmd *)reply;
     int  ptr;
 
+#ifdef REALLY_VERBOSE_DEBUG
     debuglog(("Local Credit stands at %d\n", credit));
     debuglog(("Remote Credit stands at %d\n", remote_credit));
+#endif
 
     if (remote_credit <= 1)
     {
@@ -239,8 +245,9 @@ void LATSession::send_disabled_message()
 
 LATSession::~LATSession()
 {
+    debuglog(("Session dtor start\n"));
     if (pid != -1) kill(pid, SIGTERM);
-    close(master_fd);
+    if (master_fd > -1) close(master_fd);
     disconnect_session(0);
 }
 

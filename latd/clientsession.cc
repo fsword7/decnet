@@ -87,6 +87,7 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 
 int ClientSession::connect_parent()
 {
+    debuglog(("connecting parent for %s\n", ltaname));
     return parent.connect();
 }
 
@@ -114,7 +115,6 @@ void ClientSession::connect(char *service, char *port)
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
     add_string(buf, &ptr, (unsigned char *)ltaname);
-    buf[ptr++] = 0x00; // NUL terminated (??)
 
     // If the user wanted a particular port number then add it 
     // into the message
@@ -170,7 +170,6 @@ void ClientSession::disconnect_session(int reason)
 	write(master_fd, msg, strlen(msg));
 	write(master_fd, "\n", 1);
     }
-
     LATServer::Instance()->set_fd_state(master_fd, true);
     connected = false;
     return;

@@ -1,4 +1,6 @@
 LAT BUGS
 --------
 
-None known - please report some!
+- You can't have two connected non-queued sessions to the same terminal server.
+  (This may be specific to my DS200 though!)
+  make them queued and it works fine.

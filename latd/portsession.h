@@ -17,11 +17,12 @@ class PortSession: public ServerSession
  public:
   PortSession(class LATConnection &p,
 	      LAT_SessionStartCmd *cmd,
-	      int port_fd,
+	      ClientSession *_client,
 	      unsigned char remid, unsigned char localid);
+  virtual ~PortSession();
 
   virtual int new_session(unsigned char *remote_node, unsigned char c);
 
  private:  
-
+  ClientSession *client_session;
 };

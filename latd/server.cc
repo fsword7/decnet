@@ -319,6 +319,7 @@ void LATServer::run()
 	    if (errno != EINTR)
 	    {
 		syslog(LOG_WARNING, "Error in select: %m");
+		debuglog(("Error in select: %s\n", strerror(errno)));
 		do_shutdown = true;
 	    }
 	}
@@ -1124,6 +1125,7 @@ int LATServer::make_client_connection(unsigned char *service,
 					    (char *)remnode,
 					    queued);
     connections[connid]->create_client_session();
+    debuglog(("ClientSession for %s has connid %d\n", portname, connid));    
     return 0;
 }
 

@@ -13,6 +13,7 @@
 ******************************************************************************/
 
 #include <sys/types.h>
+#include <sys/signal.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <unistd.h>
@@ -31,22 +32,26 @@
 #include "latcpcircuit.h"
 #include "server.h"
 #include "serversession.h"
+#include "clientsession.h"
 #include "portsession.h"
 
 PortSession::PortSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
-			 int device_fd,
+			 ClientSession *_client,
 			 unsigned char remid, unsigned char localid):
-  ServerSession(p, cmd, remid, localid)
+    ServerSession(p, cmd, remid, localid),
+    client_session(_client)
 {
     max_read_size = cmd->dataslotsize;
-    master_fd = device_fd;
+    master_fd = client_session->get_port_fd();
     
     debuglog(("new port session: localid %d, remote id %d, data slot size: %d, device fd: %d\n",
-	    localid, remid, max_read_size, device_fd));
+	    localid, remid, max_read_size, master_fd));
 }
 
 int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
+    if (!client_session) return -1;
+
     credit = c;
     strcpy(remote_node, (char *)_remote_node);
 
@@ -61,4 +66,14 @@ int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
 	return -1;
     }
     return 0;
+}
+
+PortSession::~PortSession()
+{
+    /* Make sure the parent class doesn't close this FD:
+       it's not ours. */
+    master_fd = -1;
+
+    /* Restart the client session */   
+    client_session->restart_pty();
 }

@@ -3,10 +3,7 @@ TODO in no particular order
 
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
-- Input flow control in case the PTY stops reading.
-- Test Service responder
-- Get rid of all the TODOs in the code.
-- Stop putting things in this list!
+- Test service responder - can someone to this for me please??
 
 THINGS I MAY NOT DO
 -------------------
@@ -14,4 +11,5 @@ THINGS I MAY NOT DO
 - Support windows larger than 1
 - Allow /etc/issue.net files longer than 255 characters
 - Support multiple client sessions in one connection
+  (see BUGS for implications of this)
 - Put the protocol bits into the kernel.

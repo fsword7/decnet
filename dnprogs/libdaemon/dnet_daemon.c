@@ -805,6 +805,7 @@ int dnet_daemon(int object, char *named_object,
     pid_t               pid;
     int                 sockfd;
     int                 acceptmode;
+    int                 i;
     struct              sigaction siga;
     sigset_t            ss;
 
@@ -849,9 +850,8 @@ int dnet_daemon(int object, char *named_object,
 	}
     
 	// Detach ourself from the calling environment
-	close(0);
-	close(1);
-	close(2);
+	for (i=0; i<FD_SETSIZE; i++)
+	    close(i);
 	setsid();
 	chdir("/");
     }

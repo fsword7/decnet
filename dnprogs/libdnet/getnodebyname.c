@@ -28,8 +28,8 @@
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static struct nodeent	dp;
 static struct dn_naddr	*naddr;
-/*--------------------------------------------------------------------------*/
-struct nodeent *getnodebyname(const char *name)
+
+struct nodeent *getnodebyname(char *name)
 {
 	FILE		*dnhosts;
 	char		nodeln[80];

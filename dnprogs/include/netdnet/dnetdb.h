@@ -17,20 +17,22 @@ struct	nodeent	{
 };
 
 /* DECnet database & utility functions on libdnet */
-extern  struct  dn_naddr *dnet_addr(const char *);
+extern  struct  dn_naddr *dnet_addr(char *cp);
+extern  int               dnet_conn(char *node, char *object, int type, 
+                                unsigned char *opt_out, int opt_outl, 
+                                unsigned char *opt_in, int opt_inl);
+extern  char             *dnet_htoa(struct dn_naddr *add);
+extern  char             *dnet_ntoa(struct dn_naddr *add);
 extern  struct  dn_naddr *getnodeadd(void);
-extern  struct  nodeent  *getnodebyaddr(const unsigned char *, short , int);
-extern  struct  nodeent  *getnodebyname(const char *name);
-extern  char             *dnet_htoa(const struct dn_naddr *);
-extern  char             *dnet_ntoa(const struct dn_naddr *);
+extern  struct  nodeent  *getnodebyaddr(char *addr, int len, int type);
+extern  struct  nodeent  *getnodebyname(char *name);
+
 extern  char             *getexecdev(void);
 extern  void              setnodeent(int);
 extern  void             *dnet_getnode(void);
 extern  char             *dnet_nextnode(void *);
 extern  void              dnet_endnode(void *);
 extern  int               dnet_recv(int s, void *buf, int len, unsigned int flags);
-extern  int               dnet_conn(const char *, const char *, int,
-				    int,int,int,int);
 extern  int               dnet_pton(int af, const char *src, void *addr);
 extern  const char       *dnet_ntop(int af, const void *addr, char *str, size_t len);
 

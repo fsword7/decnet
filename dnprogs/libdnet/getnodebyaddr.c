@@ -28,8 +28,8 @@ static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static char             asc_addr[6];
 static struct nodeent	dp;
 static char   		laddr[2];
-/*--------------------------------------------------------------------------*/
-struct nodeent *getnodebyaddr(const unsigned char *addr, short len, const int family)
+
+struct nodeent *getnodebyaddr(char *addr, int len, int family)
 {
 	FILE	*dnhosts;
 	char	nodeln[80];
@@ -70,4 +70,4 @@ struct nodeent *getnodebyaddr(const unsigned char *addr, short len, const int fa
 	fclose(dnhosts);
 	return 0;
 }
-/*--------------------------------------------------------------------------*/
+

@@ -26,8 +26,8 @@
 
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static char             asc_addr[6];
-/*--------------------------------------------------------------------------*/
-char *dnet_htoa(const struct dn_naddr *addr)
+
+char *dnet_htoa(struct dn_naddr *addr)
 {
 	FILE		*dnhosts;
 	char		nodeln[80];

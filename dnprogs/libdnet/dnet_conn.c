@@ -26,9 +26,8 @@
 
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static int              consock;
-/*--------------------------------------------------------------------------*/
-/*--------------------------------------------------------------------------*/
-int dnet_conn(const char *host, const char *objname, int type, int a, int b, int c, int d)
+
+int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int opt_outl, unsigned char *opt_in, int opt_inl)
 {
 	FILE		*dnhosts;
 	char		nodeln[80];

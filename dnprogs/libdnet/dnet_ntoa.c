@@ -25,11 +25,10 @@
 #include <netdnet/dnetdb.h>
 
 static char	asc_addr[6];
-/*--------------------------------------------------------------------------*/
-char *dnet_ntoa(const struct dn_naddr *addr)
+
+char *dnet_ntoa(struct dn_naddr *addr)
 {
 	sprintf(asc_addr,"%d.%d",(addr->a_addr[1] >> 2),
 		 (((addr->a_addr[1] & 0x03) << 8) | addr->a_addr[0]));
 	return asc_addr;
 }
-/*--------------------------------------------------------------------------*/

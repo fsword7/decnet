@@ -26,8 +26,9 @@
 
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static struct dn_naddr	binadr = {0x0002,{0x00,0x00}};
-/*--------------------------------------------------------------------------*/
-struct	dn_naddr	*dnet_addr(const char *name)
+
+
+struct	dn_naddr	*dnet_addr(char *name)
 {
 
 	FILE		*dnhosts;

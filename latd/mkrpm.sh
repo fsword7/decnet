@@ -20,6 +20,7 @@ export PACKAGE VERSION ARCH
 make clean
 make
 make DESTDIR=`pwd`/rpmbuild install
+strip rpmbuild/usr/sbin/* rpmbuild/usr/bin/*
 install -d rpmbuild/usr/doc
 install -d rpmbuild/etc
 install -d rpmbuild/usr/doc/${PACKAGE}-${VERSION}

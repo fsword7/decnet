@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,8 +84,15 @@ bool fal_directory::process_message(dap_message *m)
 	    bool   double_wildcard = false;
 
 	    dap_access_message *am = (dap_access_message *)m;
-
 	    strcpy(filespec, am->get_filespec());
+
+	    // If we are talking to RSX and it did not send a filespec
+	    // then default to *.*
+	    if (params.remote_os == 4 && filespec[0] == '\0')
+	    {
+		strcpy(filespec, "*.*");
+	    }
+
 	    split_filespec(volume, directory, filespec);
 
 	    // If there are two wildcards then we need to be prepared

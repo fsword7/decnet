@@ -1,3 +1,12 @@
+0.8
+------------------
+- Don't die if a terminal server user presses ^C
+- Added groups for incoming and outgoing services
+- latcp is no longer on the path in latd.conf. Instead use the environment
+  variable $LATCP to invoke latcp.
+
+
+
 0.7  7th June 2000
 ------------------
 - Add keepalive timer

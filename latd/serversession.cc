@@ -13,6 +13,7 @@
 ******************************************************************************/
 
 #include <sys/types.h>
+#include <sys/resource.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <unistd.h>
@@ -177,6 +178,8 @@ int ServerSession::create_session(unsigned char *remote_node)
 	if (fd != 2) dup2(fd, 2);
 	if (fd > 2) close (fd);
 
+	close_all_fds();
+
 	setsid();
 
 	// Become the requested user.
@@ -213,6 +216,31 @@ int ServerSession::create_session(unsigned char *remote_node)
     }
     return 0;
 }
+
+/* Hopefully this will work for BSDs 
+   as well as Linux */
+#ifdef RLIMIT_NOFILE
+#  define LAT_RLIMIT_FILES RLIMIT_NOFILE
+#else
+#  ifdef RLIMIT_OFILE
+#    define LAT_RLIMIT_FILES RLIMIT_OFILE
+#  endif
+#endif
+
+void ServerSession::close_all_fds()
+{
+    struct rlimit rl;
+
+    if (getrlimit(LAT_RLIMIT_FILES, &rl) == -1)
+	rl.rlim_cur = 256;
+    if (rl.rlim_cur == RLIM_INFINITY)
+	rl.rlim_cur = 256;
+
+    for (unsigned int i=3; i<rl.rlim_cur; i++)
+	close(i);
+}
+
+
 
 void ServerSession::execute_command(const char *command)
 {

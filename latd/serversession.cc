@@ -185,16 +185,12 @@ int ServerSession::create_session(unsigned char *remote_node)
 	setgid(cmd_gid);
 	setuid(cmd_uid);
 
-	// Get the command to run.
-	// TODO: Split off command-line parameters
-	const char *cmd = command.c_str();
-	const char *cmdname = strrchr(cmd, '/');
-	if (!cmdname) cmdname = cmd;
-	
-	execlp(cmd, cmdname, (char *)0);
+	// Get the command to run
+	// and do it.
+	execute_command(command.c_str());
 
-	// Argh!
-	syslog(LOG_ERR, "Error in starting %s: %m", cmd);
+	// Argh! It returned.
+	syslog(LOG_ERR, "Error in starting %s: %m", command.c_str());
 
 	// Exit now so that the parent will get EOF on the channel
 	exit(-1);
@@ -215,4 +211,55 @@ int ServerSession::create_session(unsigned char *remote_node)
 	break;
     }
     return 0;
+}
+
+void ServerSession::execute_command(const char *command)
+{
+    char cmd[strlen(command)+1];
+    strcpy(cmd, command);
+
+    // Count the args
+    int num_args = 0;
+    strtok(cmd, " ");
+    while (strtok(NULL, " ")) num_args++;
+
+    // Make sure we have a clean copy of the command
+    strcpy(cmd, command);
+
+    char *argv[num_args+1];
+    int   argc = 0;
+    const char *cmdname;
+    const char *thisarg;
+    
+    // Gather the args
+    thisarg = strtok(cmd, " ");
+
+    // Keep the path for the first arg to execvp
+    char fullcmd[strlen(thisarg)+1];
+    strcpy(fullcmd, thisarg);
+
+    // For the first arg, remove the path if there is one.
+    cmdname = strrchr(thisarg, '/')+1;
+    if (cmdname == (char *)1) cmdname = thisarg;
+
+    // We can man malloc all we like here because exec() will
+    // "free" it for us !
+    do
+    {
+	if (argc == 0) thisarg = cmdname;
+
+	argv[argc] = (char *)malloc(strlen(thisarg)+1);
+	strcpy(argv[argc], thisarg);
+
+	syslog(LOG_INFO, "PJC: arg[%d] = %s\n", argc, argv[argc]);
+
+	thisarg = strtok(NULL, " ");
+	argc++;
+    } while (thisarg);
+
+    // Need a NULL at the end of the list
+    argv[argc++] = NULL;
+
+    // Run it.
+    execvp(fullcmd, argv);
 }

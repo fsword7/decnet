@@ -34,4 +34,5 @@ class ServerSession: public LATSession
 
  private:
   int  create_session(unsigned char *remote_node);
+  void execute_command(const char *command);
 };

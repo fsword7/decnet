@@ -6,9 +6,6 @@ AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wstrict-prototypes -Wno-unused
 
 INCLUDES = -DLATD_CONF=\"$(sysconfdir)/latd.conf\" -DSBINDIR=\"$(sbindir)\" -DBINDIR=\"$(bindir)\"
 
-#BSDs need this
-LDFLAGS=$(DEFS)
-
 sbin_PROGRAMS = latd latcp moprc
 bin_PROGRAMS = llogin
 sysconf_DATA = latd.conf
@@ -42,11 +39,11 @@ EXTRA_DIST = $(man_MANS) WARRANTY latd.conf lat.html \
 EXTRA_latd_SOURCES = @INTERFACE_SOURCE@
 EXTRA_moprc_SOURCES = $(EXTRA_latd_SOURCES)
 
-latd_DEPENDANCIES = @INTERFACE_SOURCE@
-latd_LDADD = @INTERFACE_SOURCE@ @LIBUTIL@
+latd_DEPENDENCIES = @INTERFACE_SOURCE@
+latd_LDADD = $(latd_DEPENDENCIES) @LIBUTIL@
 
-moprc_DEPENDANCIES = @INTERFACE_SOURCE@
-moprc_LDADD = @INTERFACE_SOURCE@
+moprc_DEPENDENCIES = @INTERFACE_SOURCE@
+moprc_LDADD = $(moprc_DEPENDENCIES)
 
 llogin_LDADD = @LIBLOCKDEV@
 

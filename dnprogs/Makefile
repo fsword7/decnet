@@ -101,8 +101,6 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	make clean
-	make prefix=/usr RELEASE=true -j
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
 	cd ../$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot

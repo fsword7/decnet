@@ -76,10 +76,8 @@ rpm:
 	make DESTDIR=`pwd`/rpmbuild install
 	make dist
 	install -d rpmbuild/etc/rc.d/init.d
-	install -d rpmbuild/etc/rc.d/rc3.d
 	install -d rpmbuild/usr/doc
 	install scripts/decnet.sh rpmbuild/etc/rc.d/init.d/decnet
-	ln -sf ../init.d/decnet rpmbuild/etc/rc.d/rc3.d/S09decnet
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
 	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'                          \
 	    -e's/%%VERSION%%/$(VERSION)/g'                              \

@@ -22,8 +22,10 @@
 #
 # Daemons to start. You may remove the ones you don't want
 #
-prefix=/usr/local
 daemons="dnetd phoned"
+
+# Prefix for where the progs are installed. This is where the RPM puts them
+prefix=/usr
 
 #
 # Interfaces to set the MAC address of. If empty all available
@@ -70,21 +72,11 @@ case $1 in
 
      echo -n "Starting DECnet: "
 
-     # Run startnet only if we need to
-     EXEC=`cat /proc/net/decnet | sed -n '2s/ *\([0-9]\.[0-9]\).*[0-9]\.[0-9]/\1/p'`
-     if [ -z "$EXEC" -o "$EXEC" = "0.0" ]
-     then
-       $startnet
-       if [ $? != 0 ]
-       then
-         echo error starting socket layer.
-         exit 1
-       fi
-       NODE=`grep executor /etc/decnet.conf|sed 's/.* \([0-9.]\{3,7\}\) .*/\1/'`
-       echo "$NODE" > /proc/sys/net/decnet/node_address
-       CCT=`grep executor /etc/decnet.conf|sed 's/.*line *//'`
-       echo "$CCT" > /proc/sys/net/decnet/default_device
-     fi
+     NODE=`grep executor /etc/decnet.conf| awk '{print $2}'`
+     echo "$NODE" > /proc/sys/net/decnet/node_address
+     CCT=`grep executor /etc/decnet.conf | awk '{print $6}'`
+     echo "$CCT" > /proc/sys/net/decnet/default_device
+     $prefix/sbin/setether $NODE $CCT
 
      for i in $daemons
      do

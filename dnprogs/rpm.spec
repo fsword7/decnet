@@ -37,7 +37,11 @@ instructions on how to apply it.
 %%PREFIX%%/sbin/dnroute
 %%PREFIX%%/sbin/startnet
 %%PREFIX%%/sbin/decnetconf
+%%PREFIX%%/sbin/setether
+%%PREFIX%%/sbin/sendvmsmail
+%%PREFIX%%/sbin/vmsmaild
 %%PREFIX%%/man/man1/dncopy.1
+%%PREFIX%%/man/man1/phone.1
 %%PREFIX%%/man/man1/dntype.1
 %%PREFIX%%/man/man1/dntask.1
 %%PREFIX%%/man/man1/dndel.1
@@ -50,6 +54,7 @@ instructions on how to apply it.
 %%PREFIX%%/man/man3/dnet_conn.3
 %%PREFIX%%/man/man3/dnet_htoa.3
 %%PREFIX%%/man/man3/dnet_ntoa.3
+%%PREFIX%%/man/man3/dnet_eof.3
 %%PREFIX%%/man/man3/dnet_getnode.3
 %%PREFIX%%/man/man3/dnet_nextnode.3
 %%PREFIX%%/man/man3/dnet_endnode.3
@@ -72,7 +77,10 @@ instructions on how to apply it.
 %%PREFIX%%/man/man8/startnet.8
 %%PREFIX%%/man/man8/sendvmsmail.8
 %%PREFIX%%/man/man8/vmsmaild.8
+%%PREFIX%%/man/man8/setether.8
+%%PREFIX%%/man/man8/decnetconf.8
 /etc/rc.d/init.d/decnet
+/etc/decnet.proxy
 %%LIBPREFIX%%/lib/libdnet.a
 %%LIBPREFIX%%/lib/libdnet.so.1
 %%LIBPREFIX%%/lib/libdnet.so
@@ -104,5 +112,7 @@ instructions on how to apply it.
 %doc README NEWS fal.README mail.README dnetd.README phone.README librms.README
 
 %post 
+chkconfig --level 345 decnet on
 /sbin/ldconfig; if [ ! -f /etc/decnet.conf ]; then %%PREFIX%%/sbin/decnetconf </dev/tty ; fi
+
 

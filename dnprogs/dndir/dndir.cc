@@ -402,6 +402,7 @@ int main(int argc, char *argv[])
 		    {
 			printf("Error opening %s: %s\n", dirname,
 			       sm->get_message());
+			name_pending = false;
 			goto flush;
 		    }
 		    break;

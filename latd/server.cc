@@ -1321,12 +1321,12 @@ bool LATServer::remove_port(char *name)
     debuglog(("remove port %s\n", name));
 
     // Search for it.
-
     std::list<LocalPort>::iterator p(portlist.begin());
     for (; p != portlist.end(); p++)
     {
 	if (strcmp(p->get_devname().c_str(), name) == 0)
 	{
+	    p->close_and_delete();
 	    portlist.erase(p);
 	    return true;
 	}
@@ -1545,17 +1545,28 @@ int LATServer::create_local_port(unsigned char *service,
 				 unsigned char *password)
 {
     debuglog(("Server::create_local_port: %s\n", devname));
+
+// Don't create it if it already exists.
+    std::list<LocalPort>::iterator i(portlist.begin());
+    for (; i != portlist.end(); i++)
+    {
+	if (strcmp(i->get_devname().c_str(), (char *)devname) == 0)
+	{
+	    return 1; // already in use
+	}
+    }
+
     portlist.push_back(LocalPort(service, portname, devname, remnode, queued, clean, password));
 
 // Find the actual port in the list and start it up, this is because
 // the STL containers hold actual objects rather then pointers
-
     std::list<LocalPort>::iterator p(portlist.begin());
     for (; p != portlist.end(); p++)
     {
 	if (strcmp(p->get_devname().c_str(), (char *)devname) == 0)
 	{
 	    p->init_port();
+	    break;
 	}
     }
 

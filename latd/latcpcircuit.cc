@@ -277,7 +277,7 @@ bool LATCPCircuit::do_command()
 
 	get_string((unsigned char*)cmdbuf, &ptr, name);
 
-	debuglog(("latcp: del service: %s\n", name));
+	debuglog(("latcp: del port: %s\n", name));
 
 	if (LATServer::Instance()->remove_port((char*)name))
 	    send_reply(LATCP_ACK, "", -1);
@@ -338,6 +338,7 @@ bool LATCPCircuit::do_command()
 	unsigned char remnode[255];
 	unsigned char password[255];
 	int  ptr=0;
+        int  res=0;
 
 	get_string((unsigned char*)cmdbuf, &ptr, service);
 	get_string((unsigned char*)cmdbuf, &ptr, remport);
@@ -350,20 +351,24 @@ bool LATCPCircuit::do_command()
 	debuglog(("latcp: add port: %s:%s (%s)\n",
 		  service, remport, localport));
 
-	if (LATServer::Instance()->create_local_port(service, 
+        //
+        // MSC DVK 12-Feb-2002, more verbose error report to user.
+        //
+        
+	res = LATServer::Instance()->create_local_port(service, 
 						     remport,
 						     localport,
 						     remnode,
 						     queued,
 						     clean,
-						     password) < 0)
-	{
-	    debuglog(("sending failure back to LATCP\n"));
-	    send_reply(LATCP_ERRORMSG, "Error creating client service, service unknown", -1);
-	}
-	else
-	{
-	    send_reply(LATCP_ACK, "", -1);
+                                                       password);
+        switch (res) {
+          case 1:
+	    send_reply(LATCP_ERRORMSG, "Local port (tty) already in use", -1);
+            break;
+          case 0:
+	    send_reply(LATCP_ACK, "", -1); // all OK
+            break;
 	}
     }
     break;

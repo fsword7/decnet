@@ -14,7 +14,6 @@
 
 // LAT login Program (llogin)
 
-
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <sys/socket.h>
@@ -38,6 +37,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <assert.h>
+#include <termios.h>
 
 #include <list>
 #include <queue>
@@ -143,8 +143,10 @@ int main(int argc, char *argv[])
 	    exit(usage(argv[0]));
 	}
     }
-    
-    if (optind < argc)
+
+    // Parameter is the remote service name, but there
+    // must be only one.
+    if (argc == optind+1)
     {
 	strcpy(service, argv[argc-1]);
     }
@@ -153,9 +155,10 @@ int main(int argc, char *argv[])
 	if (!show_services) exit(usage(argv[0]));
     }
 
+    // Open socket to latd
     if (!open_socket(false)) return 2;
 
-
+    // -d just lists the available services
     if (show_services)
     {
 	char verboseflag[1] = {verbose};

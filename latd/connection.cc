@@ -332,6 +332,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		{
 		    queued_slave = false;
 		}
+		retcmd = 0xd0;
+		replyslots = 1;
+		replyhere = true;
 		break;	  
 
 	    default:

@@ -32,18 +32,6 @@
 #include <sys/utsname.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
-#include <features.h>    /* for the glibc version number */
-#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
-#include <netpacket/packet.h>
-#include <net/ethernet.h>     /* the L2 protocols */
-#else
-#include <asm/types.h>
-#include <linux/if.h>
-#include <linux/if_packet.h>
-#include <linux/if_ether.h>   /* The L2 protocols */
-#endif
-
-#include <sys/types.h>
 #include <signal.h>
 #include <list>
 #include <queue>

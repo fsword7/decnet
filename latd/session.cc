@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,9 +12,9 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/time.h>
@@ -30,8 +30,8 @@
 #include <stdlib.h>
 #include <utmp.h>
 #include <pwd.h>
-#include <pty.h>
 #include <assert.h>
+#include <termios.h>
 
 #include <list>
 #include <string>

@@ -1,4 +1,4 @@
-.TH DNCOPY 1 "January 26 2000" "DECnet utilities"
+.TH DNCOPY 1 "September 13 2001" "DECnet utilities"
 
 .SH NAME
 dncopy \- Copy files to/from a VMS system
@@ -15,7 +15,7 @@ source...
 .br
 Options:
 .br
-[\-vdikVh] [\-m mode] [\-a record attributes] [\-r record format]
+[\-vdiskVh] [\-m mode] [\-a record attributes] [\-r record format]
 [\-b block size]
 .SH DESCRIPTION
 .PP
@@ -84,6 +84,12 @@ copy command. More than one is really just useful for debugging.
 .I "\-i"
 Interactive operation. Prompts before copying a file. This option is roughly
 equivalent to the /CONFIRM qualifier on the DCL copy command.
+.TP
+.I "\-s"
+Show transfer statistics. This shows the throughput of all copies (in the case
+of wildcard transfers) undertaken in K bytes/second. This time does not include
+that to establish the connection. eg when sending to VMS the overhead of 
+creating a NETSERVER process is not included.
 .TP
 .I "\-k"
 Keep version numbers on files copied from VMS systems. By default dncopy will

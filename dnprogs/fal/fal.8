@@ -32,7 +32,11 @@ directories will have .DIR appended to them and all filenames will have a
 version number of 1.
 In addition fal will construct a volume and directory syntax for the directory
 that will look familiar to VMS users. Of course it also understands this
-syntax when files and directories are requested of it.
+syntax when files and directories are requested of it. One of the problems with
+this is that Unix filenames with non-VMS syntax (eg double dots or "funny" 
+characters) or files with uppercase letter in their names will not be accessible
+from VMS using VMS syntax. You must use Unix syntax to access these files through 
+FAL.
 .br
 The options below affect the behaviour of fal. If you are using
 .B dnetd

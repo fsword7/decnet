@@ -284,8 +284,6 @@ void LATSession::send_issue()
 
 void LATSession::set_port(unsigned char *inbuf)
 {
-    int ptr = sizeof(LAT_SlotCmd);
-    
     // Set port characteristics
     debuglog(("Port char map: %x\n", inbuf[ptr]));
     debuglog(("Stop  output %x\n",   inbuf[ptr+1]));

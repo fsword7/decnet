@@ -1,14 +1,14 @@
 Source: dnprogs
 Section: net
-Priority: optional
+Priority: extra
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
+Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10-dev
 Standards-Version: 3.5.0
 
 Package: dnet-common
 Architecture: any
-Depends: debconf, debianutils (>=1.13), awk
-Priority: optional
+Depends: debconf, debianutils (>=1.13), mawk | awk
+Priority: extra
 Section: net
 Conflicts: dnprogs
 Description: Base package for Linux DECnet
@@ -25,7 +25,7 @@ Description: Base package for Linux DECnet
 Package: dnet-progs
 Architecture: any
 Depends: ${shlibs:Depends}, libdnet(>=${Source-Version})
-Priority: optional
+Priority: extra
 Section: net
 Description: DECnet user programs and daemons
  These tools are the application layer interface for DECnet on Linux systems.
@@ -37,8 +37,8 @@ Description: DECnet user programs and daemons
 Package: libdnet
 Architecture: any
 Depends: ${shlibs:Depends}, dnet-common(>=${Source-Version})
-Priority: optional
-Section: net
+Priority: extra
+Section: libs
 Description: DECnet Libraries
  This package contains the libraries necessary for a functioning DECnet 
  system. Most DECnet programs require these libraries to be present on 
@@ -52,8 +52,8 @@ Description: DECnet Libraries
 Package: libdnet-dev
 Architecture: any
 Depends: libdnet(>=${Source-Version})
-Priority: optional
-Section: net
+Priority: extra
+Section: devel
 Description: DECnet development libraries & Headers
  Theses are the development libraries for Linux DECnet. This package contains
  the static libraries, header files and man pages for DECnet development

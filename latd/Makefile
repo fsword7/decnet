@@ -33,7 +33,7 @@ LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++
 CC=gcc
-CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
+CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions -Wno-deprecated
 CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
 
 # ARCH code taken from the Linux kernel sources.

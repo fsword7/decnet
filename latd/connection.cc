@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -858,7 +858,7 @@ void LATConnection::circuit_timer(void)
         pending_msg &msg(pending_data.front());
 
 	retransmit_count = 0;
-	need_ack = true;
+	need_ack = msg.needs_ack();
 	window_size++;
 
         LAT_Header *header      = msg.get_header();

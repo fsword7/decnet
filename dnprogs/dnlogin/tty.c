@@ -28,7 +28,6 @@
 #include <sys/fcntl.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
-#include "cterm.h"
 #include "dn_endian.h"
 #include "dnlogin.h"
 #include "tty.h"
@@ -41,12 +40,12 @@ extern int finished;
 /* Input state buffers & variables */
 static unsigned char terminators[32];
 static char input_buf[1024];
-static int  input_len;
-static int  input_pos;
+static int  input_len=0;
+static int  input_pos=0;
 static char prompt_buf[1024];
-static char prompt_len;
+static char prompt_len=0;
 static char esc_buf[132];
-static int  esc_len;
+static int  esc_len=0;
 static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
 static int  insert_mode = 0;
@@ -68,7 +67,10 @@ void tty_set_terminators(char *buf, int len)
 
 void tty_start_read(char *prompt, int len, int promptlen)
 {
-    write(termfd, prompt, len);
+    if (debug & 4)
+	fprintf(stderr, "TTY start_read prompt='%s' len = %d, maxlen=%d\n",
+		prompt, promptlen, len);
+    if (promptlen) write(termfd, prompt, promptlen);
 
     /* Save the actual prompt in one buffer and the prefilled
        data in th input buffer */
@@ -164,9 +166,6 @@ int tty_process_terminal(char *buf, int len)
 	    return 0;
 	}
 
-	if (echo)
-	    write(termfd, &buf[i], 1);
-
 	/* Swap LF for CR */
 	//PJC: is this right??
 	if (buf[i] == '\n')
@@ -179,11 +178,12 @@ int tty_process_terminal(char *buf, int len)
 	}
 
 	/* Is it ESCAPE ? */
-	if (buf[i] == ESC && !esc_len)
+	if (buf[i] == ESC && esc_len == 0)
 	{
 	    esc_buf[esc_len++] = buf[i];
 	    continue;
 	}
+
 	/* Still processing escape sequence */
 	if (esc_len)
 	{
@@ -208,8 +208,8 @@ int tty_process_terminal(char *buf, int len)
 		    }
 		}
 		esc_len = 0;
-		continue;
 	    }
+	    continue;
 	}
 
 	/* Process non-terminator control chars */
@@ -234,21 +234,27 @@ int tty_process_terminal(char *buf, int len)
 		break;
 	    case CTRL_M:
 		send_input(input_buf, input_len, 0);
+		input_len = input_pos = 0;
 		break;
 	    }
 	    continue;
 	}
 
+	if (echo)
+	    write(termfd, &buf[i], 1);
+
+	if (debug & 4) fprintf(stderr, "TTY: input_len=%d, pos=%d\n",
+			       input_len, input_pos);
+
 	input_buf[input_pos++] = buf[i];
 	if (input_len < input_pos)
-	    input_len = input_len;
+	    input_len = input_pos;
 
 	if (input_len == max_read_len)
 	{
 	    send_input(input_buf, input_len, 0);
+	    input_len = input_pos = 0;
 	}
-
-	// TODO: Loads more.
     }
     return 0;
 }

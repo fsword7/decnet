@@ -28,7 +28,6 @@
 #include <sys/fcntl.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
-#include "cterm.h"
 #include "dn_endian.h"
 #include "dnlogin.h"
 
@@ -137,7 +136,7 @@ int cterm_process_network(char *buf, int len)
 
     while (offset < len)
     {
-	if (debug > 2) fprintf(stderr, "CTERM: got msg: %d, len=%d\n",
+	if (debug & 2) fprintf(stderr, "CTERM: got msg: %d, len=%d\n",
 			       buf[offset], len);
 
 	switch (buf[offset])
@@ -198,12 +197,19 @@ int cterm_process_network(char *buf, int len)
 int cterm_send_input(char *buf, int len, int flags)
 {
     char newbuf[len+9];
+    if (debug & 2) fprintf(stderr, "CTERM: sending input data: len=%d\n",
+			   len);
 
-    newbuf[0] = 0;
-    newbuf[1] = 0;
-    newbuf[2] = 0;
-    newbuf[3] = 0;
-    memcpy(newbuf+4, buf, len);
+    newbuf[0] = CTERM_MSG_READ_DATA;
+    newbuf[1] = flags;
+    newbuf[2] = 0; // low-water 1
+    newbuf[3] = 0; // low-water 2
+    newbuf[4] = 0; // vert pos
+    newbuf[5] = 0; // horiz pos
+    newbuf[6] = 0; // term pos 1
+    newbuf[7] = 0; // term pos 2
 
-    return found_common_write(newbuf, len+4);
+    memcpy(newbuf+8, buf, len);
+
+    return found_common_write(newbuf, len+8);
 }

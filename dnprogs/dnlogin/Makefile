@@ -2,8 +2,6 @@
 
 include ../Makefile.common
 
-CFLAGS+=-I../apps
-
 PROG1=dnlogin
 
 MANPAGES=dnlogin.1

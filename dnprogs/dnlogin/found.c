@@ -34,7 +34,7 @@
 
 /* Foundation services messages */
 #define FOUND_MSG_BIND        1
-#define FOUND_MSG_UNBIND      3
+#define FOUND_MSG_UNBIND      2
 #define FOUND_MSG_BINDACCEPT  4
 #define FOUND_MSG_ENTERMODE   5
 #define FOUND_MSG_EXITMODE    6
@@ -142,7 +142,7 @@ int found_common_write(char *buf, int len)
     header.pad = 0;
     header.len = dn_htons(len);
 
-    if (debug > 2)
+    if (debug & 1)
 	fprintf(stderr, "FOUND: sending common message %d bytes:\n", len);
 
     return sendmsg(sockfd, &msg, MSG_EOR);
@@ -163,9 +163,9 @@ int found_read()
 	return -1;
     }
 
-    if (debug > 2)
+    if (debug & 1)
 	fprintf(stderr, "FOUND: got message %d bytes:\n", len);
-    if (debug > 3)
+    if (debug & 8)
     {
 	int i;
 
@@ -182,6 +182,11 @@ int found_read()
 	if (debug)
 	    printf("connected to %s host\n", hosttype[inbuf[4]-1]);
 	return send_bindaccept();
+
+    case FOUND_MSG_UNBIND:
+	if (debug)
+	    printf("Unbind from host. reason = %d\n", inbuf[1]);
+	return 0;
 
 	/* Common data goes straight to the terminal processor */
     case FOUND_MSG_COMMONDATA:

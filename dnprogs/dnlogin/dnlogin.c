@@ -28,7 +28,6 @@
 #include <sys/fcntl.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
-#include "cterm.h"
 #include "dn_endian.h"
 #include "dnlogin.h"
 
@@ -99,7 +98,7 @@ static void usage(char *prog, FILE * f)
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -V           show version number\n");
     fprintf(f, "  -e <char>    set exit char\n");
-    fprintf(f, "  -d           debug information\n");
+    fprintf(f, "  -d <mask>    debug information\n");
 
     fprintf(f, "\n");
 }
@@ -115,7 +114,7 @@ int main(int argc, char *argv[])
     // Deal with command-line arguments.
     opterr = 0;
     optind = 0;
-    while ((opt = getopt(argc, argv, "?Vhdte:")) != EOF)
+    while ((opt = getopt(argc, argv, "?Vhd:te:")) != EOF)
     {
 	switch (opt)
 	{
@@ -137,7 +136,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'd':
-	    debug++;
+	    debug = atoi(optarg);
 	    break;
 	}
     }

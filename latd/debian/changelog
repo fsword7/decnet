@@ -1,3 +1,14 @@
+latd (1.21) unstable; urgency=low
+
+  * Don't expect an ACK to an ACK. (duh)
+  * Cope with non-contiguous interface numbers in Linux
+  * Remove tcflow() calls as they slow things down and don't
+    achieve anything. This was particularly bad with DS90L servers
+  * Try harder to write all data to a PTY.
+  * Fix REQID message in moprc so it works with more servers.
+  
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 24 Mar 2004 17:34:44 +0000
+
 latd (1.20) unstable; urgency=low
 
   * Loads of protocol fixes and speed enhancements, so many I've forgotten
@@ -15,7 +26,7 @@ latd (1.20) unstable; urgency=low
   * Don't keep retrying connects for ever
   * Reduce delay between EOF and deleting a connection.
   
- -- Patrick Caulfield <patrick@debian.org>  Mon, 19 Jan 2004 11:59:29 +0000
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 31 Jan 2004 17:32:27 +0000
 
 latd (1.19) unstable; urgency=low
 

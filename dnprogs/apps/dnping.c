@@ -61,7 +61,7 @@ static void usage(void)
     printf("\t-p password    access control password {}\n");
     printf("\t-q             quiet mode {OFF}\n");
     printf("\t-s size        size of frame to send in bytes {%d data + %d hdr}\n",
-                               40,MAX_DN_HDRSIZE);
+	   40,MAX_DN_HDRSIZE);
     printf("\t-t             timestamps mode {OFF}\n");
     printf("\t-u username    access control username {}\n");
     printf("\t-v             verbose mode {OFF}\n");
@@ -70,395 +70,409 @@ static void usage(void)
 
 void tvsub(register struct timeval *out, register struct timeval *in)
 {
-   if ((out->tv_usec -= in->tv_usec) < 0)
-      {
-      --out->tv_sec;
-      out->tv_usec += 1000000;
-      }
-   out->tv_sec -= in->tv_sec;
+    if ((out->tv_usec -= in->tv_usec) < 0)
+    {
+	--out->tv_sec;
+	out->tv_usec += 1000000;
+    }
+    out->tv_sec -= in->tv_sec;
 }
 
 
 void init_accdata( char *user, char *password, 
-                             struct accessdata_dn *accessdata)
+		   struct accessdata_dn *accessdata)
 {
-   char *local_user = getlogin();
-   char *cp;
+    char *local_user = getlogin();
+    char *cp;
 
-   if ((options & DNF_DEBUG) && (local_user))
-      {
-      printf("getlogin() - LOCAL USER: %s\n",local_user); 
-      }
+    if ((options & DNF_DEBUG) && (local_user))
+    {
+	printf("getlogin() - LOCAL USER: %s\n",local_user); 
+    }
 
-   memset(accessdata, 0, sizeof(accessdata));
+    memset(accessdata, 0, sizeof(*accessdata));
 
-   memcpy(accessdata->acc_user, user, MIN(strlen(user),DN_MAXACCL));
-   accessdata->acc_user[DN_MAXACCL-1] = '\0';
-   accessdata->acc_userl = strlen((char *)accessdata->acc_user);
+    memcpy(accessdata->acc_user, user, MIN(strlen(user),DN_MAXACCL));
+    accessdata->acc_user[DN_MAXACCL-1] = '\0';
+    accessdata->acc_userl = strlen((char *)accessdata->acc_user);
 
-   memcpy(accessdata->acc_pass, password, MIN(strlen(password),DN_MAXACCL));
-   accessdata->acc_pass[DN_MAXACCL-1] = '\0';
-   accessdata->acc_passl = strlen((char *)accessdata->acc_pass);
 
-   /* Try very hard to get the local username for proxy access */
-   if (!local_user || local_user == (char *)0xffffffff)
-      {
-      local_user = getenv("LOGNAME");
+    /* If the password is "-" and fd 0 is a tty then 
+       prompt for a password */
+    if (password[0] == '-' && password[1] == '\0' && isatty(0))
+    {
+	password = getpass("Password: ");
+	if (password == NULL || strlen(password) > (unsigned int)DN_MAXACCL)
+	{
+	    fprintf(stderr, "Password too long");
+	    return;
+	}
+	
+    }
+    
+    memcpy(accessdata->acc_pass, password, MIN(strlen(password),DN_MAXACCL));
+    accessdata->acc_pass[DN_MAXACCL-1] = '\0';
+    accessdata->acc_passl = strlen((char *)accessdata->acc_pass);
 
-      if ((options & DNF_DEBUG) && (local_user))
-         {
-         printf("getenv(LOGNAME) - LOCAL USER: %s\n",local_user); 
-         }
+    /* Try very hard to get the local username for proxy access */
+    if (!local_user || local_user == (char *)0xffffffff)
+    {
+	local_user = getenv("LOGNAME");
 
-      }
+	if ((options & DNF_DEBUG) && (local_user))
+	{
+	    printf("getenv(LOGNAME) - LOCAL USER: %s\n",local_user); 
+	}
 
-   if (!local_user)
-      {
-      local_user = getenv("USER");
+    }
+   
+    if (!local_user)
+    {
+	local_user = getenv("USER");
 
-      if ((options & DNF_DEBUG) && (local_user))
-         {
-         printf("getenv(USER) - LOCAL USER: %s\n",local_user); 
-         }
+	if ((options & DNF_DEBUG) && (local_user))
+	{
+	    printf("getenv(USER) - LOCAL USER: %s\n",local_user); 
+	}
 
-      }
+    }
 
-   if (local_user)
-      {
-      strncpy((char *)accessdata->acc_acc, local_user, 
-                          MIN(strlen(local_user),DN_MAXACCL));
-      accessdata->acc_acc[DN_MAXACCL-1] = '\0';
-      accessdata->acc_accl = strlen((char *)accessdata->acc_acc);
-      for (cp=(char *)accessdata->acc_acc; *cp!='\0'; *cp=toupper(*cp), ++cp);
-      }
-   else
-      {
-      accessdata->acc_acc[0] = '\0';
+    if (local_user)
+    {
+	strncpy((char *)accessdata->acc_acc, local_user, 
+		MIN(strlen(local_user),DN_MAXACCL));
+	accessdata->acc_acc[DN_MAXACCL-1] = '\0';
+	accessdata->acc_accl = strlen((char *)accessdata->acc_acc);
+	for (cp=(char *)accessdata->acc_acc; *cp!='\0'; *cp=toupper(*cp), ++cp);
+    }
+    else
+    {
+	accessdata->acc_acc[0] = '\0';
 
-      if (options & DNF_DEBUG)
-         {
-         printf("LOCAL USER: NULL\n"); 
-         }
+	if (options & DNF_DEBUG)
+	{
+	    printf("LOCAL USER: NULL\n"); 
+	}
 
-      }
+    }
 
-   return;
+    return;
 }
 
 /*-------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
-   struct  sockaddr_dn             sockaddr;
-   struct  accessdata_dn           accessdata;
-   static  struct  nodeent         *np;
-   char                    nodename[20],
-                           ibuf[MAX_DN_PACKETSIZE],
-                           obuf[MAX_DN_PACKETSIZE];
-   short                   snd,rcv,num;
-   int                     sockfd,i,ch;
-   char                    username[DN_MAXACCL],password[DN_MAXACCL];
-   int                     npackets = 10,
-                           datalen = 40,
-                           interval = 0,
-                           cmplen, offset;
-   struct timeval          tv, *tp;
-   long                    triptime = 0,
-                           tmin = LONG_MAX, /* minimum round trip time */
-                           tmax = 0;        /* maximum round trip time */
-   unsigned long           tsum = 0; /* sum of all times, for doing average */
+    struct  sockaddr_dn             sockaddr;
+    struct  accessdata_dn           accessdata;
+    static  struct  nodeent         *np;
+    char                    nodename[20],
+	ibuf[MAX_DN_PACKETSIZE],
+	obuf[MAX_DN_PACKETSIZE];
+    short                   snd,rcv,num;
+    int                     sockfd,i,ch;
+    char                    username[DN_MAXACCL],password[DN_MAXACCL];
+    int                     npackets = 10,
+	datalen = 40,
+	interval = 0,
+	cmplen, offset;
+    struct timeval          tv, *tp;
+    long                    triptime = 0,
+	tmin = LONG_MAX, /* minimum round trip time */
+	tmax = 0;        /* maximum round trip time */
+    unsigned long           tsum = 0; /* sum of all times, for doing average */
 
 
 
 
 
-   while ((ch = getopt(argc, argv, "c:di:qs:u:p:vt")) != EOF)
-      {
-      switch(ch) 
-         {
-         case 'c':               /* number of packets to send */
+    while ((ch = getopt(argc, argv, "c:di:qs:u:p:vt")) != EOF)
+    {
+	switch(ch) 
+	{
+	case 'c':               /* number of packets to send */
             npackets = atoi(optarg);
             if (npackets <= 0)
-               {
-               fprintf(stderr, "ping: bad number of packets to transmit.\n");
-               exit(-1);
-               }
+	    {
+		fprintf(stderr, "ping: bad number of packets to transmit.\n");
+		exit(-1);
+	    }
             options |= DNF_PKT_COUNT;
             break;
-         case 'd':               /* turn on debug option */
+	case 'd':               /* turn on debug option */
             options |= DNF_DEBUG;
             break;
-         case 't':               /* turn on timestamps option */
+	case 't':               /* turn on timestamps option */
             options |= DNF_TIMESTAMPS;
             break;
-         case 'i':               /* wait between sending packets */
+	case 'i':               /* wait between sending packets */
             interval = atoi(optarg);
             if ( (interval <= 0) || (interval > 60000000) )
-               {
-               fprintf(stderr, "ping: bad timing interval.\n");
-               exit(-1);
-               }
+	    {
+		fprintf(stderr, "ping: bad timing interval.\n");
+		exit(-1);
+	    }
             options |= DNF_INTERVAL;
             break;
-         case 'q':               /* quiet mode */
+	case 'q':               /* quiet mode */
             options |= DNF_QUIET;
             break;
-         case 's':               /* size of data portion to send */
+	case 's':               /* size of data portion to send */
             options |= DNF_PKT_SIZE;
             datalen = atoi(optarg) - MAX_DN_HDRSIZE;
             if (datalen > MAX_DN_DATASIZE)
-               {
-               fprintf(stderr, "ping: packet size too large.\n");
-               exit(-1);
-               }
+	    {
+		fprintf(stderr, "ping: packet size too large.\n");
+		exit(-1);
+	    }
             if (datalen <= 0)
-               {
-               fprintf(stderr, "ping: illegal packet size.\n");
-               exit(-1);
-               }
+	    {
+		fprintf(stderr, "ping: illegal packet size.\n");
+		exit(-1);
+	    }
             break;
-         case 'v':               /* verbose mode */
+	case 'v':               /* verbose mode */
             options |= DNF_VERBOSE;
             break;
-         case 'u':               /* access control username */
+	case 'u':               /* access control username */
             options |= DNF_USERNAME;
             snprintf(username,sizeof(username),"%s",optarg);
             break;
-         case 'p':               /* access control password */
+	case 'p':               /* access control password */
             options |= DNF_PASSWORD;
             snprintf(password,sizeof(password),"%s",optarg);
             break;
-         default:
+	default:
             usage();
-         }
-      }
-   argc -= optind;
-   argv += optind;
+	}
+    }
+    argc -= optind;
+    argv += optind;
 
-   if (options & DNF_DEBUG) printf("ARGC : %d\n",argc);
+    if (options & DNF_DEBUG) printf("ARGC : %d\n",argc);
 
-   if ((argc < 1) || (argc > 4))
-      {
-      usage();
-      }
+    if ((argc < 1) || (argc > 4))
+    {
+	usage();
+    }
 
-   snprintf(nodename,sizeof(nodename),"%s",*argv);
-   if ( ( (argc == 4) || (argc == 2) )
-        && ((options & DNF_PKT_COUNT) == 0) )
-      {
-      npackets=atoi(argv[argc-1]);
-      }
+    snprintf(nodename,sizeof(nodename),"%s",*argv);
+    if ( ( (argc == 4) || (argc == 2) )
+	 && ((options & DNF_PKT_COUNT) == 0) )
+    {
+	npackets=atoi(argv[argc-1]);
+    }
 
-   if ( (np=getnodebyname(nodename)) == NULL)
-      {
-      if ( (options & DNF_QUIET) == 0 )
-         {
-         printf("Unknown node name %s\n",nodename);
-         }
-      exit(-1);
-      }
+    if ( (np=getnodebyname(nodename)) == NULL)
+    {
+	if ( (options & DNF_QUIET) == 0 )
+	{
+	    printf("Unknown node name %s\n",nodename);
+	}
+	exit(-1);
+    }
 
-   if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
-      {
-      if ( (options & DNF_QUIET) == 0 )
-         {
-         perror("socket");
-         }
-      exit(-1);
-      }
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    {
+	if ( (options & DNF_QUIET) == 0 )
+	{
+	    perror("socket");
+	}
+	exit(-1);
+    }
 
-   if ((((options & DNF_USERNAME) == 0) && ((options & DNF_PASSWORD) != 0)) || 
-       (((options & DNF_USERNAME) != 0) && ((options & DNF_PASSWORD) == 0)))
-      {
-      if ( (options & DNF_QUIET) == 0 )
-         {
-         printf("Must specify both username and password for access control\n");
-         }
-      exit(-1);
-      }
+    if ((((options & DNF_USERNAME) == 0) && ((options & DNF_PASSWORD) != 0)) || 
+	(((options & DNF_USERNAME) != 0) && ((options & DNF_PASSWORD) == 0)))
+    {
+	if ( (options & DNF_QUIET) == 0 )
+	{
+	    printf("Must specify both username and password for access control\n");
+	}
+	exit(-1);
+    }
       
-   if ( ((options & (DNF_USERNAME|DNF_PASSWORD) ) == 0) && (argc > 2) )
-      {
-      snprintf(username,sizeof(username),"%s",argv[1]);
-      options |= DNF_USERNAME;
-      snprintf(password,sizeof(password),"%s",argv[2]);
-      options |= DNF_PASSWORD;
-      }
+    if ( ((options & (DNF_USERNAME|DNF_PASSWORD) ) == 0) && (argc > 2) )
+    {
+	snprintf(username,sizeof(username),"%s",argv[1]);
+	options |= DNF_USERNAME;
+	snprintf(password,sizeof(password),"%s",argv[2]);
+	options |= DNF_PASSWORD;
+    }
 
-   if ( (options&(DNF_USERNAME|DNF_PASSWORD)) == (DNF_USERNAME|DNF_PASSWORD))
-      {
-      if ( (options & DNF_DEBUG) != 0)
-         {
-         printf("USERNAME: %s\nPASSWORD: %s\n", username, password);
-         }
+    if ( (options&(DNF_USERNAME|DNF_PASSWORD)) == (DNF_USERNAME|DNF_PASSWORD))
+    {
+	if ( (options & DNF_DEBUG) != 0)
+	{
+	    printf("USERNAME: %s\nPASSWORD: %s\n", username, password);
+	}
       
-      init_accdata(username, password, &accessdata);
-      if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
-                   sizeof(accessdata)) < 0)
-         {
-         if ( (options & DNF_QUIET) == 0 )
+	init_accdata(username, password, &accessdata);
+	if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
+		       sizeof(accessdata)) < 0)
+	{
+	    if ( (options & DNF_QUIET) == 0 )
             {
-            perror("setsockopt");
+		perror("setsockopt");
             }
-         exit(-1);
-         }
-      }
+	    exit(-1);
+	}
+    }
 
-   if (options & DNF_TIMESTAMPS)
-      {
-      if (datalen < sizeof(struct timeval))
-         {
-         if ( (options & DNF_QUIET) == 0 )
+    if (options & DNF_TIMESTAMPS)
+    {
+	if (datalen < sizeof(struct timeval))
+	{
+	    if ( (options & DNF_QUIET) == 0 )
             {
-            printf("Packet size not large enough to store timestamp\n");
+		printf("Packet size not large enough to store timestamp\n");
             }
-         exit(-1);
-         }
-      }
+	    exit(-1);
+	}
+    }
 
-   sockaddr.sdn_family = AF_DECnet;
-   sockaddr.sdn_flags  = 0x00;
-   sockaddr.sdn_objnum  = DNOBJECT_MIRROR;
-   sockaddr.sdn_objnamel  = 0x00;
-   memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
+    sockaddr.sdn_family = AF_DECnet;
+    sockaddr.sdn_flags  = 0x00;
+    sockaddr.sdn_objnum  = DNOBJECT_MIRROR;
+    sockaddr.sdn_objnamel  = 0x00;
+    memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 
-   if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-             sizeof(sockaddr)) < 0) 
-      {
-      if ( (options & DNF_QUIET) == 0 )
-         {
-         perror("socket");
-         }
-      exit(-1);
-      }
+    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
+		sizeof(sockaddr)) < 0) 
+    {
+	if ( (options & DNF_QUIET) == 0 )
+	{
+	    perror("socket");
+	}
+	exit(-1);
+    }
 
-   for (i = 0; i < datalen; i++)
-      {
-      obuf[i]=0x85;
-      }
-   obuf[0]=0x00;
+    for (i = 0; i < datalen; i++)
+    {
+	obuf[i]=0x85;
+    }
+    obuf[0]=0x00;
 
-   cmplen = (datalen - 1) - 
-               (options & DNF_TIMESTAMPS)?sizeof(struct timeval):0;
-   if (options & DNF_DEBUG)
-      {
-      printf("CMPLEN: %d\n",cmplen);
-      }
+    cmplen = (datalen - 1) - 
+	(options & DNF_TIMESTAMPS)?sizeof(struct timeval):0;
+    if (options & DNF_DEBUG)
+    {
+	printf("CMPLEN: %d\n",cmplen);
+    }
 
-   offset = 1 + (options & DNF_TIMESTAMPS)?sizeof(struct timeval):0;
-   if (options & DNF_DEBUG)
-      {
-      printf("OFFSET: %d\n",offset);
-      }
+    offset = 1 + (options & DNF_TIMESTAMPS)?sizeof(struct timeval):0;
+    if (options & DNF_DEBUG)
+    {
+	printf("OFFSET: %d\n",offset);
+    }
 
-   snd=0; 
-   rcv=0;
+    snd=0; 
+    rcv=0;
 
-   for (i = 0; i < npackets; i++)
-      {
-      if (options & DNF_TIMESTAMPS)
-         {
-         gettimeofday((struct timeval *)&obuf[1], (struct timezone *)NULL);
-         }
-      num = write(sockfd,obuf,datalen);
-      if ( num < 0 )
-         {
-         if ( (options & DNF_QUIET) == 0 )
+    for (i = 0; i < npackets; i++)
+    {
+	if (options & DNF_TIMESTAMPS)
+	{
+	    gettimeofday((struct timeval *)&obuf[1], (struct timezone *)NULL);
+	}
+	num = write(sockfd,obuf,datalen);
+	if ( num < 0 )
+	{
+	    if ( (options & DNF_QUIET) == 0 )
             {
-            perror("Write");
+		perror("Write");
             }
-         exit(-1);
-         }
-      if (options & (DNF_DEBUG|DNF_VERBOSE)) 
-         {
-         printf("PKT: %-4d   WRITE: %d ",i+1,num);
-         }
-      snd++;
+	    exit(-1);
+	}
+	if (options & (DNF_DEBUG|DNF_VERBOSE)) 
+	{
+	    printf("PKT: %-4d   WRITE: %d ",i+1,num);
+	}
+	snd++;
 
-      num = read(sockfd,ibuf,sizeof(ibuf));
-      if ( num < 0 )
-         {
-         if ( (options & DNF_QUIET) == 0 )
+	num = read(sockfd,ibuf,sizeof(ibuf));
+	if ( num < 0 )
+	{
+	    if ( (options & DNF_QUIET) == 0 )
             {
-            perror("Read");
+		perror("Read");
             }
-         exit(-1);
-         }
+	    exit(-1);
+	}
 
-      gettimeofday(&tv, (struct timezone *)NULL);
+	gettimeofday(&tv, (struct timezone *)NULL);
 
-      if (options & (DNF_DEBUG|DNF_VERBOSE))
-         {
-         printf("READ: %d ",num);
-         }
+	if (options & (DNF_DEBUG|DNF_VERBOSE))
+	{
+	    printf("READ: %d ",num);
+	}
 
-      if (memcmp(&obuf[offset],&ibuf[offset],cmplen) != 0) 
-         {
-         if ( (options & (DNF_QUIET|DNF_DEBUG|DNF_VERBOSE)) == 0 )
+	if (memcmp(&obuf[offset],&ibuf[offset],cmplen) != 0) 
+	{
+	    if ( (options & (DNF_QUIET|DNF_DEBUG|DNF_VERBOSE)) == 0 )
             {
-            printf("Loopback Error\n");
+		printf("Loopback Error\n");
             }
-         if ( (options & (DNF_DEBUG|DNF_VERBOSE)) != 0)
+	    if ( (options & (DNF_DEBUG|DNF_VERBOSE)) != 0)
             {
-            printf("**error**\n");
+		printf("**error**\n");
             }
-         }
-      else
-         {
-         rcv++;
-         if (options & DNF_TIMESTAMPS)
+	}
+	else
+	{
+	    rcv++;
+	    if (options & DNF_TIMESTAMPS)
             {
-            tp = (struct timeval *)&ibuf[1];
-            tvsub(&tv, tp);
-            triptime = tv.tv_sec * 10000 + (tv.tv_usec / 100);
-            tsum += triptime;
-            if (triptime < tmin)
-               {
-               tmin = triptime;
-               }
-            if (triptime > tmax)
-               {
-               tmax = triptime;
-               }
-            }
-
-         if ( (options & (DNF_DEBUG|DNF_VERBOSE)) != 0)
-            {
-            if (options & DNF_TIMESTAMPS)
-               {
-               printf("  RTT: %ld.%ld\n", triptime/10, triptime%10);
-               }
-            else
-               {
-               printf("\n");
-               }
-            }
-         }
-
-      if (interval > 0)
-         {
-         usleep(interval);
-         }
-
-      } /* end for loop */
-
-   close(sockfd);
-   if ( (options & DNF_QUIET) == 0 )
-      {
-      printf("Sent %d packets, Received %d packets\n",snd,rcv);
-      if ((rcv > 0) && (options & DNF_TIMESTAMPS))
-         {
-         if (options & DNF_DEBUG)
-            {
-            printf("TSUM: %ld\n",tsum);
+		tp = (struct timeval *)&ibuf[1];
+		tvsub(&tv, tp);
+		triptime = tv.tv_sec * 10000 + (tv.tv_usec / 100);
+		tsum += triptime;
+		if (triptime < tmin)
+		{
+		    tmin = triptime;
+		}
+		if (triptime > tmax)
+		{
+		    tmax = triptime;
+		}
             }
 
-         printf("\tround-trip min/avg/max = %ld.%ld/%lu.%ld/%ld.%ld ms\n",
-                        tmin/10, tmin%10,
-                        (tsum / (rcv*10)),
-                        (tsum / rcv)%10,
-                        tmax/10, tmax%10);
-         }
-      }
+	    if ( (options & (DNF_DEBUG|DNF_VERBOSE)) != 0)
+            {
+		if (options & DNF_TIMESTAMPS)
+		{
+		    printf("  RTT: %ld.%ld\n", triptime/10, triptime%10);
+		}
+		else
+		{
+		    printf("\n");
+		}
+            }
+	}
 
-   return( ((snd - rcv) != 0) ? -1 : 0 );
+	if (interval > 0)
+	{
+	    usleep(interval);
+	}
+
+    } /* end for loop */
+
+    close(sockfd);
+    if ( (options & DNF_QUIET) == 0 )
+    {
+	printf("Sent %d packets, Received %d packets\n",snd,rcv);
+	if ((rcv > 0) && (options & DNF_TIMESTAMPS))
+	{
+	    if (options & DNF_DEBUG)
+            {
+		printf("TSUM: %ld\n",tsum);
+            }
+
+	    printf("\tround-trip min/avg/max = %ld.%ld/%lu.%ld/%ld.%ld ms\n",
+		   tmin/10, tmin%10,
+		   (tsum / (rcv*10)),
+		   (tsum / rcv)%10,
+		   tmax/10, tmax%10);
+	}
+    }
+
+    return( ((snd - rcv) != 0) ? -1 : 0 );
 }

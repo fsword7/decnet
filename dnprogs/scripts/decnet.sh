@@ -67,7 +67,7 @@ fi
 
 case $1 in
    start)
-     if [ -f /etc/decnet.conf ]
+     if [ -f /etc/decnet.conf -a -f /proc/net/decnet ]
      then
        echo -n "Starting DECnet: "
  
@@ -103,7 +103,7 @@ case $1 in
      echo "$stopendecho"
      ;;
 
-   restart|reload)
+   restart|reload|force-reload)
      echo -n "Restarting DECnet: "
      for i in $daemons
      do
@@ -115,7 +115,7 @@ case $1 in
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restart}"
+     echo "Usage $0 {start|stop|restart|force-reload}"
      ;;
 esac
 

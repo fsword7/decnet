@@ -223,7 +223,6 @@ void cterm_write (char *buf)
 void cterm (void)
 {
 	char	 buf[100];
-	struct	 timeval tv;
 	fd_set	 rdfs;
 	int	 cnt;
 	struct   sigaction siga;
@@ -240,32 +239,24 @@ void cterm (void)
 	signal(SIGTSTP, SIG_IGN);
 	signal(SIGTTOU, SIG_IGN);
 
-	cterm_write("CTERM Version 1.0.3\r\nDECnet for Linux\r\n\n");
+	cterm_write("CTERM Version 1.0.4\r\nDECnet for Linux\r\n\n");
 	cterm_read();
 	
 	for (;;)
 	{
 		FD_ZERO(&rdfs);
 		FD_SET(pty,&rdfs);
-		tv.tv_sec = 0;
-		tv.tv_usec= 200;
-		
-		if (select(pty+1,&rdfs,NULL,NULL,&tv) > 0);
-		{
+		FD_SET(net,&rdfs);
+
+		 if (select(FD_SETSIZE,&rdfs,NULL,NULL, NULL) > 0);
+		 {
 		  if (FD_ISSET(pty,&rdfs))
 		  {
 			cnt=read(pty,buf,sizeof(buf)-1);
 			buf[cnt]='\0';
 			cterm_write(buf);
 		   }
-		 }
-		 FD_ZERO(&rdfs);
-		 FD_SET(net,&rdfs);
-		 tv.tv_sec = 0;
-		 tv.tv_usec= 200;
-		
-		 if (select(net+1,&rdfs,NULL,NULL,&tv) > 0);
-		 {
+
 		   if (FD_ISSET(net,&rdfs))
 		   {
 			cnt=read(net,buf,sizeof(buf));

@@ -1506,7 +1506,6 @@ static void ct_checkinput_req(void)
 /*-------------------------------------------------------------------------*/
 static void ct_read_pkt(void)
 {
-	struct	timeval	tv;
 	fd_set	rdfs;
 	int	retval;
 	long	numbytes;
@@ -1514,9 +1513,7 @@ static void ct_read_pkt(void)
 	do {
 		FD_ZERO(&rdfs);
 		FD_SET(sockfd,&rdfs);
-		tv.tv_sec = 0;
-		tv.tv_usec= 200;
-		retval=select(sockfd+1,&rdfs,NULL,NULL,&tv); 
+		retval=select(sockfd+1,&rdfs,NULL,NULL, NULL); 
 	} while (retval <= 0); 
 
 	ioctl(sockfd,FIONREAD,&numbytes);

@@ -564,7 +564,7 @@ void LATConnection::circuit_timer(void)
 	    reply->slot.length         = 0;
 	    reply->slot.cmd            = 0;
 	    
-	    if (role == CLIENT) reply->header.cmd          = LAT_CCMD_SESSION | 2;
+	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION | 2;
 	    
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;

@@ -1,3 +1,13 @@
+latd (1.23) unstable; urgency=low
+
+  * Send correct disconnect packets that don't upset VMS & some DECservers.
+  * Fix some alignment problems on sparc.
+  * Fix some double increments that break on some architectures.
+  * Fix incoming reverse LAT that was broken in 1.22.
+  * Include example script for using latd as a print server.
+  
+ -- Patrick Caulfield <patrick@debian.org>  Sun,  6 Mar 2005 13:43:02 +0000
+
 latd (1.22) unstable; urgency=low
 
   * Fix some silly code errors.

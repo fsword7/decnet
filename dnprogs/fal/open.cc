@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -96,9 +96,9 @@ bool fal_open::process_message(dap_message *m)
 	    int    status;
 	    if (verbose > 1)
 		DAPLOG((LOG_DEBUG, "fal_open: ACCESS message:\n"));
-	
+
 	    dap_access_message *am = (dap_access_message *)m;
-	
+
 	    // Get the filespec and split it into bits
 	    strcpy(filespec, am->get_filespec());
 	    split_filespec(volume, directory, filespec);
@@ -116,7 +116,7 @@ bool fal_open::process_message(dap_message *m)
 	    {
 		write_access=true;
 	    }
-	    
+
 	    // Convert % wildcards to ?
 	    if (vms_format) convert_vms_wildcards(filespec);
 
@@ -157,18 +157,18 @@ bool fal_open::process_message(dap_message *m)
 	    attrib_msg->clear_rat_bit(dap_attrib_message::FB$PRN);
 
 	    // Send whatever attributes were requested;
-	    // Only send the DEV field if the target file is 
+	    // Only send the DEV field if the target file is
             // one we can handle natively because
 	    // DEV (as a disk device) makes VMS send files in block mode.
-	    if (verbose > 1) DAPLOG((LOG_INFO, "org = %d, rfm = %d\n", 
-				     attrib_msg->get_org(), 
+	    if (verbose > 1) DAPLOG((LOG_INFO, "org = %d, rfm = %d\n",
+				     attrib_msg->get_org(),
 				     attrib_msg->get_rfm()));
 
 	    if (!create)
 	    {
-	        if (!send_file_attributes(block_size, use_records, 
+	        if (!send_file_attributes(block_size, use_records,
 					  gl.gl_pathv[glob_entry],
-					  am->get_display(), 
+					  am->get_display(),
 					  DEV_DEPENDS_ON_TYPE))
 		{
 		    return_error();
@@ -177,9 +177,9 @@ bool fal_open::process_message(dap_message *m)
 	    }
 	    else
 	    {
-	        if (!send_file_attributes(block_size, use_records, 
+	        if (!send_file_attributes(block_size, use_records,
 					  gl.gl_pathv[glob_entry],
-					  am->get_display(), 
+					  am->get_display(),
 					  DONT_SEND_DEV))
 		{
 		    return_error();
@@ -253,7 +253,7 @@ bool fal_open::process_message(dap_message *m)
 	    switch (am->get_cmpfunc())
 	    {
 	    case dap_accomp_message::END_OF_STREAM:
-		
+
 		// write metafile
 		if (params.use_metafiles && create)
 		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
@@ -273,7 +273,7 @@ bool fal_open::process_message(dap_message *m)
 		  current_record = 0;
 		  if (record_lengths) delete[] record_lengths;
 
-		  if (!send_file_attributes(block_size, use_records, gl.gl_pathv[glob_entry], 
+		  if (!send_file_attributes(block_size, use_records, gl.gl_pathv[glob_entry],
 					    display, SEND_DEV))
 		      return false;
 		  return send_ack_and_unblock();
@@ -288,11 +288,11 @@ bool fal_open::process_message(dap_message *m)
 	    case dap_accomp_message::CLOSE:
 		// finished task
 		if (stream)
-		{		    
+		{
 		    fclose(stream);
 		    stream = NULL;
 		}
-		
+
 		// Do close options
 		if (am->get_fop_bit(dap_attrib_message::FB$SPL) ||
 		    attrib_msg->get_fop_bit(dap_attrib_message::FB$SPL))
@@ -331,7 +331,7 @@ bool fal_open::process_message(dap_message *m)
     case dap_message::STATUS:
         {
 	    dap_status_message *sm = (dap_status_message *)m;
-	    
+
 	    if (sm->get_code() & 0x0FFF != 0x10)
 	    {
 		DAPLOG((LOG_WARNING, "Error in receiving data: %s",
@@ -343,7 +343,7 @@ bool fal_open::process_message(dap_message *m)
 	break;
 
     default:
-	DAPLOG((LOG_WARNING, "unexpected message type %d received\n", 
+	DAPLOG((LOG_WARNING, "unexpected message type %d received\n",
 		m->get_type() ));
 	return false;
     }
@@ -375,7 +375,7 @@ bool fal_open::send_file(int rac, long vbn)
     // If we are streaming then send as much as possible in a block,
     // if not then we block data & status message. Ether way we enable
     // blocking here.
-    conn.set_blocked(true); 
+    conn.set_blocked(true);
 
     // Seek to VBN or RFA (VBNs start at one)
     if (vbn || rac == dap_control_message::RB$RFA)
@@ -400,7 +400,7 @@ bool fal_open::send_file(int rac, long vbn)
 		{
 		    if (::fread(buf, 1, record_lengths[current_record], stream) < 1)
 			ateof = true;
-		    
+
 		    // We read a whole record (including our "compatibility" LF)
 		    // which VMS does not want.
 		    buflen = record_lengths[current_record++]-1;
@@ -416,7 +416,7 @@ bool fal_open::send_file(int rac, long vbn)
 		// Read up to the next LF or EOF
 		int newchar;
 		buflen = 0;
-		do 
+		do
 		{
 		    newchar = getc(stream);
 		    if (newchar != EOF)
@@ -434,7 +434,7 @@ bool fal_open::send_file(int rac, long vbn)
 	    // Always send a full block or VMS complains.
 	    buflen=bs;
 	}
-	
+
 	// We got some data
 	if (!ateof)
 	{
@@ -479,7 +479,7 @@ bool fal_open::send_file(int rac, long vbn)
 
 		    am.set_cmpfunc(dap_accomp_message::RESPONSE);
 		    am.write(conn);
-		    conn.set_blocked(false); 
+		    conn.set_blocked(false);
 		    return false;
 		}
 	    }
@@ -498,12 +498,12 @@ bool fal_open::send_file(int rac, long vbn)
     else // STATUS for last record sent
     {
 	dap_status_message status;
-	
+
 	status.set_code(010225); // Operation successful
 	DAPLOG((LOG_DEBUG, "Sending RFA of %d\n", record_pos ));
 	status.set_rfa( record_pos );
 	status.write(conn);
-	conn.set_blocked(false); 
+	conn.set_blocked(false);
     }
     return true;
 }
@@ -524,25 +524,25 @@ bool fal_open::put_record(dap_data_message *dm)
 	    dataptr += attrib_msg->get_fsz();
 	    datalen -= attrib_msg->get_fsz();
 	}
-	
+
         // FORTRAN files: First byte indicates carriage control
 	if (attrib_msg->get_rat_bit(dap_attrib_message::FB$FTN))
 	{
-	    switch (dataptr[0]) 
+	    switch (dataptr[0])
 	    {
 	    case '+': // No new line
 		dataptr[0] = '\r';
 		break;
-		
+
 	    case '1': // Form Feed
 		dataptr[0] = '\f';
 		break;
-		
+
 	    case '0': // Two new lines
 		dataptr[0] = '\n';
 		if (!fwrite("\n", 1, 1, stream)) return false;
 		break;
-		
+
 
 	    case ' ': // new line
 	    default:  // Default to a new line. This seems to be what VMS does.
@@ -597,7 +597,7 @@ void fal_open::print_file()
     char cmd[strlen(gl.gl_pathv[glob_entry])+strlen(PRINT_COMMAND)+2];
 
     sprintf(cmd, PRINT_COMMAND, gl.gl_pathv[glob_entry]);
-    
+
     int status = system(cmd);
 
     if (verbose > 1) DAPLOG((LOG_INFO, "Print file status = %d\n", status));
@@ -624,7 +624,7 @@ void fal_open::set_control_options(dap_control_message *cm)
     if (verbose > 1)
         DAPLOG((LOG_DEBUG, "fal_open: CONTROL: type %d, rac=%x\n",
 		cm->get_ctlfunc(), cm->get_rac() ));
-  
+
   // Determine whether to enable streaming or not
     int access_mode = cm->get_rac();
     if (access_mode == dap_control_message::SEQFT ||
@@ -652,10 +652,10 @@ void fal_open::set_control_options(dap_control_message *cm)
 void fal_open::send_eof()
 {
     dap_status_message status;
-    
+
     status.set_code(010047); // EOF
     status.write(conn);
-    conn.set_blocked(false); 
+    conn.set_blocked(false);
 }
 
 // Actually create the file using (as close as we can get) the attributes
@@ -694,7 +694,7 @@ bool fal_open::create_file(char *filespec)
     if (fd == -1) return false;
 
     stream = fdopen(fd, "w+");
-    if (!stream) 
+    if (!stream)
     {
 	close(fd);
 	return false;

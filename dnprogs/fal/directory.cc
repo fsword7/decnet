@@ -333,7 +333,7 @@ bool fal_directory::send_dir_entry(const char *path, int display)
         dap_status_message st;
         st.set_errno();
         st.write(conn);
-     }
+    }
     return true;
 }
 

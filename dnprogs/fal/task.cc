@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -14,7 +14,7 @@
  */
 // task.cc
 // Base class for a task within a FAL server process.
-// All real tasks subclass this but we provide here some basic services such 
+// All real tasks subclass this but we provide here some basic services such
 // as filename conversion and parsing that they all need.
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -54,7 +54,7 @@ void fal_task::return_error()
 // Send and error packet based on the passed error code
 void fal_task::return_error(int code)
 {
-    if (verbose > 1) 
+    if (verbose > 1)
 	DAPLOG((LOG_ERR, "fal_task error: %s\n", strerror(code)));
 
     // If the other end went away there's no point in sending the message
@@ -90,8 +90,8 @@ bool fal_task::is_vms_name(char *name)
 
 // Splits a filename up into volume, directory and file parts.
 // The volume and directory are just for display purposes (they get sent back
-// to the client). file is the (possibly) wildcard filespec to use for 
-// searching for files. 
+// to the client). file is the (possibly) wildcard filespec to use for
+// searching for files.
 //
 // Unix filenames are just returned as-is.
 //
@@ -100,6 +100,12 @@ bool fal_task::is_vms_name(char *name)
 //
 void fal_task::split_filespec(char *volume, char *directory, char *file)
 {
+    // If the remote client is RSX then lower-case the filename
+    if (params.remote_os == 4)
+    {
+	dap_connection::makelower(file);
+    }
+
     if (is_vms_name(file))
     {
 	// This converts the VMS name to a Unix name and back again. This
@@ -150,7 +156,7 @@ void fal_task::make_vms_filespec(const char *unixname, char *vmsname, bool full)
     int         i;
     char       *lastslash;
     struct stat st;
-    
+
     // Resolve all relative bits and symbolic links
     realpath(unixname, fullname);
 
@@ -162,14 +168,14 @@ void fal_task::make_vms_filespec(const char *unixname, char *vmsname, bool full)
     // expect one as does dapfs.
     if (!strchr(lastslash, '.'))
         strcat(fullname, ".");
-    
+
     // If it's a directory then add .DIR;1
     if (lstat(unixname, &st)==0 && S_ISDIR(st.st_mode))
     {
         // Take care of dots embedded in directory names (/etc/rc.d)
         if (fullname[strlen(fullname)-1] != '.')
 	    strcat(fullname, ".");
-	
+
         strcat(fullname, "DIR;1"); // last dot has already been added
     }
     else // else just add a version number unless the file already has one
@@ -199,7 +205,7 @@ void fal_task::make_vms_filespec(const char *unixname, char *vmsname, bool full)
     // and so on...
 
     int slashes = 0;
-    
+
     // Oh, also make it all upper case for VMS's benefit.
     for (i=0; i<(int)strlen(fullname); i++)
     {
@@ -209,7 +215,7 @@ void fal_task::make_vms_filespec(const char *unixname, char *vmsname, bool full)
 	    slashes++;
 	}
     }
-    
+
     // File is in the root directory
     if (slashes == 1)
     {
@@ -276,7 +282,7 @@ void fal_task::parse_vms_filespec(char *volume, char *directory, char *file)
 	ptr = colon+1;
 	*ptr = saved;
     }
-    
+
     char *enddir = strchr(ptr, ']');
     if (*ptr == '[' && enddir) // we have a directory
     {
@@ -287,11 +293,11 @@ void fal_task::parse_vms_filespec(char *volume, char *directory, char *file)
 	ptr = enddir+1;
 	*ptr = saved;
     }
-    
+
     // Copy the rest of the filename using memmove 'cos it might overlap
     if (ptr != file)
 	memmove(file, ptr, strlen(ptr)+1);
-    
+
 }
 
 // Convert a VMS filespec into a Unix filespec
@@ -314,7 +320,7 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
     // If the filename has a trailing dot them remove that too
     if (file[strlen(file)-1] == '.')
         file[strlen(file)-1] = '\0';
-    
+
     unixname[0] = '\0';
 
     // Split it into its component parts
@@ -323,7 +329,7 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
     // Remove the trailing colon from the volume name
     if (volume[strlen(volume)-1] == ':')
 	volume[strlen(volume)-1] = '\0';
-    
+
     // If the filename has the dummy SYSDISK volume then start from the
     // filesystem root
     if (strcasecmp(volume, sysdisk_name) == 0)
@@ -339,7 +345,7 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
 	}
     }
     ptr = strlen(unixname);
-    
+
     // Copy the directory
     for (i=0; i< (int)strlen(dir); i++)
     {
@@ -427,7 +433,7 @@ void fal_task::convert_vms_wildcards(char *filespec)
 
 //
 // Most of the subclasses use these routines to send the file attributes in
-// response to an ACCESS message. 
+// response to an ACCESS message.
 // The option to send the DEV field is really for CREATE because when VMS
 // sees the block device it tries to send the file in block mode and we then
 // end up with an RMS file on Linux and that's not very useful.
@@ -440,10 +446,10 @@ bool fal_task::send_file_attributes(char *filename, int display, dev_option show
 }
 
 
-bool fal_task::send_file_attributes(unsigned int &block_size, 
+bool fal_task::send_file_attributes(unsigned int &block_size,
 				    bool &use_records,
-				    char *filename, 
-				    int display, 
+				    char *filename,
+				    int display,
 				    dev_option show_dev)
 {
     struct stat st;
@@ -478,10 +484,10 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	}
 
 	// There's hardly anything in this message but it keeps VMS quiet
-	if (display & dap_access_message::DISPLAY_ALLOC_MASK)	
+	if (display & dap_access_message::DISPLAY_ALLOC_MASK)
 	{
 	    dap_alloc_message alloc_msg;
-	    
+
 	    if (!alloc_msg.write(conn)) return false;
 	}
 
@@ -489,18 +495,18 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	if (display & dap_access_message::DISPLAY_DATE_MASK)
 	{
 	    dap_date_message date_msg;
-	    
+
 	    date_msg.set_cdt(st.st_ctime);
 	    date_msg.set_rdt(st.st_mtime);
 	    date_msg.set_rvn(1);
 	    if (!date_msg.write(conn)) return false;
 	}
-	
+
 	// Send the protection
 	if (display & dap_access_message::DISPLAY_PROT_MASK)
 	{
 	    dap_protect_message prot_msg;
-	    
+
 	    prot_msg.set_protection(st.st_mode);
 	    prot_msg.set_owner(st.st_gid, st.st_uid);
 	    if (!prot_msg.write(conn)) return false;
@@ -510,11 +516,11 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	if (display & dap_access_message::DISPLAY_NAME_MASK)
 	{
 	    dap_name_message name_msg;
-	    
+
 	    if (vms_format)
 	    {
 		char vmsname[PATH_MAX];
-		
+
 		make_vms_filespec(filename, vmsname, true);
 		name_msg.set_namespec(vmsname);
 		name_msg.set_nametype(dap_name_message::FILESPEC);
@@ -573,9 +579,9 @@ bool fal_task::fake_file_type(unsigned int &blocksize, bool &send_records,
 	return true;
 
     // Guess file type
-    if (params.auto_type == fal_params::GUESS_TYPE) 
+    if (params.auto_type == fal_params::GUESS_TYPE)
 	return guess_file_type(blocksize, send_records, name, attrib_msg);
-    if (params.auto_type == fal_params::CHECK_EXT) 
+    if (params.auto_type == fal_params::CHECK_EXT)
 	return check_file_type(blocksize, send_records, name, attrib_msg);
 
     return false;
@@ -583,7 +589,7 @@ bool fal_task::fake_file_type(unsigned int &blocksize, bool &send_records,
 
 // Guess the file type based on the first few bytes and set the attrib
 // message
-bool fal_task::guess_file_type(unsigned int &block_size, bool &send_records, 
+bool fal_task::guess_file_type(unsigned int &block_size, bool &send_records,
 			       const char *name, dap_attrib_message *attrib_msg)
 {
     char   buf[132]; // Arbitrary amounts R us
@@ -757,13 +763,13 @@ void fal_task::open_auto_types_file()
 		{
 		    strncpy(num, fileptr, numlen);
 		    num[numlen] = '\0';
-		    
+
 		    block_size = atoi(num);
 		}
 	    }
 	    auto_types *new_type = new auto_types(extension, use_records, block_size);
 	    if (verbose > 2)
-		DAPLOG((LOG_DEBUG, "Type: %s, %c, %d\n", 
+		DAPLOG((LOG_DEBUG, "Type: %s, %c, %d\n",
 			extension, use_records?'r':'b', block_size));
 
 
@@ -861,7 +867,7 @@ void fal_task::meta_filename(const char *file, char *metafile)
 }
 
 // Read file metadata - return true if it exists, false otherwise
-bool fal_task::read_metafile(unsigned int &block_size, bool &send_records, 
+bool fal_task::read_metafile(unsigned int &block_size, bool &send_records,
 			     const char *name, dap_attrib_message *attrib_msg)
 {
     char metafile[PATH_MAX];
@@ -916,7 +922,7 @@ bool fal_task::read_metafile(unsigned int &block_size, bool &send_records,
 	    {
 		// For variable-length records we always send as records if we
 		// need to consult the metadata.
-		if (metadata.rfm & dap_attrib_message::FB$VAR && 
+		if (metadata.rfm & dap_attrib_message::FB$VAR &&
 		    record_lengths != NULL)
 		{
 		    if (verbose>1) DAPLOG((LOG_DEBUG, "Sending VAR file as records\n"));
@@ -956,13 +962,13 @@ void fal_task::create_metafile(char *name, dap_attrib_message *attrib_msg)
 	metadata.mrs = attrib_msg->get_mrs();
 	metadata.version = metafile_data::METAFILE_VERSION;
 	metadata.num_records = current_record;
-	
+
 	// Calculate Longest Record Length.
 	unsigned int lrl = 0;
 	for (unsigned int i=0; i<current_record; i++)
 	    if (record_lengths[i] > lrl) lrl = record_lengths[i];
-	
-	// Our record lengths include the terminating LF so 
+
+	// Our record lengths include the terminating LF so
 	// subtract that from the length.
         // If there are no records then put MRS in there.
 	metadata.lrl = (lrl?(lrl - 1):metadata.mrs);
@@ -984,7 +990,7 @@ void fal_task::create_metafile(char *name, dap_attrib_message *attrib_msg)
 }
 
 // Read VMS NFS "ADF" file - return true if it exists, false otherwise
-bool fal_task::read_adf(unsigned int &block_size, bool &send_records, 
+bool fal_task::read_adf(unsigned int &block_size, bool &send_records,
 			const char *name, dap_attrib_message *attrib_msg)
 {
     char adfname[PATH_MAX];
@@ -1003,7 +1009,7 @@ bool fal_task::read_adf(unsigned int &block_size, bool &send_records,
 	    return false;
 	}
 	fclose(adf);
-	
+
 	adfs.rfm = adfs.rfm & 0xF;
 	attrib_msg->set_rfm(adfs.rfm);
 	attrib_msg->set_mrs(adfs.mrs);

@@ -425,11 +425,9 @@ void LATServer::run()
     {
 	syslog(LOG_ERR, "listen latcp: %m");
     }
-    // Make sure only root can talk to us.
+    // Make sure only root can talk to us via the latcp socket
     chmod(LATCP_SOCKNAME, 0600);
-    fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));
-    
-
+    fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));  
 
     // Open llogin socket
     unlink(LLOGIN_SOCKNAME);
@@ -500,7 +498,7 @@ void LATServer::run()
 	    list<fdinfo>::iterator fdl(fdlist.begin());
 	    for (; fdl != fdlist.end(); fdl++)
 	    {
-		if (fdl->get_type() != INACTIVE &&
+		if (fdl->active() &&
 		    FD_ISSET(fdl->get_fd(), &fds))
 		{
 		    process_data(*fdl);		    
@@ -540,6 +538,7 @@ void LATServer::run()
 
     close(latcp_socket);
     unlink(LATCP_SOCKNAME);
+    unlink(LLOGIN_SOCKNAME);
 
     tidy_dev_directory();
 }

@@ -157,7 +157,7 @@ lloginSession::~lloginSession()
 
 void lloginSession::do_read()
 {
-    if (connected)
+//    if (connected)
     {
 	read_pty();
     }

@@ -270,7 +270,6 @@ void ClientSession::got_connection(unsigned char _remid)
     }
     parent.queue_message(buf, ptr);
 
-
     connected = true;
 }
 

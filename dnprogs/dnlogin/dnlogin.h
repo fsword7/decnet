@@ -15,7 +15,7 @@
 
 
 /* Foundation services routines */
-extern char *found_connerror(char *default_msg);
+extern char *found_connerror(void);
 extern int found_getsockfd(void);
 extern int found_write(char *buf, int len);
 extern int found_read(void);

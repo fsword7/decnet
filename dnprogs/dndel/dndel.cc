@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-1999      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -41,7 +41,7 @@ static void usage(void)
     printf("  -v           verbose - display files that have been deleted\n");
     printf("  -? -h        display this help message\n");
     printf("  -V           show version number\n");
-			    
+
     printf("\nExamples:\n\n");
     printf(" dndel -l 'myvax::*.*;'\n");
     printf(" dndel 'cluster\"patrick thecats\"::disk$users:[cats.pics]otto.jpg;'\n");
@@ -75,7 +75,7 @@ static bool check_status(dap_connection &conn, char *name)
   }
   return true;
 }
-     
+
 
 // Send an ACCESS DIRECTORY request. If we are running non-interactively then
 // we actually delete the files here instead.
@@ -129,7 +129,7 @@ static bool dap_get_delete_ack(dap_connection &c)
 
 // Send CONTRAN/SKIP message. We need this if a file in the list is locked.
 static bool dap_send_skip(dap_connection &conn)
-{	
+{
     dap_contran_message cm;
     cm.set_confunc(dap_contran_message::SKIP);
     return cm.write(conn);
@@ -181,7 +181,7 @@ static int dap_get_dir_entry(dap_connection &c, char *name)
 
 	    }
 	    break;
-	    
+
 	case dap_message::ACCOMP:
 	    delete m;
 	    return -1;
@@ -198,8 +198,8 @@ static int dap_get_dir_entry(dap_connection &c, char *name)
 		    dap_send_skip(c);
 		    break;
 		}
-		fprintf(stderr, "Error deleting %s: %s\n", 
-			got_name?name:"file", 
+		fprintf(stderr, "Error deleting %s: %s\n",
+			got_name?name:"file",
 			sm->get_message());
 		delete m;
 		return -1;
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 	usage();
 	exit(0);
     }
-    
+
 /* Get command-line options */
     opterr = 0;
     optind = 0;
@@ -237,7 +237,7 @@ int main(int argc, char *argv[])
     {
 	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	case '?':
 	    usage();
 	    exit(1);
@@ -294,10 +294,10 @@ int main(int argc, char *argv[])
 	    return -1;
 	}
     }
-    
+
     /* If non-interactive then the next command just deletes the files */
-    dap_directory_lookup(dir_conn, name, interactive || (verbose>0) ); 
-    
+    dap_directory_lookup(dir_conn, name, interactive || (verbose>0) );
+
     /* Loop through the files we find */
     while ((retval=dap_get_dir_entry(dir_conn, name)) > 0)
     {
@@ -306,7 +306,7 @@ int main(int argc, char *argv[])
 	    if (interactive)
 	    {
 		char response[255];
-		
+
 		printf("Delete %s ? ", name);
 		fgets(response, sizeof(response), stdin);
 		if (tolower(response[0]) == 'y')
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 			if (verbose)
 			    printf("Deleted %s\n", name);
 		}
-	    }		
+	    }
 	    else if (verbose)
 	    {
 		dap_delete_file(del_conn, name);

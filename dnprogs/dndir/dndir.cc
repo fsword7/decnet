@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-1999      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -33,10 +33,10 @@
 bool show_full_details(char *dirname, dap_connection &conn);
 void print_short(
     unsigned int filename_width,
-    int show_size, 
-    int show_date, 
-    int show_owner, 
-    int show_protection, 
+    int show_size,
+    int show_date,
+    int show_owner,
+    int show_protection,
     int single_column,
     int entries_per_line,
     long size,
@@ -79,7 +79,7 @@ static void	dndir_usage(FILE *f)
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -v           increase verbosity\n");
     fprintf(f, "  -V           show version number\n");
-			    
+
     fprintf(f, "\nExamples:\n\n");
     fprintf(f, " dndir -l 'myvax::*.*'\n");
     fprintf(f, " dndir 'cluster\"patrick thecats\"::disk$users:[cats.pics]*.jpg;'\n");
@@ -139,15 +139,15 @@ int main(int argc, char *argv[])
 	term_width = 132;
     }
 
-    
-// Get command-line options 
+
+// Get command-line options
     opterr = 0;
     optind = 0;
     while ((opt=getopt(argc,argv,"?hvVvcepndlostbw:f:")) != EOF)
     {
 	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    dndir_usage(stdout);
 	    exit(1);
 
@@ -159,30 +159,30 @@ int main(int argc, char *argv[])
 	    show_protection++;
 	    single_column++;
 	    break;
-	    
-	case 'o':	   
+
+	case 'o':
 	    show_owner++;
 	    single_column++;
 	    break;
 
-	case 'c':	   
+	case 'c':
 	    single_column++;
 	    break;
-	    
+
 	case 'b':
 	    show_bytes++;
 	    break;
-	    
+
 	case 's':
 	    show_size++;
 	    single_column++;
 	    break;
-	    
+
 	case 'd':
 	    show_date++;
 	    single_column++;
 	    break;
-	    	    
+
 	case 'l':
 	    show_date++;
 	    show_size++;
@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     if (optind >= argc)
     {
 	dndir_usage(stderr);
-	exit(2);   
+	exit(2);
     }
 
 
@@ -277,10 +277,10 @@ int main(int argc, char *argv[])
     acc.write(conn);
 
     bool name_pending = false;
-    if (show_full) 
+    if (show_full)
     {
 	if (show_full_details(dirname, conn)) goto finished;
-	
+
     }
     else
     {
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 	    switch (m->get_type())
 	    {
 	        case dap_message::NAME:
-		{ 
+		{
 		    if (name_pending)
 		    {
 			name_pending = false;
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
 
 
 		    dap_name_message *nm = (dap_name_message *)m;
-		    
+
 		    if (nm->get_nametype() == dap_name_message::VOLUME &&
 			show_header)
 		    {
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 			just_shown_header = 1;
 			strcpy(volname, nm->get_namespec());
 		    }
-		    
+
 		    if (nm->get_nametype() == dap_name_message::DIRECTORY &&
 			show_header)
 		    {
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 			printf("%s\n\n",nm->get_namespec());
 			just_shown_header = 0;
 		    }
-		    
+
 		    if (nm->get_nametype() == dap_name_message::FILENAME)
 		    {
 			strcpy(name, nm->get_namespec());
@@ -339,17 +339,17 @@ int main(int argc, char *argv[])
 		    }
 		}
 		break;
-		
+
 	        case dap_message::PROTECT:
-		{ 
+		{
 		    dap_protect_message *pm = (dap_protect_message *)m;
 		    strcpy(owner, pm->get_owner());
 		    strcpy(prot, pm->get_protection());
-		}	    
+		}
 		break;
-		
+
 	        case dap_message::ATTRIB:
-		{ 
+		{
 		    dap_attrib_message *am = (dap_attrib_message *)m;
 		    if (show_bytes)
 			size = am->get_size();
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 		break;
 
 	        case dap_message::DATE:
-		{ 
+		{
 		    dap_date_message *dm = (dap_date_message *)m;
 		    strcpy(cdt, dm->make_y2k(dm->get_cdt()));
 		}
@@ -389,7 +389,7 @@ int main(int argc, char *argv[])
 				printed = 0;
 			    }
 			}
-			
+
 			dap_contran_message cm;
 			cm.set_confunc(dap_contran_message::SKIP);
 			if (!cm.write(conn))
@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
     conn.close();
 
     if (!single_column) printf("\n");
-	
+
     if (show_total)
     {
 	if (show_bytes)
@@ -483,7 +483,7 @@ bool show_full_details(char *dirname, dap_connection &conn)
 		    delete attrib_msg;
 		    delete date_msg;
 		}
-		
+
 		name_msg = (dap_name_message *)m;
 		switch (name_msg->get_nametype())
 		{
@@ -521,7 +521,7 @@ bool show_full_details(char *dirname, dap_connection &conn)
 		{
 		    printf("%s  File current locked by another user\n",
 			   name_msg->get_namespec());
-		    
+
 		    dap_contran_message cm;
 		    cm.set_confunc(dap_contran_message::SKIP);
 		    if (!cm.write(conn))
@@ -532,16 +532,16 @@ bool show_full_details(char *dirname, dap_connection &conn)
 		}
 		else
 		{
-		    printf("Error opening %s: %s\n", dirname, 
+		    printf("Error opening %s: %s\n", dirname,
 			   sm->get_message());
 		    return false;
 		}
 	    }
 	    break;
-		
+
 	    case dap_message::ACK:
 		break;
-		
+
 	    case dap_message::ACCOMP:
 		goto full_flush;
 	}
@@ -563,10 +563,10 @@ bool show_full_details(char *dirname, dap_connection &conn)
 // Print the file in short format
 void print_short(
     unsigned int filename_width,
-    int show_size, 
-    int show_date, 
-    int show_owner, 
-    int show_protection, 
+    int show_size,
+    int show_date,
+    int show_owner,
+    int show_protection,
     int single_column,
     int entries_per_line,
     long size,
@@ -605,7 +605,7 @@ void print_short(
 	    printf("\n");
 	    *printed = 0;
 	}
-	
+
 	// Long filename, skip a field.
 	if (strlen(name) >= filename_width && *printed)
 	{
@@ -638,23 +638,23 @@ void print_long
 	   attrib_msg->get_ebk(),
 	   attrib_msg->get_alq(),
 	   protect_msg->get_owner());
-    printf("Created:   %s\n", 
+    printf("Created:   %s\n",
 	   date_msg->make_y2k(date_msg->get_cdt()));
-    printf("Revised:   %s (%d)\n", 
+    printf("Revised:   %s (%d)\n",
 	   date_msg->make_y2k(date_msg->get_rdt()),
 	   date_msg->get_rvn());
     if (date_msg->get_edt()[0] == '\0')
 	printf("Expires:   <None specified>\n");
     else
-	printf("Expires:   %s\n", 
+	printf("Expires:   %s\n",
 	       date_msg->make_y2k(date_msg->get_edt()));
-    
+
     if (date_msg->get_bdt()[0] == '\0')
 	printf("Backup:    <No backup recorded>\n");
     else
-	printf("Backup:    %s\n", 
+	printf("Backup:    %s\n",
 	       date_msg->make_y2k(date_msg->get_bdt()));
-    
+
     printf("File organization:  ");
     switch (attrib_msg->get_org())
     {
@@ -671,7 +671,7 @@ void print_long
 	printf("Unknown\n");
 	break;
     }
-    
+
     printf("Record Format:      ");
     switch (attrib_msg->get_rfm())
     {
@@ -700,7 +700,7 @@ void print_long
 	printf("Stream_LF\n");
 	break;
     }
-    
+
     printf("Record Attributes:  ");
     bool done_one=false;
     if (attrib_msg->get_rat() & 1<<dap_attrib_message::FB$FTN)
@@ -708,28 +708,28 @@ void print_long
 	printf("Fortran carriage control");
 	done_one=true;
     }
-    
+
     if (attrib_msg->get_rat() & 1<<dap_attrib_message::FB$CR)
     {
 	if (done_one) printf(", ");
 	printf("Carriage return carriage control");
 	done_one=true;
     }
-    
+
     if (attrib_msg->get_rat() & 1<<dap_attrib_message::FB$PRN)
     {
 	if (done_one) printf(", ");
 	printf("Print file carriage control");
 	done_one=true;
     }
-    
+
     if (attrib_msg->get_rat() & 1<<dap_attrib_message::FB$BLK)
     {
 	if (done_one) printf(", ");
 	printf("Non-spanned");
 	done_one=true;
     }
-    
+
     if (attrib_msg->get_rat() & 1<<dap_attrib_message::FB$LSA)
     {
 	if (done_one) printf(", ");
@@ -738,12 +738,12 @@ void print_long
     }
     if (!done_one) printf("None");
     printf("\n");
-    
+
     printf("File protection:    ");
     char prot[64];
     strcpy(prot, protect_msg->get_protection()+1);
     prot[strlen(prot)-1] = '\0';
-    
+
     char *p = strtok(prot, ",");
     for (int c=0; c<4; c++)
     {

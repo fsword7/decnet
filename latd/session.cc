@@ -62,8 +62,32 @@ void LATSession::add_credit(signed short c)
 	debuglog(("Got some more credit, (+%d=%d) carrying on\n", c, credit));
 	stopped = false;
 	LATServer::Instance()->set_fd_state(master_fd, false);
-	tcflow(master_fd, TCOON);
+//	tcflow(master_fd, TCOON);
     }
+}
+
+#define REALLY_VERBOSE_DEBUGLOG
+// Try to write all the data to the PTY
+int LATSession::writeall(int fd, unsigned char *buf, int len)
+{
+    int done = 0;
+
+    while (done < len)
+    {
+	int count;
+	debuglog(("writeall::done = %d, len = %d\n", done, len));
+	count = ::write(fd, buf+done, len-done);
+	if (count > 0)
+	{
+	    done += count;
+	}
+	else
+	{
+	    debuglog(("writeall: write returned %d, errno = %s\n", count, strerror(errno)));
+	    return -1;
+	}
+    }
+    return len;
 }
 
 /* Got some data from the terminal - send it to the PTY */
@@ -87,11 +111,11 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 	    int  newlen;
 
 	    crlf_to_lf(buf, len, newbuf, &newlen);
-	    write(master_fd, newbuf, newlen);
+	    writeall(master_fd, newbuf, newlen);
 	}
 	else
 	{
-	    write(master_fd, buf, len);
+	    writeall(master_fd, buf, len);
 	}
     }
 
@@ -125,7 +149,7 @@ int LATSession::read_pty()
         {
             LATServer::Instance()->set_fd_state(master_fd, true);
 	    stopped = true;
-	    tcflow(master_fd, TCOOFF);
+//	    tcflow(master_fd, TCOOFF);
         }
 	return 0; // Not allowed!
     }
@@ -243,7 +267,7 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
 	LATServer::Instance()->set_fd_state(master_fd, true);
 	debuglog(("Out of credit...Stop\n"));
 	stopped = true;
-	tcflow(master_fd, TCOOFF);
+//	tcflow(master_fd, TCOOFF);
     }
 
     return 0;

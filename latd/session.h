@@ -81,4 +81,5 @@ class LATSession
     int  send_break();
     void add_slot(unsigned char *buf, int &ptr, int slotcmd, unsigned char *slotdata, int len);
     void crlf_to_lf(unsigned char *buf, int len, unsigned char *newbuf, int *newlen);
+    int  writeall(int fd, unsigned char *buf, int len);
 };

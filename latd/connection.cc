@@ -480,7 +480,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	header->num_slots = num_replies;
 	if (role == CLIENT) header->cmd |= 2; // To Host
 
-	if (num_replies == 0) num_replies = 1;
 	for (int i=0; i < num_replies; i++)
 	{
 	    memcpy(replybuf + ptr, reply[i], sizeof(LAT_SlotCmd));

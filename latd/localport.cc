@@ -150,8 +150,8 @@ void LocalPort::close_and_delete()
 	slave_fd_open = false;
     }
     close (master_fd);
-    master_fd = -1;
     LATServer::Instance()->remove_fd(master_fd);
+    master_fd = -1;
     unlink(devname.c_str());
 }
 

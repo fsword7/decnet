@@ -65,8 +65,8 @@ localportSession::~localportSession()
 
     // Invalidate the FD number so it doesn't get closed when
     // the superclass destructors get called.
-    master_fd = -1;
     LATServer::Instance()->remove_fd(master_fd);
+    master_fd = -1;
 
     // Restart PTY so it can accept new connections
     debuglog(("Restarting PTY for local session\n"));

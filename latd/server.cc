@@ -96,13 +96,16 @@ unsigned char *LATServer::get_local_node(void)
     if (local_name[0] == '\0')
     {
 	struct utsname uts;
+	char *trailer;
+
 	uname(&uts);
 	if (strchr(uts.nodename, '.'))
 	    *strchr(uts.nodename, '.') = '\0';
 
         // This gets rid of the name-Computer bit on Darwin
-	if (strchr(uts.nodename, '-'))
-	    *strchr(uts.nodename, '-') = '\0';
+	trailer = strstr(uts.nodename, "-Computer");
+	if (trailer)
+	    *trailer = '\0';
 
 	// LAT node names must be <= 16 characters long
 	if (strlen(uts.nodename) > 16)
@@ -865,7 +868,7 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
 
 #ifdef PACKET_LOSS
   static int c=0;
-  if ((++c % PACKET_LOSS) == 0) {
+  if ((++c & PACKET_LOSS) == 0) {
       debuglog(("NOT SENDING THIS MESSAGE!\n"));
       return 0;
   }
@@ -1331,7 +1334,7 @@ void LATServer::add_services(unsigned char *buf, int len, int interface, unsigne
 	get_string(buf, &ptr, service);
 	get_string(buf, &ptr, ident);
 
-	if ( announce->node_status%1 == 0)
+	if ( (announce->node_status & 1) == 0)
 	{
 	    LATServices::Instance()->add_service(std::string((char*)nodename),
 						 std::string((char*)service),
@@ -1956,7 +1959,7 @@ int LATServer::unset_servergroups(unsigned char *bitmap)
 
     for (int i=0; i<32; i++)
     {
-	groups[i] ^= bitmap[i];
+	groups[i] &= ~bitmap[i];
     }
     return true;
 }
@@ -1974,7 +1977,7 @@ int LATServer::unset_usergroups(unsigned char *bitmap)
 {
     for (int i=0; i<32; i++)
     {
-	user_groups[i] ^= bitmap[i];
+	user_groups[i] &= ~bitmap[i];
     }
     return true;
 }

@@ -467,7 +467,7 @@ void LATSession::connect()
     // Add in the request ID for reverse connections
     if (request_id)
     {
-	if (ptr%1) ptr++;
+	if (ptr & 1) ptr++;
 	debuglog(("Sending request id %d, and port %s\n", request_id, ptyname));
 	buf[ptr++] = 2; // Parameter number
 	buf[ptr++] = 2; // Length of the short int

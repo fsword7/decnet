@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------
 #
 #
-# Daemons to start are defined in /etc/default/dnet-progs
+# Daemons to start are defined in /etc/default/decnet
 #
 
 . /etc/default/decnet

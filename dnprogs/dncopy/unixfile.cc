@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1998-1999 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+    (c) 1998-2003 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -21,7 +21,7 @@
 #include "file.h"
 #include "unixfile.h"
 
-// basename() is in libc but not in my header files 
+// basename() is in libc but not in my header files
 extern "C" char *basename(const char *);
 
 int unixfile::open(char *mode)
@@ -68,7 +68,7 @@ int unixfile::open(char *basename, char *mode)
 int unixfile::read(char *buf, int len)
 {
     if (transfer_mode == MODE_RECORD)
-    {	
+    {
 	char *out = buf;
 	char *in  = record_buffer + record_ptr;
 	char *endin  = record_buffer+record_buflen;
@@ -81,7 +81,7 @@ int unixfile::read(char *buf, int len)
 	    {
 		record_buflen = ::fread(record_buffer, 1, RECORD_BUFSIZE, stream);
 		record_ptr = 0;
-		if (record_buflen <= 0) 
+		if (record_buflen <= 0)
 		{
 		    if (reclen)
 			return reclen;
@@ -121,7 +121,7 @@ int unixfile::read(char *buf, int len)
 	reclen = ::fread(buf, 1, len, stream);
 	if (reclen <= 0)
 	    return -1;
-	
+
         // For block-mode we pad out the block to the
         // full block size. We never return a partial block.
         if (reclen != (int)block_size)
@@ -171,7 +171,7 @@ bool unixfile::isdirectory()
     return S_ISDIR(s.st_mode);
 }
 
-int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode) 
+int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
 {
 // Save these for later
     user_rfm = rfm;
@@ -184,11 +184,11 @@ int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
     {
 	record_buffer = (char *)malloc(RECORD_BUFSIZE);
     }
-    
+
     return 0;
 };
 
-int unixfile::next() 
+int unixfile::next()
 {
     return FALSE;
 };
@@ -205,7 +205,7 @@ char *unixfile::get_printname(char *filename)
 {
     static char realname[MAX_PATH];
     static char tmpname[MAX_PATH];
-    
+
     strcpy(tmpname, this->filename);
     strcat(tmpname, "/");
     strcat(tmpname, filename);
@@ -276,7 +276,7 @@ unixfile::~unixfile()
 
 unixfile::unixfile(char *name)
 {
-    strcpy(filename, name); 
+    strcpy(filename, name);
     record_buffer = NULL;
     record_ptr = record_buflen = 0;
 }

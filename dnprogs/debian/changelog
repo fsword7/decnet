@@ -1,3 +1,13 @@
+dnprogs (2.23-1) unstable; urgency=low
+
+  * sethost no longer gets stuck in a tight loop after shutting down
+    a node.
+  * Move libdnet-dev to libdevel section.
+  * dnroute is now included.
+  * Add routing support to init scripts
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun,  4 May 2003 13:14:33 +0100
+
 dnprogs (2.22-1) unstable; urgency=low
 
   * Make some bits of dncopy conditional on it being connected to VMS.

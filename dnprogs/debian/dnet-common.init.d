@@ -18,8 +18,14 @@ FLAGS="start 39 S .  stop 11 1 ."
 # The MAC address *must* be set for DECnet to work so if you do not use this
 # program you must do it some other way.
 #
+# ROUTING specifies whether we should be a endnode (0), level 1 router (1)
+# or aread router (2)
+#
+# PRIORITY specifies the routing priority. Defaults to 32. Note VMS defaults
+# to 64, max is 127.
 
 [ ! -f /sbin/setether ] && exit 0
+
 
 . /etc/default/decnet
 
@@ -28,6 +34,31 @@ interfaces="$DNET_INTERFACES"
 ADDR="`grep executor /etc/decnet.conf | cut -f2`"
 
 setether="/sbin/setether $ADDR $interfaces"
+
+
+set_routing()
+{
+
+# Enable routing if required
+if [ -n "$ROUTING" ]
+then
+
+# Set a default priority lower than VMS
+    if [ -z "$PRIORITY" ]
+    then
+	PRIORITY=32
+    fi
+
+    for i in /proc/sys/net/decnet/conf/eth*
+    do
+      echo $1        > $i/forwarding
+      echo $PRIORITY > $i/priority
+    done 
+fi
+
+}
+
+
 
 case $1 in
    start)
@@ -51,10 +82,12 @@ case $1 in
      echo -n "Starting DECnet..."
      $setether
      echo "$ADDR" > /proc/sys/net/decnet/node_address
+     set_routing $ROUTING
      echo "done."
      ;;
 
    stop)
+     set_routing 0
      ;;
 
    restart|reload|force-reload)

@@ -6,6 +6,7 @@ core
 latd
 latcp
 log
+llogin
 BUILD
 RPMS
 rpmbuild

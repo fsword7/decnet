@@ -91,13 +91,15 @@ void LinuxInterfaces::get_all_interfaces(int *ifs, int &num)
     for (iindex = 1; iindex < 256; iindex++)
     {
 	ifr.ifr_ifindex = iindex;
-        ioctl(sock, SIOCGIFNAME, &ifr);
-	// Only use ethernet interfaces
-	ioctl(sock, SIOCGIFHWADDR, &ifr);
-	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+        if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
 	{
-	    debuglog(("interface %d: %d\n", num, iindex));
-	    ifs[num++] = iindex;
+	    // Only use ethernet interfaces
+	    ioctl(sock, SIOCGIFHWADDR, &ifr);
+	    if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+	    {
+		debuglog(("interface %d: %d\n", num, iindex));
+		ifs[num++] = iindex;
+	    }
 	}
     }
 
@@ -154,21 +156,24 @@ int LinuxInterfaces::find_interface(char *name)
 
     ifr.ifr_ifindex = iindex;
 
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+    for (iindex = 1; iindex < 256; iindex++)
     {
-	if (strcmp(ifr.ifr_name, name) == 0)
+	ifr.ifr_ifindex = iindex;
+	if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
 	{
-	    // Also check it's ethernet while we are here
-	    ioctl(sock, SIOCGIFHWADDR, &ifr);
-	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+	    if (strcmp(ifr.ifr_name, name) == 0)
 	    {
-		syslog(LOG_ERR, "Device %s is not ethernet\n", name);
-		return -1;
+		// Also check it's ethernet while we are here
+		ioctl(sock, SIOCGIFHWADDR, &ifr);
+		if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+		{
+		    syslog(LOG_ERR, "Device %s is not ethernet\n", name);
+		    return -1;
+		}
+		close(sock);
+		return iindex;
 	    }
-	    close(sock);
-	    return iindex;
 	}
-	ifr.ifr_ifindex = ++iindex;
     }
     // Didn't find it
     close(sock);

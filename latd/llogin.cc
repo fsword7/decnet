@@ -312,7 +312,6 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
 
     while(true)
     {
-	char inchar;
 	char inbuf[1024];
 	fd_set in_set;
 	FD_ZERO(&in_set);
@@ -327,19 +326,26 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
 	// Read from keyboard. One at a time
 	if (FD_ISSET(termfd, &in_set))
 	{
-	    if ((read(termfd, &inchar, 1) < 1) ||
-		(endchar>0 && inchar == endchar))
+	    int len;
+	    int i;
+
+	    if (( (len=read(termfd, &inbuf, sizeof(inbuf))) < 1))
 	    {
 		break;
 	    }
 
-	    if (inchar == '\n' && crlf)
-		inchar = '\r';
-
-	    if (inchar == '\177' && bsdel)
-		inchar = '\010';
-
-	    write(latfd, &inchar, 1);
+	    for (i=0; i<len; i++)
+	    {
+		if (endchar >0 && inbuf[i] == endchar)
+		    goto quit;
+		
+		if (inbuf[i] == '\n' && crlf)
+		    inbuf[i] = '\r';
+		
+		if (inbuf[i] == '\177' && bsdel)
+		    inbuf[i] = '\010';
+	    }
+	    write(latfd, inbuf, len);
 
 	}
 
@@ -353,7 +359,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel)
 		write(termfd, inbuf, len);
 	}
     }
-    
+ quit:    
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
     printf("\n");

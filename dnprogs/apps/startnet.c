@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 
 
 #ifdef SDF_UICPROXY 
+#if 0	    
 	// Steve's Kernel uses syctl
 	{
 	    int name[] = {CTL_NET, NET_DECNET, NET_DECNET_DEFAULT_DEVICE};
@@ -83,11 +84,9 @@ int main(int argc, char *argv[])
 			address);
 		return -1;
 	    }
-#if 0	    
 	    status = sysctl(name, 3, NULL, NULL,
 			    exec_dev, strlen(exec_dev));
 	    if (status) perror("sysctl(set exec dev)");
-#endif
 
 	    name[2] = NET_DECNET_NODE_ADDRESS;
 	    status = sysctl(name, 3, NULL, NULL,
@@ -99,6 +98,7 @@ int main(int argc, char *argv[])
 			    node->n_name, strlen(node->n_name));
 	    if (status) perror("sysctl(set exec name)");
 	}
+#endif
 #else
 	// Eduardo's uses ioctl on an open socket
   	if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) {

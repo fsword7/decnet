@@ -1,13 +1,13 @@
-.TH DNCOPY 1 "September 13 2001" "DECnet utilities"
+.TH DNCOPY 1 "September 5 2002" "DECnet utilities"
 
 .SH NAME
 dncopy \- Copy files to/from a VMS system
 
 .SH SYNOPSIS
-.B dncopy 
+.B dncopy
 [options] source dest
 .br
-.B dncopy 
+.B dncopy
 [options] source... directory
 .br
 .B dntype
@@ -21,29 +21,29 @@ Options:
 .PP
 dncopy copies files to and from VMS systems.
 .br
- 
+
 .br
 Files on VMS systems should be specified in the usual transparent DECnet format
 of node"username password"::[directory]file. To protect quotes and dollar signs
 from shell expansion I recommend that all VMS file specifications be enclosed
-in single quotes (see 
+in single quotes (see
 .B EXAMPLES
-below). If you don't want to type the password on the command-line then 
+below). If you don't want to type the password on the command-line then
 put a hyphen ("-") in its place and you will be prompted for it.
 .br
 
 .br
 .B dncopy
-can copy single files and multiple files. If mutiple files are copied the 
+can copy single files and multiple files. If mutiple files are copied the
 destination must be a directory but it may be on the local Linux system
-or a VMS system. The files to be copied can be a mixture of VMS files and 
+or a VMS system. The files to be copied can be a mixture of VMS files and
 local files (yes, you can copy from VMS to VMS with this program, though
 quite why you would want to I'm not sure)
 .br
- 
+
 .br
-Wildcards are supported for local and VMS files (of course local wildcards are 
-expanded by the shell). Remember to use VMS wildcards (*%) on VMS filesystems 
+Wildcards are supported for local and VMS files (of course local wildcards are
+expanded by the shell). Remember to use VMS wildcards (*%) on VMS filesystems
 and Unix wildcards (*? etc) on Unix files.
 .br
 
@@ -56,12 +56,12 @@ Filenames are changed to lower case when copied from VMS to Linux.
 .br
 The environment DNCOPY_OPTIONS may be used to provide a default set of
 options for copying files. If (for example) you wanted to normally send
-files as blocks rather than records you could set DNCOPY_OPTIONS="-mblock". 
+files as blocks rather than records you could set DNCOPY_OPTIONS="-mblock".
 Then, to send a file as records you would need to type
 .B dncopy -mrecord myfile.txt vmsbox::
 instead.
 .br
-Options in DNCOPY_OPTIONS may be overridden by options typed on the 
+Options in DNCOPY_OPTIONS may be overridden by options typed on the
 command-line except where there is no negating option available (see
 .B -k -d -i
 ). If you put these options in DNCOPY_OPTIONS then to remove them you will
@@ -78,7 +78,7 @@ it takes all the same options as dncopy. It is merely a convenience.
 .TP
 .I "\-v"
 Verbose operation. The more -v options are present the more verbose dncopy
-will become. One -v is roughly equivalent to the /LOG qualifier on the DCL 
+will become. One -v is roughly equivalent to the /LOG qualifier on the DCL
 copy command. More than one is really just useful for debugging.
 .TP
 .I "\-i"
@@ -88,7 +88,7 @@ equivalent to the /CONFIRM qualifier on the DCL copy command.
 .I "\-s"
 Show transfer statistics. This shows the throughput of all copies (in the case
 of wildcard transfers) undertaken in K bytes/second. This time does not include
-that to establish the connection. eg when sending to VMS the overhead of 
+that to establish the connection. eg when sending to VMS the overhead of
 creating a NETSERVER process is not included.
 .TP
 .I "\-k"
@@ -101,23 +101,27 @@ Linux you will need to enclose them in quotes. eg less "vmsfile.txt;1".
 .I "\-m {record|block}"
 Sets the transfer mode to block or record.
 .B record
-is the default. Normally 
+is the default. Normally
 .B record
-is what you want but 
+is what you want but
 .B block
-is used for sending binary files to the VMS system.
+is used for sending binary files to the VMS system. Note that if you
+use -mblock to pull files from VMS you may not be able to make sense of
+the file on Linux because dncopy will also pull all the VMS internal
+structuring of the file as well as the data. Unless you really know what
+you are doing -mblock is only really useful for sending files.
 .TP
 .I "\-a {none|ftn|cr|prn}"
-Sets the carriage control attributes for files copied to a VMS system. The 
-default is 
+Sets the carriage control attributes for files copied to a VMS system. The
+default is
 .B cr.
 .TP
 .I "\-r {fix|var|vfc|stm}"
 Sets the record format for files copied to a VMS system. The default is
 .B stm.
 In fact the default is STREAMLF as this corresponds to the format of files
-on Unix systems and so is the least likely to result in file corruption. 
-If you are sending a pure text file then 
+on Unix systems and so is the least likely to result in file corruption.
+If you are sending a pure text file then
 .B var
 or
 .B vfc
@@ -154,7 +158,7 @@ bash or ksh:
 .br
 $ DNCOPY_OPTIONS="-mblock -anone -b1024" ; export DNCOPY_OPTIONS
 .br
- 
+
 .br
 csh or tcsh:
 .br
@@ -206,7 +210,7 @@ Display the contents of LOGIN.COM:
 
 .SH HELPFUL HINTS
 For fetching files the defaults should serve for most purposes. Most VMS files
-are record orientated and 
+are record orientated and
 .B -mrecord
 is the default transfer mode. It is rare you will need to fetch files using
 .B -mblock
@@ -216,15 +220,15 @@ that probably isn't any use to you.
 
 .br
 Sending files is more complex because VMS supports far more attributes
-than Linux so you will need to know something about the file you are 
+than Linux so you will need to know something about the file you are
 sending. Text files should be OK with the defaults unless you need to change
-the format from the default 
+the format from the default
 .B STREAMLF
-to 
+to
 .B VFC
-or 
+or
 .B VAR.
-Carriage control can also be specified if you want to be that picky. 
+Carriage control can also be specified if you want to be that picky.
 
 Binary files may often need to be sent -mblock to be useful at the VMS end,
 You will probably want to specify a block size with the

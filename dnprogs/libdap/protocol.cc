@@ -76,7 +76,7 @@ unsigned short dap_bytes::get_short()
 {
     int i;
     unsigned long s = 0;
-    
+
     for (i=0; i<length; i++)
     {
 	s |= value[i] << (i*8);
@@ -89,7 +89,7 @@ unsigned int dap_bytes::get_int()
 {
     int i;
     unsigned long s = 0;
-    
+
     for (i=0; i<length; i++)
     {
 	s |= value[i] << (i*8);
@@ -159,10 +159,10 @@ bool dap_ex::get_bit(int bit)
 
     if (!length) return false;
     if (bit > length*7) return false;
-    
+
     bytenum = bit / 7;
     bitnum  = bit % 7;
-    
+
     return (value[bytenum]&(1<<bitnum))!=0;
 }
 
@@ -173,10 +173,10 @@ void dap_ex::set_bit(int bit)
 
     bytenum = bit / 7;
     bitnum  = bit % 7;
-    
+
     value[bytenum] |= (1<<bitnum);
     if (real_length <= bytenum) real_length = bytenum+1;
-    
+
 // Now set the top bits of all previous bytes
     for (int i=0; i<bytenum; i++)
     {
@@ -200,7 +200,7 @@ unsigned char dap_ex::get_byte(int b)
     return value[b];
 }
 
-// Called by routines that know the exact format of the bits to be 
+// Called by routines that know the exact format of the bits to be
 // sent and can't be arsed to set them bit-by-bit
 void dap_ex::set_byte(int bytenum, unsigned char newval)
 {
@@ -245,7 +245,7 @@ unsigned short dap_image::get_short()
 {
     int i;
     unsigned long s = 0;
-    
+
     for (i=0; i<real_length; i++)
     {
 	s |= value[i] << (i*8);
@@ -258,7 +258,7 @@ unsigned int dap_image::get_int()
 {
     int i;
     unsigned long s = 0;
-    
+
     for (i=0; i<real_length; i++)
     {
 	s |= value[i] << (i*8);
@@ -313,7 +313,7 @@ int dap_message::send_header(dap_connection &c)
 int dap_message::send_header(dap_connection &c, bool header)
 {
     unsigned char head[] = {2, 0};
-    if (c.verbosity() > 2) 
+    if (c.verbosity() > 2)
 	DAPLOG((LOG_INFO, "Sending message of type %s\n", type_name()));
 
     c.putbytes(&msg_type, 1);
@@ -338,7 +338,7 @@ int dap_message::send_long_header(dap_connection &c)
     c.putbytes(&msg_type, 1);
     return c.putbytes(head, 3); // Tell connection to send LEN256 header
 }
-  
+
 
 // Read a DAP message header from the connection buffer. Here is where we
 // make sure we have the whole message in memory and also that we know
@@ -361,7 +361,7 @@ int dap_message::get_header(dap_connection &c)
     if (flags & 2) // got length
     {
 	unsigned char l;
-	
+
 	c.check_length(1); // Ensure we have the start of a header
 	b = c.getbytes(1);
 	if (!b) return false;
@@ -372,7 +372,7 @@ int dap_message::get_header(dap_connection &c)
 	if (flags & 4) // LEN256
 	{
 	    c.check_length(3); // Ensure we have the len256 bytes
-	    
+
 	    b = c.getbytes(1);
 	    if (!b) return false;
 
@@ -403,7 +403,7 @@ int dap_message::get_header(dap_connection &c)
 }
 
 // Peeks at the next nessage in the buffer and returns the
-// integer message type. 
+// integer message type.
 // If no message is available then -1 is returned.
 int dap_message::peek_message_type(dap_connection& c)
 {
@@ -411,7 +411,7 @@ int dap_message::peek_message_type(dap_connection& c)
     if (b)
 	return *b;
     else
-	return -1;    
+	return -1;
 }
 
 // Read a message from the stream and spit out a fully formed message
@@ -484,7 +484,7 @@ dap_message* dap_message::read_message(dap_connection& c, bool block)
     if (c.verbosity() > 2)
 	DAPLOG((LOG_INFO, "Got message of type %s\n", type_name(type)));
 
-    // If we got valid message header then read the rest of the message 
+    // If we got valid message header then read the rest of the message
     // into the object.
     if (m)
     {
@@ -566,7 +566,7 @@ bool dap_config_message::write(dap_connection &c)
 {
 // This is EXACTLY what VMS (5.5) sends
 
-    send_header(c, false); 
+    send_header(c, false);
 
     bufsiz.set_short(0x0424);
     bufsiz.write(c);
@@ -629,9 +629,9 @@ bool dap_config_message::read(dap_connection &c)
     if (!version.read(c)) return false;
     if (!syscap.read(c))  return false;
 
-    if (!syscap.get_bit(18)) 
+    if (!syscap.get_bit(18))
     {
-	if (c.verbosity()) 
+	if (c.verbosity())
 	    DAPLOG((LOG_DEBUG, "Host does not allow blocking\n"));
 	c.allow_blocking(false);
     }
@@ -678,7 +678,7 @@ bool dap_attrib_message::write(dap_connection &c)
 
 bool dap_attrib_message::read(dap_connection &c)
 {
-    attmenu.read(c); 
+    attmenu.read(c);
     if (attmenu.get_bit(0)  &&  !datatype.read(c)) return false;
     if (attmenu.get_bit(1)  &&  !org.read(c)) return false;
     if (attmenu.get_bit(2)  &&  !rfm.read(c)) return false;
@@ -762,12 +762,12 @@ void dap_attrib_message::set_ffb(int v) { ffb.set_short(v); attmenu.set_bit(19);
 void dap_attrib_message::set_sbn(int v) { sbn.set_short(v); attmenu.set_bit(20);}
 void dap_attrib_message::remove_dev() {attmenu.clear_bit(14);}
 
-void dap_attrib_message::set_fop(int v) 
+void dap_attrib_message::set_fop(int v)
 {
-    fop.set_byte(0, v && 0xFF); 
-    fop.set_byte(1, (v>>8) && 0xFF); 
-    fop.set_byte(2, (v>>16) && 0xFF); 
-    fop.set_byte(3, (v>>24) && 0xFF); 
+    fop.set_byte(0, v && 0xFF);
+    fop.set_byte(1, (v>>8) && 0xFF);
+    fop.set_byte(2, (v>>16) && 0xFF);
+    fop.set_byte(3, (v>>24) && 0xFF);
     attmenu.set_bit(12);
 }
 
@@ -1153,7 +1153,7 @@ bool dap_data_message::write(dap_connection &c)
     send_header(c, false);// Never send a length count
 
     recnum.write(c);
-    c.putbytes(data, length);    
+    c.putbytes(data, length);
     return c.write();
 }
 
@@ -1165,7 +1165,7 @@ bool dap_data_message::write_with_len(dap_connection &c)
 	send_header(c, true);
 
     recnum.write(c);
-    c.putbytes(data, length);    
+    c.putbytes(data, length);
     return c.write();
 }
 
@@ -1179,7 +1179,7 @@ bool dap_data_message::write_with_len256(dap_connection &c)
     c.putbytes(data, length);
     return c.write();
 }
- 
+
 bool dap_data_message::read(dap_connection &c)
 {
     if (!recnum.read(c)) return false;
@@ -1240,7 +1240,7 @@ bool dap_status_message::write(dap_connection &c)
     stscode.write(c);
 // TODO: which of these we send depends on all sorts of things (including
 // TODO: the ACCESS message)
-    
+
     if (rfa.get_int()) rfa.write(c);
 //    recnum.write(c);
 //    stv.write(c);
@@ -1287,7 +1287,7 @@ void dap_status_message::set_errno(int er)
     errno = er;
     stscode.set_short(0x4000 | errno_to_stscode());
 }
- 
+
 // Convert errno to a DAP status message:
 int dap_status_message::errno_to_stscode()
 {
@@ -1321,258 +1321,526 @@ int dap_status_message::errno_to_stscode()
 
 char *dap_status_message::get_message()
 {
-    switch (stscode.get_int() & 0xFF)
+// MACCODEs
+    switch (stscode.get_int() >> 12)
     {
-    case 01: return "operation aborted.";
-    case 02: return "F11-ACP could not access file.";
-    case 03: return "\"FILE\" activity precludes operation.";
-    case 04: return "bad area ID.";
-    case 05: return "alignment options error.";
-    case 06: return "allocation quantity too large or 0 value.";
-    case 07: return "not ANSI \"D\" format.";
-    case 010: return "allocation options error.";
-    case 011: return "invalid (i.e., synch) operation at AST level.";
-    case 012: return "attribute read error.";
-    case 013: return "attribute write error.";
-    case 014: return "bucket size too large.";
-    case 015: return "bucket size too large.";
-    case 016: return "\"BLN\" length error.";
-    case 017: return "beginning of file detected.";
-    case 020: return "private pool address.";
-    case 021: return "private pool size.";
-    case 022: return "internal RMS error condition detected.";
-    case 023: return "cannot connect RAB.";
-    case 024: return "$UPDATE changed a key without having attribute of XB$CHG set.";
-    case 025: return "bucket format check-byte failure.";
-    case 026: return "RSTS/E close function failed.";
-    case 027: return "invalid or unsupported \"COD\" field.";
-    case 030: return "F11-ACP could not create file (STV=sys err code).";
-    case 031: return "no current  record  (operation  not  preceded  by GET/FIND).";
-    case 032: return "F11-ACP deaccess error during \"CLOSE\".";
-    case 033: return "data \"AREA\" number invalid.";
-    case 034: return "RFA-Accessed record was deleted.";
-    case 035: return "bad device, or inappropriate device type.";
-    case 036: return "error in directory name.";
-    case 037: return "dynamic memory exhausted.";
-    case 040: return "directory not found.";
-    case 041: return "device not ready.";
-    case 042: return "device has positioning error.";
-    case 043: return "\"DTP\" field invalid.";
-    case 044: return "duplicate key detected, XB$DUP not set.";
-    case 045: return "RSX-F11ACP enter function failed.";
-    case 046: return "operation not selected in \"ORG$\" macro.";
-    case 047: return "end-of-file.";
-    case 050: return "expanded string area too short.";
-    case 051: return "file expiration date not yet reached.";
-    case 052: return "file extend failure.";
-    case 053: return "not a valid FAB (\"BID\" NOT = FB$BID).";
-    case 054: return "illegal FAC for REC-OP,0, or FB$PUT not  set  for \"CREATE\".";
-    case 055: return "file already exists.";
-    case 056: return "invalid file I.D.";
-    case 057: return "invalid flag-bits combination.";
-    case 060: return "file is locked by other user.";
-    case 061: return "RSX-F11ACP \"FIND\" function failed.";
-    case 062: return "file not found.";
-    case 063: return "error in file name.";
-    case 064: return "invalid file options.";
-    case 065: return "DEVICE/FILE full.";
-    case 066: return "index \"AREA\" number invalid.";
-    case 067: return "invalid IFI value or unopened file.";
-    case 070: return "maximum NUM(254) areas/key XABS exceeded.";
-    case 071: return "$INIT macro never issued.";
-    case 072: return "operation illegal or invalid for file organization.";
-    case 073: return "illegal record encountered (with sequential files only).";
-    case 074: return "invalid ISI value, on unconnected RAB.";
-    case 075: return "bad KEY buffer address (KBF=0).";
-    case 076: return "invalid KEY field (KEY=0/neg).";
-    case 077: return "invalid key-of-reference ($GET/$FIND).";
-    case 0100: return "KEY size too large.";
-    case 0101: return "lowest-level-index \"AREA\" number invalid.";
-    case 0102: return "not ANSI labeled tape.";
-    case 0103: return "logical channel busy.";
-    case 0104: return "logical channel number too large.";
-    case 0105: return "logical extend error, prior extend still valid.";
-    case 0106: return "\"LOC\" field invalid.";
-    case 0107: return "buffer mapping error.";
-    case 0110: return "F11-ACP could not mark file for deletion.";
-    case 0111: return "MRN value=neg or relative key>MRN.";
-    case 0112: return "MRS value=0 for fixed length records.  Also 0 for relative files.";
-    case 0113: return "\"NAM\"  block  address  invalid  (NAM=0,  or   not accessible).";
-    case 0114: return "not positioned to EOF (sequential files only).";
-    case 0115: return "cannot allocate internal index descriptor.";
-    case 0116: return "indexed file; no primary key defined.";
-    case 0117: return "RSTS/E open function failed.";
-    case 0120: return "XAB'S not in correct order.";
-    case 0121: return "invalid file organization value.";
-    case 0122: return "error in file's prologue (reconstruct file).";
-    case 0123: return "\"POS\" field invalid (POS>MRS,STV=XAB indicator).";
-    case 0124: return "bad file date field retrieved.";
-    case 0125: return "privilege violation (OS denies access).";
-    case 0126: return "not a valid RAB (\"BID\" NOT=RB$BID).";
-    case 0127: return "illegal RAC value.";
-    case 0130: return "illegal record attributes.";
-    case 0131: return "invalid record  buffer  address  (\"ODD\",  or  not word-aligned if BLK-IO).";
-    case 0132: return "file read error.";
-    case 0133: return "record already exists.";
-    case 0134: return "bad RFA value (RFA=0).";
-    case 0135: return "invalid record format.";
-    case 0136: return "target bucket locked by another stream.";
-    case 0137: return "RSX-F11 ACP remove function failed.";
-    case 0140: return "record not found.";
-    case 0141: return "record not locked.";
+    case 2:
+    case 010:
+    case 011:
+	switch (stscode.get_int() & 01777)
+	{
+// CONFIG message errors;
+	case 0000: return "Unspecified DAP message error.";
+	case 0010: return "DAP message type field (TYPE) error.";
+	case 0100: return "Unknown field in CONFIG message";
+	case 0110: return "DAP message flags field (FLAGS)";
+        case 0111: return "Data stream identification field (STREAMID).";
+        case 0112: return "Length field (LENGTH).";
+        case 0113: return "Length extension field (LEN256)";
+	case 0114: return "BITCNT field (BITCNT)";
+        case 0120: return "Buffer size field (BUFSIZ).";
+	case 0121: return "Operating system type field (OSTYPE).";
+	case 0122: return "File system type field (FILESYS).";
+	case 0123: return "DAP version number field (VERNUM).";
+	case 0124: return "ECO version number field (ECONUM).";
+	case 0125: return "USER protocol version number field (USRNUM).";
+	case 0126: return "DEC software release number field (SOFTVER).";
+	case 0127: return "User software release number field (USRSOFT).";
+	case 0130: return "System capabilities field (SYSCAP).";
 
-    case 0143: return "error while reading prologue.";
-    case 0144: return "invalid RRV record encountered.";
-    case 0145: return "RAB stream currently active.";
-    case 0146: return "bad record size (RSZ>MRS,  or  NOT=MRS  if  fixed length records).";
-    case 0147: return "record too big for user's buffer.";
-    case 0150: return "primary  key  out  of  sequence  (RAC=RB$SEQ  for $PUT).";
-    case 0151: return "\"SHR\"  field  invalid  for  file  (cannot   share sequential files).";
-    case 0152: return "\"SIZ field invalid.";
-    case 0153: return "stack too big for save area.";
-    case 0154: return "system directive error.";
-    case 0155: return "index tree error.";
-    case 0156: return "error in file type extension on FNS too big.";
-    case 0157: return "invalid user buffer addr (0, odd, or if  BLK-IO not word aligned).";
-    case 0160: return "invalid user buffer size (USZ=0).";
-    case 0161: return "error in version number.";
-    case 0162: return "invalid volume number.";
-    case 0163: return "file write error (STV=sys err code).";
-    case 0164: return "device is write locked.";
-    case 0165: return "error while writing prologue.";
-    case 0166: return "not a valid XAB (@XAB=ODD,STV=XAB indicator).";
-    case 0167: return "default directory invalid.";
-    case 0170: return "cannot access argument list.";
-    case 0171: return "cannot close file.";
-    case 0172: return "cannot deliver AST.";
-    case 0173: return "channel assignment failure (STV=sys err code).";
-    case 0174: return "terminal output ignored due to (CNTRL) O.";
-    case 0175: return "terminal input aborted due to (CNTRL) Y.";
-    case 0176: return "default filename string address error.";
-    case 0177: return "invalid device I.D.  field.";
-    case 0200: return "expanded string address error.";
-    case 0201: return "filename string address error.";
-    case 0202: return "FSZ field invalid.";
-    case 0203: return "invalid argument list.";
-    case 0204: return "known file found.";
-    case 0205: return "logical name error.";
-    case 0206: return "node name error.";
-    case 0207: return "operation successful.";
-    case 0210: return "record inserted had duplicate key.";
-    case 0211: return "index update error occurred-record inserted.";
-    case 0212: return "record locked but read anyway.";
-    case 0213: return "record  inserted  in  primary  o.k.; may  not  be accessible by secondary keys or RFA.";
-    case 0214: return "file was created, but not opened.";
-    case 0215: return "bad prompt buffer address.";
-    case 0216: return "async.  operation pending completion.";
-    case 0217: return "quoted string error.";
-    case 0220: return "record header buffer invalid.";
-    case 0221: return "invalid related file.";
-    case 0222: return "invalid resultant string size.";
-    case 0223: return "invalid resultant string address.";
-    case 0224: return "operation not sequential.";
-    case 0225: return "operation successful.";
-    case 0226: return "created file superseded existing version.";
-    case 0227: return "filename syntax error.";
-    case 0230: return "time-out period expired.";
-    case 0231: return "FB$BLK record attribute not supported.";
-    case 0232: return "bad byte size.";
-    case 0233: return "cannot disconnect RAB.";
-    case 0234: return "cannot get JFN for file.";
-    case 0235: return "cannot open file.";
-    case 0236: return "bad JFN value.";
-    case 0237: return "cannot position to end-of-file.";
-    case 0240: return "cannot truncate file.";
-    case 0241: return "file is currently in an  undefined  state; access is denied.";
-    case 0242: return "file must be opened for exclusive access.";
-    case 0243: return "directory full.";
-    case 0244: return "handler not in system.";
-    case 0245: return "fatal hardware error.";
-    case 0246: return "attempt to write beyond EOF.";
-    case 0247: return "hardware option not present.";
-    case 0250: return "device not attached.";
-    case 0251: return "device already attached.";
-    case 0252: return "device not attachable.";
-    case 0253: return "sharable resource in use.";
-    case 0254: return "illegal overlay request.";
-    case 0255: return "block check or CRC error.";
-    case 0256: return "caller's nodes exhausted.";
-    case 0257: return "index file full.";
-    case 0260: return "file header full.";
-    case 0261: return "accessed for write.";
-    case 0262: return "file header checksum failure.";
-    case 0263: return "attribute control list error.";
-    case 0264: return "file already accessed on LUN.";
-    case 0265: return "bad tape format.";
-    case 0266: return "illegal operation on file descriptor block.";
-    case 0267: return "rename; 2 different devices.";
-    case 0270: return "rename; new filename already in use.";
-    case 0271: return "cannot rename old file system.";
-    case 0272: return "file already open.";
-    case 0273: return "parity error on device.";
-    case 0274: return "end of volume detected.";
-    case 0275: return "data over-run.";
-    case 0276: return "bad block on device.";
-    case 0277: return "end of tape detected.";
-    case 0300: return "no buffer space for file.";
-    case 0301: return "file exceeds allocated space -- no blks.";
-    case 0302: return "specified task not installed.";
-    case 0303: return "unlock error.";
-    case 0304: return "no file accessed on LUN.";
-    case 0305: return "send/receive failure.";
-    case 0306: return "spool or submit command file failure.";
-    case 0307: return "no more files.";
-    case 0310: return "DAP file transfer Checksum error.";
-    case 0311: return "Quota exceeded";
-    case 0312: return "internal network error condition detected.";
-    case 0313: return "terminal input aborted due to (CNTRL) C.";
-    case 0314: return "data bucket fill size > bucket size in XAB.";
-    case 0315: return "invalid expanded string length.";
-    case 0316: return "illegal bucket format.";
-    case 0317: return "bucket size of LAN NOT = IAN in XAB.";
-    case 0320: return "index not initialized.";
-    case 0321: return "illegal file attributes (corrupt file header).";
-    case 0322: return "index bucket fill size > bucket size in XAB.";
-    case 0323: return "key name buffer not readable or writeable in XAB.";
-    case 0324: return "index bucket will not hold two keys  for  key  of reference.";
-    case 0325: return "multi-buffer count invalid (negative value).";
-    case 0326: return "network operation failed at remote node.";
-    case 0327: return "record is already locked.";
-    case 0330: return "deleted record successfully accessed.";
-    case 0331: return "retrieved record exceeds specified key value.";
-    case 0332: return "key XAB not filled in.";
-    case 0333: return "nonexistent record successfully accessed.";
-    case 0334: return "unsupported prologue version.";
-    case 0335: return "illegal key-of-reference in XAB.";
-    case 0336: return "invalid resultant string length.";
-    case 0337: return "error updating rrv's, some paths to data  may  be lost.";
-    case 0340: return "data types  other  than  string  limited  to  one segment in XAB.";
-    case 0341: return "reserved";
-    case 0342: return "operation not supported over network.";
-    case 0343: return "error on write behind.";
-    case 0344: return "invalid wildcard operation.";
-    case 0345: return "working set full (can not lock buffers in working set.)";
-    case 0346: return "directory listing -- error in reading  volume-set name, directory name, of file name.";
-    case 0347: return "directory  listing  --  error  in  reading   file attributes.";
-    case 0350: return "directory  listing  --  protection  violation  in trying  to read the volume-set, directory or file name.";
-    case 0351: return "directory  listing  --  protection  violation  in trying to read file attributes.";
-    case 0352: return "directory  listing  --  file  attributes  do  not exist.";
-    case 0353: return "directory listing -- unable to recover  directory list after Continue Transfer (Skip).";
-    case 0354: return "sharing not enabled.";
-    case 0355: return "sharing page count exceeded.";
-    case 0356: return "UPI bit not set when sharing with BRO set.";
-    case 0357: return "error in access control string (poor man's  route through error).";
-    case 0360: return "terminator not seen.";
-    case 0361: return "bad escape sequence.";
-    case 0362: return "partial escape sequence.";
-    case 0363: return "invalid wildcard context value.";
-    case 0364: return "invalid directory rename operation.";
-    case 0365: return "user structure (FAB/RAB)  became  invalid  during operation.";
-    case 0366: return "network file transfer made precludes operation.";
+// ATTRIB message errors
+	case 0200: return "Unknown field in ATTRIB message";
+	case 0210: return "DAP message flags field (FLAGS).";
+	case 0211: return "Data stream  identification  field (STREAMID).";
+	case 0212: return "Length field (LENGTH).";
+	case 0213: return "Length extension field (LEN 256)";
+	case 0214: return "Bit count field (BITCNT)";
+	case 0215: return "System specific field (SYSPEC).";
+	case 0220: return "Attributes menu field (ATTMENU).";
+	case 0221: return "Data type field (DATATYPE).";
+	case 0222: return "File organization field (ORG).";
+	case 0223: return "Record format field (RFM).";
+	case 0224: return "Record attributes field (RAT).";
+	case 0225: return "Block size field (BLS).";
+	case 0226: return "Maximum record size field (MRS).";
+	case 0227: return "Allocation quantity field (ALQ).";
+	case 0230: return "Bucket size field (BKS).";
+	case 0231: return "Fixed control area size field (FSZ).";
+	case 0232: return "Maximum record number field (MRN).";
+	case 0233: return "Run-time system field (RUNSYS).";
+	case 0234: return "Default extension quantity field (DEQ).";
+	case 0235: return "File options field (FOP).";
+	case 0236: return "Byte size field (BSZ).";
+	case 0237: return "Device characteristics field (DEV).";
+	case 0240: return "Spooling  device  characteristics  field (SDC); Reserved.";
+	case 0241: return "Longest record length field (LRL).";
+	case 0242: return "Highest virtual  block  allocated  field (HBK).";
+	case 0243: return "End of file block field (EBK).";
+	case 0244: return "First free byte field (FFB).";
+	case 0245: return "Starting LBN for contiguous file (SBN).";
 
-    default:
-	return "unknown error";
+// ACCESS message errors
+	case 0300: return "Unknown field in ACCESS message.";
+	case 0310: return "DAP message flags field (FLAGS).";
+	case 0311: return "Data stream identification field (STREAMID).";
+	case 0312: return "Length field (LENGTH).";
+	case 0313: return "Length extension field (LEN256)";
+	case 0314: return "Bit count field (BITCNT)";
+	case 0315: return "System specific field (SYSPEC).";
+	case 0320: return "Access function field (ACCFUNC).";
+	case 0321: return "Access options field (ACCOPT).";
+	case 0322: return "File specification field (FILESPEC).";
+	case 0323: return "File access field (FAC).";
+	case 0324: return "File sharing field (SHR).";
+	case 0325: return "Display attributes request field (DISPLAY).";
+	case 0326: return "File password field (PASSWORD).";
+
+// CONTROL message errors
+	case 0400: return "Unknown field in CONTROL message";
+	case 0410: return "DAP message flags field (FLAGS).";
+	case 0411: return "Data stream identification field (STREAMID).";
+	case 0412: return "Length field (LENGTH).";
+	case 0413: return "Length extension field (LEN256)";
+	case 0414: return "Bit count field (BITCNT)";
+	case 0415: return "System specific field (SYSPEC).";
+	case 0420: return "Control function field (CTLFUNC).";
+	case 0421: return "Control menu field (CTLMENU).";
+	case 0422: return "Record access field (RAC).";
+	case 0423: return "Key field (KEY).";
+	case 0424: return "Key of reference field (KRF).";
+	case 0425: return "Record options field (ROP).";
+	case 0426: return "Hash code field (HSH); Reserved for future use.";
+	case 0427: return "Display attributes request field (DISPLAY).";
+
+//CONTINUE message errors
+	case 0500: return "Unknown field in continue message.";
+	case 0510: return "DAP message flags field (FLAGS).";
+	case 0511: return "Data stream identification field (STREAMID).";
+	case 0512: return "Length field (LENGTH).";
+	case 0513: return "Length extension field (LEN256)";
+	case 0514: return "Bit count field (BITCNT)";
+	case 0515: return "System specific field (SYSPEC).";
+	case 0520: return "Continue transfer function field (CONFUNC).";
+
+// ACK message errors
+	case 0600: return "Unknown field in ACK message.";
+	case 0610: return "DAP message flags field (FLAGS).";
+	case 0611: return "Data stream identification field (STREAMID).";
+	case 0612: return "Length field (LENGTH).";
+	case 0613: return "Length extension field (LEN256)";
+	case 0614: return "Bit count field (BITCNT)";
+	case 0615: return "System specific field (SYSPEC).";
+
+// ACCOMP errors
+	case 0700: return "Unknown field in ACCOMP message";
+	case 0710: return "DAP message flags field (FLAGS).";
+	case 0711: return "Data stream identification field (STREAMID).";
+	case 0712: return "Length field (LENGTH).";
+	case 0713: return "Length extension field (LEN256)";
+	case 0714: return "Bit count field (BITCNT)";
+	case 0715: return "System specific field (SYSPEC).";
+	case 0720: return "Access complete function field (CMPFUNC).";
+	case 0721: return "File options field (FOP).";
+	case 0722: return "Checksum field (CHECK).";
+
+// DATA message errors
+	case 01000: return "Unknown field in DATA message";
+	case 01010: return "DAP message flags field (FLAGS).";
+	case 01011: return "Data stream identification field (STREAMID).";
+	case 01012: return "Length field (LENGTH).";
+	case 01013: return "Length extension field (LEN256)";
+	case 01014: return "Bit count field (BITCNT)";
+	case 01015: return "System specific field (SYSPEC).";
+	case 01020: return "Record number field (RECNUM).";
+	case 01021: return "File data field (FILEDATA).";
+
+// STATUS message errors
+	case 01100: return "Unknown field in STATUS message.";
+	case 01110: return "DAP message flags field (FLAGS).";
+	case 01111: return "Data stream identification field (STREAMID).";
+	case 01112: return "Length field (LENGTH).";
+	case 01113: return "Length extension field (LEN256)";
+	case 01114: return "Bit count field (BITCNT)";
+	case 01115: return "System specific field (SYSPEC).";
+	case 01120: return "Macro status code field (MACCODE).";
+	case 01121: return "Micro status code field (MICCODE).";
+	case 01122: return "Record file address field (RFA).";
+	case 01123: return "Record number field (RECNUM).";
+	case 01124: return "Secondary status field (STV).";
+
+// KEYDEF message errors
+	case 01200: return "Unknown field in KEYDEF message";
+	case 01210: return "DAP message flags field (FLAGS)";
+	case 01211: return "Data stream identification field (STREAMID)";
+	case 01212: return "Length field (LENGTH)";
+	case 01213: return "Length extension field (LEN256)";
+	case 01214: return "Bit count field (BITCNT)";
+	case 01215: return "System specific field (SYSPEC).";
+	case 01220: return "Key definition menu field (KEYMENU)";
+	case 01221: return "Key option flags field (FLG)";
+	case 01222: return "Data bucket fill quantity field (DFL)";
+	case 01223: return "Index bucket fill quantity field (IFL)";
+	case 01224: return "Key segment repeat count field (SEGCNT)";
+	case 01225: return "Key segment position field (POS)";
+	case 01226: return "Key segment size field (SIZ)";
+	case 01227: return "Key of reference field (REF)";
+	case 01230: return "Key name field (KNM)";
+	case 01231: return "Null key character field (NUL)";
+	case 01232: return "Index area number field (IAN)";
+	case 01233: return "Lowest level area number field (LAN)";
+	case 01234: return "Data level area number field (DAN)";
+	case 01235: return "Key data type field (DTP)";
+	case 01236: return "Root VBN for this key field (RVB)";
+	case 01237: return "Hash algorithm value field (HAL)";
+	case 01240: return "First data bucket VBN field (DVB).";
+	case 01241: return "Data bucket size field (DBS).";
+	case 01242: return "Index bucket size field (IBS).";
+	case 01243: return "Level of root bucket field (LVL).";
+	case 01244: return "Total key size field (TKS).";
+	case 01245: return "Minimum record size field (MRL).";
+
+// ALLOC message errors
+	case 01300: return "Unknown field in ALLOC message";
+	case 01310: return "DAP message flags field (FLAGS)";
+	case 01311: return "Data stream identification field (STREAMID)";
+	case 01312: return "Length field (LENGTH)";
+	case 01313: return "Length extension field (LEN256)";
+	case 01314: return "Bit count field (BITCNT)";
+	case 01315: return "System specific field (SYSPEC).";
+	case 01320: return "Allocation menu field (ALLMENU)";
+	case 01321: return "Relative volume number field (VOL)";
+	case 01322: return "Alignment options field (ALN)";
+	case 01323: return "Allocation options field (AOP)";
+	case 01324: return "Starting location field (LOC)";
+	case 01325: return "Related file identification field (RFI)";
+	case 01326: return "Allocation quantity field (ALQ)";
+	case 01327: return "Area identification field (AID)";
+	case 01330: return "Bucket size field (BKZ)";
+	case 01331: return "Default extension quantity field (DEQ)";
+
+// SUMMARY message errors
+	case 01400: return "Unknown field in SUMMARY message.";
+	case 01410: return "DAP message flags field (FLAGS).";
+	case 01411: return "Data stream identification field (STREAMID).";
+	case 01412: return "Length field (LENGTH)";
+	case 01413: return "Length extension field (LEN256)";
+	case 01414: return "Bit count field (BITCNT)";
+	case 01415: return "System specific field (SYSPEC).";
+	case 01420: return "Summary menu field (SUMENU)";
+	case 01421: return "Number of keys field (NOK)";
+	case 01422: return "Number of areas field (NOA)";
+	case 01423: return "Number of record descriptors field (NOR)";
+	case 01424: return "Prologue version number (PVN)";
+
+// DATE message errors
+	case 01500: return "Unknown field in DATE message";
+	case 01510: return "DAP message flags field (FLAGS)";
+	case 01511: return "Data stream identification field (STREAMID)";
+	case 01512: return "Length field (LENGTH)";
+	case 01513: return "Length extension field (LEN256)";
+	case 01514: return "Bit count field (BITCNT)";
+	case 01515: return "System specific field (SYSPEC).";
+	case 01520: return "Date and time menu field (DATMENU)";
+	case 01521: return "Creation date and time field (CDT)";
+	case 01522: return "Last update date and time field (RDT)";
+	case 01523: return "Deletion date and time field (EDT)";
+	case 01524: return "Revision number field (RVN).";
+
+// PROTECT message errors
+	case 01600: return "Unknown field in PROTECT message";
+	case 01610: return "DAP message flags field (FLAGS)";
+	case 01611: return "Data stream identification field (STREAMID)";
+	case 01612: return "Length field (LENGTH)";
+	case 01613: return "Length extension field (LEN256)";
+	case 01614: return "Bit count field (BITCNT)";
+	case 01615: return "System specific field (SYSPEC).";
+	case 01620: return "Protection menu field (PROTMENU)";
+	case 01621: return "File owner field (OWNER)";
+	case 01622: return "System protection field (PROTSYS)";
+	case 01623: return "Owner protection field (PROTOWN)";
+	case 01624: return "Group protection field (PROTGRP)";
+	case 01625: return "World protection field (PROTWLD)";
+
+// NAME message errors
+	case 01700: return "Unknown field in NAME message";
+	case 01710: return "DAP message flags field (FLAGS)";
+	case 01711: return "Data stream identification field (STREAMID)";
+	case 01712: return "Length field (LENGTH)";
+	case 01713: return "Length extension field (LEN256)";
+	case 01714: return "Bit count field (BITCNT)";
+	case 01715: return "System specific field (SYSPEC).";
+	case 01720: return "Name type field (NAMETYPE)";
+	case 01721: return "Name field (NAMESPEC)";
+
+	default:
+	    return "Request unsupported";
+	}
+
+    case 3:
+	return "Unknown Error"; // Reserved
+
+    case 0:
+    case 1:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+	switch (stscode.get_int() & 0xFF)
+	{
+	case 01: return "operation aborted.";
+	case 02: return "F11-ACP could not access file.";
+	case 03: return "\"FILE\" activity precludes operation.";
+	case 04: return "bad area ID.";
+	case 05: return "alignment options error.";
+	case 06: return "allocation quantity too large or 0 value.";
+	case 07: return "not ANSI \"D\" format.";
+	case 010: return "allocation options error.";
+	case 011: return "invalid (i.e., synch) operation at AST level.";
+	case 012: return "attribute read error.";
+	case 013: return "attribute write error.";
+	case 014: return "bucket size too large.";
+	case 015: return "bucket size too large.";
+	case 016: return "\"BLN\" length error.";
+	case 017: return "beginning of file detected.";
+	case 020: return "private pool address.";
+	case 021: return "private pool size.";
+	case 022: return "internal RMS error condition detected.";
+	case 023: return "cannot connect RAB.";
+	case 024: return "$UPDATE changed a key without having attribute of XB$CHG set.";
+	case 025: return "bucket format check-byte failure.";
+	case 026: return "RSTS/E close function failed.";
+	case 027: return "invalid or unsupported \"COD\" field.";
+	case 030: return "F11-ACP could not create file (STV=sys err code).";
+	case 031: return "no current  record  (operation  not  preceded  by GET/FIND).";
+	case 032: return "F11-ACP deaccess error during \"CLOSE\".";
+	case 033: return "data \"AREA\" number invalid.";
+	case 034: return "RFA-Accessed record was deleted.";
+	case 035: return "bad device, or inappropriate device type.";
+	case 036: return "error in directory name.";
+	case 037: return "dynamic memory exhausted.";
+	case 040: return "directory not found.";
+	case 041: return "device not ready.";
+	case 042: return "device has positioning error.";
+	case 043: return "\"DTP\" field invalid.";
+	case 044: return "duplicate key detected, XB$DUP not set.";
+	case 045: return "RSX-F11ACP enter function failed.";
+	case 046: return "operation not selected in \"ORG$\" macro.";
+	case 047: return "end-of-file.";
+	case 050: return "expanded string area too short.";
+	case 051: return "file expiration date not yet reached.";
+	case 052: return "file extend failure.";
+	case 053: return "not a valid FAB (\"BID\" NOT = FB$BID).";
+	case 054: return "illegal FAC for REC-OP,0, or FB$PUT not  set  for \"CREATE\".";
+	case 055: return "file already exists.";
+	case 056: return "invalid file I.D.";
+	case 057: return "invalid flag-bits combination.";
+	case 060: return "file is locked by other user.";
+	case 061: return "RSX-F11ACP \"FIND\" function failed.";
+	case 062: return "file not found.";
+	case 063: return "error in file name.";
+	case 064: return "invalid file options.";
+	case 065: return "DEVICE/FILE full.";
+	case 066: return "index \"AREA\" number invalid.";
+	case 067: return "invalid IFI value or unopened file.";
+	case 070: return "maximum NUM(254) areas/key XABS exceeded.";
+	case 071: return "$INIT macro never issued.";
+	case 072: return "operation illegal or invalid for file organization.";
+	case 073: return "illegal record encountered (with sequential files only).";
+	case 074: return "invalid ISI value, on unconnected RAB.";
+	case 075: return "bad KEY buffer address (KBF=0).";
+	case 076: return "invalid KEY field (KEY=0/neg).";
+	case 077: return "invalid key-of-reference ($GET/$FIND).";
+	case 0100: return "KEY size too large.";
+	case 0101: return "lowest-level-index \"AREA\" number invalid.";
+	case 0102: return "not ANSI labeled tape.";
+	case 0103: return "logical channel busy.";
+	case 0104: return "logical channel number too large.";
+	case 0105: return "logical extend error, prior extend still valid.";
+	case 0106: return "\"LOC\" field invalid.";
+	case 0107: return "buffer mapping error.";
+	case 0110: return "F11-ACP could not mark file for deletion.";
+	case 0111: return "MRN value=neg or relative key>MRN.";
+	case 0112: return "MRS value=0 for fixed length records.  Also 0 for relative files.";
+	case 0113: return "\"NAM\"  block  address  invalid  (NAM=0,  or   not accessible).";
+	case 0114: return "not positioned to EOF (sequential files only).";
+	case 0115: return "cannot allocate internal index descriptor.";
+	case 0116: return "indexed file; no primary key defined.";
+	case 0117: return "RSTS/E open function failed.";
+	case 0120: return "XAB'S not in correct order.";
+	case 0121: return "invalid file organization value.";
+	case 0122: return "error in file's prologue (reconstruct file).";
+	case 0123: return "\"POS\" field invalid (POS>MRS,STV=XAB indicator).";
+	case 0124: return "bad file date field retrieved.";
+	case 0125: return "privilege violation (OS denies access).";
+	case 0126: return "not a valid RAB (\"BID\" NOT=RB$BID).";
+	case 0127: return "illegal RAC value.";
+	case 0130: return "illegal record attributes.";
+	case 0131: return "invalid record  buffer  address  (\"ODD\",  or  not word-aligned if BLK-IO).";
+	case 0132: return "file read error.";
+	case 0133: return "record already exists.";
+	case 0134: return "bad RFA value (RFA=0).";
+	case 0135: return "invalid record format.";
+	case 0136: return "target bucket locked by another stream.";
+	case 0137: return "RSX-F11 ACP remove function failed.";
+	case 0140: return "record not found.";
+	case 0141: return "record not locked.";
+
+	case 0143: return "error while reading prologue.";
+	case 0144: return "invalid RRV record encountered.";
+	case 0145: return "RAB stream currently active.";
+	case 0146: return "bad record size (RSZ>MRS,  or  NOT=MRS  if  fixed length records).";
+	case 0147: return "record too big for user's buffer.";
+	case 0150: return "primary  key  out  of  sequence  (RAC=RB$SEQ  for $PUT).";
+	case 0151: return "\"SHR\"  field  invalid  for  file  (cannot   share sequential files).";
+	case 0152: return "\"SIZ field invalid.";
+	case 0153: return "stack too big for save area.";
+	case 0154: return "system directive error.";
+	case 0155: return "index tree error.";
+	case 0156: return "error in file type extension on FNS too big.";
+	case 0157: return "invalid user buffer addr (0, odd, or if  BLK-IO not word aligned).";
+	case 0160: return "invalid user buffer size (USZ=0).";
+	case 0161: return "error in version number.";
+	case 0162: return "invalid volume number.";
+	case 0163: return "file write error (STV=sys err code).";
+	case 0164: return "device is write locked.";
+	case 0165: return "error while writing prologue.";
+	case 0166: return "not a valid XAB (@XAB=ODD,STV=XAB indicator).";
+	case 0167: return "default directory invalid.";
+	case 0170: return "cannot access argument list.";
+	case 0171: return "cannot close file.";
+	case 0172: return "cannot deliver AST.";
+	case 0173: return "channel assignment failure (STV=sys err code).";
+	case 0174: return "terminal output ignored due to (CNTRL) O.";
+	case 0175: return "terminal input aborted due to (CNTRL) Y.";
+	case 0176: return "default filename string address error.";
+	case 0177: return "invalid device I.D.  field.";
+	case 0200: return "expanded string address error.";
+	case 0201: return "filename string address error.";
+	case 0202: return "FSZ field invalid.";
+	case 0203: return "invalid argument list.";
+	case 0204: return "known file found.";
+	case 0205: return "logical name error.";
+	case 0206: return "node name error.";
+	case 0207: return "operation successful.";
+	case 0210: return "record inserted had duplicate key.";
+	case 0211: return "index update error occurred-record inserted.";
+	case 0212: return "record locked but read anyway.";
+	case 0213: return "record  inserted  in  primary  o.k.; may  not  be accessible by secondary keys or RFA.";
+	case 0214: return "file was created, but not opened.";
+	case 0215: return "bad prompt buffer address.";
+	case 0216: return "async.  operation pending completion.";
+	case 0217: return "quoted string error.";
+	case 0220: return "record header buffer invalid.";
+	case 0221: return "invalid related file.";
+	case 0222: return "invalid resultant string size.";
+	case 0223: return "invalid resultant string address.";
+	case 0224: return "operation not sequential.";
+	case 0225: return "operation successful.";
+	case 0226: return "created file superseded existing version.";
+	case 0227: return "filename syntax error.";
+	case 0230: return "time-out period expired.";
+	case 0231: return "FB$BLK record attribute not supported.";
+	case 0232: return "bad byte size.";
+	case 0233: return "cannot disconnect RAB.";
+	case 0234: return "cannot get JFN for file.";
+	case 0235: return "cannot open file.";
+	case 0236: return "bad JFN value.";
+	case 0237: return "cannot position to end-of-file.";
+	case 0240: return "cannot truncate file.";
+	case 0241: return "file is currently in an  undefined  state; access is denied.";
+	case 0242: return "file must be opened for exclusive access.";
+	case 0243: return "directory full.";
+	case 0244: return "handler not in system.";
+	case 0245: return "fatal hardware error.";
+	case 0246: return "attempt to write beyond EOF.";
+	case 0247: return "hardware option not present.";
+	case 0250: return "device not attached.";
+	case 0251: return "device already attached.";
+	case 0252: return "device not attachable.";
+	case 0253: return "sharable resource in use.";
+	case 0254: return "illegal overlay request.";
+	case 0255: return "block check or CRC error.";
+	case 0256: return "caller's nodes exhausted.";
+	case 0257: return "index file full.";
+	case 0260: return "file header full.";
+	case 0261: return "accessed for write.";
+	case 0262: return "file header checksum failure.";
+	case 0263: return "attribute control list error.";
+	case 0264: return "file already accessed on LUN.";
+	case 0265: return "bad tape format.";
+	case 0266: return "illegal operation on file descriptor block.";
+	case 0267: return "rename; 2 different devices.";
+	case 0270: return "rename; new filename already in use.";
+	case 0271: return "cannot rename old file system.";
+	case 0272: return "file already open.";
+	case 0273: return "parity error on device.";
+	case 0274: return "end of volume detected.";
+	case 0275: return "data over-run.";
+	case 0276: return "bad block on device.";
+	case 0277: return "end of tape detected.";
+	case 0300: return "no buffer space for file.";
+	case 0301: return "file exceeds allocated space -- no blks.";
+	case 0302: return "specified task not installed.";
+	case 0303: return "unlock error.";
+	case 0304: return "no file accessed on LUN.";
+	case 0305: return "send/receive failure.";
+	case 0306: return "spool or submit command file failure.";
+	case 0307: return "no more files.";
+	case 0310: return "DAP file transfer Checksum error.";
+	case 0311: return "Quota exceeded";
+	case 0312: return "internal network error condition detected.";
+	case 0313: return "terminal input aborted due to (CNTRL) C.";
+	case 0314: return "data bucket fill size > bucket size in XAB.";
+	case 0315: return "invalid expanded string length.";
+	case 0316: return "illegal bucket format.";
+	case 0317: return "bucket size of LAN NOT = IAN in XAB.";
+	case 0320: return "index not initialized.";
+	case 0321: return "illegal file attributes (corrupt file header).";
+	case 0322: return "index bucket fill size > bucket size in XAB.";
+	case 0323: return "key name buffer not readable or writeable in XAB.";
+	case 0324: return "index bucket will not hold two keys  for  key  of reference.";
+	case 0325: return "multi-buffer count invalid (negative value).";
+	case 0326: return "network operation failed at remote node.";
+	case 0327: return "record is already locked.";
+	case 0330: return "deleted record successfully accessed.";
+	case 0331: return "retrieved record exceeds specified key value.";
+	case 0332: return "key XAB not filled in.";
+	case 0333: return "nonexistent record successfully accessed.";
+	case 0334: return "unsupported prologue version.";
+	case 0335: return "illegal key-of-reference in XAB.";
+	case 0336: return "invalid resultant string length.";
+	case 0337: return "error updating rrv's, some paths to data may be lost.";
+	case 0340: return "data types other than string limited to one segment in XAB.";
+	case 0341: return "reserved";
+	case 0342: return "operation not supported over network.";
+	case 0343: return "error on write behind.";
+	case 0344: return "invalid wildcard operation.";
+	case 0345: return "working set full (can not lock buffers in working set.)";
+	case 0346: return "directory listing -- error in reading volume-set name, directory name, of file name.";
+	case 0347: return "directory listing -- error in reading file attributes.";
+	case 0350: return "directory listing -- protection violation in trying to read the volume-set, directory or file name.";
+	case 0351: return "directory listing -- protection violation in trying to read file attributes.";
+	case 0352: return "directory listing -- file attributes do not exist.";
+	case 0353: return "directory listing -- unable to recover  directory list after Continue Transfer (Skip).";
+	case 0354: return "sharing not enabled.";
+	case 0355: return "sharing page count exceeded.";
+	case 0356: return "UPI bit not set when sharing with BRO set.";
+	case 0357: return "error in access control string (poor man's  route through error).";
+	case 0360: return "terminator not seen.";
+	case 0361: return "bad escape sequence.";
+	case 0362: return "partial escape sequence.";
+	case 0363: return "invalid wildcard context value.";
+	case 0364: return "invalid directory rename operation.";
+	case 0365: return "user structure (FAB/RAB)  became  invalid  during operation.";
+	case 0366: return "network file transfer made precludes operation.";
+
+	default:
+	    return "unknown transfer error";
+	}
+    case 12:
+	return "Message Type error";
     }
+    return "WTF";
 }
 //------------------------------ dap_name_message() ---------------------------
 
@@ -1637,7 +1905,7 @@ bool dap_date_message::read(dap_connection &c)
     if (datmenu.get_bit(4) && !bdt.read(c)) return false;
 
 // Bit 6 is the Ultrix changed date but I don't know what bit 5 is.
-// Since we don't use either date I'll just dump them both in the same 
+// Since we don't use either date I'll just dump them both in the same
 // place for now (and hope they are both in the same format!)
     if (datmenu.get_bit(5) && !udt.read(c)) return false;
     if (datmenu.get_bit(6) && !udt.read(c)) return false;
@@ -1740,7 +2008,7 @@ char *dap_date_message::time_to_string(time_t t)
 // Convert the month to uppercase (strftime makes the last two letters lower)
     d[4] = toupper(d[4]);
     d[5] = toupper(d[5]);
-    
+
     return d;
 }
 
@@ -1749,8 +2017,8 @@ time_t dap_date_message::string_to_time_t(const char *d)
     struct tm tm;
     char month[5];
 
-    sscanf(d, "%d-%3s-%d %d:%d:%d", 
-	   &tm.tm_mday, month,      &tm.tm_year, 
+    sscanf(d, "%d-%3s-%d %d:%d:%d",
+	   &tm.tm_mday, month,      &tm.tm_year,
 	   &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
 
     tm.tm_isdst = -1;
@@ -1774,15 +2042,15 @@ char *dap_date_message::make_y2k(char *dt)
     int year;
     int timepos;
 
-    strcpy(y2kdate, dt);   
-    
+    strcpy(y2kdate, dt);
+
 // Workaround for Y2K bug in Ultrix:
 // Dates come back as three digits with 2000 as 100
-    if (dt[9] == ' ') 
+    if (dt[9] == ' ')
     {
 	// Correct behaviour
 	year = (dt[7]-'0')*10 + dt[8]-'0';
-	if (year >= 70) 
+	if (year >= 70)
 	    year += 1900;
 	else
 	    year += 2000;
@@ -1792,7 +2060,7 @@ char *dap_date_message::make_y2k(char *dt)
     {
 	// Broken behaviour
 	year = (dt[7]-'0')*100 + (dt[8]-'0')*10 + dt[9]-'0';
-	if (year >= 70) 
+	if (year >= 70)
 	    year += 1900;
 	else
 	    year += 2000;
@@ -1905,7 +2173,7 @@ mode_t dap_protect_message::get_mode()
 	if (!(p & 0x02)) mode |= 2;
 	if (!(p & 0x04)) mode |= 1;
     }
-    
+
     return mode;
 }
 
@@ -1968,7 +2236,7 @@ void dap_protect_message::set_owner(gid_t g, uid_t o)
     struct group  *gr = getgrgid(g);
 
 /* If there's no username for this UID then send the number */
-    if (pw && gr) 
+    if (pw && gr)
     {
         char ownuid[32];
 	sprintf(ownuid, "[%s,%s]",gr->gr_name, pw->pw_name);

@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <utmp.h>
 #include <signal.h>
+#include <limits.h>
 #include <assert.h>
 
 #include <list>
@@ -653,18 +654,21 @@ void start_latd(int argc, char *argv[])
     // Did we find it?
     if (latd_bin)
     {
-	char  newpath[1024];
 	char *newargv[argc+1];
-	char *newenv[3];
+	char *newenv[4];
 	int   i;
+	char  latcp_bin[PATH_MAX];
+	char  latcp_env[PATH_MAX+7];
 
-	// Make a minimal path including wherever latd is.
-	sprintf(newpath, "PATH=%s:/bin:/usr/bin:/sbin:/usr/sbin", latd_path);
+	realpath(argv[0], latcp_bin);
+	sprintf(latcp_env, "LATCP=%s", latcp_bin);
+
 	newargv[0] = latd_bin;
 	newargv[1] = NULL;
-	newenv[0] = newpath;
+	newenv[0] = "PATH=/bin:/usr/bin:/sbin:/usr/sbin";
 	newenv[1] = "LATCP_STARTED=true"; // Tell latd it was started by us.
-	newenv[2] = NULL;
+	newenv[2] = latcp_env;
+	newenv[3] = NULL;
 
 	switch(fork())
 	{

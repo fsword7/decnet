@@ -66,13 +66,14 @@ static int usage(char *cmd)
     printf ("Usage: llogin [<option>] <service>\n");
     printf ("     where option is one of the following:\n");
     printf ("       -d         show learned services\n");
+    printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local port rather than a service\n");
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
     printf ("       -Q         connect to a queued service\n");
-    printf ("       -c         convert CR to LF\n");
-    printf ("       -b         convert DEL to BS\n");
-    printf ("       -l         convert LF to VT\n");
+    printf ("       -c         convert input CR to LF\n");
+    printf ("       -b         convert input DEL to BS\n");
+    printf ("       -l         convert output LF to VT\n");
     printf ("       -n <name>  Local port name\n");
     printf ("       -q <char>  quit character\n");
     printf ("       -h         display this usage message\n");
@@ -363,17 +364,8 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 		    goto quit;
 		
 		if (inbuf[i] == '\n' && crlf)
-		{
 		    inbuf[i] = '\r';
-		    break;
-		}
-		
-		if (inbuf[i] == '\r' && lfvt)
-		{
-		    inbuf[i] = '\v';
-		    break;
-		}
-		
+				
 		if (inbuf[i] == '\177' && bsdel)
 		    inbuf[i] = '\010';
 	    }
@@ -387,7 +379,15 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 	    if ( (len = read(latfd, &inbuf, sizeof(inbuf))) < 1)
 		break;
 	    else
+	    {
+		if (lfvt)
+		{
+		    for (int i=0; i<len; i++)
+			if (inbuf[i] == '\n')
+			    inbuf[i] = '\v';
+		}
 		write(termfd, inbuf, len);
+	    }
 	}
     }
  quit:    

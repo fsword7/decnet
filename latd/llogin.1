@@ -9,7 +9,7 @@ llogin \- Connect to a LAT service
 .br
 Options:
 .br
-[\-cpbhlQ] [\-H node] [\-R port] [-n name] [\-q quit char]
+[\-dvcpblhQ] [\-H node] [\-R port] [-n name] [\-q quit char]
 .SH DESCRIPTION
 .PP
 llogin connects your terminal to a LAT service via latd, the service name
@@ -18,32 +18,37 @@ must be known to latd for this to work.
 
 .SH OPTIONS
 .TP
+.I "\-d"
+Shows learned services. This is the same as latcp -d -l
+.TP
+.I "\-d \-v"
+Verbose form of -d. -v without -d is ignored.
+.TP
 .I "\-H <node>"
 Remote nodename. If the service is advertised by more than one node and you
 want to connect to a particular node then use this switch. By default
 you will be connected to the node with the highest rating.
 .TP
-.I "\-R"
+.I "\-R <port>"
 Connect to a specific port on (usually) a terminal server. This is the port 
 NAME on the server and not the port number.
 .TP
 .I "\-c"
-Do not convert LF to CR. By default the enter key generates LF and
+Do not convert typed LF to CR. By default the enter key generates LF and
 llogin converts it CR as it is the most generically useful translation.
 This switch will cause the enter key to send LF instead. Occasionally 
 useful for connecting to Unix consoles.
 .TP
 .I "\-b"
-Convert DEL to BS. By default the DEL key (keyboard, top right usually)
+Convert typed DEL to BS. By default the DEL key (keyboard, top right usually)
 send DEL (ASCII 0x7f) to the remote system. This switch will cause the DEL 
 key to send BS (ASCII 8) instead. Useful for some Unix systems connected 
 via terminal servers.
 .TP
 .I "\-l"
-Convert LF to VT. VMS expects the linefeed character (ASCII 0x0A) to simply
-move the cursor down one line, whereas Unix also moves the cursor to the
-start of that line. This switch converts the LF character to a vertical tab
-which has the right effect on Unix.
+Convert output LF to VT. By default LF output is sent as CRLF which can
+cause output formatting problems. Changing this to VT should preserve the
+output formatting on most devices or terminal emulators.
 .TP
 .I "\-q <char>"
 Change the quit character. By default CTRL-] will quit the terminal 
@@ -59,7 +64,7 @@ normal login service or port service. Unfortunately latd cannot tell whether
 a remote service needs to be queued or not so the onus is on the user to
 specify this switch when connecting to a queued service.
 .TP
-.I "\-n"
+.I "\-n <name>"
 Sets the local connection name. By default this will be your local TTY name.
 In most cases this simply affects the display of the terminal on the remote end
 so you shouldn't need to change it.
@@ -71,6 +76,9 @@ you like really. This switch does not make the program useful as a terminal
 program because there is no way to set any serial parameters, nor am I going 
 to add them. This is just a convenient way to use the /dev/lat ports without
 the overhead of programs such as minicom.
-
+.TP
+.I "\-h"
+Displays a brief usage description. This is the same as invoking llogin
+without any parameters at all.
 .SS SEE ALSO
 .BR latcp "(8), " latd "(8)"

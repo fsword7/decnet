@@ -5,6 +5,7 @@
 ./usr/sbin/sendvmsmail
 ./usr/sbin/phoned
 ./usr/sbin/dnetd
+./usr/sbin/dnroute
 ./usr/bin/dndir
 ./usr/bin/dnsubmit
 ./usr/bin/dnprint
@@ -26,6 +27,7 @@
 ./usr/share/man/man8/rmtermd.8
 ./usr/share/man/man8/fal.8
 ./usr/share/man/man8/vmsmaild.8
+./usr/share/man/man8/dnroute.8
 ./usr/share/man/man5/vmsmail.conf.5
 ./usr/share/man/man1/dndel.1
 ./usr/share/man/man1/dncopy.1

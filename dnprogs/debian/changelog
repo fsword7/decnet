@@ -1,3 +1,11 @@
+dnprogs (2.24-1) unstable; urgency=low
+
+  * Add library path to dnroute link.
+    Closes: #191946
+  * Get rid of C++ism in dnroute
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  5 May 2003 09:26:55 +0100
+
 dnprogs (2.23-1) unstable; urgency=low
 
   * sethost no longer gets stuck in a tight loop after shutting down

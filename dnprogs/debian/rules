@@ -30,7 +30,7 @@ binary-indep: checkroot build
 	echo '# DNET_DAEMONS lists the daemons to start when dnet-progs is installed.' >> debian/tmp/etc/default/decnet
 	echo "DNET_DAEMONS=\"dnetd phoned #dnroute\"" >> debian/tmp/etc/default/decnet
 	echo "#" >> debian/tmp/etc/default/decnet
-	echo "#The following two lines enable routing, note that if you are" >> debian/tmp/etc/default/decnet
+	echo "# The following two lines enable routing, note that if you are" >> debian/tmp/etc/default/decnet
 	echo "# being a router, then add dnroute to the DNET_DAEMONS too" >> debian/tmp/etc/default/decnet
 	echo "#ROUTING=1" >> debian/tmp/etc/default/decnet
 	echo "PRIORITY=32" >> debian/tmp/etc/default/decnet

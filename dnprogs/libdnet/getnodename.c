@@ -28,7 +28,7 @@
 
 int getnodename(char *name, size_t len)
 {
-#ifdef NET_DECNET_NODE_NAME
+#ifdef SDF_UICPROXY
 	int ctlname[3] = { CTL_NET, NET_DECNET, NET_DECNET_NODE_NAME };
 
 

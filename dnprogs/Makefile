@@ -11,14 +11,7 @@ SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask mail phone dnetd scripts
 
 all: 	
-	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
-
-# Unconditional build - for those brave souls who "know what they're doing".
-please:
-	@echo -e \\a I really hope you know what you are doing!
-	@sleep 5
-	for i in $(SUBDIRS); do make -C $$i all ; done
 
 install:
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
@@ -44,6 +37,7 @@ clean:
 	rm -rf RPMS
 	rm -f .rpm*
 	rm -f build
+	rm -f core
 	@for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 #
@@ -101,10 +95,7 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	make clean
-	cd $TMPDIR; tar -xzvf /var/tmp/$(PKGNAME)-$(VERSION).tar.gz
-	cd $TMPDIR$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
-	rm -rf $TMPDIR/$(PKGNAME)-$(VERSION)
+	dpkg-buildpackage -rfakeroot
 
 #
 # Copy binaries to the web preload directory.

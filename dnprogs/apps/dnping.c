@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 	    timeout.tv_sec = timeout_sec;
 	    timeout.tv_usec = 0;
 
-	    status = select(sockfd+1, &in_fd, NULL, NULL, &tv);
+	    status = select(sockfd+1, &in_fd, NULL, NULL, &timeout);
 	    if (status < 0)
 	    {
 		perror("select");
@@ -437,6 +437,7 @@ int main(int argc, char *argv[])
 		exit(-1);
 	    }
 	}
+
 	num = read(sockfd,ibuf,sizeof(ibuf));
 	if ( num < 0 )
 	{

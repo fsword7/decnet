@@ -29,6 +29,7 @@ class LATConnection
     void send_connect_ack();
     int  send_message(unsigned char *, int, send_type);
     int  queue_message(unsigned char *, int);
+    int  add_data_slots(int start_slot, LAT_SlotCmd *slots[4]);
     void send_slot_message(unsigned char *, int);
     void circuit_timer();
     void remove_session(unsigned char);

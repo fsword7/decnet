@@ -63,7 +63,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 
     debuglog(("New connection: (c: %x, s: %x)\n",
              last_sequence_number, last_ack_number));
-    
+
     get_string(buf, &ptr, servicename); // This is actually local nodename
     get_string(buf, &ptr, remnode);
 
@@ -84,13 +84,13 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 	max_slots_per_packet = 1;
     else
 	max_slots_per_packet = 4;
-    
+
     memset(sessions, 0, sizeof(sessions));
 }
 
 // Create a client connection
 LATConnection::LATConnection(int _num, const char *_service,
-			     const char *_portname, const char *_lta, 
+			     const char *_portname, const char *_lta,
 			     const char *_remnode, bool queued, bool clean):
     num(_num),
     keepalive_timer(0),
@@ -110,7 +110,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     strcpy((char *)remnode, _remnode);
     strcpy(lta_name, _lta);
 
-    max_slots_per_packet = 1; // TODO: Calculate
+    max_slots_per_packet = 4; // TODO: Calculate // PJC Test
     max_window_size = 1;      // Gets overridden later on.
     window_size = 0 ;
     next_session = 1;
@@ -118,7 +118,7 @@ LATConnection::LATConnection(int _num, const char *_service,
 }
 
 
-bool LATConnection::process_session_cmd(unsigned char *buf, int len, 
+bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 					unsigned char *macaddr)
 {
     int  msglen;
@@ -126,14 +126,18 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     int  i;
     int  newsessionnum;
     int  ptr = sizeof(LAT_Header);
-    LATSession *newsession;    
-    LAT_SessionCmd *msg = (LAT_SessionCmd *)buf;  
+    LATSession *newsession;
+    LAT_SessionCmd *msg = (LAT_SessionCmd *)buf;
     int num_replies = 0;
-    LAT_SlotCmd reply[4];
+    LAT_SlotCmd *reply[4];
+    char replybuf[4][256];
     bool replyhere = false;
-    
+
     debuglog(("process_session_cmd: %d slots, %d bytes\n",
              msg->header.num_slots, len));
+
+    for (int ri=0; ri<4; ri++)
+	reply[ri] = (LAT_SlotCmd *)replybuf[ri];
 
     window_size--;
     if (window_size < 0) window_size=0;
@@ -145,11 +149,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     last_sequence_number = msg->header.ack_number;
     last_message_acked   = msg->header.sequence_number;
 
-#ifdef REALLY_VERBOSE_DEBUGLOG  
-    debuglog(("MSG:      seq: %d,        ack: %d\n", 
+#ifdef REALLY_VERBOSE_DEBUGLOG
+    debuglog(("MSG:      seq: %d,        ack: %d\n",
 	      msg->header.sequence_number, msg->header.ack_number));
 
-    debuglog(("PREV:last seq: %d,   last ack: %d\n", 
+    debuglog(("PREV:last seq: %d,   last ack: %d\n",
 	      last_sent_sequence, last_ack_number));
 #endif
 
@@ -164,28 +168,28 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     // No blocks? just ACK it (if we're a server)
     if (msg->header.num_slots == 0)
     {
-	if (role == SERVER) 
+	if (role == SERVER)
 	{
-	    reply[0].remote_session = msg->slot.local_session;
-	    reply[0].local_session = msg->slot.remote_session;
-	    reply[0].length = 0;
-	    reply[0].cmd = 0;
+	    reply[0]->remote_session = msg->slot.local_session;
+	    reply[0]->local_session = msg->slot.remote_session;
+	    reply[0]->length = 0;
+	    reply[0]->cmd = 0;
 	    replyhere = true;
 	}
 
 	LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(buf+ptr);
 	unsigned char credits = slotcmd->cmd & 0x0F;
-	
+
 	debuglog(("No data: cmd: %d, credit: %d\n", msg->header.cmd, credits));
-	
+
 	LATSession *session = sessions[slotcmd->local_session];
 	if (credits)
-	{	    
+	{
 	    if (session) session->add_credit(credits);
-	}       
+	}
 	if (replyhere && session && session->get_remote_credit() < 1)
 	{
-	    reply[0].cmd |= 15; // Add credit
+	    reply[0]->cmd |= 15; // Add credit
 	    session->inc_remote_credit(15);
 	}
     }
@@ -200,7 +204,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 	    debuglog(("process_slot_cmd(%d:%x). command: %x, credit: %d, len: %d\n",
 		     i, ptr, command, credits, msglen));
-	    	    
+
 	    ptr += sizeof(LAT_SlotCmd);
 
 	    // Process the data.
@@ -216,12 +220,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                     if (session->send_data_to_process(buf+ptr, msglen))
                     {
                         // No echo.
-                        if (role == SERVER) 
+                        if (role == SERVER)
 			{
-			    reply[num_replies].remote_session = slotcmd->local_session;
-			    reply[num_replies].local_session = slotcmd->remote_session;
-			    reply[num_replies].length = 0;
-			    reply[num_replies].cmd = 0;
+			    reply[num_replies]->remote_session = slotcmd->local_session;
+			    reply[num_replies]->local_session = slotcmd->remote_session;
+			    reply[num_replies]->length = 0;
+			    reply[num_replies]->cmd = 0;
 //			    num_replies++;
 			    replyhere = true;
 			}
@@ -232,10 +236,10 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		    debuglog(("Remote credit is %d\n", session->get_remote_credit()));
 		    if (session->get_remote_credit() <= 2)
 		    {
-			reply[num_replies].remote_session = slotcmd->local_session;
-			reply[num_replies].local_session = slotcmd->remote_session;
-			reply[num_replies].length = 0;
-			reply[num_replies].cmd = 15; // Just credit
+			reply[num_replies]->remote_session = slotcmd->local_session;
+			reply[num_replies]->local_session = slotcmd->remote_session;
+			reply[num_replies]->length = 0;
+			reply[num_replies]->cmd = 15; // Just credit
 			num_replies++;
 			session->inc_remote_credit(15);
 		    }
@@ -243,15 +247,15 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
                 else
                 {
                     // An error - send a disconnect.
-		    reply[num_replies].remote_session = slotcmd->local_session;
-		    reply[num_replies].local_session = slotcmd->remote_session;
-		    reply[num_replies].length = 0;
-		    reply[num_replies].cmd = 0xD3; // Invalid slot recvd
+		    reply[num_replies]->remote_session = slotcmd->local_session;
+		    reply[num_replies]->local_session = slotcmd->remote_session;
+		    reply[num_replies]->length = 0;
+		    reply[num_replies]->cmd = 0xD3; // Invalid slot recvd
 		    num_replies++;
                 }
             }
             break;
-	  
+
 	    case 0x90:
 		if (role == SERVER)
 		{
@@ -264,10 +268,10 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    debuglog(("Got queued reconnect for non-existant request ID\n"));
 
 			    // Not us mate...
-			    reply[num_replies].remote_session = slotcmd->local_session;
-			    reply[num_replies].local_session = slotcmd->remote_session;
-			    reply[num_replies].length = 0;
-			    reply[num_replies].cmd = 0xD7; // No such service
+			    reply[num_replies]->remote_session = slotcmd->local_session;
+			    reply[num_replies]->local_session = slotcmd->remote_session;
+			    reply[num_replies]->length = 0;
+			    reply[num_replies]->cmd = 0xD7; // No such service
 			    num_replies++;
 			}
 			else
@@ -279,8 +283,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    newsession = new QueuedSession(*this,
 							 (LAT_SessionStartCmd *)buf,
 							 cs,
-							 slotcmd->remote_session, 
-							 newsessionnum, 
+							 slotcmd->remote_session,
+							 newsessionnum,
 							 master_conn->eightbitclean);
 			    if (newsession->new_session(remnode, "","",
 							credits) == -1)
@@ -314,13 +318,13 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 				ptr += buf[ptr]+1; // Skip over it
 			    }
 			}
-			
+
 			if (!LATServer::Instance()->is_local_service((char *)name))
 			{
-			    reply[num_replies].remote_session = slotcmd->local_session;
-			    reply[num_replies].local_session = slotcmd->remote_session;
-			    reply[num_replies].length = 0;
-			    reply[num_replies].cmd = 0xD7; // No such service
+			    reply[num_replies]->remote_session = slotcmd->local_session;
+			    reply[num_replies]->local_session = slotcmd->remote_session;
+			    reply[num_replies]->length = 0;
+			    reply[num_replies]->cmd = 0xD7; // No such service
 			    num_replies++;
 			}
 			else
@@ -331,12 +335,12 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    gid_t gid;
 			    LATServer::Instance()->get_service_info((char *)name, cmd, maxcon, uid, gid);
 			    strcpy((char *)servicename, (char *)name);
-			    
+
 			    newsessionnum = next_session_number();
 			    newsession = new ServerSession(*this,
 							   (LAT_SessionStartCmd *)buf,
 							   cmd, uid, gid,
-							   slotcmd->remote_session, 
+							   slotcmd->remote_session,
 							   newsessionnum, false);
 			    if (newsession->new_session(remnode, "", (char *)portname,
 							credits) == -1)
@@ -355,7 +359,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		{
 		    if (session)
 			((ClientSession *)session)->got_connection(slotcmd->remote_session);
-		}    
+		}
 		break;
 
 	    case 0xa0:
@@ -363,17 +367,17 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		if (session)
 		    session->set_port((unsigned char *)slotcmd);
 
-		reply[num_replies].remote_session = slotcmd->local_session;
-		reply[num_replies].local_session = slotcmd->remote_session;
-		reply[num_replies].length = 0;
-		reply[num_replies].cmd = 0;
+		reply[num_replies]->remote_session = slotcmd->local_session;
+		reply[num_replies]->local_session = slotcmd->remote_session;
+		reply[num_replies]->length = 0;
+		reply[num_replies]->cmd = 0;
 		num_replies++;
 		break;
-	  
+
 	    case 0xb0:
                 // Attention. Force XON, Abort etc.
 	        break;
-		
+
 
 	    case 0xc0:  // Reject - we will get disconnected
 		debuglog(("Reject code %d: %s\n", credits,
@@ -390,13 +394,13 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		// If we have no sessions left then disconnect
 		if (num_clients() == 0)
 		{
-		    reply[num_replies].remote_session = slotcmd->local_session;
-		    reply[num_replies].local_session = slotcmd->remote_session;
-		    reply[num_replies].length = 0;
-		    reply[num_replies].cmd = 0xD1;/* No more slots on circuit */
+		    reply[num_replies]->remote_session = slotcmd->local_session;
+		    reply[num_replies]->local_session = slotcmd->remote_session;
+		    reply[num_replies]->length = 0;
+		    reply[num_replies]->cmd = 0xD1;/* No more slots on circuit */
 		    num_replies++;
 		}
-		break;	  
+		break;
 
 	    default:
 		debuglog(("Unknown slot command %x found. length: %d\n",
@@ -409,14 +413,17 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
         }
     }
 
+    // See if there is any data we can send in this reply
+    add_data_slots(num_replies, reply);
+
     // If "Response Requested" set, then make sure we send one.
-    if (msg->header.cmd & 1 && !replyhere) 
+    if (msg->header.cmd & 1 && !replyhere)
     {
 	debuglog(("Sending response because we were told to (%x)\n", msg->header.cmd));
 	replyhere = true;
     }
     last_ack_number = last_message_acked;
- 
+
     // Send any replies
     if (replyhere || num_replies)
     {
@@ -424,7 +431,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	unsigned char replybuf[1600];
 	LAT_Header *header  = (LAT_Header *)replybuf;
 	ptr = sizeof(LAT_Header);
-	
+
 	header->cmd       = LAT_CCMD_SREPLY;
 	header->num_slots = num_replies;
 	if (role == CLIENT) header->cmd |= 2; // To Host
@@ -432,14 +439,14 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	if (num_replies == 0) num_replies = 1;
 	for (int i=0; i < num_replies; i++)
 	{
-	    memcpy(replybuf + ptr, &reply[i], sizeof(LAT_SlotCmd));
+	    memcpy(replybuf + ptr, reply[i], sizeof(LAT_SlotCmd));
 	    ptr += sizeof(LAT_SlotCmd); // Already word-aligned
 	}
 
 	send_message(replybuf, ptr, REPLY);
 	return true;
     }
-    
+
     return false;
 }
 
@@ -470,7 +477,7 @@ void LATConnection::send_connect_ack()
     add_string(reply, &ptr, remnode);
     add_string(reply, &ptr, (unsigned char*)"LAT for Linux");
     reply[ptr++] = '\0';
-    
+
     send_message(reply, ptr, DATA);
     keepalive_timer = 0;
 }
@@ -479,8 +486,8 @@ void LATConnection::send_connect_ack()
 int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 {
     LAT_Header *response = (LAT_Header *)buf;
-    
-    if (type == DATA)  
+
+    if (type == DATA)
     {
 	last_sequence_number++;
 	retransmit_count = 0;
@@ -490,9 +497,10 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 	need_ack = true;
     }
 
-    if (type == REPLY) 
+    if (type == REPLY)
     {
 	last_sequence_number++;
+	last_sent_sequence = last_sequence_number;
 	need_ack = false;
     }
 
@@ -501,7 +509,7 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     response->sequence_number = last_sequence_number;
     response->ack_number      = last_ack_number;
 
-    debuglog(("Sending message for connid %d (seq: %d, ack: %d, needack: %d)\n", 
+    debuglog(("Sending message for connid %d (seq: %d, ack: %d, needack: %d)\n",
 	      num, last_sequence_number, last_ack_number, (type==DATA) ));
 
     keepalive_timer = 0;
@@ -515,14 +523,14 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 int LATConnection::queue_message(unsigned char *buf, int len)
 {
     LAT_Header *response = (LAT_Header *)buf;
-    
+
     response->local_connid    = num;
     response->remote_connid   = remote_connid;
     response->sequence_number = last_sequence_number;
     response->ack_number      = last_ack_number;
 
     debuglog(("Queued messsge for connid %d\n", num));
-    
+
     pending.push(pending_msg(buf, len, true));
     return 0;
 }
@@ -557,7 +565,7 @@ LATConnection::~LATConnection()
 	}
     }
 // Send a "shutting down" message to the other end
-    
+
 }
 
 // Generate the next session ID
@@ -574,7 +582,7 @@ int LATConnection::next_session_number()
 	}
     }
 
-// Didn't find a slot here - try from the start 
+// Didn't find a slot here - try from the start
     for (i=1; i < next_session; i++)
     {
 	if (!sessions[i])
@@ -594,7 +602,7 @@ void LATConnection::circuit_timer(void)
 {
 
     // Increment keepalive timer - timer is measured in the same units
-    // as the circut timer(100ths/sec) but the keepalive timer in the Server 
+    // as the circut timer(100ths/sec) but the keepalive timer in the Server
     // is measured in seconds.
 
     // Of course, we needn't send keepalive messages when we are a
@@ -609,23 +617,23 @@ void LATConnection::circuit_timer(void)
 	    // If we don't get a response to this then we abort the circuit.
 	    debuglog(("keepalive timer expired: %d: limit: %d\n", keepalive_timer,
 		      LATServer::Instance()->get_keepalive_timer()*100));
-	    
+
 	    // If we get into this block then there is no chance that there is
 	    // an outstanding ack (or if there is then it's all gone horribly wrong anyway
 	    // so it's safe to just send a NULL message out.
 	    // If we do exqueued properly this may need revisiting.
 	    unsigned char replybuf[1600];
 	    LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
-	    
+
 	    reply->header.cmd          = LAT_CCMD_SREPLY;
 	    reply->header.num_slots    = 0;
 	    reply->slot.remote_session = 0;
 	    reply->slot.local_session  = 0;
 	    reply->slot.length         = 0;
 	    reply->slot.cmd            = 0;
-	    
+
 	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION | 2;
-	    
+
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;
 	}
@@ -642,7 +650,7 @@ void LATConnection::circuit_timer(void)
 	    unsigned char buf[1600];
 	    LAT_Header *header = (LAT_Header *)buf;
 	    int ptr=sizeof(LAT_Header);
-	    
+
 	    header->cmd             = LAT_CCMD_DISCON;
 	    header->num_slots       = 0;
 	    header->local_connid    = num;
@@ -653,11 +661,11 @@ void LATConnection::circuit_timer(void)
 	    LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
 
 	    LATServer::Instance()->delete_connection(num);
-	    
+
 	    // Mark this node as unavailable in the service list
 	    LATServices::Instance()->remove_node(std::string((char *)remnode));
 	    return;
-	}	
+	}
 	debuglog(("Last message not ACKed: RESEND\n"));
 	last_message.send(interface, macaddr);
 	return;
@@ -672,9 +680,9 @@ void LATConnection::circuit_timer(void)
     for (unsigned int i=0; i<=highest_session; i++)
     {
 	if (sessions[i] && sessions[i]->isConnected())
-	    sessions[i]->read_pty();    
+	    sessions[i]->read_pty();
     }
-    
+
     // Coalesce pending messages and queue them
     while (!slots_pending.empty())
     {
@@ -696,13 +704,13 @@ void LATConnection::circuit_timer(void)
 	while ( (header->num_slots < max_slots_per_packet && !slots_pending.empty()))
         {
             header->num_slots++;
-          
+
             slot_cmd &cmd(slots_pending.front());
 
             memcpy(buf+len, cmd.get_buf(), cmd.get_len());
             len += cmd.get_len();
             if (len%2) len++;// Keep it on even boundary
-          
+
             slots_pending.pop();
         }
 	if (header->num_slots)
@@ -724,19 +732,19 @@ void LATConnection::circuit_timer(void)
     {
         // Send the top message
         pending_msg &msg(pending.front());
-      
+
         last_sequence_number++;
         last_sent_sequence = last_sequence_number;
         need_ack = msg.needs_ack();
 	retransmit_count = 0;
-	
+
         LAT_Header *header      = msg.get_header();
         header->sequence_number = last_sequence_number;
         header->ack_number      = last_ack_number;
-     
+
         debuglog(("Sending message on circuit timer: seq: %d, ack: %d (need_ack: %d)\n",
 		  last_sequence_number, last_ack_number, need_ack));
- 
+
         msg.send(interface, macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
         pending.pop();
@@ -745,6 +753,30 @@ void LATConnection::circuit_timer(void)
     }
 }
 
+// Add as many data slots as we can to a reply.
+int LATConnection::add_data_slots(int start_slot, LAT_SlotCmd *slots[4])
+{
+    int slot_num = start_slot;
+
+    // Poll our sessions
+    for (unsigned int i=0; i<=highest_session; i++)
+    {
+	if (sessions[i] && sessions[i]->isConnected())
+	    sessions[i]->read_pty();
+    }
+
+    while (slot_num < max_slots_per_packet && !slots_pending.empty())
+    {
+
+	slot_cmd &cmd(slots_pending.front());
+
+	memcpy((char*)slots[slot_num], cmd.get_buf(), cmd.get_len());
+
+	slots_pending.pop();
+	slot_num++;
+    }
+    return slot_num;
+}
 
 void LATConnection::remove_session(unsigned char id)
 {
@@ -797,30 +829,30 @@ int LATConnection::connect(ClientSession *session)
 						   std::string((char*)remnode), macaddr, &this_int))
 	    {
 		debuglog(("Can't find node %s in service\n", remnode, servicename));
-		
+
 		// Tell the user
-		session->disconnect_session(7);		
+		session->disconnect_session(7);
 		return -2; // Never eard of it!
 	    }
 	}
-	
+
 	// Reset the sequence & ack numbers
 	last_sequence_number = 0xff;
 	last_ack_number = 0xff;
 	remote_connid = 0;
 	interface = this_int;
 	connecting = true;
-	
+
 	// Queued connection or normal?
 	if (queued)
 	{
 	    debuglog(("Requesting connect to queued service\n"));
-	    
+
 	    int ptr;
 	    unsigned char buf[1600];
 	    LAT_Command *msg = (LAT_Command *)buf;
 	    ptr = sizeof(LAT_Command);
-	    
+
 	    msg->cmd         = LAT_CCMD_COMMAND;
 	    msg->format      = 0;
 	    msg->hiver       = LAT_VERSION;
@@ -832,19 +864,19 @@ int LATConnection::connect(ClientSession *session)
 	    msg->entry_id    = 0;
 	    msg->opcode      = 2; // Request Queued connection
 	    msg->modifier    = 1; // Send status periodically
-	    
+
 	    add_string(buf, &ptr, remnode);
-	    
+
 	    buf[ptr++] = 32; // Groups length
 	    memcpy(buf + ptr, LATServer::Instance()->get_user_groups(), 32);
 	    ptr += 32;
-	    
+
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    buf[ptr++] = 0; // ASCIC source port
 	    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
 	    add_string(buf, &ptr, servicename);
 	    add_string(buf, &ptr, portname);
-	    
+
 	    // Send it raw.
 	    return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
 	}
@@ -854,13 +886,13 @@ int LATConnection::connect(ClientSession *session)
 	    unsigned char buf[1600];
 	    LAT_Start *msg = (LAT_Start *)buf;
 	    ptr = sizeof(LAT_Start);
-	    
+
 	    debuglog(("Requesting connect to service on interface %d\n", interface));
-	    
+
 	    msg->header.cmd          = LAT_CCMD_CONNECT;
 	    msg->header.num_slots    = 0;
-	    msg->header.local_connid = num;  
-	    
+	    msg->header.local_connid = num;
+
 	    msg->maxsize     = dn_htons(1500);
 	    msg->latver      = LAT_VERSION;
 	    msg->latver_eco  = LAT_VERSION_ECO;
@@ -871,11 +903,11 @@ int LATConnection::connect(ClientSession *session)
 	    msg->facility    = dn_htons(0); // Eh?
 	    msg->prodtype    = 3;   // Wot do we use here???
 	    msg->prodver     = 3;   // and here ???
-	    
+
 	    add_string(buf, &ptr, remnode);
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
-	    
+
 	    return send_message(buf, ptr, LATConnection::DATA);
 	}
     }
@@ -889,7 +921,7 @@ int LATConnection::connect(ClientSession *session)
 
 void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 {
-    debuglog(("Got status %d from node %s, queue pos = %d,%d. session: %d\n", 
+    debuglog(("Got status %d from node %s, queue pos = %d,%d. session: %d\n",
 	      entry->status, node, entry->max_que_pos, entry->min_que_pos,
 	      entry->session_id));
 
@@ -906,7 +938,7 @@ int LATConnection::create_llogin_session(int fd, char *service, char *port, char
 // Create an lloginSession
     int newsessionnum = next_session_number();
 
-    LATSession *newsession = new lloginSession(*this, 0, newsessionnum, 
+    LATSession *newsession = new lloginSession(*this, 0, newsessionnum,
 					       localport, fd);
     if (newsession->new_session(remnode, service, port, 0) == -1)
     {
@@ -917,14 +949,14 @@ int LATConnection::create_llogin_session(int fd, char *service, char *port, char
     return 0;
 }
 
-int LATConnection::create_localport_session(int fd, LocalPort *lport, 
-					    const char *service, const char *port, 
+int LATConnection::create_localport_session(int fd, LocalPort *lport,
+					    const char *service, const char *port,
 					    const char *localport)
 {
 // Create a localportSession for a /dev/lat port
     int newsessionnum = next_session_number();
 
-    LATSession *newsession = new localportSession(*this, lport, 0, newsessionnum, 
+    LATSession *newsession = new localportSession(*this, lport, 0, newsessionnum,
 						  (char *)localport, fd);
     if (newsession->new_session((unsigned char *)remnode, (char *)service, (char *)port, 0) == -1)
     {
@@ -949,7 +981,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     max_window_size = reply->exqueued+1;
     max_window_size = 1; // All we can manage
 
-    debuglog(("got connect ack. seq: %d, ack: %d\n", 
+    debuglog(("got connect ack. seq: %d, ack: %d\n",
 	      last_sequence_number, last_message_acked));
 
 // Start clientsessions
@@ -987,7 +1019,7 @@ int LATConnection::disconnect_client()
 bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
 {
     int ptr = sizeof(LAT_SessionCmd)+3;
-    
+
     ptr += buf[ptr]+1; // Skip over destination service
     if (ptr >= len) return false;
 
@@ -1025,7 +1057,7 @@ int LATConnection::num_clients()
 {
     unsigned int i;
     int num = 0;
-    
+
     for (i=1; i<=highest_session; i++)
 	if (sessions[i]) num++;
 

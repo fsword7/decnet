@@ -19,8 +19,12 @@ class localportSession: public lloginSession
 		     unsigned char remid, unsigned char localid, char *lta, int);
 
     virtual ~localportSession();
-
+    virtual void do_read();
+    
  private:
     LocalPort *localport;
 
+
+    int minimum_read;
+    bool ignored_read;
 };

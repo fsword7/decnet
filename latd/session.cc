@@ -50,28 +50,29 @@
 
 void LATSession::add_credit(signed short c)
 {
-    if (credit < 0) 
+    if (credit < 0)
     {
 	debuglog(("ARGGHH: credit is negative\n"));
 	credit = 0;
     }
     credit += c;
-    
+
     if (stopped && credit)
     {
 	debuglog(("Got some more credit, (+%d=%d) carrying on\n", c, credit));
 	stopped = false;
 	LATServer::Instance()->set_fd_state(master_fd, false);
+	tcflow(master_fd, TCOON);
     }
 }
 
 /* Got some data from the terminal - send it to the PTY */
 int LATSession::send_data_to_process(unsigned char *buf, int len)
-{  
+{
     // If there's anything to send, do so
     if (len)
     {
-#ifdef REALLY_VERBOSE_DEBUGLOG  
+#ifdef REALLY_VERBOSE_DEBUGLOG
 	char debugbuf[1024];
         memcpy(debugbuf, buf, len);
 	debugbuf[len] = 0;
@@ -117,23 +118,22 @@ int LATSession::read_pty()
     int  command = 0x00;
     int  msglen;
 
-    if (credit <= 0) 
+    if (credit <= 0)
     {
 	// Disable the FD so we don't start looping
 	LATServer::Instance()->set_fd_state(master_fd, true);
 	stopped = true;
 	return 0; // Not allowed!
     }
-    
     msglen = read(master_fd, buf, max_read_size);
 
-#ifdef REALLY_VERBOSE_DEBUGLOG  
+#ifdef REALLY_VERBOSE_DEBUGLOG
     if (msglen > 0)
     {
       	buf[msglen] = '\0';
 	char tmp = buf[10];
 	buf[10] = '\0'; // Just a sample
-	debuglog(("Session %d From PTY(%d): '%s%s'\n", local_session, msglen, 
+	debuglog(("Session %d From PTY(%d): '%s%s'\n", local_session, msglen,
 		  buf, (msglen>10)?"...":""));
 	buf[10] = tmp;
     }
@@ -143,7 +143,7 @@ int LATSession::read_pty()
     if (msglen <= 0)
     {
 	if (msglen < 0 && errno == EAGAIN) return 0; // Just no data.
-	
+
 	debuglog(("EOF on PTY\n"));
 	unsigned char slotbuf[5];
 	int ptr = 0;
@@ -152,9 +152,9 @@ int LATSession::read_pty()
 	slotbuf[0] = 0x40;
 	add_slot(buf, ptr, 0xb0, slotbuf, 1);
 
-	// Tru64 (and DS500 I think) don't like the 
+	// Tru64 (and DS500 I think) don't like the
 	// local session ID to be set on the final disconnect slot
-	int s=local_session; 
+	int s=local_session;
         local_session=0;
 
 	add_slot(buf, ptr, 0xd1, slotbuf, 0);
@@ -163,7 +163,7 @@ int LATSession::read_pty()
 	// Must send this now or the connection could get deleted
 	// before the circuit timer goes off.
 	parent.send_message(buf, ptr, LATConnection::DATA);
-	
+
 	disconnect_session(1); // User requested
 	return 0;
     }
@@ -217,7 +217,7 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
 	remote_credit += 5;
 	command |= 0x5;
     }
-    
+
     // Send response...
     header->remote_session = local_session;
     header->local_session  = remote_session;
@@ -228,13 +228,14 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
     memcpy(reply+ptr, buf, msglen);
 
     parent.send_slot_message(reply, ptr+msglen);
-    
+
     // Have we now run out of credit ??
     if (--credit <= 0)
     {
 	LATServer::Instance()->set_fd_state(master_fd, true);
 	debuglog(("Out of credit...Stop\n"));
 	stopped = true;
+	tcflow(master_fd, TCOOFF);
     }
     return 0;
 }
@@ -257,7 +258,7 @@ void LATSession::send_disabled_message()
     LAT_SessionReply *reply = (LAT_SessionReply *)replybuf;
 
     debuglog(("Sending DISABLED message\n"));
-    
+
     reply->header.cmd          = LAT_CCMD_SREPLY;
     reply->header.num_slots    = 1;
     reply->slot.remote_session = local_session;
@@ -265,7 +266,7 @@ void LATSession::send_disabled_message()
     reply->slot.length         = 0;
     reply->slot.cmd            = 0xc8;  // Disconnect session.
 
-    parent.send_message(replybuf, sizeof(LAT_SessionReply), 
+    parent.send_message(replybuf, sizeof(LAT_SessionReply),
 			LATConnection::REPLY);
 }
 
@@ -301,11 +302,11 @@ void LATSession::send_issue()
     {
 	unsigned char *issue = new unsigned char[255];
 	unsigned char *newissue = new unsigned char[255];
-	
+
 	size_t len = read(f, issue, 255);
 	close(f);
-	
-	size_t newlen = 0;	
+
+	size_t newlen = 0;
 	if (len > 255) len = 255;
 
 	// Start with a new line
@@ -319,8 +320,8 @@ void LATSession::send_issue()
 		newissue[newlen++] = '\r';
 
 	    newissue[newlen++] = issue[i++];
-	}	
-	
+	}
+
 	echo_expected = false;
 
 	send_data(newissue, newlen, 0x01);
@@ -341,17 +342,17 @@ void LATSession::set_port(unsigned char *inbuf)
 }
 
 // Add a slot to an existing message
-void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd, 
+void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
 			  unsigned char *slotdata, int len)
 {
     // Allow the caller to initialize ptr to zero and we will do the rest
-    if (ptr == 0) 
+    if (ptr == 0)
     {
 	ptr = sizeof(LAT_Header);
 	LAT_Header *h = (LAT_Header *)buf;
-	h->num_slots = 0;	
+	h->num_slots = 0;
     }
-    
+
     // Write the slot header
     LAT_SlotCmd *slot = (LAT_SlotCmd *)(buf+ptr);
     ptr += sizeof(LAT_SlotCmd);
@@ -360,13 +361,13 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
     slot->remote_session = local_session;
     slot->local_session  = remote_session;
 
-    
+
     // Copy the data
     memcpy(buf+ptr, slotdata, len);
     ptr += len;
     if (ptr%2) ptr++;  // Word aligned
 
-    
+
     // Increment the number of slots.
     LAT_Header *header = (LAT_Header *)buf;
     header->num_slots++;
@@ -376,7 +377,7 @@ void LATSession::add_slot(unsigned char *buf, int &ptr, int slotcmd,
 	header->cmd = LAT_CCMD_SDATA;
 }
 
-void LATSession::crlf_to_lf(unsigned char *buf, int len, 
+void LATSession::crlf_to_lf(unsigned char *buf, int len,
 			    unsigned char *newbuf, int *newlen)
 {
     int i;
@@ -386,7 +387,7 @@ void LATSession::crlf_to_lf(unsigned char *buf, int len,
 
     for (i=0; i<len; i++)
     {
-	if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n')) 
+	if (i>0 && i<len && (buf[i] == '\r') && (buf[i-1] == '\n'))
 	{
 	    continue;
 	}

@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>
+#include <syslog.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <termios.h>
@@ -41,9 +42,11 @@ localportSession::localportSession(class LATConnection &p, LocalPort *port,
 				   unsigned char remid, unsigned char localid,
 				   char *lta, int fd):
     lloginSession(p, remid, localid, lta, clean),
-    localport(port)
+    localport(port),
+    minimum_read(0),
+    ignored_read(false)
 {
-    master_fd = fd; 
+    master_fd = fd;
 
     debuglog(("new localport session: localid %d, remote id %d\n",
 	      localid, remid));
@@ -64,4 +67,22 @@ localportSession::~localportSession()
     // Restart PTY so it can accept new connections
     debuglog(("Restarting PTY for local session\n"));
     localport->restart_pty();
+}
+
+void localportSession::do_read()
+{
+    // If there are less than "minimum_read" bytes available then
+    // wait until the next time around. We never leave it for more
+    // than one timer tick though.
+    int numbytes;
+    ioctl(master_fd, FIONREAD, &numbytes);
+    if (numbytes < minimum_read && !ignored_read)
+    {
+	ignored_read = true;
+    }
+    else
+    {
+	read_pty();
+	ignored_read = false;
+    }
 }

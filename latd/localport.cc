@@ -52,7 +52,6 @@ LocalPort::LocalPort(unsigned char *_service, unsigned char *_portname,
 
 LocalPort::LocalPort(const LocalPort &p)
 {
-    fprintf(stderr, "LocalPort Copy Constructor\n");
     service = p.service;
     portname = p.portname;
     devname = p.devname;
@@ -81,6 +80,10 @@ void LocalPort::init_port()
     struct termios tio;
     tcgetattr(master_fd, &tio);
     tio.c_iflag |= IGNBRK|BRKINT;
+    tio.c_oflag &= ~ONLCR; 
+    tio.c_oflag &= ~OCRNL; 
+    tio.c_iflag &= ~INLCR; 
+    tio.c_iflag &= ~ICRNL; 
     tcsetattr(master_fd, TCSANOW, &tio);
 
     strcpy(ptyname, ttyname(slave_fd));

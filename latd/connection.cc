@@ -224,7 +224,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	{
 	    if (session) session->add_credit(credits);
 	}
-	if (replyhere && session && session->get_remote_credit() < 1)
+	if (replyhere && session && session->get_remote_credit() <= 2)
 	{
 	    reply[0]->cmd |= 15; // Add credit
 	    session->inc_remote_credit(15);

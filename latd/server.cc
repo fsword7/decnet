@@ -319,7 +319,7 @@ void LATServer::send_service_announcement(int sig)
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_LAT);
-    sock_info.sll_hatype   = 0;
+    sock_info.sll_hatype   = ARPHRD_ETHER;
     sock_info.sll_pkttype  = PACKET_MULTICAST;
     sock_info.sll_halen    = 6;
 
@@ -747,7 +747,7 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
   sock_info.sll_family   = AF_PACKET;
   sock_info.sll_protocol = htons(ETH_P_LAT);
   sock_info.sll_ifindex  = interface;
-  sock_info.sll_hatype   = 0;
+  sock_info.sll_hatype   = ARPHRD_ETHER;
   sock_info.sll_pkttype  = PACKET_MULTICAST;
   sock_info.sll_halen    = 6;  
   memcpy(sock_info.sll_addr, macaddr, 6);

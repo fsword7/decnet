@@ -151,7 +151,7 @@ static void load_proxy_database(void)
 	// Skip whitespace
 	while (*bufp == ' ' || *bufp == '\t') bufp++;
 
-	if (*bufp == '#') continue; // Comment
+	if (*bufp == '#' || *bufp == '\n') continue; // Comment or blank line
 
 	// Remove trailing LF
 	if (buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';

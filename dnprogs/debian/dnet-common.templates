@@ -22,7 +22,6 @@ Description: What is your DECnet node address?
 
 Template: dnet-common/warning
 Type: note
-Priority: critical
 Description: DECnet startup changes your ethernet hardware address
  The startnet program in this package will change the hardware (MAC) address
  of all ethernet cards in your system (by default) to match the DECnet

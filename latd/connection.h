@@ -81,6 +81,10 @@ class LATConnection
     LATConnection **master_conn;       // Client connection we are slave to
     bool           connecting;
 
+    // Keep track of non-flow-controlled messages
+    time_t         last_msg_time;
+    int            last_msg_type;
+
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);
     bool is_queued_reconnect(unsigned char *buf, int len, int *conn);

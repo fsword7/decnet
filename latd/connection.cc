@@ -59,6 +59,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     eightbitclean(false),
     connected(false),
     master_conn(NULL),
+    last_msg_type(0),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -103,6 +104,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     connected(false),
     master_conn(NULL),
     connecting(false),
+    last_msg_type(0),
     role(CLIENT)
 {
     debuglog(("New client connection for %s created\n", _remnode));
@@ -309,6 +311,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			}
 			else
 			{
+			    last_msg_type = 0;
+
 			    // Connect a new port session to it
 			    ClientSession *cs = (ClientSession *)(*master_conn)->sessions[1];
 
@@ -678,6 +682,100 @@ void LATConnection::circuit_timer(void)
 	return;
     }
 
+    // If we're waiting for a non-flow-contorl message then
+    // check for timeout.
+    if (last_msg_type)
+    {
+	time_t tt;
+	tt =  time(NULL);
+
+	if (tt - last_msg_time > 5)
+	{
+	    last_msg_time = tt;
+
+	    switch (last_msg_type)
+	    {
+		// Connect
+	    case LAT_CCMD_CONNECT:
+	        {
+
+		    // Send another connect command
+		    int ptr;
+		    unsigned char buf[1600];
+		    LAT_Start *msg = (LAT_Start *)buf;
+		    ptr = sizeof(LAT_Start);
+
+		    debuglog(("Resending connect to service on interface %d\n", interface));
+
+		    msg->header.cmd          = LAT_CCMD_CONNECT;
+		    msg->header.num_slots    = 0;
+		    msg->header.local_connid = num;
+
+		    msg->maxsize     = dn_htons(1500);
+		    msg->latver      = LAT_VERSION;
+		    msg->latver_eco  = LAT_VERSION_ECO;
+		    msg->maxsessions = 254;
+		    msg->exqueued    = 0;
+		    msg->circtimer   = LATServer::Instance()->get_circuit_timer();
+		    msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
+		    msg->facility    = dn_htons(0); // Eh?
+		    msg->prodtype    = 3;   // Wot do we use here???
+		    msg->prodver     = 3;   // and here ???
+
+		    add_string(buf, &ptr, remnode);
+		    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+		    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
+
+		    send_message(buf, ptr, LATConnection::DATA);
+		    return;
+		}
+		break;
+
+		// Request for queued connect
+	    case LAT_CCMD_COMMAND:
+                {
+		    int ptr;
+		    unsigned char buf[1600];
+		    LAT_Command *msg = (LAT_Command *)buf;
+		    ptr = sizeof(LAT_Command);
+
+		    debuglog(("Resending queued connect to service on interface %d\n", interface));
+
+		    msg->cmd         = LAT_CCMD_COMMAND;
+		    msg->format      = 0;
+		    msg->hiver       = LAT_VERSION;
+		    msg->lover       = LAT_VERSION;
+		    msg->latver      = LAT_VERSION;
+		    msg->latver_eco  = LAT_VERSION_ECO;
+		    msg->maxsize     = dn_htons(1500);
+		    msg->request_id  = num;
+		    msg->entry_id    = 0;
+		    msg->opcode      = 2; // Request Queued connection
+		    msg->modifier    = 1; // Send status periodically
+
+		    add_string(buf, &ptr, remnode);
+
+		    buf[ptr++] = 32; // Groups length
+		    memcpy(buf + ptr, LATServer::Instance()->get_user_groups(), 32);
+		    ptr += 32;
+
+		    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+		    buf[ptr++] = 0; // ASCIC source port
+		    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
+		    add_string(buf, &ptr, servicename);
+		    add_string(buf, &ptr, portname);
+
+		    // Send it raw.
+		    LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
+		    return;
+		}
+		break;
+	    default:
+		break;
+	    }
+	}
+    }
+
     retransmit_count = 0;
 
     // Increment keepalive timer and trigger it if we are getting too close.
@@ -947,6 +1045,11 @@ int LATConnection::connect(ClientSession *session)
 	    add_string(buf, &ptr, servicename);
 	    add_string(buf, &ptr, portname);
 
+	    // Save the time we sent the connect so we
+            // know if we got a response.
+	    last_msg_time = time(NULL);
+	    last_msg_type = msg->cmd;
+
 	    // Send it raw.
 	    return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
 	}
@@ -978,6 +1081,11 @@ int LATConnection::connect(ClientSession *session)
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
 
+	    // Save the time we sent the connect so we
+            // know if we got a response.
+	    last_msg_time = time(NULL);
+	    last_msg_type = msg->header.cmd;
+
 	    return send_message(buf, ptr, LATConnection::DATA);
 	}
     }
@@ -998,6 +1106,7 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 // Check this is OK - status session ID seems to be rubbish
     if (role == CLIENT && sessions[1])
     {
+	last_msg_type = 0;
 	ClientSession *s = (ClientSession *)sessions[1];
 	s->show_status(node, entry);
     }
@@ -1053,6 +1162,8 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     max_window_size = 1; // PJC All we can manage
     window_size = 0;
     need_ack = false;
+
+    last_msg_type = 0;  // Not waiting anymore
 
     debuglog(("got connect ack. seq: %d, ack: %d\n",
 	      last_recv_seq, last_recv_ack));

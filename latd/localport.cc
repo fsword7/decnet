@@ -128,6 +128,7 @@ void LocalPort::init_port()
 
 LocalPort::~LocalPort()
 {
+    close_and_delete();
 }
 
 void LocalPort::close_and_delete()

@@ -7,6 +7,7 @@ PKGNAME=latd
 PROG1=latd
 PROG2=latcp
 PROG3=llogin
+PROG4=moprc
 MANPAGES1=llogin.1
 MANPAGES5=latd.conf.5
 MANPAGES8=latd.8 latcp.8
@@ -16,6 +17,7 @@ PROG1OBJS=main.o utils.o server.o connection.o session.o \
 	  circuit.o localport.o localportsession.o
 PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
+PROG4OBJS=moprc.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
 DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
@@ -28,6 +30,7 @@ LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++ 
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
+CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
 
 # ARCH code taken from the Linux kernel sources.
 #
@@ -48,7 +51,7 @@ endif
 #
 # Targets:
 #
-all: $(PROG1) $(PROG2) $(PROG3)
+all: $(PROG1) $(PROG2) $(PROG3) $(PROG4)
 
 $(PROG1): depend $(PROG1OBJS) 
 	$(CXX) -o $@ $(PROG1OBJS) -lutil
@@ -59,6 +62,9 @@ $(PROG2): depend $(PROG2OBJS)
 $(PROG3): depend $(PROG3OBJS) 
 	$(CXX) -o $@ $(PROG3OBJS)
 
+$(PROG4): depend $(PROG4OBJS)
+	$(CC) -o $@ $(PROG4OBJS)
+
 install:
 	install -d $(prefix)/sbin
 	install -d $(prefix)/bin
@@ -68,6 +74,7 @@ install:
 	install -m 0750 -s $(PROG1) $(prefix)/sbin
 	install -m 0750 -s $(PROG2) $(prefix)/sbin
 	install -m 0755 -s $(PROG3) $(prefix)/bin
+	install -m 0750 -s $(PROG4) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(prefix)/man/man1
 	install -m 0644 $(MANPAGES5) $(prefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(prefix)/man/man8

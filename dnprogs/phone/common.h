@@ -4,7 +4,7 @@
    server and user processes - the user's name is appended to this
    string
  */
-#define SOCKETNAME "/tmp/.phone-server"
+#define SOCKETNAME "/var/run/phoned"
 
 /* Phone network commands - ie the first byte of a packet read from
    the phone client or sent by the phone server.

@@ -1,0 +1,14 @@
+This is dnroute - the DECnet routing daemon - it is not finished yet.
+
+What it will do is to send out level 1 routing messages containing the
+local neighbour information for this node. If you enable routing
+for your kernel then this daemon will make it look as though it can
+route DECnet packets to other DECnet nodes.
+
+You will need Alexey Kuznetsov's iproute2 sources to build this software - 
+it is not automatically built as part of the dnprogs package. If it is 
+installed in /usr/local/src/iproute2 then dnroute should build, otherwise
+you will need to change the Makefile.
+
+If you want to test DECnet routing please contact myself (patrick) or Steve
+Whitehouse via the linux-decnet-user mailing list.

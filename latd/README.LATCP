@@ -13,13 +13,19 @@ latcp -m         Set the multicast timer
 DETAIL
 ------
 
-latcp -s
+latcp -s [<latd-options>]
 
 Starts the latd daemon but looking for it in  /usr/sbin/latd,
 /usr/local/sbin/latd or the same directory as latcp itself.
 It then invokes /bin/sh on the file /etc/latd.conf (if it exists). This
 file should contain latcp commands you want to initialise the service
-with but can also contain normal shell commands.
+with but can also contain normal shell commands. Note that latcp is guaranteed
+to be on the path when the script runs.
+
+The latcp -s command passes on any additional options to latd itself so you
+can start latd with a different service name withthe following command:
+
+latcp -s -sLINUXBOX -g"My Linux Box"
 
 
 latcp -h

@@ -18,7 +18,7 @@
 #define LAT_CCMD_CONACK   0x04
 #define LAT_CCMD_DISCON   0x0A
 #define LAT_CCMD_SERVICE  0x28
-#define LAT_CCMD_QCONNECT 0x30 // Queued Connect
+#define LAT_CCMD_COMMAND  0x30 // Used by Queued Connect
 #define LAT_CCMD_STATUS   0x34 // Status of Queued Connect
 #define LAT_CCMD_ENQUIRE  0x38
 #define LAT_CCMD_ENQREPLY 0x3C
@@ -123,6 +123,59 @@ typedef struct
     unsigned char attslotsize   __attribute__ ((packed));
     unsigned char dataslotsize  __attribute__ ((packed));
 } LAT_SessionStartCmd;
+
+typedef struct
+{
+    unsigned char  cmd           __attribute__ ((packed));
+    unsigned char  format        __attribute__ ((packed));
+    unsigned char  hiver         __attribute__ ((packed)); // Highest protocol version
+    unsigned char  lover         __attribute__ ((packed)); // Lowest protocol version
+    unsigned char  latver        __attribute__ ((packed)); // LAT version No. (5)
+    unsigned char  latver_eco    __attribute__ ((packed)); // LAT version No. (LSB)
+    unsigned short maxsize       __attribute__ ((packed));
+    unsigned short request_id    __attribute__ ((packed));
+    unsigned short entry_id      __attribute__ ((packed));
+    unsigned char  opcode        __attribute__ ((packed));
+    unsigned char  modifier      __attribute__ ((packed));     
+    // ASCIC Destination node name
+    // ASCIC Source node name
+    // ASCIC Source node port name (usually NUL)
+    // ASCIC Source description (usually NUL)
+    // ASCIC Destination port name
+    // Parameters
+} LAT_Command;
+
+// A Status message can contain one or more of these entries.
+typedef struct
+{
+    unsigned char  length        __attribute__ ((packed));
+    unsigned char  status        __attribute__ ((packed));
+    unsigned short request_id    __attribute__ ((packed));
+    unsigned short session_id    __attribute__ ((packed));
+    unsigned short elapsed_time  __attribute__ ((packed)); // set to -1? seconds
+    unsigned short min_que_pos   __attribute__ ((packed));
+    unsigned short max_que_pos   __attribute__ ((packed));
+    // ASCIC Service Name (usually NUL)
+    // ASCIC Port Name
+    // ASCIC Service description
+    
+} LAT_StatusEntry;
+
+typedef struct
+{
+    unsigned char  cmd           __attribute__ ((packed));
+    unsigned char  format        __attribute__ ((packed));
+    unsigned char  hiver         __attribute__ ((packed)); // Highest protocol version
+    unsigned char  lover         __attribute__ ((packed)); // Lowest protocol version
+    unsigned char  latver        __attribute__ ((packed)); // LAT version No. (5)
+    unsigned char  latver_eco    __attribute__ ((packed)); // LAT version No. (LSB)
+    unsigned short maxsize       __attribute__ ((packed));
+    unsigned short retrans_timer __attribute__ ((packed));
+    unsigned short entry_count   __attribute__ ((packed));
+    //ASCIC Subject node name
+    // Array of LAT_StatusEntry structs
+
+} LAT_Status;
 
 typedef LAT_SessionCmd LAT_SessionReply;
 typedef LAT_SessionCmd LAT_SessionData; // Unsolicited output

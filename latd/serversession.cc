@@ -17,6 +17,8 @@
 #include <syslog.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <grp.h>
+#include <pwd.h>
 #include <termios.h>
 #include <list>
 #include <queue>
@@ -35,10 +37,13 @@
 
 ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 			     std::string shellcmd,
+			     uid_t uid, gid_t gid,
 			     unsigned char remid, 
 			     unsigned char localid, bool clean):
     LATSession(p, remid, localid, clean),
-    command(shellcmd)
+    command(shellcmd),
+    cmd_uid(uid),
+    cmd_gid(gid)
 {
     max_read_size = cmd->dataslotsize;
     
@@ -173,6 +178,15 @@ int ServerSession::create_session(unsigned char *remote_node)
 	
 	setsid();
 
+	// Become the requested user.
+	struct passwd *user_pwd = getpwuid(cmd_uid);
+	if (user_pwd)
+	    initgroups(user_pwd->pw_name, cmd_gid);
+	setgid(cmd_gid);
+	setuid(cmd_uid);
+
+	// Get the command to run.
+	// TODO: Split off command-line parameters
 	const char *cmd = command.c_str();
 	const char *cmdname = strrchr(cmd, '/');
 	if (!cmdname) cmdname = cmd;

@@ -35,6 +35,7 @@
 #include <regex.h>
 #include <stdlib.h>
 #include <utmp.h>
+#include <pwd.h>
 #include <signal.h>
 #include <limits.h>
 #include <assert.h>
@@ -89,7 +90,7 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i description] [-r rating] [-s] [-C command] [-m max conn]\n");
+    printf ("       -A -a service [-i description] [-r rating] [-s] [-C command] [-u user] [-m max conn]\n");
     printf ("       -A -p tty -V learned_service [-R rem_port] [-H rem_node] [-Q] [-8]\n");
     printf ("       -D {-a service | -p tty}\n");
     printf ("       -C service command}\n");
@@ -528,11 +529,15 @@ void add_service(int argc, char *argv[])
     int  queued = 0;
     int  clean = 0;
     int  max_connections = 0;
+    uid_t target_uid = 0;
+    gid_t target_gid = 0;
+    struct passwd *target_user;
+	
     
     opterr = 0;
     optind = 0;
 
-    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8C:m:")) != EOF)
+    while ((opt=getopt(argc,argv,"a:i:p:H:R:V:r:sQ8C:m:u:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -592,6 +597,17 @@ void add_service(int argc, char *argv[])
 	    strcpy(command, optarg);
 	    break;
 
+	case 'u':
+	    target_user = getpwnam(optarg);
+	    if (target_user == NULL)
+	    {
+		fprintf(stderr, "Unknown username '%s'\n", optarg);
+		exit(99);
+	    }
+	    target_uid = target_user->pw_uid;
+	    target_gid = target_user->pw_gid;
+	    break;
+
 	case 'm':
 	    max_connections = atoi(optarg);
 	    break;
@@ -620,7 +636,6 @@ void add_service(int argc, char *argv[])
 	    fprintf(stderr, "No name for new service\n");
 	    exit(2);
 	}
-
 	
 	char message[520];
 	int ptr = 2;
@@ -629,6 +644,8 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
 	message[ptr++] = max_connections;
+	*(uid_t *)(message+ptr) = target_uid; ptr += sizeof(uid_t);
+	*(gid_t *)(message+ptr) = target_gid; ptr += sizeof(gid_t);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)command);
 
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);

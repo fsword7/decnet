@@ -18,7 +18,7 @@ class LATServer
 {
     typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS, LLOGIN_RENDEZVOUS,
 		  LATCP_SOCKET, LLOGIN_SOCKET, LOCAL_PTY, DISABLED_PTY} fd_type;
-    
+
  public:
     static LATServer *Instance()
 	{
@@ -27,7 +27,7 @@ class LATServer
 	    else
 		return instance;
 	}
-    
+
     void init(bool _static_rating, int _rating,
 	      char *_service, char *_greeting, char **_interfaces,
 	      int _verbosity, int _timer);
@@ -48,7 +48,7 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, int interface, unsigned char *macaddr);
     bool  is_local_service(char *);
-    string get_service_cmd(char *name);
+    int   get_service_info(char *name, string &cmd, int &maxcon, uid_t &uid, gid_t &gid);
     gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
@@ -103,7 +103,7 @@ class LATServer
     void  read_llogin(int);
     void  print_bitmap(std::ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
-    
+
     static void alarm_signal(int sig);
 
     class fdinfo
@@ -124,14 +124,14 @@ class LATServer
 		    type = DISABLED_PTY;
 		else
 		    type = LOCAL_PTY;
-		
+
 	    }
 
 	bool active()
 	{
 	  return (!(type == INACTIVE || type == DISABLED_PTY));
 	}
-	
+
 	bool operator==(int _fd)
 	{
 	    return (type != INACTIVE && fd == _fd);
@@ -151,7 +151,7 @@ class LATServer
 	{
 	    return (type == INACTIVE || fd != _fd);
 	}
-	
+
     private:
 	int  fd;
 	LATSession *session;
@@ -183,13 +183,16 @@ class LATServer
     class serviceinfo
     {
     public:
-	serviceinfo(std::string n, int r, bool s, std::string i = std::string(""), int mc=0, char* comm=""):
+	serviceinfo(std::string n, int r, bool s, std::string i = std::string(""), int mc=0, char* comm="",
+		    uid_t uid=0, gid_t gid=0):
 	    name(n),
 	    id(i),
 	    command(std::string(comm)),
 	    rating(r),
 	    max_connections(mc),
-	    static_rating(s)
+	    static_rating(s),
+	    cmd_uid(uid),
+	    cmd_gid(gid)
 	    {
 		if (command == std::string(""))
 		    command = std::string("/bin/login");
@@ -198,13 +201,15 @@ class LATServer
 	const std::string &get_id() {return id;}
 	const std::string &get_command() {return command;}
 	int           get_max_connections() {return max_connections;}
+	uid_t         get_uid() {return cmd_uid;}
+	gid_t         get_gid() {return cmd_gid;}
 	int           get_rating() {return rating;}
 	bool          get_static() {return static_rating;}
 	void          set_rating(int _new_rating, bool _static)
 	    { rating = _new_rating; static_rating = _static; }
 	void          set_ident(char *_ident)
 	    { id = std::string(_ident);}
-	
+
 	const bool operator==(serviceinfo &si)  { return (si == name);}
 	const bool operator==(const std::string &nm) { return (nm == name);}
 	const bool operator!=(serviceinfo &si)  { return (si != name);}
@@ -217,12 +222,14 @@ class LATServer
 	int rating;
 	int max_connections;
 	bool static_rating;
+	uid_t cmd_uid;
+	gid_t cmd_gid;
     };
-    
+
     void process_data(fdinfo &);
     void delete_entry(deleted_session &);
     void interface_error(int, int);
-    
+
     // Constants
     static const int MAX_CONNECTIONS = 255;
 
@@ -231,7 +238,7 @@ class LATServer
     std::list<deleted_session> dead_session_list;
     std::list<int>             dead_connection_list;
     std::list<serviceinfo>     servicelist;
-    
+
     // Connections indexed by ID
     LATConnection *connections[MAX_CONNECTIONS];
 
@@ -252,7 +259,8 @@ class LATServer
  public:
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
-    bool add_service(char *name, char *ident, char *command, int maxcon, int _rating, bool _static_rating);
+    bool add_service(char *name, char *ident, char *command,
+		     int maxcon, uid_t uid, gid_t gid, int _rating, bool _static_rating);
     bool set_rating(char *name, int _rating, bool _static_rating);
     bool set_ident(char *name, char *ident);
     bool remove_service(char *name);

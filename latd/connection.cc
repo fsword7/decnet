@@ -307,12 +307,16 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			}
 			else
 			{
-			    std::string cmd = LATServer::Instance()->get_service_cmd((char *)name);
+			    std::string cmd;
+			    int maxcon;
+			    uid_t uid;
+			    gid_t gid;
+			    LATServer::Instance()->get_service_info((char *)name, cmd, maxcon, uid, gid);
 			    
 			    newsessionnum = next_session_number();
 			    newsession = new ServerSession(*this,
 							   (LAT_SessionStartCmd *)buf,
-							   cmd,
+							   cmd, uid, gid,
 							   slotcmd->remote_session, 
 							   newsessionnum, false);
 			    if (newsession->new_session(remnode, "", "",

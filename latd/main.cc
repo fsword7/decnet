@@ -183,6 +183,8 @@ int main(int argc, char *argv[])
 	exit(2);
     }
 
+    // Unset it so our children don't inherit it.
+    unsetenv("LATCP_STARTED");
     
 #ifndef NO_FORK
     if (!debug) // Also available at run-time

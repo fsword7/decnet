@@ -428,6 +428,7 @@ bool fal_open::send_file(int rac, long vbn)
 			buf[buflen++] = (char) newchar;
 		    }
 		} while (newchar != EOF && newchar != '\n' && buflen < conn.get_blocksize()-10);
+		ateof = feof(stream);
 	    }
 	}
 	else // Block read

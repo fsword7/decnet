@@ -33,7 +33,7 @@ endif
 all: $(ALLPROGS)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBDNET)
-	$(CC) -o $@ $(CFLAGS) $(PROG1OBJS) $(LIBDNET)
+	$(CC) -o $@ $(CFLAGS) $(PROG1OBJS) -Wl,-Bstatic $(LIBDNET) -Wl,-Bdynamic
 
 $(PROG2): $(PROG2OBJS) $(DEPLIBDNET)
 	$(CC) -o $@ $(CFLAGS) $(PROG2OBJS) $(LIBDNET)

@@ -2,7 +2,7 @@ Source: dnprogs
 Section: net
 Priority: extra
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: fakeroot, debhelper, libncurses5-dev
+Build-Depends: debhelper, libncurses5-dev
 Standards-Version: 3.5.5
 
 Package: dnet-common

@@ -336,12 +336,71 @@ void LATServer::send_service_announcement(int sig)
 	sock_info.sll_ifindex  = interface_num[i];
 	if (sendto(lat_socket, packet, ptr, 0,
 		   (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
-	    syslog(LOG_ERR, "sendto: %m");	
+	{
+	    interface_error(interface_num[i], errno);
+	}
+	else
+	    interface_errs[interface_num[i]] = 0; // Clear errors
     }
 
     /* Send it every minute */
     signal(SIGALRM, &alarm_signal);
     alarm(multicast_timer);
+}
+
+// Log an error against an interface. If we get three of these
+// then we remove it.
+// If that means we have no interfaces, then closedown.
+void LATServer::interface_error(int ifnum, int err)
+{
+    struct ifreq ifr;
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    ifr.ifr_ifindex = ifnum;
+
+    if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+	syslog(LOG_ERR, "Error on interface %s: %s\n", ifr.ifr_name, strerror(err));
+    else
+	syslog(LOG_ERR, "Error on interface %d: %s\n", ifnum, strerror(err));
+
+    close(sock);
+
+    // Too many errors, remove it
+    if (++interface_errs[ifnum] > 3)
+    {
+	int i,j;
+
+	syslog(LOG_ERR, "Interface will be removed from LATD\n");
+	
+	// Look for it
+	for (i=0; i<num_interfaces; i++)
+	{
+	    if (interface_num[i] == ifnum) break;
+	}
+
+	// Ugh, didn't find it. that can't be right!
+	if (i>MAX_INTERFACES)
+	{	    
+	    syslog(LOG_ERR, "Don't seem to have a reference to this interface....\n");
+	    return;
+	}
+	
+	// Shuffle the list down
+	for (j=i; j<num_interfaces-1; j++)
+	{
+	    interface_num[j] = interface_num[j+1];
+	}
+
+	num_interfaces--;
+	if (num_interfaces == 0)
+	{
+	    syslog(LOG_ERR, "No valid interfaces left. LATD closing down\n");
+	    
+	    // No point in going down cleanly as that just sends network messages
+	    // and we have nowhere to send then through.
+	    exit(9);
+	}
+    }   
 }
 
 /* Main loop */
@@ -755,9 +814,10 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
   if (sendto(lat_socket, buf, len, 0,
 	     (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
   {
-      syslog(LOG_ERR, "sendto: %m");
+      interface_error(interface, errno);
       return -1;
   }
+  interface_errs[interface] = 0; // Clear errors
   return 0;
   
 }
@@ -916,6 +976,7 @@ void LATServer::init(bool _static_rating, int _rating,
 	    }
 	    else
 	    {
+		interface_errs[num_interfaces] = 0;  // Clear errors
 		num_interfaces++;
 	    }
 	    i++;

@@ -69,6 +69,7 @@ class LATServer
     unsigned char greeting[255];
     unsigned char local_name[256]; //  Node name
     int  interface_num[MAX_INTERFACES];
+    int  interface_errs[MAX_INTERFACES];
     int  num_interfaces;
     unsigned char multicast_incarnation;
     int  verbosity;
@@ -209,6 +210,7 @@ class LATServer
     
     void process_data(fdinfo &);
     void delete_entry(deleted_session &);
+    void interface_error(int, int);
     
     // Constants
     static const int MAX_CONNECTIONS = 255;

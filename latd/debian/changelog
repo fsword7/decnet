@@ -1,4 +1,4 @@
-latd (1.19-1) unstable; urgency=low
+latd (1.19) unstable; urgency=low
 
   * Some Darwin bpf interface fixes.
   * fix lat group on /dev/lat/ devices that was broken by my autoconf changes

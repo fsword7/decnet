@@ -203,131 +203,134 @@ void LATServer::send_service_announcement(int sig)
     struct utsname uinfo;
     char  *myname;
 
-    LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)packet;
-    ptr = sizeof(LAT_ServiceAnnounce);
-
-    announce->cmd             = LAT_CCMD_SERVICE;
-    announce->circuit_timer   = circuit_timer;
-    announce->hiver           = LAT_VERSION;
-    announce->lover           = LAT_VERSION;
-    announce->latver          = LAT_VERSION;
-    announce->latver_eco      = LAT_VERSION_ECO;
-    announce->incarnation     = --multicast_incarnation;
-    announce->flags           = 0x1f;
-    announce->mtu             = dn_htons(1500);
-    announce->multicast_timer = multicast_timer;
-    if (do_shutdown)
+    // Only send it if we have some services
+    if (servicelist.size())
     {
-	announce->node_status     = 3;    // Not accepting connections
-    }
-    else
-    {
-	announce->node_status     = 2;    // Accepting connections
-    }
+	LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)packet;
+	ptr = sizeof(LAT_ServiceAnnounce);
 
-    // Send group codes
-    if (groups_set)
-    {
-	announce->group_length = 32;
-	memcpy(&packet[ptr], groups, 32);
-	ptr += 32;
-	announce->flags |= 1;
-    }
-    else
-    {
-	announce->group_length    = 1;
-	packet[ptr++] = 01;
-    }
-
-    /* Get host info */
-    uname(&uinfo);
-
-    // Node name
-    myname = (char*)get_local_node();
-    packet[ptr++] = strlen(myname);
-    strcpy((char*)packet+ptr, myname);
-    ptr += strlen(myname);
-
-    // Greeting
-    packet[ptr++] = strlen((char*)greeting);
-    strcpy((char*)packet+ptr, (char*)greeting);
-    ptr += strlen((char*)greeting);
-
-    // Number of services
-    packet[ptr++] = servicelist.size();
-    std::list<serviceinfo>::iterator i(servicelist.begin());
-    for (; i != servicelist.end(); i++)
-    {
-	// Service rating
-	unsigned char real_rating;
-	if (i->get_static())
+	announce->cmd             = LAT_CCMD_SERVICE;
+	announce->circuit_timer   = circuit_timer;
+	announce->hiver           = LAT_VERSION;
+	announce->lover           = LAT_VERSION;
+	announce->latver          = LAT_VERSION;
+	announce->latver_eco      = LAT_VERSION_ECO;
+	announce->incarnation     = --multicast_incarnation;
+	announce->flags           = 0x1f;
+	announce->mtu             = dn_htons(1500);
+	announce->multicast_timer = multicast_timer;
+	if (do_shutdown)
 	{
-	    real_rating = i->get_rating();
+	    announce->node_status     = 3;    // Not accepting connections
 	}
 	else
 	{
-	    /* Calculate dynamic rating */
-	    real_rating =  (unsigned char)(i->get_rating() / (get_loadavg()+1.0));
-	    debuglog(("Dynamic service rating is %d\n", real_rating));
-	}
-	packet[ptr++] = real_rating;
-
-	// Service name
-	const std::string name = i->get_name();
-	packet[ptr++]     = name.length();
-	strcpy((char *)packet+ptr, i->get_name().c_str());
-	ptr += name.length();
-
-	// Service Identification
-	std::string id = i->get_id();
-	if (id.length() == 0)
-	{
-	    // Default service identification string
-	    char stringbuf[1024];
-	    sprintf(stringbuf, "%s %s", uinfo.sysname, uinfo.release);
-	    id = std::string(stringbuf);
+	    announce->node_status     = 2;    // Accepting connections
 	}
 
-	packet[ptr++] = id.length();
-	strcpy((char *)packet+ptr, id.c_str());
-	ptr += id.length();
-
-	// Make sure the service table knows about all our services
-	unsigned char dummy_macaddr[6];
-	memset(dummy_macaddr, 0, sizeof(dummy_macaddr));
-	if (!do_shutdown)
-	    LATServices::Instance()->add_service(std::string((char*)get_local_node()),
-	  				         name,
-					         id, real_rating, 0, dummy_macaddr);
-    }
-
-    // Not sure what node service classes are
-    // probably somthing to do with port services and stuff.
-    packet[ptr++] = 0x01; // Node service classes length
-    packet[ptr++] = 0x01; // Node service classes
-    packet[ptr++] = 0x00;
-    packet[ptr++] = 0x00;
-
-    unsigned char addr[6];
-    /* This is the LAT multicast address */
-    addr[0]  = 0x09;
-    addr[1]  = 0x00;
-    addr[2]  = 0x2b;
-    addr[3]  = 0x00;
-    addr[4]  = 0x00;
-    addr[5]  = 0x0f;
-
-    for (int i=0; i<num_interfaces;i++)
-    {
-	if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
+	// Send group codes
+	if (groups_set)
 	{
-    	    debuglog(("sending service announcement, send error: %d\n", errno));
-	    interface_error(interface_num[i], errno);
+	    announce->group_length = 32;
+	    memcpy(&packet[ptr], groups, 32);
+	    ptr += 32;
+	    announce->flags |= 1;
 	}
 	else
-	    interface_errs[interface_num[i]] = 0; // Clear errors
-    }
+	{
+	    announce->group_length    = 1;
+	    packet[ptr++] = 01;
+	}
 
+	/* Get host info */
+	uname(&uinfo);
+
+	// Node name
+	myname = (char*)get_local_node();
+	packet[ptr++] = strlen(myname);
+	strcpy((char*)packet+ptr, myname);
+	ptr += strlen(myname);
+
+	// Greeting
+	packet[ptr++] = strlen((char*)greeting);
+	strcpy((char*)packet+ptr, (char*)greeting);
+	ptr += strlen((char*)greeting);
+
+	// Number of services
+	packet[ptr++] = servicelist.size();
+	std::list<serviceinfo>::iterator i(servicelist.begin());
+	for (; i != servicelist.end(); i++)
+	{
+	    // Service rating
+	    unsigned char real_rating;
+	    if (i->get_static())
+	    {
+		real_rating = i->get_rating();
+	    }
+	    else
+	    {
+		/* Calculate dynamic rating */
+		real_rating =  (unsigned char)(i->get_rating() / (get_loadavg()+1.0));
+		debuglog(("Dynamic service rating is %d\n", real_rating));
+	    }
+	    packet[ptr++] = real_rating;
+
+	    // Service name
+	    const std::string name = i->get_name();
+	    packet[ptr++]     = name.length();
+	    strcpy((char *)packet+ptr, i->get_name().c_str());
+	    ptr += name.length();
+
+	    // Service Identification
+	    std::string id = i->get_id();
+	    if (id.length() == 0)
+	    {
+		// Default service identification string
+		char stringbuf[1024];
+		sprintf(stringbuf, "%s %s", uinfo.sysname, uinfo.release);
+		id = std::string(stringbuf);
+	    }
+
+	    packet[ptr++] = id.length();
+	    strcpy((char *)packet+ptr, id.c_str());
+	    ptr += id.length();
+
+	    // Make sure the service table knows about all our services
+	    unsigned char dummy_macaddr[6];
+	    memset(dummy_macaddr, 0, sizeof(dummy_macaddr));
+	    if (!do_shutdown)
+		LATServices::Instance()->add_service(std::string((char*)get_local_node()),
+						     name,
+						     id, real_rating, 0, dummy_macaddr);
+	}
+
+	// Not sure what node service classes are
+	// probably somthing to do with port services and stuff.
+	packet[ptr++] = 0x01; // Node service classes length
+	packet[ptr++] = 0x01; // Node service classes
+	packet[ptr++] = 0x00;
+	packet[ptr++] = 0x00;
+
+	unsigned char addr[6];
+	/* This is the LAT multicast address */
+	addr[0]  = 0x09;
+	addr[1]  = 0x00;
+	addr[2]  = 0x2b;
+	addr[3]  = 0x00;
+	addr[4]  = 0x00;
+	addr[5]  = 0x0f;
+
+	for (int i=0; i<num_interfaces;i++)
+	{
+	    if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
+	    {
+		debuglog(("sending service announcement, send error: %d\n", errno));
+		interface_error(interface_num[i], errno);
+	    }
+	    else
+		interface_errs[interface_num[i]] = 0; // Clear errors
+	}
+    }
     /* Send it every minute */
     signal(SIGALRM, &alarm_signal);
     alarm(multicast_timer);
@@ -1036,10 +1039,12 @@ void LATServer::init(bool _static_rating, int _rating,
 
     }
 
+#ifdef ENABLE_DEFAULT_SERVICE
     // Add the default session
     servicelist.push_back(serviceinfo(_service,
 				      _rating,
 				      _static_rating));
+#endif
 
     strcpy((char *)greeting, _greeting);
     verbosity = _verbosity;

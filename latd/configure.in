@@ -146,6 +146,15 @@ case x$with_llogin_socket in
 esac
 AC_DEFINE_UNQUOTED(LLOGIN_SOCKNAME, "$LLOGINSOCK")
 
+
+dnl Disable default login service
+AC_ARG_ENABLE(defservice,
+[  --disable-defservice         disable default login service],
+[ ], [enable_defservice=yes])
+if test "x$enable_defservice" = "xyes"; then
+  CXXFLAGS="${CXXFLAGS-} -DENABLE_DEFAULT_SERVICE"
+fi
+
 dnl Configure debugging and/or warnings.
 AC_ARG_ENABLE(debug,
 [  --enable-debug         compile debuggable programs],

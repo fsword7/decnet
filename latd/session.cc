@@ -301,13 +301,12 @@ void LATSession::send_issue()
 	}
     }
 
-
     // Send /etc/issue.net
     int f = open(issue_name, O_RDONLY);
     if (f >= 0)
     {
-	unsigned char *issue = new unsigned char[255];
-	unsigned char *newissue = new unsigned char[255];
+	char *issue = new char[255];
+	char *newissue = new char[512];
 
 	size_t len = read(f, issue, 255);
 	close(f);
@@ -319,18 +318,10 @@ void LATSession::send_issue()
 	newissue[newlen++] = '\r';
 	newissue[newlen++] = '\n';
 
-	// Add CR to all the LFs
-	for (unsigned int i=0; i<len && newlen<255; )
-	{
-	    if (issue[i] == '\n')
-		newissue[newlen++] = '\r';
-
-	    newissue[newlen++] = issue[i++];
-	}
-
+	newlen = expand_issue(issue, len, newissue, 255);
 	echo_expected = false;
 
-	send_data(newissue, newlen, 0x01);
+	send_data((unsigned char *)newissue, newlen, 0x01);
 	delete[] issue;
 	delete[] newissue;
     }

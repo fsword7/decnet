@@ -14,9 +14,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/fcntl.h>
+#include <sys/utsname.h>
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include "utils.h"
 
@@ -101,3 +103,101 @@ int pjc_openpty(int *master, int *slave, char *a, char *b, char *d)
     return 0;
 }
 #endif
+
+/* Expand \ sequences in /etc/issue.net file and add CRs to
+   LFs */
+int expand_issue(char *original, int len, char *newstring, int maxlen)
+{
+    int i,j;
+    char scratch[132];
+    time_t t;
+    struct tm *tm;
+    struct utsname un;
+
+    uname(&un);
+
+    j=0;
+    for (i=0; i<len; i++)
+    {
+	if (j >= maxlen) break;
+
+	if (original[i] == '\n')
+	    newstring[j++] = '\r';;
+
+	if (original[i] == '\\' || original[i] == '%')
+	{
+	    i++;
+	    switch (original[i])
+	    {
+	    case '\\':
+	    case '%':
+		newstring[j++] = original[i];
+		break;
+
+	    case 'b':
+		strcpy(newstring+j, "9600");
+		j+=4;
+		break;
+
+	    case 'd':
+		t = time(NULL);
+		tm = localtime(&t);
+		strftime(scratch, sizeof(scratch), "%a %b %d  %Y", tm);
+		strcpy(newstring+j, scratch);
+		j+=strlen(scratch);
+		break;
+
+	    case 's':
+		strcpy(newstring+j, un.sysname);
+		j+=strlen(un.sysname);
+		break;
+
+	    case 'l':
+		strcpy(newstring+j, "LAT");
+		j+=3;
+		break;
+
+	    case 'm':
+		strcpy(newstring+j, un.machine);
+		j+=strlen(un.machine);
+		break;
+
+	    case 'n':
+		strcpy(newstring+j, un.nodename);
+		j+=strlen(un.nodename);
+		break;
+
+#ifdef __GNU_SOURCE
+	    case 'o':
+		strcpy(newstring+j, un.domainname);
+		j+=strlen(un.domainname);
+		break;
+#endif
+	    case 'r':
+		strcpy(newstring+j, un.release);
+		j+=strlen(un.release);
+		break;
+
+	    case 't':
+		t = time(NULL);
+		tm = localtime(&t);
+		strftime(scratch, sizeof(scratch), "%H:%M:%S", tm);
+		strcpy(newstring+j, scratch);
+		j+=strlen(scratch);
+		break;
+
+ /* No, I am not doing number of users logged in... */
+	    case 'v':
+		strcpy(newstring+j, un.version);
+		j+=strlen(un.version);
+		break;
+	    }
+	}
+	else
+	{
+	    newstring[j++] = original[i];
+	}
+    }
+
+    return j;
+}

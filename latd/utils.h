@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,10 @@ void add_string(unsigned char *packet, int *ptr,
 
 void get_string(unsigned char *packet, int *ptr, 
 		unsigned char *string);
+
+
+int expand_issue(char *original, int len,
+		 char *newstring, int maxlen);
 
 #ifndef USE_OPENPTY
 #define INTERNAL_OPENPTY

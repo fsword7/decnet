@@ -10,7 +10,7 @@ PROG3=llogin
 PROG4=moprc
 MANPAGES1=llogin.1
 MANPAGES5=latd.conf.5
-MANPAGES8=latd.8 latcp.8
+MANPAGES8=latd.8 latcp.8 moprc.8
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
 	  serversession.o clientsession.o queuedsession.o services.o \
 	  latcpcircuit.o lat_messages.o lloginsession.o llogincircuit.o \

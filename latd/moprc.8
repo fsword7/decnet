@@ -1,0 +1,45 @@
+.TH MOPRC 8 "November 21 2001" "MOP Remote Console"
+
+.SH NAME
+moprc \- MOP Remote console requestor
+.SH SYNOPSIS
+.B moprc
+[options] <nodename>|<MAC Address>
+.br
+.SH DESCRIPTION
+.PP
+.B moprc
+allows a system administrator to connect to MOP console
+devices (usually terminal servers) and log into them
+to issue commands remotely. It is the equivalent of 
+"NCP CONNECT NODE" or "SET HOST/MOP" on VMS.
+.br
+The node maybe specified as a MAC address in Unix format 
+(ie as 6 pairs of hex digits seperated by colons) or as a name
+that appears in /etc/ethers.
+.br
+Because moprc uses the PF_PACKET socket feature of Linux you
+will probably need to be root or have privileges to use moprc.
+
+.SS OPTIONS
+.TP
+.I \-i
+Selects the ethernet interface to use to connect to the device. By
+default eth0 is used.
+
+.TP
+.I \-h \-?
+Shows the usage message.
+
+.TP
+.I \-V
+Shows the version of moprc.
+
+.SH EXAMPLES
+  moprc ds200
+.br
+.br
+  moprc -i eth1 08:00:2B:2B:AD:99
+
+.SS SEE ALSO
+.BR latd "(8), " latd.conf "(5), " ethers "(5), " llogin "(1)"

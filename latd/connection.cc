@@ -154,21 +154,25 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 #endif
 
     // Is this a duplicate?
-    if (msg->header.ack_number == last_recv_ack &&
-	msg->header.sequence_number == last_recv_seq)
+    // Check the previous ack number too as we could be one packet out
+    if (msg->header.sequence_number == last_recv_seq ||
+	msg->header.sequence_number == last_recv_seq-1)
     {
-	debuglog(("Duplicate packet received...resending ACK\n"));
+	if (msg->header.ack_number == last_recv_ack)
+	{
+	    debuglog(("Duplicate packet received...resending ACK\n"));
 
-        // But still send an ACK as it could be the ACK that went missing
-	last_ack_message.send(interface, macaddr);
+	    // But still send an ACK as it could be the ACK that went missing
+	    last_ack_message.send(interface, macaddr);
 
-	// If the last DATA message wasn't seen either then resend that too
-	if (last_message.get_seq() != msg->header.ack_number)
-	    last_message.send(interface, macaddr);
+	    // If the last DATA message wasn't seen either then resend that too
+	    if (last_message.get_seq() != msg->header.ack_number)
+		last_message.send(interface, macaddr);
+	}
 	return false;
     }
 
-    // PJC: Not sure about this
+    // If we got an old message then process that.
     if (msg->header.ack_number != last_sent_seq)
     {
 	debuglog(("Got ack for old message, resending ACK\n"));
@@ -178,7 +182,6 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	if (last_message.get_seq() != msg->header.ack_number)
 	    last_message.send(interface, macaddr);
     }
-
 
     window_size--;
     if (window_size < 0) window_size = 0;
@@ -771,8 +774,7 @@ void LATConnection::circuit_timer(void)
 #endif
 
     //  Send a pending message (if we can)
-    if (!pending.empty() && window_size < max_window_size)// &&
-//	last_sent_seq - last_recv_ack < max_window_size)
+    if (!pending.empty() && window_size < max_window_size)
     {
         // Send the top message
         pending_msg &msg(pending.front());

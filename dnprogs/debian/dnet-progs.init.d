@@ -41,7 +41,7 @@ case $1 in
        echo -n " $i"
        start-stop-daemon --stop --quiet --exec /usr/sbin/$i
      done
-     echo "done."
+     echo "."
      ;;
 
    restart|force-reload)

@@ -74,7 +74,19 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 	debugbuf[len] = 0;
 	debuglog(("To PTY(%d): %s\n", len, debugbuf));
 
-	write(master_fd, buf, len);
+	// Replace LF/CR with LF
+        // TODO There MUST be an option for this...
+	char newbuf[len];
+	int newlen = 0;
+	int i;
+	for (i=0; i<len; i++)
+	{
+	    if (i>0 && buf[i] == '\r' && buf[i-1] == '\n') break;
+	    if (i>0 && buf[i] == '\n' && buf[i-1] == '\r') break;
+	    newbuf[newlen++] = buf[i];
+	}
+
+	write(master_fd, newbuf, newlen);
     }
 
     // See if there's any echo. Anything longer than the data sent

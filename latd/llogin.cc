@@ -38,6 +38,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <termios.h>
+#include <lockfile.h>
 
 #include <list>
 #include <queue>
@@ -426,16 +427,41 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
     return 0;
 }
 
+
+static void lockfilename(char *devname, char *lockname, int maxlen)
+{
+    unsigned int i;
+
+    snprintf(lockname, maxlen, "/var/lock/LCK..%s", devname+5);
+
+// Replace / with _ (but on after LCK..)
+    for (i=14; i<strlen(lockname); i++)
+    {
+	if (lockname[i] == '/')
+	    lockname[i] = '_';
+    }
+}
+
 static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt)
 {
     int termfd;
     struct termios old_term;
     struct termios new_term;
+    char lockname[PATH_MAX];
+
+    lockfilename(portname, lockname, sizeof(lockname));
+
+    if (lockfile_create(lockname, 1, L_PID))
+    {
+	fprintf(stderr, "Device %s is locked\n", portname);
+	return -1;
+    }
 
     termfd = open(portname, O_RDWR);
     if (termfd < 0)
     {
 	fprintf(stderr, "Cannot open device %s: %s\n", portname, strerror(errno));
+	lockfile_remove(lockname);
 	return -1;
     }
 
@@ -460,7 +486,6 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     tcsetattr(termfd, TCSANOW, &old_term);
     close(termfd);
 
+    lockfile_remove(lockname);
     return 0;
-
-
 }

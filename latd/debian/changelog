@@ -1,3 +1,15 @@
+latd (1.15-1) unstable; urgency=low
+
+  * More DS90L+ fixes (keepalive message format)
+  * Fix iostreams so they produce the correct output in gcc 3.0 & 2.95.
+    Now I know why people really hate iostreams.
+  * Use getloadavg() rather than /proc to get load average.
+  * Close all FDs before forking server processes.
+  * Always send an ACK for a packet with data in it.
+  * llogin uses lock files for device connections
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 14 Aug 2002 08:56:28 +0100
+
 latd (1.14-1) unstable; urgency=low
 
   * gcc-3.0 compilation fixes in the new bits
@@ -15,7 +27,7 @@ latd (1.13-1) unstable; urgency=low
 
   * Fail attempts to create /dev/lat ports twice
   * Delete /dev/lat ports when latcp -D -p is run
-    (thanks to Denis Komissaro)	for those two.
+    (thanks to Denis Komissarov) for those two.
   * Use local name in ENQ message for DS90L servers instead of the
     stupid one I left in there after testing.
   * Get rid of spurious "Queued" status messages and put the

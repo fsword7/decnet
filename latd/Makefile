@@ -20,7 +20,7 @@ PROG3OBJS=llogin.o utils.o
 PROG4OBJS=moprc.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
-DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
+DEFS+=-DUSE_OPENPTY 
 
 # These are debugging options, know what you are doing before setting these.
 #DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC
@@ -64,7 +64,7 @@ $(PROG2): depend $(PROG2OBJS)
 	$(CXX) -o $@ $(PROG2OBJS)
 
 $(PROG3): depend $(PROG3OBJS)
-	$(CXX) -o $@ $(PROG3OBJS)
+	$(CXX) -o $@ $(PROG3OBJS) -llockfile
 
 $(PROG4): depend $(PROG4OBJS)
 	$(CC) $(CFLAGS) -o $@ $(PROG4OBJS)

@@ -139,11 +139,11 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     char replybuf[4][256];
     bool replyhere = false;
 
-    memset(replybuf, 0, sizeof(replybuf)); // PJC
-
     debuglog(("process_session_cmd: %d slots, %d bytes\n",
              msg->header.num_slots, len));
 
+    /* Clear out the reply slots and initialise pointers */
+    memset(replybuf, 0, sizeof(replybuf));
     for (int ri=0; ri<4; ri++)
 	reply[ri] = (LAT_SlotCmd *)replybuf[ri];
 
@@ -231,6 +231,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     }
     else
     {
+	replyhere = true;
         for (i=0; i<msg->header.num_slots && ptr<len; i++)
 	{
 	    LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(buf+ptr);
@@ -466,7 +467,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     {
 	debuglog(("Sending %d slots in reply\n", num_replies));
 	unsigned char replybuf[1600];
-	memset(replybuf, 0, sizeof(replybuf)); // PJC
+
+	memset(replybuf, 0, sizeof(replybuf));
 	LAT_Header *header  = (LAT_Header *)replybuf;
 	ptr = sizeof(LAT_Header);
 

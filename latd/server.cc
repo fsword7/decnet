@@ -253,17 +253,44 @@ void LATServer::run()
 	syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
 	exit(1);
     }
-
-    // Bind it to the interface
     struct sockaddr_ll sock_info;
-    sock_info.sll_family = AF_PACKET;
+    /* Build the sockaddr_ll structure */
+    sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_LAT);
     sock_info.sll_ifindex  = interface_num;
+
+    // Bind it to the interface
+
     if (bind(lat_socket, (struct sockaddr *)&sock_info, sizeof(sock_info)))
     {
         syslog(LOG_ERR, "can't bind lat socket: %m\n");
         exit(1);
     }
+
+    // Add Multicast membership for LAT on socket
+
+    struct packet_mreq pack_info;
+
+    /* Fill in socket options */
+    pack_info.mr_ifindex     = interface_num;
+    pack_info.mr_type        = PACKET_MR_MULTICAST;
+    pack_info.mr_alen        = 6;
+
+    /* This is the LAT multicast address */
+    pack_info.mr_address[0]  = 0x09;
+    pack_info.mr_address[1]  = 0x00;
+    pack_info.mr_address[2]  = 0x2b;
+    pack_info.mr_address[3]  = 0x00;
+    pack_info.mr_address[4]  = 0x00;
+    pack_info.mr_address[5]  = 0x0f;
+
+    if (setsockopt(lat_socket, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
+                   &pack_info, sizeof(pack_info)))
+    {
+        syslog(LOG_ERR, "can't add lat socket multicast : %m\n");
+        exit(1);
+    }
+
   
     // Add it to the sockets list    
     fdlist.push_back(fdinfo(lat_socket, 0, LAT_SOCKET));

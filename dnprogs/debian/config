@@ -1,0 +1,38 @@
+#!/bin/sh -e
+
+. /usr/share/debconf/confmodule
+
+db_version 2.0
+db_capb backup
+
+db_title DECnet node configuration
+NAMEOK="false"
+
+while [ -n "$NAMEOK" ]
+do
+  db_input high dnprogs/nodename || true
+  db_go
+  db_get dnprogs/nodename
+  NAME=$RET
+  [ -z "`echo -n $NAME | sed -n 's/......//p'`" ] && NAMEOK=""
+done
+
+
+ADDROK="false"
+while [ -n "$ADDROK" ]
+do
+  db_input high dnprogs/nodeaddr || true
+  db_go
+  db_get dnprogs/nodeaddr
+  ADDR=`echo $RET | sed -n 's/\([0-9]*\.[0-9]*\)/\1/p'`
+  AREA=`echo $ADDR | sed -n 's/\([0-9]*\)\.\([0-9]*\)/\1/p'`
+  NODE=`echo $ADDR | sed -n 's/\([0-9]*\)\.\([0-9]*\)/\2/p'`
+
+  [ -z "$AREA" ] && AREA=0
+  [ -z "$NODE" ] && NODE=0
+
+  [ "$AREA" -le 1023 -a  "$AREA" -ge 1 -a "$NODE" -le 63 -a "$NODE" -ge 1 ] && ADDROK=""
+done
+
+
+db_stop

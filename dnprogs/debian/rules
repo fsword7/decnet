@@ -6,7 +6,7 @@ package=dnprogs
 
 build:
 	$(checkdir)
-	
+
 	make prefix=/usr RELEASE=true
 	touch build
 
@@ -28,11 +28,13 @@ binary-arch: checkroot build
 	$(checkdir)
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS `
 	install -d debian/tmp
-#	install -D -m 0644 include/netdnet/dn.h debian/tmp/usr/include/netdnet/dn.h
-	#install -D -m 0644 include/netdnet/dnetdb.h debian/tmp/usr/include/netdnet/netdb.h
 	install -D -m 0644 apps/decnet.conf debian/tmp/etc/decnet.conf
+	mkdir -p debian/tmp/etc/modutils
+	echo "alias net-pf-12 decnet" > debian/tmp/etc/modutils/decnet
+	cp NEWS debian/changelog
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
+	dh_installdebconf
 	debstd -p 
 	dpkg-gencontrol -pdnprogs -isp
 	chown -R root.root debian/tmp

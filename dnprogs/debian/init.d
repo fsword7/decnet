@@ -46,7 +46,7 @@ case $1 in
        done
        echo "."
      else
-       echo "DECnet not started as it is not configured."
+       echo "DECnet not started as it is not enabled in the kernel."
      fi
      ;;
 

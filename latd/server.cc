@@ -95,6 +95,27 @@ void LATServer::get_all_interfaces(char *macaddr)
     close(sock);
 }
 
+string LATServer::print_interfaces()
+{
+    struct ifreq ifr;
+    string str;
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    for (int i=0; i<num_interfaces;i++)
+    {
+	ifr.ifr_ifindex = interface_num[i];
+
+	if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+	{
+	    str.append(ifr.ifr_name);
+	    str.append(" ");
+	}
+    }
+    
+    close(sock);
+    return str;
+}
+
 
 /* Find the interface named <ifname> and return it's number
    Also save the MAC address in <macaddr>.
@@ -1273,6 +1294,7 @@ bool LATServer::show_characteristics(bool verbose, ostrstream &output)
     output << endl;
 
     output << "Service Responder : " << (responder?"Enabled":"Disabled") << endl;
+    output << "Interfaces        : " << print_interfaces() << endl;
     output << endl;
 
     output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;

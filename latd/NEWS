@@ -1,8 +1,10 @@
 1.01
 -----------------------
-- Listen on LAT multicast address so you don't need to put the interface
+- Can now use all ethernet adaptors in a system
+- Listen on LAT multicast address so you don't need to put the interface(s)
   into "allmulti" mode, or have DECnet running
 - Deleting ports now works
+- Fix credit starvation on client sessions
 - Linux latd can talk to another Linux latd now (though not to itself)
 
 

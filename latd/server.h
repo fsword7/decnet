@@ -81,6 +81,7 @@ class LATServer
     gid_t lat_group;
 
     void  get_all_interfaces(char *macaddr);
+    string print_interfaces();
     int   find_interface(char *ifname, char *macaddr);
     void  read_lat(int sock);
     float get_loadavg();

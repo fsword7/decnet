@@ -1,0 +1,25 @@
+# /etc/latd.conf
+# This is a sample configuration file for latd
+# it is run as s shell script from latcp -s with a minimal
+# environment and PATH. latcp should be called using the environment
+# variable $LATCP to make sure you get the right one.
+#
+# You can fiddle with all the latd parameters you like in here, the first
+# service announcement will not be made until this script completes.
+#
+# Here are some (I hope) useful exampes:
+#
+
+# Set the multicast timeout to 30 seconds
+# $LATCP -m 30 
+
+# Add another login service
+# $LATCP -A -a LINUX -r 100
+
+# Add a reverse LAT service to a printer on a DECserver
+# $LATCP -A -p /dev/lat/printer -Vdecserver
+
+# Disable the default login service
+# $LATCP -D -a `uname -n`
+
+exit

@@ -149,7 +149,8 @@ static int set_hwaddr(int argc, char *argv[])
     struct ifreq ifr;
     int iindex = 1;
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    //int sock = socket(AF_DECnet, SOCK_STREAM, DNPROTO_NSP);
+    /* DECnet sockets don't allow DEV ioctls...tell Steve! */
+    /*int sock = socket(AF_DECnet, SOCK_STREAM, DNPROTO_NSP); */
     int ifdone = 0;
     int ret = 0;
     int force = 0;
@@ -168,7 +169,7 @@ static int set_hwaddr(int argc, char *argv[])
 	{
 	    if (use_if(ifr.ifr_name, argc, argv))
 	    {
-		/* Down the interface so we can change the MAC address */		
+		/* Down the interface so we can change the MAC address */
 		ioctl(sock, SIOCGIFFLAGS, &ifr);
 		if (ifr.ifr_flags & IFF_UP && force)
 		{
@@ -179,14 +180,18 @@ static int set_hwaddr(int argc, char *argv[])
 		/* Need to refresh this */
 		ifr.ifr_ifindex = iindex;				
 		ioctl(sock, SIOCGIFHWADDR, &ifr);
-		memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
 
-		/* Do the deed */
-		if (ioctl(sock, SIOCSIFHWADDR, &ifr) < 0)
+		/* Only change it if necessary */
+		if (memcmp(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6))
 		{
-		    fprintf(stderr, "Error setting hw address on %s: %s\n",
-			    ifr.ifr_name, strerror(errno));
-		    ret = errno;		
+		    memcpy(ifr.ifr_hwaddr.sa_data, if_arg.exec_addr, 6);
+		    /* Do the deed */
+		    if (ioctl(sock, SIOCSIFHWADDR, &ifr) < 0)
+		    {
+			fprintf(stderr, "Error setting hw address on %s: %s\n",
+				ifr.ifr_name, strerror(errno));
+			ret = errno;		
+		    }
 		}
 
 		/* "UP" the interface. Just in case TCP/IP is not running */

@@ -16,6 +16,7 @@ STATICLIB=$(LIBNAME).a
 INCLUDEFILES=rms.h fabdef.h rabdef.h
 
 CFLAGS+=-I. -I../include -I../libdap -fdollars-in-identifiers
+LDFLAGS+=-Wl,-rpath-link,../libdnet -Wl,-rpath-link,../libdap
 
 all: $(STATICLIB) $(SHAREDLIB) $(EXAMPLES)
 
@@ -23,15 +24,15 @@ $(STATICLIB): $(LIBOBJS)
 	ar -rv $@ $^
 
 $(SHAREDLIB): $(PICOBJS)
-	$(CXX) $(CXXFLAGS) -shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $^ 
+	$(CXX) $(CXXFLAGS) -shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $^ $(LIBS)
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 
 $(EXAMPLE1): $(EXAMPLE1OBJS) $(SHAREDLIB)
-	$(CC) $(CXXFLAGS) -o $@ $< -L. -lrms $(LIBS)
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -o $@ $< -L. -lrms
 
 $(EXAMPLE2): $(EXAMPLE2OBJS) $(SHAREDLIB)
-	$(CC) $(CXXFLAGS) -o $@ $< -L. -lrms $(LIBS)
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -o $@ $< -L. -lrms
 
 .cc.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $<

@@ -5,7 +5,9 @@ include ../Makefile.common
 PROG1=vmsmaild
 PROG2=sendvmsmail
 
-UULIB=uulib/libuu.a
+UUDIR=uulib
+UULIB=$(UUDIR)/libuu.a
+LIBUU=$(UULIB)
 
 MANPAGES5=vmsmail.conf.5
 MANPAGES8=vmsmaild.8 sendvmsmail.8
@@ -13,21 +15,21 @@ MANPAGES8=vmsmaild.8 sendvmsmail.8
 PROG1OBJS=vmsmaild.o receive.o configfile.o
 PROG2OBJS=sendvmsmail.o configfile.o
 
-CDEFS+=-Iuulib -DPROTOTYPES
+CDEFS+=-I$(UUDIR) -DPROTOTYPES
 
 all: $(UULIB) $(PROG1) $(PROG2)
 
 $(UULIB): 
-	make -C uulib
+	make -C $(UUDIR)
 
 .c.o:
 	$(CC) $(CFLAGS) $(SYSCONF_PREFIX) -c -o $@ $<
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON) $(UULIB)
-	$(CC) $(CFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET) $(UULIB) $(LIBDAEMON)
+	$(CC) $(CFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET) $(LIBUU) $(LIBDAEMON)
 
 $(PROG2): $(PROG2OBJS) $(DEPLIBDNET) $(UULIB)
-	$(CC) $(CFLAGS) -o $@ $(PROG2OBJS) $(LIBDNET) $(UULIB)
+	$(CC) $(CFLAGS) -o $@ $(PROG2OBJS) $(LIBDNET) $(LIBUU)
 
 install:
 	install -d $(prefix)/bin
@@ -43,7 +45,7 @@ dep depend:
 
 clean:
 	rm -f $(PROG1) $(PROG2) *.o *.bak .depend
-	make -Cuulib clean
+	make -C $(UUDIR) clean
 
 
 ifeq (.depend,$(wildcard .depend))

@@ -2,8 +2,8 @@
 # Makefile for libdnet
 #--------------------------------------------------------------------------
 include ../Makefile.common
-LD=gcc
-LDFLAGS=-O -shared
+CC=gcc
+LDFLAGS=-O
 AR=ar
 ARFLAGS=rcs
 MANPAGES3=dnet_htoa.3 dnet_ntoa.3 dnet_addr.3 dnet_conn.3 \
@@ -29,7 +29,7 @@ libdnet.a: ${LIBOBJS}
 	${AR} ${ARFLAGS} libdnet.a ${LIBOBJS}
   
 $(SHAREDLIB): ${PICOBJS}
-	${LD} ${LDFLAGS} -o $@ ${PICOBJS} -Wl,-soname=libdnet.so.$(MAJOR_VERSION) -lc
+	${CC} ${LDFLAGS} -shared -o $@ ${PICOBJS} -Wl,-soname=libdnet.so.$(MAJOR_VERSION)
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 

@@ -10,7 +10,9 @@ endif
 
 
 install:
-	if [ -L $(libprefix)/include/netdnet ]; then rm -f $(libprefix)/include/netdnet; fi
+	if [ -L $(libprefix)/include/netdnet ]; then \
+		rm -f $(libprefix)/include/netdnet; \
+	fi
 	install -d $(libprefix)/include/netdnet
 	install -m 0644 netdnet/dn.h $(libprefix)/include/netdnet
 	install -m 0644 netdnet/dnetdb.h $(libprefix)/include/netdnet

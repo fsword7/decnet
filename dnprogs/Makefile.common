@@ -120,7 +120,7 @@ DEPLIBDAP=../libdap/libdap.a
 else
 LIBDNET=-L../libdnet -ldnet
 LIBDAP=-L../libdap -ldap
-LIBDAEMON=-L../libdaemon -ldnet_daemon $(LIBCRYPT)
+LIBDAEMON=-L../libdaemon -ldnet_daemon
 DEPLIBDNET=../libdnet/libdnet.so
 DEPLIBDAEMON=../libdaemon/libdnet_daemon.so
 DEPLIBDAP=../libdap/libdap.so

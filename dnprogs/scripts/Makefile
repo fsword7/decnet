@@ -1,6 +1,6 @@
 # Makefile for scripts
 #
-# With luck this should cope with Debian, Redhat, SuSE and Slackware type
+# With luck this should cope with Debian, Redhat, SuSE, Caldera & Slackware type
 # distributions - but no promises.
 #
 

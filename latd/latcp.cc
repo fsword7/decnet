@@ -68,21 +68,22 @@ void set_retransmit(int);
 void set_keepalive(int);
 void set_responder(int onoff);
 void shutdown();
+void purge_services();
 void start_latd(int argc, char *argv[]);
+void set_rating(int argc, char *argv[]);
+void set_ident(int argc, char *argv[]);
+void set_node (char *);
+
 
 int usage(char *cmd)
 {
-// TODO: trim this down to match reality
-
     printf ("Usage: latcp      {option}\n");
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
     printf ("       -A -a service [-i descript] [-r rating] [-s]\n");
     printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]\n");
-    printf ("       -p ttylist -a service\n");
-    printf ("       -P ttylist -a service\n");
-    printf ("       -D {-a service | -v reserved_service | -p ttylist}\n");
+    printf ("       -D {-a service | -p tty}\n");
     printf ("       -i descript -a service\n");
     printf ("       -g list -a service\n");
     printf ("       -G list -a service\n");
@@ -91,10 +92,10 @@ int usage(char *cmd)
     printf ("       -j\n");
     printf ("       -J\n");
     printf ("       -Y\n");
-    printf ("       -x rating -a service\n");
+    printf ("       -x rating [-s] -a service\n");
     printf ("       -n node\n");
     printf ("       -r retransmit limit\n");
-    printf ("       -m multicast timer (100ths/sec)\n");    
+    printf ("       -m multicast timer (100ths/sec)\n");
     printf ("       -k keepalive timer (seconds)\n");
     printf ("       -d [ [-l [-v] ] ]\n");
     printf ("       -z \n");
@@ -134,13 +135,10 @@ int main(int argc, char *argv[])
 	set_responder(0);
 	break;
     case 'Y':
-	printf("not yet done\n");
-	break;
-    case 'x':
-	printf("not yet done\n");
+	purge_services();
 	break;
     case 'n':
-	printf("not yet done\n");
+	set_node(argv[2]);
 	break;
     case 'm':
 	if (argv[2])
@@ -169,14 +167,26 @@ int main(int argc, char *argv[])
     case 's':
 	start_latd(argc, argv);
 	break;
+    case 'x':
+	set_rating(argc, argv);
+	break;
+    case 'i':
+	set_ident(argc, argv);
+	break;
     case 'z':
-	printf("not yet done\n");
+	printf("counters not yet done\n");
 	break;
     case 'U':
-	printf("not yet done\n");
+	printf("groups not yet done\n");
 	break;
     case 'u':
-	printf("not yet done\n");
+	printf("groups not yet done\n");
+	break;
+    case 'G':
+	printf("groups not yet done\n");
+	break;
+    case 'g':
+	printf("groups not yet done\n");
 	break;
     default:
 	exit(usage(argv[0]));
@@ -229,9 +239,110 @@ void display(int argc, char *argv[])
 
     cout << result;
 
-    delete[] result;
-   
+    delete[] result;  
 }
+
+
+// Change the rating of a service
+void set_rating(int argc, char *argv[])
+{
+    int new_rating = 0;
+    bool static_rating = false;
+    char service[256];
+    char opt;
+    
+    if (!open_socket(false)) return;
+
+    while ((opt=getopt(argc,argv,"x:sa:")) != EOF)
+    {
+	switch(opt) 
+	{
+	case 'x':
+	    new_rating = atoi(optarg);
+	    break;
+
+	case 's':
+	    static_rating = true;
+	    break;
+
+	case 'a':
+	    strcpy(service, optarg);
+	    break;
+
+	default:
+	    fprintf(stderr, "only valid with -a and -x flags\n");
+	    exit(2);
+	}
+    }
+
+    if (!new_rating)
+    {
+	fprintf(stderr, "Invalid rating\n");
+	exit(2);
+    }
+
+    make_upper(service);
+    
+    char message[520];
+    int ptr = 2;
+    message[0] = (int)static_rating;
+    message[1] = new_rating;
+    add_string((unsigned char*)message, &ptr, (unsigned char*)service);
+    send_msg(latcp_socket, LATCP_SETRATING, message, ptr);
+
+    // Wait for ACK or error
+    unsigned char *result;
+    int len;
+    int cmd;
+    read_reply(latcp_socket, cmd, result, len);
+    return;
+    
+}
+
+
+// Change the ident of a service
+void set_ident(int argc, char *argv[])
+{
+    char service[256];
+    char ident[256];
+    char opt;
+    
+    if (!open_socket(false)) return;
+
+    while ((opt=getopt(argc,argv,"i:a:")) != EOF)
+    {
+	switch(opt) 
+	{
+	case 'a':
+	    strcpy(service, optarg);
+	    break;
+	case 'i':
+	    strcpy(ident, optarg);
+	    break;
+
+	default:
+	    fprintf(stderr, "must have both -i and -a flags\n");
+	    exit(2);
+	}
+    }
+
+    make_upper(service);
+    
+    char message[1024];
+    int ptr = 0;
+    add_string((unsigned char*)message, &ptr, (unsigned char*)service);
+    add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
+    send_msg(latcp_socket, LATCP_SETIDENT, message, ptr);
+
+    // Wait for ACK or error
+    unsigned char *result;
+    int len;
+    int cmd;
+    read_reply(latcp_socket, cmd, result, len);
+    return;
+    
+}
+
 
 // Enable/Disable the service responder
 void set_responder(int onoff)
@@ -251,6 +362,15 @@ void shutdown()
     char dummy[1];
     send_msg(latcp_socket, LATCP_SHUTDOWN, dummy, 0);
     printf("LAT stopped\n");
+}
+
+// Purge learned services
+void purge_services()
+{
+    if (!open_socket(false)) return;
+
+    char dummy[1];
+    send_msg(latcp_socket, LATCP_PURGE, dummy, 0);
 }
 
 void set_multicast(int newtime)
@@ -289,7 +409,19 @@ void set_keepalive(int newtime)
     send_msg(latcp_socket, LATCP_SETKEEPALIVE, (char *)&newtime, sizeof(int));
 }
 
+void set_node(char *name)
+{
+    if (!open_socket(false)) return;
 
+    make_upper(name);
+    
+    char message[520];
+    int ptr = 0;
+    add_string((unsigned char*)message, &ptr, (unsigned char*)name);
+    
+    send_msg(latcp_socket, LATCP_SETNODENAME, message, ptr);
+    return;
+}
 
 void add_service(int argc, char *argv[])
 {
@@ -531,7 +663,7 @@ void start_latd(int argc, char *argv[])
 	int   i;
 
 	// Make a minimal path including wherever latd is.
-	sprintf(newpath, "PATH=/bin:/usr/bin:/sbin:/usr/sbin:%s", latd_path);
+	sprintf(newpath, "PATH=%s:/bin:/usr/bin:/sbin:/usr/sbin", latd_path);
 	newargv[0] = latd_bin;
 	newargv[1] = NULL;
 	newenv[0] = newpath;
@@ -690,49 +822,3 @@ static void make_upper(char *str)
 	str[i] = toupper(str[i]);
     }
 }
-
-/*
-  Commands: (Taken from Tru64 Unix)
-
-  -A			Add Service
-  -D			Delete a service
-  -j			Enable node agent status  (Responder)
-  -J			Disable node agent status 
-  -Y			Purge learned service names (apart from reserved ones)
-  -x rating		Set rating
-  -n node		Set node name
-  -m time		Set multicast timer
-  -d			Display LAT characteristics
-  -d -l                 Display learned services
-  -h			Halt
-  -z			Zero counters
-  -r			Set default values
-  -U grouplist		Disable outgoing groups
-  -u grouplist		Enables outgoing groups
-
-  ...probably won't do these...
-  -e			Add an adaptor
-  -E			Remove an adaptor
-  -c                      Set maximum number of learned services.
-
------------------------------------
-
-Node name:  BALTI
-Multicast timer:        60 seconds
-LAT version:  5         ECO:    2
-Outgoing Port Groups:   0
-
-Selected Interface Name(s):     tu0
-LAT Protocol is active
-Agent Status: Disabled
-Maximum Number of Learned Services: 100
-
-
-Service information
-        Service name:   BALTI
-        Service ID:     Digital UNIX Version V4.0 LAT SERVICE
-        Rating:         Dynamic         127
-        Groups:         0
-
-
-*/

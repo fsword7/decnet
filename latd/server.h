@@ -62,6 +62,7 @@ class LATServer
 
     unsigned char greeting[255];
     unsigned char our_macaddr[6];
+    unsigned char local_name[256]; //  Node name
     unsigned char multicast_incarnation;
     int  interface_num;
     int  verbosity;
@@ -171,6 +172,11 @@ class LATServer
 	const string &get_id() {return id;}
 	int           get_rating() {return rating;}
 	bool          get_static() {return static_rating;}
+	void          set_rating(int _new_rating, bool _static)
+	    { rating = _new_rating; static_rating = _static; }
+	void          set_ident(char *_ident)
+	    { id = string(_ident);}
+		
 	
 	const bool operator==(serviceinfo &si)  { return (si == name);}
 	const bool operator==(const string &nm) { return (nm == name);}
@@ -214,9 +220,12 @@ class LATServer
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
     void add_service(char *name, char *ident, int _rating, bool _static_rating);
+    bool set_rating(char *name, int _rating, bool _static_rating);
+    bool set_ident(char *name, char *ident);
     bool remove_service(char *name);
     bool remove_port(char *name);
     void set_multicast(int newtime);
+    void set_nodename(unsigned char *);
     void unlock();
     bool show_characteristics(bool verbose, ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,

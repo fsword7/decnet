@@ -38,7 +38,7 @@ class LATServices
 
     bool remove_node(const string &node);
     bool list_services(bool verbose, ostrstream &output);
-    void purge() {servicelist.empty(); }
+    void purge() {servicelist.clear(); }
     
  private:
     LATServices()

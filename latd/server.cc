@@ -71,7 +71,6 @@
 
 unsigned char *LATServer::get_local_node(void)
 {
-    static unsigned char local_name[16] = {'\0'};
     unsigned int i;
     
     if (local_name[0] == '\0')
@@ -681,6 +680,7 @@ void LATServer::init(bool _static_rating, int _rating,
     next_connection = 1;
     multicast_incarnation = 0;
     circuit_timer = _timer/10;
+    local_name[0] = '\0'; // Use default node name
 
     memset(connections, 0, sizeof(connections));
 }
@@ -911,6 +911,40 @@ void LATServer::add_service(char *name, char *ident, int _rating, bool _static_r
     send_service_announcement(-1);
 }
 
+
+// Change the rating of a service
+bool LATServer::set_rating(char *name, int _rating, bool _static_rating)
+{
+    // Look for it.
+    list<serviceinfo>::iterator sii;
+    sii = find(servicelist.begin(), servicelist.end(), name);
+    if (sii == servicelist.end()) return false; // Not found it
+    
+    sii->set_rating(_rating, _static_rating);
+    
+    // Resend the announcement message.
+    send_service_announcement(-1);
+    return true;
+}
+
+// Change the ident of a service
+bool LATServer::set_ident(char *name, char *ident)
+{
+    // Look for it.
+    list<serviceinfo>::iterator sii;
+    sii = find(servicelist.begin(), servicelist.end(), name);
+    if (sii == servicelist.end()) return false; // Not found it
+
+    debuglog(("Setting ident for %s to '%s'\n", name, ident));
+    
+    sii->set_ident(ident);
+    
+    // Resend the announcement message.
+    send_service_announcement(-1);
+    return true;
+}
+
+
 // Remove reverse-LAT port via latcp
 bool LATServer::remove_port(char *name)
 {
@@ -962,6 +996,23 @@ void LATServer::set_multicast(int newtime)
 	multicast_timer = newtime;
 	alarm(newtime);
     }
+}
+
+// Change the node name
+void LATServer::set_nodename(unsigned char *name)
+{ 
+    debuglog(("New node name is %s\n", name));
+
+    // Remove all existing node services
+    LATServices::Instance()->remove_node(string((char*)get_local_node()));
+
+    // Set the new name
+    strcpy((char *)local_name, (char *)name);
+    
+    // Resend the announcement message -- this will re-add our node
+    // services back into the known services list.
+    send_service_announcement(-1);
+    
 }
 
 // Start sending service announcements

@@ -33,4 +33,6 @@ const int LATCP_ACK          = 16;
 const int LATCP_SETRETRANS   = 17;
 const int LATCP_SETKEEPALIVE = 18;
 const int LATCP_UNLOCK       = 19;
+const int LATCP_SETIDENT     = 20;
+const int LATCP_PURGE     = 21;
 const int LATCP_ERRORMSG     = 99; // Fatal

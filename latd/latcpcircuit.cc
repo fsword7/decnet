@@ -130,6 +130,61 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+    case LATCP_PURGE:
+    {
+	debuglog(("Purging known services\n"));
+	LATServices::Instance()->purge();
+
+    }
+    break;
+
+    case LATCP_SETNODENAME:
+    {
+	unsigned char name[256];
+	int ptr = 0;
+	get_string((unsigned char*)cmdbuf, &ptr, name);
+	LATServer::Instance()->set_nodename(name);
+    }
+    break;
+
+    
+    // Change the rating of a service
+    case LATCP_SETRATING:
+    {
+	unsigned char name[255];
+	bool static_rating;
+	int  rating;
+	int  ptr=2;
+
+	static_rating = (bool)cmdbuf[0];
+	rating = cmdbuf[1];
+	get_string((unsigned char*)cmdbuf, &ptr, name);
+
+	if (LATServer::Instance()->set_rating((char*)name, rating, static_rating))
+	    send_reply(LATCP_ACK, "", -1);
+	else
+	    send_reply(LATCP_ERRORMSG, "Local service does not exist", -1);
+    }
+    break;
+
+    // Change the ident of a service
+    case LATCP_SETIDENT:
+    {
+	unsigned char name[255];
+	unsigned char ident[255];
+	int  ptr=0;
+
+	get_string((unsigned char*)cmdbuf, &ptr, name);
+	get_string((unsigned char*)cmdbuf, &ptr, ident);
+
+	if (LATServer::Instance()->set_ident((char*)name, (char*)ident))
+	    send_reply(LATCP_ACK, "", -1);
+	else
+	    send_reply(LATCP_ERRORMSG, "Local service does not exist", -1);
+    }
+    break;
+
+
     
     // Add a login service
     case LATCP_ADDSERVICE:
@@ -152,7 +207,7 @@ bool LATCPCircuit::do_command()
 	send_reply(LATCP_ACK, "", -1);
     }
     break;
-
+    
     // Delete service
     case LATCP_REMSERVICE:
     {

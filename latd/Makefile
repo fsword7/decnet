@@ -19,11 +19,11 @@ PROG2OBJS=latcp.o utils.o
 PROG3OBJS=llogin.o utils.o
 PROG4OBJS=moprc.o interfaces.o interfaces-linux.o
 
-DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
-DEFS+=-DUSE_OPENPTY 
+DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\" -DLOGIN_BIN=\"/bin/login\"
+DEFS+=-DUSE_OPENPTY
 
 # These are debugging options, know what you are doing before setting these.
-#DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC
+#DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC  -DHAVE_MCHECK_H
 #DEFS+=-DREALLY_VERBOSE_DEBUGLOG
 #DEFS+=-DPACKET_LOSS=8
 
@@ -32,9 +32,7 @@ LATCPSOCK="/var/run/latcp"
 LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
 CXX=g++
-CC=gcc
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions -Wno-deprecated
-CFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall
 
 # ARCH code taken from the Linux kernel sources.
 #

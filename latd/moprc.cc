@@ -36,16 +36,24 @@
 #include <signal.h>
 #include <assert.h>
 #ifdef HAVE_NET_IF_ETHER_H
-#include <net/if.h>
-#include <net/if_ether.h>
+# include <net/if.h>
+# include <net/if_ether.h>
 #else
-#include <netinet/ether.h>
+# ifdef HAVE_NET_ETHERNET_H
+#  include <net/ethernet.h>
+# else
+# include <netinet/ether.h>
+# endif
 #endif
 
 #include <string>
 
 #include "interfaces.h"
 #include "moprc.h"
+
+#ifdef __FreeBSD__
+#define ether_addr_octet octet
+#endif
 
 static int  mop_socket;
 static unsigned char last_message[1500];
@@ -150,6 +158,7 @@ int main(int argc, char *argv[])
     /* Check for a hostname in /etc/ethers */
     if (ether_hostton(argv[optind], &addr) != 0)
     {
+#ifndef __APPLE__
 	struct ether_addr *addr1;
 
 	/* Otherwise parse ethernet MAC address */
@@ -159,6 +168,7 @@ int main(int argc, char *argv[])
 	    addr = *addr1;
 	}
 	else
+#endif
 	{
 	    fprintf(stderr, "unknown node name or bad MAC address %s\n", argv[optind]);
 	    return 3;

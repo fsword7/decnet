@@ -1,6 +1,9 @@
 /******************************************************************************
     (c) 2002 Matthew Fredette                 fredette@netbsd.org
-
+ 
+    Some modifications:
+    (c) 2003 Patrick Caulfield                 patrick@debian.org
+    
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -95,7 +98,7 @@ int BPFInterfaces::Start(int proto)
     struct bpf_version version;
 
     protocol = proto;
-    
+
     /* loop trying to open a /dev/bpf device: */
     for(minor = 0;; minor++) {
 
@@ -104,7 +107,7 @@ int BPFInterfaces::Start(int proto)
       sprintf(dev_bpf_filename, DEV_BPF_FORMAT, minor);
       debuglog(("bpf: trying %s\n", dev_bpf_filename));
       if ((_latd_bpf_fd = open(dev_bpf_filename, O_RDWR)) >= 0) {
-	debuglog(("bpf: opened %s\n", dev_bpf_filename));
+	debuglog(("bpf: opened %s as %d\n", dev_bpf_filename, _latd_bpf_fd));
 	break;
       }
 
@@ -151,7 +154,7 @@ int BPFInterfaces::Start(int proto)
       syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
       return -1;
     }
-
+#ifndef __APPLE__
     /* tell the BPF device we're providing complete Ethernet headers: */
     bpf_opt = true;
     if (ioctl(_latd_bpf_fd, BIOCSHDRCMPLT, &bpf_opt) < 0) {
@@ -161,7 +164,7 @@ int BPFInterfaces::Start(int proto)
       syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
       return -1;
     }
-
+#endif
     /* done: */
     return 0;
 #undef _LATD_RAW_OPEN_ERROR
@@ -240,7 +243,7 @@ int BPFInterfaces::find_interface(char *ifname)
   ifr_user = NULL;
   for(ifr_offset = 0;; ifr_offset += SIZEOF_IFREQ(ifr)) {
 
-	  
+
     /* stop walking if we have run out of space in the buffer.  note
        that before we can use SIZEOF_IFREQ, we have to make sure that
        there is a minimum number of bytes in the buffer to use it
@@ -291,6 +294,10 @@ int BPFInterfaces::find_interface(char *ifname)
 	    ? !strncmp(ifr->ifr_name, ifname, sizeof(ifr->ifr_name))
 	    : !(ifr->ifr_flags & IFF_LOOPBACK))) {
       ifr_user = ifr;
+#ifdef __APPLE__
+      if (ifr->ifr_name[0] == 'l' && ifr->ifr_name[1] == 'o')
+          ifr_user = NULL;
+#endif
     }
   }
 
@@ -382,6 +389,7 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
     syslog(LOG_ERR, "writev: %m");
     return -1;
   }
+
   return 0;
 }
 
@@ -396,6 +404,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
   /* loop until we have something to return: */
   for(;;) {
 
+      debuglog(("PJC: buffer_offset=%d, buffer_end=%d\n", _latd_bpf_buffer_offset,_latd_bpf_buffer_end));
     /* if the buffer is empty, fill it: */
     if (_latd_bpf_buffer_offset
 	>= _latd_bpf_buffer_end) {
@@ -635,7 +644,7 @@ int BPFInterfaces::bind_socket(int ifn)
       syslog(LOG_ERR, "Can't create LAT protocol socket: %m\n");
       return -1;
     }
-
+    
     /* set the filter on the BPF device: */
     program.bf_len = sizeof(moprc_bpf_filter) / sizeof(moprc_bpf_filter[0]);
     program.bf_insns = moprc_bpf_filter;
@@ -658,7 +667,6 @@ int BPFInterfaces::bind_socket(int ifn)
       abort();
     }
     _latd_bpf_buffer_end = _latd_bpf_buffer_offset = 0;
-
     return 0;
 }
 

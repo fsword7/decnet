@@ -196,7 +196,7 @@ class LATServer
 	    cmd_gid(gid)
 	    {
 		if (command == std::string(""))
-		    command = std::string("/bin/login");
+		    command = std::string(LOGIN_BIN);
 	    }
 	const std::string &get_name() {return name;}
 	const std::string &get_id() {return id;}

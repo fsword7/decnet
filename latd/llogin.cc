@@ -472,7 +472,9 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     new_term.c_iflag &= ~(BRKINT | ICRNL);
     new_term.c_iflag |= IGNBRK;
     new_term.c_lflag &= ~ISIG;
+#ifdef OCRNL
     new_term.c_oflag &= ~OCRNL;
+#endif
     new_term.c_cc[VMIN] = 1;
     new_term.c_cc[VTIME] = 0;
     new_term.c_lflag &= ~ICANON;

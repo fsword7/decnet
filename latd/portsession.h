@@ -21,7 +21,8 @@ class PortSession: public ServerSession
 	      unsigned char remid, unsigned char localid, bool clean);
   virtual ~PortSession();
 
-  virtual int new_session(unsigned char *remote_node, unsigned char c);
+  virtual int new_session(unsigned char *remote_node,
+			  char *service, char *port, unsigned char c);
 
  private:  
   ClientSession *client_session;

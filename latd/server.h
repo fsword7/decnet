@@ -101,6 +101,7 @@ class LATServer
     void  read_llogin(int);
     void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
+    int   find_connection_by_node(char *node);
     
     static void alarm_signal(int sig);
 

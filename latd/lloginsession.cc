@@ -49,9 +49,13 @@ lloginSession::lloginSession(class LATConnection &p,
     remote_node[0] = '\0';
 }
 
-int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
+int lloginSession::new_session(unsigned char *_remote_node, 
+			       char *service, char *port,
+			       unsigned char c)
 {
     credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
 
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
@@ -76,9 +80,10 @@ int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
     return 0;
 }
 
-void lloginSession::connect(char *service, char *port)
+void lloginSession::connect()
 {
-    debuglog(("connecting llogin session to '%s'\n", service));
+    debuglog(("connecting llogin session to '%s'\n", remote_service));
+    state = RUNNING;
 
     // OK, now send a Start message to the remote end.
     unsigned char buf[1600];
@@ -90,7 +95,7 @@ void lloginSession::connect(char *service, char *port)
     buf[ptr++] = 0x01; // Max Attention slot size
     buf[ptr++] = 0xfe; // Max Data slot size
     
-    add_string(buf, &ptr, (unsigned char *)service);
+    add_string(buf, &ptr, (unsigned char *)remote_service);
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
@@ -103,11 +108,11 @@ void lloginSession::connect(char *service, char *port)
 
     // If the user wanted a particular port number then add it 
     // into the message
-    if (port[0] != '\0')
+    if (remote_port[0] != '\0')
     {
-	debuglog(("Adding port %s\n", port));
+	debuglog(("Adding port %s\n", remote_port));
 	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
-	add_string(buf, &ptr, (unsigned char *)port);
+	add_string(buf, &ptr, (unsigned char *)remote_port);
 	buf[ptr++] = 0x00; // NUL terminated (??)
     }
 
@@ -127,7 +132,8 @@ void lloginSession::connect(char *service, char *port)
 void lloginSession::disconnect_sock()
 {
     LATServer::Instance()->set_fd_state(master_fd, false);
-    LATServer::Instance()->delete_connection(parent.get_connection_id());
+//    LATServer::Instance()->remove_fd(master_fd);
+    LATServer::Instance()->delete_session(parent.get_connection_id(), local_session, master_fd);
 }
 
 

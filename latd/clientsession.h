@@ -19,11 +19,12 @@ class ClientSession: public LATSession
 		unsigned char remid, unsigned char localid, char *, bool clean);
 
   virtual ~ClientSession();
-  virtual int new_session(unsigned char *remote_node, unsigned char c);
+  virtual int new_session(unsigned char *remote_node,
+			  char *service, char *port, unsigned char c);
   virtual void do_read();
   virtual void disconnect_session(int reason);
     
-  virtual void connect(char *service, char *port);
+  virtual void connect();
   virtual int  connect_parent();
   virtual void got_connection(unsigned char);
   virtual void restart_pty();

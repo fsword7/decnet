@@ -25,14 +25,19 @@ class LATSession
     int  get_remote_credit() { return remote_credit; }
     void inc_remote_credit(int inc) { remote_credit+=inc; }
     bool isConnected() { return connected; }
-
+    bool waiting_start() { return state == STARTING; }
+    
     virtual void disconnect_session(int reason);
-    virtual int new_session(unsigned char *_remote_node, unsigned char c)=0;
+    virtual int new_session(unsigned char *_remote_node,
+			    char *service, char *port, unsigned char c)=0;
     virtual void do_read() {}
+
     
  protected:
-    enum {STARTING, LOGIN, RUNNING, STOPPED} state;
+    enum {NEW, STARTING, RUNNING, STOPPED} state;
     char           remote_node[32]; // Node name
+    char           remote_service[32]; // Service name
+    char           remote_port[32];
     char           ptyname[256];
     int            master_fd;
     pid_t          pid;

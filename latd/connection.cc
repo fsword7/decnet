@@ -52,6 +52,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     last_ack_number(_seq),
     queued_slave(false),
     eightbitclean(false),
+    connected(false),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -95,6 +96,8 @@ LATConnection::LATConnection(int _num, const char *_service,
     queued(queued),
     queued_slave(false),
     eightbitclean(clean),
+    connected(false),
+    connecting(false),
     role(CLIENT)
 {
     debuglog(("New client connection for %s created\n", _remnode));
@@ -257,7 +260,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							 slotcmd->remote_session, 
 							 newsessionnum, 
 							 master_conn->eightbitclean);
-			    if (newsession->new_session(remnode, 
+			    if (newsession->new_session(remnode, "","",
 							credits) == -1)
 			    {
 				newsession->send_disabled_message();
@@ -290,7 +293,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							   (LAT_SessionStartCmd *)buf,
 							   slotcmd->remote_session, 
 							   newsessionnum, false);
-			    if (newsession->new_session(remnode, 
+			    if (newsession->new_session(remnode, "", "",
 							credits) == -1)
 			    {
 				newsession->send_disabled_message();
@@ -400,7 +403,7 @@ void LATConnection::send_connect_ack()
     response->latver           = LAT_VERSION;
     response->latver_eco       = LAT_VERSION_ECO;
     response->maxsessions      = 254;
-    response->exqueued         = 0;   // TODO Make 9 when we know how to cope.
+    response->exqueued         = 0;
     response->circtimer        = LATServer::Instance()->get_circuit_timer();
     response->keepalive        = LATServer::Instance()->get_keepalive_timer();
     response->facility         = dn_htons(0);
@@ -541,7 +544,7 @@ void LATConnection::circuit_timer(void)
     // Of course, we needn't send keepalive messages when we are a
     // disconnected client.
     if (role == SERVER ||
-	(role == CLIENT && sessions[1]->isConnected()))
+	(role == CLIENT && connected))
     {
 	keepalive_timer += LATServer::Instance()->get_circuit_timer();
 	if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
@@ -701,126 +704,137 @@ void LATConnection::remove_session(unsigned char id)
 }
 
 // Initiate a client connection
-int LATConnection::connect()
+int LATConnection::connect(ClientSession *session)
 {
    // Look up the service name.
     string node;
     int  this_int=0;
 
-    // If no node was specified then just use the highest rated one
-    if (remnode[0] == '\0')
+    // Are we in the middle of actually connecting ?
+    if (connecting) return 0;
+
+    // Only connect if we are the first session,
+    // else just initiate slot connect.
+    if (!connected)
     {
-	if (!LATServices::Instance()->get_highest(string((char*)servicename),
-						  node, macaddr, &this_int))
+	// If no node was specified then just use the highest rated one
+	if (remnode[0] == '\0')
 	{
-	    debuglog(("Can't find service %s\n", servicename));
-	    // Tell the user
-	    ClientSession *cs = (ClientSession *)sessions[1];
-	    if (cs) cs->disconnect_session(7);
-	    return -2; // Never eard of it!
+	    if (!LATServices::Instance()->get_highest(string((char*)servicename),
+						      node, macaddr, &this_int))
+	    {
+		debuglog(("Can't find service %s\n", servicename));
+		// Tell the user
+		session->disconnect_session(7);
+		return -2; // Never eard of it!
+	    }
+	    strcpy((char *)remnode, node.c_str());
 	}
-	strcpy((char *)remnode, node.c_str());
-    }
-    else
-    {
-	// Try to find the node
-	if (!LATServices::Instance()->get_node(string((char*)servicename),
-					       string((char*)remnode), macaddr, &this_int))
+	else
 	{
-	    debuglog(("Can't find node %s in service\n", remnode, servicename));
-	    
-            // Tell the user
-	    ClientSession *cs = (ClientSession *)sessions[1];
-	    cs->disconnect_session(7);
-
-	    return -2; // Never eard of it!
+	    // Try to find the node
+	    if (!LATServices::Instance()->get_node(string((char*)servicename),
+						   string((char*)remnode), macaddr, &this_int))
+	    {
+		debuglog(("Can't find node %s in service\n", remnode, servicename));
+		
+		// Tell the user
+		session->disconnect_session(7);		
+		return -2; // Never eard of it!
+	    }
 	}
-    }
-
-    // Reset the sequence & ack numbers
-    last_sequence_number = 0xff;
-    last_ack_number = 0xff;
-    remote_connid = 0;
-    interface = this_int;
-    
-    // Queued connection or normal?
-    if (queued)
-    {
-	debuglog(("Requesting connect to queued service\n"));
-
-	int ptr;
-	unsigned char buf[1600];
-	LAT_Command *msg = (LAT_Command *)buf;
-	ptr = sizeof(LAT_Command);
-
-	msg->cmd         = LAT_CCMD_COMMAND;
-	msg->format      = 0;
-	msg->hiver       = LAT_VERSION;
-	msg->lover       = LAT_VERSION;
-	msg->latver      = LAT_VERSION;
-	msg->latver_eco  = LAT_VERSION_ECO;
-	msg->maxsize     = dn_htons(1500);
-	msg->request_id  = num;
-	msg->entry_id    = 0;
-	msg->opcode      = 2; // Request Queued connection
-	msg->modifier    = 1; // Send status periodically
-
-	add_string(buf, &ptr, remnode);
 	
-	buf[ptr++] = 32; // Groups length
-	memcpy(buf + ptr, LATServer::Instance()->get_user_groups(), 32);
-	ptr += 32;
+	// Reset the sequence & ack numbers
+	last_sequence_number = 0xff;
+	last_ack_number = 0xff;
+	remote_connid = 0;
+	interface = this_int;
+	connecting = true;
+	
+	// Queued connection or normal?
+	if (queued)
+	{
+	    debuglog(("Requesting connect to queued service\n"));
 	    
-	add_string(buf, &ptr, LATServer::Instance()->get_local_node());
-	buf[ptr++] = 0; // ASCIC source port
-	add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
-	add_string(buf, &ptr, servicename);
-	add_string(buf, &ptr, portname);
-
-	// Send it raw.
-	return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
+	    int ptr;
+	    unsigned char buf[1600];
+	    LAT_Command *msg = (LAT_Command *)buf;
+	    ptr = sizeof(LAT_Command);
+	    
+	    msg->cmd         = LAT_CCMD_COMMAND;
+	    msg->format      = 0;
+	    msg->hiver       = LAT_VERSION;
+	    msg->lover       = LAT_VERSION;
+	    msg->latver      = LAT_VERSION;
+	    msg->latver_eco  = LAT_VERSION_ECO;
+	    msg->maxsize     = dn_htons(1500);
+	    msg->request_id  = num;
+	    msg->entry_id    = 0;
+	    msg->opcode      = 2; // Request Queued connection
+	    msg->modifier    = 1; // Send status periodically
+	    
+	    add_string(buf, &ptr, remnode);
+	    
+	    buf[ptr++] = 32; // Groups length
+	    memcpy(buf + ptr, LATServer::Instance()->get_user_groups(), 32);
+	    ptr += 32;
+	    
+	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+	    buf[ptr++] = 0; // ASCIC source port
+	    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
+	    add_string(buf, &ptr, servicename);
+	    add_string(buf, &ptr, portname);
+	    
+	    // Send it raw.
+	    return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
+	}
+	else
+	{
+	    int ptr;
+	    unsigned char buf[1600];
+	    LAT_Start *msg = (LAT_Start *)buf;
+	    ptr = sizeof(LAT_Start);
+	    
+	    debuglog(("Requesting connect to service on interface %d\n", interface));
+	    
+	    msg->header.cmd          = LAT_CCMD_CONNECT;
+	    msg->header.num_slots    = 0;
+	    msg->header.local_connid = num;  
+	    
+	    msg->maxsize     = dn_htons(1500);
+	    msg->latver      = LAT_VERSION;
+	    msg->latver_eco  = LAT_VERSION_ECO;
+	    msg->maxsessions = 254;
+	    msg->exqueued    = 0;
+	    msg->circtimer   = LATServer::Instance()->get_circuit_timer();
+	    msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
+	    msg->facility    = dn_htons(0); // Eh?
+	    msg->prodtype    = 3;   // Wot do we use here???
+	    msg->prodver     = 3;   // and here ???
+	    
+	    add_string(buf, &ptr, remnode);
+	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
+	    add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
+	    
+	    return send_message(buf, ptr, LATConnection::DATA);
+	}
     }
     else
     {
-	int ptr;
-	unsigned char buf[1600];
-	LAT_Start *msg = (LAT_Start *)buf;
-	ptr = sizeof(LAT_Start);
-
-	debuglog(("Requesting connect to service on interface %d\n", interface));
-
-	msg->header.cmd          = LAT_CCMD_CONNECT;
-	msg->header.num_slots    = 0;
-	msg->header.local_connid = num;  
-
-	msg->maxsize     = dn_htons(1500);
-	msg->latver      = LAT_VERSION;
-	msg->latver_eco  = LAT_VERSION_ECO;
-	msg->maxsessions = 254;
-	msg->exqueued    = 0;   // TODO: A decision here
-	msg->circtimer   = LATServer::Instance()->get_circuit_timer();
-	msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
-	msg->facility    = dn_htons(0); // Eh?
-	msg->prodtype    = 3;   // Wot do we use here???
-	msg->prodver     = 3;   // and here ???
-
-	add_string(buf, &ptr, remnode);
-	add_string(buf, &ptr, LATServer::Instance()->get_local_node());
-	add_string(buf, &ptr, (unsigned char *)"LAT for Linux");
-
-	return send_message(buf, ptr, LATConnection::DATA);
+	// Just do a session connect.
+	session->connect();
     }
+    return 0;
 }
 
-int LATConnection::create_client_session()
+int LATConnection::create_client_session(char *service, char *port)
 {
 // Create a ClientSession
-
-    int newsessionnum = 1;
+    int newsessionnum = next_session_number();
     LATSession *newsession = new ClientSession(*this, 0,
 					       newsessionnum, lta_name, 
 					       eightbitclean);
-    if (newsession->new_session(remnode, 0) == -1)
+    if (newsession->new_session(remnode, service, port, 0) == -1)
     {
 	delete newsession;
 	return -1;
@@ -835,6 +849,7 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 	      entry->status, node, entry->max_que_pos, entry->min_que_pos,
 	      entry->session_id));
 
+// Check this is OK - status session ID seems to be rubbish
     if (role == CLIENT && sessions[1])
     {
 	ClientSession *s = (ClientSession *)sessions[1];
@@ -842,14 +857,14 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
     }
 }
 
-int LATConnection::create_llogin_session(int fd)
+int LATConnection::create_llogin_session(int fd, char *service, char *port)
 {
-// Create a ClientSession
+// Create an lloginSession
+    int newsessionnum = next_session_number();
 
-    int newsessionnum = 1;
     LATSession *newsession = new lloginSession(*this, 0, newsessionnum, 
 					       lta_name, fd);
-    if (newsession->new_session(remnode, 0) == -1)
+    if (newsession->new_session(remnode, service, port, 0) == -1)
     {
 	delete newsession;
 	return -1;
@@ -866,6 +881,8 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     last_sequence_number = reply->header.ack_number;
     last_message_acked   = reply->header.sequence_number;
     last_ack_number = last_message_acked;
+    connected = true;
+    connecting = false;
 
     max_window_size = reply->exqueued+1;
     max_window_size = 1; // All we can manage
@@ -873,28 +890,29 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     debuglog(("got connect ack. seq: %d, ack: %d\n", 
 	      last_sequence_number, last_message_acked));
 
-// Start clientsession 1 (as a client connection we
-// only have one client session attached)
-    ClientSession *cs = (ClientSession *)sessions[1];
-    if (cs)
+// Start clientsessions
+    for (unsigned int i=1; i<MAX_SESSIONS; i++)
     {
-	cs->connect((char *)servicename, (char *)portname);
+	ClientSession *cs = (ClientSession *)sessions[i];
+	if (cs && cs->waiting_start())
+	{
+	    cs->connect();
+	}
     }
-    else
-    {
-	LATServer::Instance()->send_connect_error(2, &reply->header, interface, macaddr);
-    }
-
     return 0;
 }
 
 // Called when the client needs disconnecting
 int LATConnection::disconnect_client()
 {
-    ClientSession *cs = (ClientSession *)sessions[1];
-    if (cs)
+// Reset all clients - remote end has disconnected the connection
+    for (unsigned int i=0; i<MAX_SESSIONS; i++)
     {
-	cs->restart_pty();
+	ClientSession *cs = (ClientSession *)sessions[i];
+	if (cs)
+	{
+	    cs->restart_pty();
+	}
     }
     return 0;
 }

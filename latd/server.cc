@@ -145,7 +145,7 @@ int LATServer::find_interface(char *ifname)
 	    ioctl(sock, SIOCGIFHWADDR, &ifr);
 	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
 	    {
-		fprintf(stderr, "Device %s is not ethernet\n", ifname);
+		syslog(LOG_ERR, "Device %s is not ethernet\n", ifname);
 		return -1;
 	    }	    
 	    close(sock);
@@ -728,7 +728,10 @@ void LATServer::read_lat(int sock)
 		    // We don't delete clients, we just quiesce them.
 		    if (conn->isClient())
 		    {
-			conn->disconnect_client();
+//			conn->disconnect_client();
+			delete conn;
+			connections[header->remote_connid] = NULL;
+
 		    }
 		    else
 		    {
@@ -1470,23 +1473,56 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
 				      char *localport, bool queued)
 {
     int ret;
-    int connid = get_next_connection_number();
+    unsigned char macaddr[6];
+    string servicenode;
+    int this_int;
+
+    // If no node was specified then use the highest rated one    
+    if (node[0] == '\0')
+    {
+	if (!LATServices::Instance()->get_highest(string((char*)service),
+						  servicenode, macaddr, 
+						  &this_int))
+	{
+	    debuglog(("Can't find service %s\n", service));
+	    return -2; // Never eard of it!
+	}
+	strcpy((char *)node, servicenode.c_str());
+    }
+    else
+    {
+	// Try to find the node
+	if (!LATServices::Instance()->get_node(string((char*)service),
+					       string((char*)node), macaddr, 
+					       &this_int))
+	{
+	    debuglog(("Can't find node %s in service\n", node, service));
+	    
+	    return -2;
+	}
+    }
+
+/* Look for a connection that's already in use for this node */
+    int connid = find_connection_by_node(node);
+    if (connid == -1)
+    {
+	// None: create a new one
+	connid = get_next_connection_number();
+	connections[connid] = new LATConnection(connid, 
+						(char *)service, 
+						(char *)port,
+						(char *)localport, 
+						(char *)node,
+						queued,
+						false);
+    }
     if (connid == -1)
     {
 	return -1; // Failed
     }
 
-    // Create a new connection instance.
-    connections[connid] = new LATConnection(connid, 
-					    (char *)service, 
-					    (char *)port,
-					    (char *)localport, 
-					    (char *)node,
-					    queued,
-					    false);
-
     debuglog(("lloginSession for %s has connid %d\n", service, connid));    
-    ret = connections[connid]->create_llogin_session(fd);
+    ret = connections[connid]->create_llogin_session(fd, service, port);
 
     // Remove LLOGIN socket from the list as it's now been
     // added as a PTY (honest!)
@@ -1519,7 +1555,8 @@ int LATServer::make_client_connection(unsigned char *service,
 					    (char *)remnode,
 					    queued,
 					    clean);
-    return connections[connid]->create_client_session();
+    return connections[connid]->create_client_session((char *)service, 
+						      (char *)portname);
 }
 
 
@@ -1645,6 +1682,23 @@ int LATServer::unset_usergroups(unsigned char *bitmap)
 	user_groups[i] ^= bitmap[i];
     }
     return true;
+}
+
+// Look for a connection for this node name, if not found then
+// return -1
+int LATServer::find_connection_by_node(char *node)
+{
+    debuglog(("Looking for connection to node %s\n", node));
+    for (int i=1; i<MAX_CONNECTIONS; i++)
+    {
+	if (connections[i] && 
+	    connections[i]->node_is(node))
+	{
+	    debuglog(("Reusing connection for node %s\n", node));
+	    return i;
+	}
+    }
+    return -1;
 }
 
 // Print a groups bitmap

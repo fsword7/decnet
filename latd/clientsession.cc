@@ -45,9 +45,13 @@ ClientSession::ClientSession(class LATConnection &p,
     if (ttyname) strcpy(ltaname, ttyname);
 }
 
-int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
+int ClientSession::new_session(unsigned char *_remote_node, 
+			       char *service, char *port,
+			       unsigned char c)
 {
     credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
 
 // A quick word of explanation here.
 // We keep the slave fd open after openpty because otherwise
@@ -69,7 +73,7 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
     strcpy(remote_node, (char *)_remote_node);
     strcpy(ptyname, ttyname(slave_fd));
     strcpy(mastername, ttyname(master_fd));
-    state = STARTING;
+    state = NEW;
     slave_fd_open = true;
     
     // Check for /dev/lat & create it if necessary
@@ -109,11 +113,12 @@ int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
 int ClientSession::connect_parent()
 {
     debuglog(("connecting parent for %s\n", ltaname));
-    return parent.connect();
+    return parent.connect(this);
 }
 
-void ClientSession::connect(char *service, char *port)
+void ClientSession::connect()
 {
+    state = RUNNING;
     debuglog(("connecting client session to '%s'\n", remote_node));
 
     // OK, now send a Start message to the remote end.
@@ -126,7 +131,7 @@ void ClientSession::connect(char *service, char *port)
     buf[ptr++] = 0x01; // Max Attention slot size..
     buf[ptr++] = 0xfe; // Max Data slot size
     
-    add_string(buf, &ptr, (unsigned char *)service);
+    add_string(buf, &ptr, (unsigned char *)remote_service);
     buf[ptr++] = 0x00; // Source service length/name
 
     buf[ptr++] = 0x01; // Param type 1
@@ -139,10 +144,10 @@ void ClientSession::connect(char *service, char *port)
 
     // If the user wanted a particular port number then add it 
     // into the message
-    if (port[0] != '\0')
+    if (remote_port[0] != '\0')
     {
 	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
-	add_string(buf, &ptr, (unsigned char *)port);
+	add_string(buf, &ptr, (unsigned char *)remote_port);
 	buf[ptr++] = 0x00; // NUL terminated (??)
     }
  
@@ -174,8 +179,7 @@ void ClientSession::restart_pty()
     LATServer::Instance()->remove_fd(master_fd);
     
     // Now open it all up again ready for a new connection
-    new_session((unsigned char *)remote_node, 0);
-
+    new_session((unsigned char *)remote_node, remote_service, remote_port, 0);
 }
 
 

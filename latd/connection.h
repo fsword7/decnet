@@ -39,9 +39,9 @@ class LATConnection
 		  const char *_service, const char *_portname,
 		  const char *_lta, const char *remnode,
 		  bool queued, bool clean);
-    int connect();
-    int create_client_session();
-    int create_llogin_session(int);
+    int connect(class ClientSession *);
+    int create_client_session(char *, char *);
+    int create_llogin_session(int, char *service, char *port);
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
@@ -49,6 +49,7 @@ class LATConnection
     void show_client_info(bool verbose, ostrstream &);
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
+    bool node_is(char *node) { return strcmp(node, (char *)remnode)==0;}
     
  private:
     int            num;           // Local connection ID
@@ -70,7 +71,9 @@ class LATConnection
     bool           queued;             // Client for queued connection.
     bool           queued_slave;       // We are a slave connection for a queued client
     bool           eightbitclean;
-    LATConnection *master_conn;        // Client connection we a re slave to
+    bool           connected;
+    LATConnection *master_conn;        // Client connection we are slave to
+    bool           connecting;
     
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);

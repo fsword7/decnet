@@ -50,12 +50,17 @@ PortSession::PortSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 	    localid, remid, max_read_size, master_fd));
 }
 
-int PortSession::new_session(unsigned char *_remote_node, unsigned char c)
+int PortSession::new_session(unsigned char *_remote_node, 
+			       char *service, char *port,
+			       unsigned char c)
 {
+    credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
+
     if (!client_session) return -1;
 
     debuglog(("starting port session: credit = %d\n", c));
-    credit = c;
     strcpy(remote_node, (char *)_remote_node);
 
     if (master_fd != -1)

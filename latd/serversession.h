@@ -19,7 +19,8 @@ class ServerSession: public LATSession
 		LAT_SessionStartCmd *cmd,
 		unsigned char remid, unsigned char localid, bool clean);
 
-  virtual int new_session(unsigned char *remote_node, unsigned char c);
+  virtual int new_session(unsigned char *remote_node,
+			  char *service, char *port, unsigned char c);
 
 
  protected:

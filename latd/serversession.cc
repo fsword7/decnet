@@ -46,9 +46,14 @@ ServerSession::ServerSession(class LATConnection &p, LAT_SessionStartCmd *cmd,
 
 }
 
-int ServerSession::new_session(unsigned char *_remote_node, unsigned char c)
+int ServerSession::new_session(unsigned char *_remote_node, 
+			       char *service, char *port,
+			       unsigned char c)
 {
     credit = c;
+    strcpy(remote_service, service);
+    strcpy(remote_port, port);
+
     int status = create_session(_remote_node);
     if (status == 0)
     {

@@ -7,7 +7,7 @@ Standards-Version: 3.2.1.0
 
 Package: dnprogs
 Architecture: i386
-Depends: debianutils (>=1.13), awk, ${shlibs:Depends}
+Depends: debconf, debianutils (>=1.13), awk, ${shlibs:Depends}
 Priority: optional
 Section: net
 Description: DECnet programs for Linux.

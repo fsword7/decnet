@@ -27,12 +27,12 @@ class dap_bytes : public dap_item // number of bytes
 	    value = (unsigned char *)malloc(size+1); // May be a string
 	    memset(value, 0, size);
 	}
-    
+
     virtual ~dap_bytes()
 	{
 	    free(value);
 	}
-     
+
     unsigned char  get_byte(int bytenum);
     char          *get_string();
     unsigned short get_short();
@@ -42,10 +42,11 @@ class dap_bytes : public dap_item // number of bytes
     void set_short(unsigned short newval);
     void set_int(unsigned int newval);
     void set_string(const char *newval);
-    
+    void set_value(const char *newval, int len);
+
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
-    
+
  private:
     int            length;
     unsigned char *value;
@@ -62,7 +63,7 @@ class dap_ex : public dap_item // EX extensible field
 	    value = (unsigned char *)malloc(size);
 	    memset(value, 0, size);
 	}
-    
+
     virtual ~dap_ex()
 	{
 	    free(value);
@@ -77,7 +78,7 @@ class dap_ex : public dap_item // EX extensible field
     void          clear_bit(int bit);
     void          set_byte(int bytenum, unsigned char newval);
     void          clear_all() {memset(value, 0, length);}
-    
+
  private:
     unsigned char length;
     unsigned char real_length;
@@ -110,9 +111,10 @@ class dap_image : public dap_item // "I" field
     unsigned int   get_int();
     unsigned char  get_length() {return real_length;};
     void           set_string(const char *);
+    void           set_value(const char *, int);
     void           set_int(unsigned int v);
     void           set_short(unsigned short v);
-    
+
  private:
     unsigned char  length;
     unsigned char  real_length;
@@ -135,7 +137,7 @@ class dap_message
     unsigned char get_type();
     char *type_name();
     static char *type_name(int);
-    
+
     // Message Types;
     static const unsigned char CONFIG  = 1;
     static const unsigned char ATTRIB  = 2;
@@ -153,7 +155,7 @@ class dap_message
     static const unsigned char PROTECT = 14;
     static const unsigned char NAME    = 15;
     static const unsigned char ACL     = 16;
-    
+
 
  protected:
     unsigned char msg_type;
@@ -223,7 +225,7 @@ class dap_config_message: public dap_message
     static const int OS_OS8     = 11;
     static const int OS_RSX11MP = 12;
     static const int OS_COPOS11 = 13;
-    
+
  private:
     dap_bytes bufsiz;
     dap_bytes ostype;
@@ -402,7 +404,7 @@ class dap_attrib_message: public dap_message
     static const int FOREIGN = 23;
     static const int NETWORK_DEVICE = 24;
     static const int GENERIC_DEVICE = 25;
-    
+
  private:
     dap_ex    attmenu;
     dap_ex    datatype;
@@ -451,7 +453,7 @@ class dap_access_message: public dap_message
     void set_fac(int);
     void set_shr(int);
     void set_display(int);
-    
+
     int   get_accfunc();
     int   get_accopt();
     char *get_filespec();
@@ -495,7 +497,7 @@ class dap_access_message: public dap_message
     static const int DISPLAY_PROT_MASK    =  32;
     static const int DISPLAY_ACL_MASK     = 128;
     static const int DISPLAY_NAME_MASK    = 256;
-    
+
  private:
     dap_bytes accfunc;
     dap_ex    accopt;
@@ -520,13 +522,14 @@ class dap_control_message: public dap_message
 	hsh(5),
         display(4)
 	{msg_type = CONTROL;}
-    
+
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
 
     void set_ctlfunc(int f);
     void set_rac(int r);
     void set_key(const char *k);
+    void set_key(const char *k, int l);
     void set_krf(int f);
     void set_rop_bit(int f);
     void set_rop(int f);
@@ -539,7 +542,7 @@ class dap_control_message: public dap_message
     bool  get_rop_bit(int f);
     int   get_display();
     unsigned long get_long_key();
-    
+
     // ctlfunc - Control functions:
     static const int GET            = 1;
     static const int CONNECT        = 2;
@@ -586,7 +589,7 @@ class dap_control_message: public dap_message
     static const int RB$RLK  = 12;
     static const int RB$BIO  = 13;
     static const int RB$NXR  = 14;
-    
+
  private:
     dap_bytes ctlfunc;
     dap_ex    ctlmenu;
@@ -616,7 +619,7 @@ class dap_contran_message: public dap_message
 
     int get_confunc();
     void set_confunc(int f);
-    
+
  private:
     dap_bytes confunc;
 };
@@ -661,7 +664,7 @@ class dap_accomp_message: public dap_message
     static const int PURGE         = 3;
     static const int END_OF_STREAM = 4;
     static const int SKIP          = 5;
-    
+
  private:
     dap_bytes cmpfunc;
     dap_ex    fop;
@@ -682,19 +685,19 @@ class dap_data_message: public dap_message
 	{msg_type = DATA;}
 
     ~dap_data_message();
-    
+
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
     virtual bool write_with_len(dap_connection&);
     virtual bool write_with_len256(dap_connection&);
-    
+
     int   get_recnum();
     int   get_datalen();
     char *get_dataptr();
     void  set_recnum(int r);
     void  get_data(char *, int *);
     void  set_data(const char *, int);
-    
+
  private:
     dap_image  recnum;
     char      *data;
@@ -724,7 +727,7 @@ class dap_status_message: public dap_message
     void  set_rfa(long);
     char *get_message();
 
-    
+
  private:
     dap_bytes stscode;
     dap_image rfa;
@@ -760,11 +763,11 @@ class dap_key_message: public dap_message
 	tks(1),
 	mrl(2)
 	{msg_type = KEYDEF;}
-	
+
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
     ~dap_key_message();
-    
+
     // Flags - bit positions
     static const unsigned int XB$DUP = 1;
     static const unsigned int XB$CHG = 2;
@@ -779,8 +782,8 @@ class dap_key_message: public dap_message
 
     void set_knm(char *);
     void set_ref(int);
-    
-    
+
+
  private:
     dap_ex keymenu;
     dap_ex flg;
@@ -825,7 +828,7 @@ class dap_alloc_message: public dap_message
 
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
-    
+
  private:
     dap_ex    allmenu;
     dap_bytes vol;
@@ -858,7 +861,7 @@ class dap_summary_message: public dap_message
     int get_noa();
     int get_nor();
     int get_pvn();
-    
+
  private:
     dap_ex    summenu;
     dap_bytes nok;
@@ -905,7 +908,7 @@ class dap_date_message: public dap_message
     void set_rvn(int);
 
     char *make_y2k(char *dt);
-    
+
  private:
     dap_ex    datmenu;
     dap_bytes cdt;
@@ -915,11 +918,11 @@ class dap_date_message: public dap_message
     dap_bytes bdt; // backup date is not mentioned in the DAP spec but
                    // it exists in real life I promise you.
     dap_bytes udt; // Gah! another one. This one from Ultrix
-    
+
     char *time_to_string(time_t);
     time_t string_to_time_t(const char *);
 
-    
+
     static char *months[];
     static const int NUM_MONTHS = 12;
 };
@@ -948,7 +951,7 @@ class dap_protect_message: public dap_message
     char    *get_owner();
     char    *get_protection(); // In VMS format
     mode_t   get_mode();       // In Unix format
-    
+
  private:
     dap_ex    protmenu;
     dap_image owner;
@@ -983,7 +986,7 @@ class dap_name_message: public dap_message
     static const int FILENAME  = 2;
     static const int DIRECTORY = 4;
     static const int VOLUME    = 8;
-    
+
  private:
     dap_ex    nametype;
     dap_image namespec;

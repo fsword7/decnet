@@ -1,7 +1,7 @@
 /*
     protocol.cc from libdap
 
-    Copyright (C) 1998-1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1998-2001 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -120,6 +120,12 @@ void dap_bytes::set_string(const char *newval)
 {
     length = strlen(newval);
     strcpy((char *)value, newval);
+}
+
+void dap_bytes::set_value(const char *newval, int len)
+{
+    length = len;
+    memcpy((char *)value, newval, len);
 }
 //---------------------------------- dap_ex() ------------------------------
 bool dap_ex::read(dap_connection &c)
@@ -278,6 +284,12 @@ void dap_image::set_string(const char *s)
 {
     strcpy((char *)value, s);
     real_length = strlen(s);
+}
+
+void dap_image::set_value(const char *newval, int len)
+{
+    real_length = len;
+    memcpy((char *)value, newval, len);
 }
 
 //-----------------------------------------------------------------------------
@@ -953,6 +965,12 @@ void dap_control_message::set_rac(int f)
 void dap_control_message::set_key(const char *k)
 {
     key.set_string(k);
+    ctlmenu.set_bit(1);
+}
+
+void dap_control_message::set_key(const char *k, int l)
+{
+    key.set_value(k, l);
     ctlmenu.set_bit(1);
 }
 

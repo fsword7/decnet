@@ -6,53 +6,29 @@
 #
 
 #
-# See which distribution we are using and customise the start/stop 
-# commands and the console display.
-#
-if [ -d /etc/debian_version ]
-then
-  # Debian
-  startecho="\$i"
-  startendecho="."
-  stopendecho="done."
-elif [ -d /var/lib/YaST ]
-then
-  # SuSE
-  startendecho=""
-  stopendecho="done."
-else
-  # Assume RedHat
-  startendecho=""
-  stopendecho="done."
-fi
-
-#
 # Look for latcp
 #
 LATCP="/usr/sbin/latcp"
 
-if [ ! -f "$LATCP" ]
-then
-  exit 1
-fi
+test -f "$LATCP" || exit 0
 
 case $1 in
    start)
-     echo -n "Starting LAT: "
+     echo -n "Starting LAT: latd"
      $LATCP -s
      STATUS=$?
-     echo "latd."
+     echo "."
      ;;
 
    stop)
-     echo -n "Stopping LAT... "
+     echo -n "Stopping LAT: latd"
      $LATCP -h
      STATUS=$?
-     echo "done."
+     echo "."
      ;;
 
-   restart|reload|force-reload)
-     echo -n "Restarting LAT: "
+   restart|force-reload)
+     echo -n "Restarting LAT: latd"
      $LATCP -h
      $LATCP -s
      STATUS=$?

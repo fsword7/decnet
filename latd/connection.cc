@@ -36,12 +36,12 @@
 
 // Create a server connection
 LATConnection::LATConnection(int _num, unsigned char *buf, int len,
-			     unsigned char _clcount,
-			     unsigned char _svcount,
+			     unsigned char _seq,
+			     unsigned char _ack,
 			     unsigned char *_macaddr):
     num(_num),
-    last_sequence_number(_svcount),
-    last_ack_number(_clcount),
+    last_sequence_number(_ack),
+    last_ack_number(_seq),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -60,6 +60,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     remote_connid = msg->header.local_connid;
     next_session = 1;
     max_window_size = msg->exqueued+1;
+    max_window_size = 1; // All we can manage
     window_size = 0;
     lat_eco = msg->latver_eco;
 
@@ -119,14 +120,17 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     unsigned char saved_last_sequence_number = last_sequence_number;
     unsigned char saved_last_message_acked   = last_message_acked;
 
-    last_sequence_number = msg->header.sequence_number;
-    last_message_acked   = msg->header.ack_number;
+//    last_sequence_number = msg->header.sequence_number;
+//    last_message_acked   = msg->header.ack_number;
+
+    last_sequence_number = msg->header.ack_number;
+    last_message_acked   = msg->header.sequence_number;
   
     debuglog(("MSG:      seq: %d,        ack: %d\n", 
 	      msg->header.sequence_number, msg->header.ack_number));
 
     debuglog(("PREV:last seq: %d,   last ack: %d\n", 
-	      last_message_seq, last_ack_number));
+	      last_sent_sequence, last_ack_number));
 
     // Is this a duplicate?
     if (saved_last_sequence_number == last_sequence_number &&
@@ -140,6 +144,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     if (msg->header.num_slots == 0)
     {
 	if (role == SERVER) replyhere=true;
+
 	replyslots=0;
 
 	LAT_SlotCmd *slotcmd = (LAT_SlotCmd *)(buf+ptr);
@@ -267,8 +272,9 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	debuglog(("Sending response because we were told to (%x)\n", msg->header.cmd));
 	replyhere = true;
 	replyslots=0;
-	last_ack_number = last_message_acked;
+
     }
+    last_ack_number = last_message_acked;
  
     // ACK the message if we did nothing else
     if (replyhere)
@@ -335,14 +341,14 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     {
 	last_sequence_number++;
 	retransmit_count = 0;
-	last_message_seq = last_sequence_number;
+	last_sent_sequence = last_sequence_number;
 	window_size++;
 	need_ack = true;
     }
 
     if (type == REPLY) 
     {
-	last_ack_number++;
+	last_sequence_number++;
 	need_ack = false;
     }
 
@@ -431,7 +437,8 @@ int LATConnection::next_session_number()
 void LATConnection::circuit_timer(void)
 {
     // Did we get an ACK for our last message?
-    if (need_ack && last_message_acked != last_message_seq)
+    // PJC HAVE I BROKEN THIS??
+    if (need_ack && last_sequence_number != last_sent_sequence)
     {
 	if (++retransmit_count > LATServer::Instance()->get_retransmit_limit())
 	{
@@ -526,7 +533,7 @@ void LATConnection::circuit_timer(void)
         pending_msg &msg(pending.front());
       
         last_sequence_number++;
-        last_message_seq = last_sequence_number;
+        last_sent_sequence = last_sequence_number;
         need_ack = msg.needs_ack();
 	retransmit_count = 0;
 	
@@ -609,6 +616,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     last_ack_number = last_message_acked;
 
     max_window_size = reply->exqueued+1;
+    max_window_size = 1; // All we can manage
 
     debuglog(("got connect ack. seq: %d, ack: %d\n", 
 	      last_sequence_number, last_message_acked));

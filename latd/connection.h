@@ -41,19 +41,19 @@ class LATConnection
     int got_connect_ack(unsigned char *); // Callback from LATServer
     
  private:
-    int num;           // Local connection ID
-    int remote_connid; // Remote Connection ID
-    unsigned char last_sequence_number;
-    unsigned char last_ack_number;
-    unsigned int  next_session;
-    unsigned char macaddr[6];
-    unsigned char servicename[255];
-    unsigned char remnode[255];
-    LATSession *sessions[256];
+    int            num;           // Local connection ID
+    int            remote_connid; // Remote Connection ID
+    unsigned char  last_sequence_number;
+    unsigned char  last_ack_number;
+    unsigned int   next_session;
+    unsigned char  macaddr[6];
+    unsigned char  servicename[255];
+    unsigned char  remnode[255];
+    LATSession    *sessions[256];
 
-    unsigned char  last_message_seq;
+    unsigned char  last_sent_sequence; // Last sequence number we sent
     unsigned char  last_message_acked;
-    bool need_ack;
+    bool           need_ack;
 
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);

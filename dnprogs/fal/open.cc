@@ -656,7 +656,7 @@ void fal_open::send_eof()
 {
     dap_status_message status;
 
-    status.set_code(010047); // EOF
+    status.set_code(050047); // EOF
     status.write(conn);
     conn.set_blocked(false);
 }

@@ -35,6 +35,7 @@ binary-arch: checkroot build
 	mkdir -p debian/tmp/usr/share/doc/dnet-progs
 	mkdir -p debian/tmp/sbin
 	echo "alias net-pf-12 decnet" > debian/tmp/etc/modutils/decnet
+	echo "post-install decnet echo \`grep executor /etc/decnet.conf | cut -f2\` > /proc/sys/net/decnet/node_address" >> debian/tmp/etc/modutils/decnet
 	echo '# DNET_INTERFACES specifies the names of ethernet interfaces whose' >> debian/tmp/etc/default/decnet
 	echo '# MAC address is to be set to the DECnet node address' >> debian/tmp/etc/default/decnet
 	echo "DNET_INTERFACES=\"all\"" >> debian/tmp/etc/default/decnet

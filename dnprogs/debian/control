@@ -2,7 +2,7 @@ Source: dnprogs
 Section: net
 Priority: optional
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: debmake, fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
+Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10
 Standards-Version: 3.5.0
 
 Package: dnet-common
@@ -24,7 +24,7 @@ Description: Base package for Linux DECnet
 
 Package: dnet-progs
 Architecture: any
-Depends: ${shlibs:Depends}, dnet-common, libdnet
+Depends: ${shlibs:Depends}, libdnet(>=${Source-Version})
 Priority: optional
 Section: net
 Description: DECnet user programs and daemons
@@ -36,7 +36,7 @@ Description: DECnet user programs and daemons
 
 Package: libdnet
 Architecture: any
-Depends: ${shlibs:Depends}, dnet-common
+Depends: ${shlibs:Depends}, dnet-common(>=${Source-Version})
 Priority: optional
 Section: net
 Description: DECnet Libraries
@@ -51,7 +51,7 @@ Description: DECnet Libraries
 
 Package: libdnet-dev
 Architecture: any
-Depends: dnet-common, libdnet
+Depends: libdnet(>=${Source-Version})
 Priority: optional
 Section: net
 Description: DECnet development libraries & Headers

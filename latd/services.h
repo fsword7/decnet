@@ -53,7 +53,7 @@ class LATServices
 		  const unsigned char *macaddr, int rating)
 	  {
 	      ident = _ident;
-	      nodes[node] = nodeinfo(macaddr, rating);
+	      nodes[node] = nodeinfo(macaddr, rating, ident);
 	  }
       
       void add_or_replace_node(const string &node, const string &_ident,
@@ -61,34 +61,38 @@ class LATServices
 	  {
 	      ident = _ident;
 	      nodes.erase(node); // Don't care if this fails
-	      nodes[node] = nodeinfo(macaddr, rating);
+	      nodes[node] = nodeinfo(macaddr, rating, ident);
 	  }
       bool         get_highest(string &node, unsigned char *macaddr);
       bool         get_node(const string &node, unsigned char *macaddr);
       const string get_ident() { return ident; }
       bool         is_available();
       bool         remove_node(const string &node);
-      
+      void         serviceinfo::list_service(ostrstream &output);
+
     private:      
       class nodeinfo
 	{
 	public:
 	  nodeinfo() {}
-	  nodeinfo(const unsigned char *_macaddr, int _rating):
+	  nodeinfo(const unsigned char *_macaddr, int _rating, string _ident):
 	      rating(_rating),
 	      available(true)
 	    {
 	      memcpy(macaddr, _macaddr, 6);
+	      ident = _ident;
 	    }
 	  int                  get_rating()          { return rating; }
 	  const unsigned char *get_macaddr()         { return macaddr; }
 	  bool                 is_available()        { return available; }
 	  void                 set_available(bool a) { available = a; }
+	  string               get_ident()           { return ident; }
 	  
 	private:
 	  unsigned char macaddr[6];
 	  int           rating;
 	  bool          available;
+	  string        ident;
 	};// class LATServices::service::nodeinfo
 
       map<string, nodeinfo, less<string> > nodes;

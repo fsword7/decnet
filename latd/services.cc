@@ -158,17 +158,45 @@ bool LATServices::serviceinfo::is_available()
     return avail;
 }
 
+// Verbose listing of nodes in this service
+void LATServices::serviceinfo::list_service(ostrstream &output)
+{
+    map<string, nodeinfo, less<string> >::iterator n(nodes.begin());
+    
+    output << "Node Name        Status      Rating   Identification" << endl;
+    for (; n != nodes.end(); n++)
+    {
+	output << setw(28 - n->first.length()) << n->first << 
+	    (nodes[n->first].is_available()?"Reachable  ":"Unreachable") << "   " <<	  
+	    setw(4) << nodes[n->first].get_rating() << "   " << 
+	    nodes[n->first].get_ident() <<  endl;
+    }
+}
+
 // List all known services
 bool LATServices::list_services(bool verbose, ostrstream &output)
 {
   map<string, serviceinfo, less<string> >::iterator s(servicelist.begin());
 
-  // TODO verbose listing.
   for (; s != servicelist.end(); s++)
   {
-      output << setw(28-s->first.length()) << s->first << 
-	  (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " <<
-	  servicelist[s->first].get_ident() << endl;
+      if (verbose)
+      {
+	  output << endl;
+	  output << "Service Name:    " << s->first << endl;
+	  output << "Service Status:  " << (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " << endl;
+	  output << "Service Ident:   " << servicelist[s->first].get_ident() << endl << endl;
+	  servicelist[s->first].list_service(output);
+	  output << "--------------------------------------------------------------------------------" << endl;
+
+      }
+      else
+      {
+	  output << setw(28 - s->first.length()) << s->first << 
+	      (servicelist[s->first].is_available()?"Available ":"Unavailable") << "   " <<
+	      servicelist[s->first].get_ident() << endl;
+      }
+
   }
 
   output << ends; // Trailing NUL for latcp's benefit.
@@ -179,18 +207,7 @@ LATServices *LATServices::instance = NULL;
 
 
 /* SERVICE LIST EXAMPLES (VMS):
-
-   BRIEF:
-   
-   Service Name      Status       Identification
-----------------  -----------  -------------------------------------------------
-BACON             Available    .Welcome to VAX/VMS V5.5    
-BALTI             Available    Digital UNIX Version V4.0 LAT SERVICE
-GROT              Available    Perrin
-PATRIK            Available    Linux 2.2.14
-
 /FULL:
-
 
 
 Service Name:    BACON                    Service Type:  General

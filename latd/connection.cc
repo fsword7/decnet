@@ -41,6 +41,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 			     unsigned char _ack,
 			     unsigned char *_macaddr):
     num(_num),
+    keepalive_timer(0),
     last_sequence_number(_ack),
     last_ack_number(_seq),
     role(SERVER)
@@ -80,6 +81,7 @@ LATConnection::LATConnection(int _num, const char *_service,
 			     const char *_portname, const char *_lta, 
 			     const char *_remnode, bool queued):
     num(_num),
+    keepalive_timer(0),
     last_sequence_number(0xff),
     last_ack_number(0xff),
     queued(queued),
@@ -333,6 +335,7 @@ void LATConnection::send_connect_ack()
     reply[ptr++] = '\0';
     
     send_message(reply, ptr, DATA);
+    keepalive_timer = 0;
 }
 
 // Send a message on this connection NOW
@@ -362,6 +365,8 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 
     debuglog(("Sending message for connid %d (seq: %d, ack: %d, needack: %d)\n", 
 	      num, last_sequence_number, last_ack_number, (type==DATA) ));
+
+    keepalive_timer = 0;
 
     if (type == DATA) last_message = pending_msg(buf, len, (type==DATA) );
     return LATServer::Instance()->send_message(buf, len, macaddr);
@@ -439,8 +444,38 @@ int LATConnection::next_session_number()
 //
 void LATConnection::circuit_timer(void)
 {
+
+    // Increment keepalive timer - timer is measured inthe same units
+    // as the circut timer(100ths/sec) but the keepalive timer is 
+    // measured in seconds.
+    keepalive_timer += LATServer::Instance()->get_circuit_timer();
+    if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
+    {
+	// Send an empty message that needs an ACK.
+        // If we don't get a response to this then we abort the circuit.
+	debuglog(("keepalive timer expired\n"));
+
+	// If we get into this block then there is no chance that there is
+	// an outstanding ack (or if there is then it's all gone horribly wrong anyway
+	// so it's safe to just send a NULL messae out.
+	// If we do exqueued properly this may need revisiting.
+	unsigned char replybuf[1600];
+	LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
+	
+	reply->header.cmd          = LAT_CCMD_SDATA;
+	reply->header.num_slots    = 0;
+	reply->slot.remote_session = 0;
+	reply->slot.local_session  = 0;
+	reply->slot.length         = 0;
+	reply->slot.cmd            = 0;
+
+	if (role == CLIENT) reply->header.cmd |= 2; // To Host
+
+	send_message(replybuf, sizeof(LAT_SessionReply), DATA);
+	return;
+    }
+
     // Did we get an ACK for our last message?
-    // PJC HAVE I BROKEN THIS??
     if (need_ack && last_sequence_number != last_sent_sequence)
     {
 	if (++retransmit_count > LATServer::Instance()->get_retransmit_limit())
@@ -553,6 +588,7 @@ void LATConnection::circuit_timer(void)
 	last_message = msg; // Save it in case it gets lost on the wire;
         pending.pop();
 	window_size++;
+	keepalive_timer = 0;
     }
 }
 
@@ -632,8 +668,8 @@ int LATConnection::connect()
     msg->latver_eco  = 2;   // Pretty arbitrary really.
     msg->maxsessions = 16;  // Probably ought to be 254
     msg->exqueued    = 0;   // TODO: A decision here
-    msg->circtimer   = 8;   // TODO: Get from LATServer()
-    msg->keepalive   = 20;  // seconds
+    msg->circtimer   = LATServer::Instance()->get_circuit_timer();
+    msg->keepalive   = LATServer::Instance()->get_keepalive_timer();
     msg->facility    = dn_htons(0); // Eh?
     msg->prodtype    = 3;   // Wot do we use here???
     msg->prodver     = 3;   // and here ???

@@ -174,6 +174,34 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+    // Set the retransmit limit
+    case LATCP_SETRETRANS:
+    {
+        int newlim;
+
+        newlim = *(int *)cmdbuf;
+
+        debuglog(("latcp: Set retransmit limit: %d\n", newlim));
+
+        LATServer::Instance()->set_retransmit_limit(newlim);
+        send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
+    // Set the keepalive timer
+    case LATCP_SETKEEPALIVE:
+    {
+        int newtimer;
+
+        newtimer = *(int *)cmdbuf;
+
+        debuglog(("latcp: Set keepalive timer: %d\n", newtimer));
+
+        LATServer::Instance()->set_keepalive_timer(newtimer);
+        send_reply(LATCP_ACK, "", -1);
+    }
+    break;
+
 
     // Connect a port to a remote service
     case LATCP_ADDPORT:

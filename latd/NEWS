@@ -1,3 +1,8 @@
+0.7
+----------------
+- Add keepalive timer
+- Add latcp control of keepalive timer & retransmit limit
+
 0.6 27th May 2000
 -----------------
 - New version number. Now a beta release

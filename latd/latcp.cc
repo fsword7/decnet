@@ -64,6 +64,8 @@ void display(int argc, char *argv[]);
 void add_service(int argc, char *argv[]);
 void del_service(int argc, char *argv[]);
 void set_multicast(int);
+void set_retransmit(int);
+void set_keepalive(int);
 void set_responder(int onoff);
 void shutdown();
 void start_latd(int argc, char *argv[]);
@@ -94,7 +96,9 @@ int usage(char *cmd)
     printf ("       -Y\n");
     printf ("       -x rating -a service\n");
     printf ("       -n node\n");
-    printf ("       -m time\n");
+    printf ("       -r retransmit limit\n");
+    printf ("       -m multicast timer (100ths/sec)\n");    
+    printf ("       -k keepalive timer (seconds)\n");
 #if 0
     printf ("       -e adaptor\n");
     printf ("       -E adaptor\n");
@@ -103,7 +107,6 @@ int usage(char *cmd)
     printf ("       -d [ [-l [-v learned_service] ] | -H rem_node | -C | -N | -S | \n");
     printf ("               -P [-p ttylist | -L | -I | -O] ]\n");
     printf ("       -z \n");
-    printf ("       -r\n");
 
     return 2;
 }
@@ -154,6 +157,18 @@ int main(int argc, char *argv[])
 	else
 	    exit(usage(argv[0]));
 	break;
+    case 'r':
+        if (argv[2])
+            set_retransmit(atoi(argv[2]));
+        else
+            exit(usage(argv[0]));
+        break;
+    case 'k':
+        if (argv[2])
+            set_keepalive(atoi(argv[2]));
+        else
+            exit(usage(argv[0]));
+        break;
     case 'd':
 	display(argc-1, &argv[1]);
 	break;
@@ -164,9 +179,6 @@ int main(int argc, char *argv[])
 	start_latd(argc, argv);
 	break;
     case 'z':
-	printf("not yet done\n");
-	break;
-    case 'r':
 	printf("not yet done\n");
 	break;
     case 'U':
@@ -233,6 +245,31 @@ void set_multicast(int newtime)
 
     send_msg(latcp_socket, LATCP_SETMULTICAST, (char *)&newtime, sizeof(int));
 }
+
+void set_retransmit(int newlim)
+{
+    if (newlim == 0 || newlim > 32767)
+    {
+        fprintf(stderr, "invalid retransmit limit\n");
+        return;
+    }
+    if (!open_socket(false)) return;
+
+    send_msg(latcp_socket, LATCP_SETRETRANS, (char *)&newlim, sizeof(int));
+}
+
+void set_keepalive(int newtime)
+{
+    if (newtime == 0 || newtime > 32767)
+    {
+	fprintf(stderr, "invalid keepalive timer\n");
+	return;
+    }
+    if (!open_socket(false)) return;
+
+    send_msg(latcp_socket, LATCP_SETKEEPALIVE, (char *)&newtime, sizeof(int));
+}
+
 
 
 void add_service(int argc, char *argv[])

@@ -30,4 +30,6 @@ const int LATCP_SETGROUPS    = 13;
 const int LATCP_ADDPORT      = 14;
 const int LATCP_REMPORT      = 15;
 const int LATCP_ACK          = 16;
-const int LATCP_ERRORMSG     = 17; // Fatal
+const int LATCP_SETRETRANS   = 17;
+const int LATCP_SETKEEPALIVE = 18;
+const int LATCP_ERRORMSG     = 99; // Fatal

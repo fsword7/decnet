@@ -40,7 +40,11 @@ class LATServer
     void delete_session(LATConnection *, unsigned char, int);
     void delete_connection(int);
     unsigned char *get_local_node();
-    int   get_retransmit_limit(){return retransmit_limit;}
+    int   get_circuit_timer()         { return circuit_timer; }
+    int   get_retransmit_limit()      { return retransmit_limit; }
+    void  set_retransmit_limit(int r) { retransmit_limit=r; }
+    int   get_keepalive_timer()       { return keepalive_timer; }
+    void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     
  private:
     LATServer():
@@ -201,6 +205,7 @@ class LATServer
     int  circuit_timer;   // Default 8 (=80 ms)
     int  multicast_timer; // Default 60 (seconds)
     int  retransmit_limit;// Default 20
+    int  keepalive_timer; // Default ??
     bool responder;       // Be a service responder (false);
 
     // LATCP Circuit callins

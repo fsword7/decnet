@@ -47,6 +47,7 @@ class LATConnection
  private:
     int            num;           // Local connection ID
     int            remote_connid; // Remote Connection ID
+    int            keepalive_timer; // Counting up.
     unsigned char  last_sequence_number;
     unsigned char  last_ack_number;
     unsigned int   next_session;

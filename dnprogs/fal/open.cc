@@ -261,8 +261,9 @@ bool fal_open::process_message(dap_message *m)
 		    create_metafile(gl.gl_pathv[glob_entry], attrib_msg);
 
 		// move onto next file
-		if (++glob_entry < gl.gl_pathc)
+		if (glob_entry < gl.gl_pathc-1)
 		{
+		  glob_entry++;
 		  stream = fopen(gl.gl_pathv[glob_entry], write_access?"w":"r");
 		  if (!stream)
 		  {
@@ -287,11 +288,17 @@ bool fal_open::process_message(dap_message *m)
 
 	    case dap_accomp_message::CLOSE:
 		// finished task
-
+		
 		// Do close options
-		if (am->get_fop_bit(dap_attrib_message::FB$SPL)) print_file();
-		if (am->get_fop_bit(dap_attrib_message::FB$DLT)) delete_file();
-		if (am->get_fop_bit(dap_attrib_message::FB$TEF)) truncate_file();
+		if (am->get_fop_bit(dap_attrib_message::FB$SPL) ||
+		    attrib_msg->get_fop_bit(dap_attrib_message::FB$SPL))
+		    print_file();
+		if (am->get_fop_bit(dap_attrib_message::FB$DLT) ||
+		    attrib_msg->get_fop_bit(dap_attrib_message::FB$DLT))
+		    delete_file();
+		if (am->get_fop_bit(dap_attrib_message::FB$TEF) ||
+		    attrib_msg->get_fop_bit(dap_attrib_message::FB$TEF))
+		    truncate_file();
 
 		reply.set_cmpfunc(dap_accomp_message::RESPONSE);
 		reply.write(conn);

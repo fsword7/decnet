@@ -147,11 +147,14 @@ int LATSession::read_pty()
 	slotbuf[0] = 0x40;
 	add_slot(buf, ptr, 0xb0, slotbuf, 1);
 
-	slotbuf[0] = '\r';
-	slotbuf[1] = '\n';
-	add_slot(buf, ptr, 0x00, slotbuf, 2);
+	// Tru64 (and DS500 I think) don't like the 
+	// local sessoin ID to be set on the final disconnect slot!!
+	int s=local_session; 
+        local_session=0;
 
 	add_slot(buf, ptr, 0xd1, slotbuf, 0);
+	local_session=s; // Restore it for our benefit.
+
 	parent.queue_message(buf, ptr);
 	
 	disconnect_session(1); // User requested!

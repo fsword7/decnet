@@ -11,6 +11,7 @@
 - librms rms_open with O_CREAT is now useful
 - Fixed several memory leaks in libdnet_daemon (and thus dnetd)
 - dnetd now really re-reads the proxy DB every time
+- ctermd no longer goes into a tight loop if you ^Y^Y the session
 
 
 2.05  3 Apr 2000

@@ -37,6 +37,23 @@ Intel, Alpha, SPARC, MIPS and PowerPC.
 
 See the file lat.html for information on using LAT on Linux.
 
+SUPPORTED SYSTEMS
+-----------------
+LATD itself currently only runs on Linux but it shouldn't be too hard
+to port to other Unix-like platforms by writing an interface class for
+that platform.
+
+The following systems I know to work with LATD because I have tested them,
+others may also work.
+
+OpenVMS 7.2   (VAX & Alpha)
+DEC Unix v4.0d
+DECserver 200
+DECserver 90M
+DECserver 90L+
+DECserver 700
+
+
 CREDITS
 -------
 I'd like to thank Eduardo Serrat for providing much help, trace logs

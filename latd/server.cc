@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2005 Patrick Caulfield                 patrick@debian.org
     (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
@@ -868,7 +868,7 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
 
 #ifdef PACKET_LOSS
   static int c=0;
-  if ((++c & PACKET_LOSS) == 0) {
+  if ((++c % PACKET_LOSS) == 0) {
       debuglog(("NOT SENDING THIS MESSAGE!\n"));
       return 0;
   }
@@ -1233,6 +1233,7 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
     unsigned char portname[256];
 
 // TODO: Check the params in the LAT_Command message...
+    debuglog(("REVLAT cmd: %d, opcode:%d request_id: %d\n", msg->cmd, msg->opcode, msg->request_id));
 
     ptr += buf[ptr++]; // Skip past groups for now.
     ptr += buf[ptr++]; // Skip past groups for now.
@@ -1494,9 +1495,11 @@ void LATServer::send_connect_error(int reason, LAT_Header *msg, int interface,
     LAT_Header *header = (LAT_Header *)buf;
     int ptr=sizeof(LAT_Header);
 
+    memset(buf, 0, sizeof(buf));
+
     header->cmd             = LAT_CCMD_DISCON;
     header->num_slots       = 0;
-    header->local_connid    = msg->remote_connid;
+    header->local_connid    = 0; // Servers expect this to be clear
     header->remote_connid   = msg->local_connid;
     header->sequence_number = msg->sequence_number;
     header->ack_number      = msg->ack_number;

@@ -1,7 +1,7 @@
 /*
     parse.cc from librms
 
-    Copyright (C) 1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1999-2001 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
@@ -55,7 +56,7 @@ struct types
     enum {RAB, FAB} rabfab;
     enum {BYTE, WORD, LONG, PTR} type;
     void (*proc)(RMSHANDLE h, int, char *, struct RAB *, struct FAB *);
-} field_types[] = 
+} field_types[] =
 {
     {"fac", offsetof(struct FAB, fab$b_fac), types::FAB, types::BYTE, set_facshr},
     {"shr", offsetof(struct FAB, fab$b_shr), types::FAB, types::BYTE, set_facshr},
@@ -72,8 +73,8 @@ struct types
     {NULL, 0} // End of the list
 };
 
-static bool get_item(char *options, unsigned int &option_ptr, 
-		     char *key, char *value)
+static bool get_item(char *options, unsigned int &option_ptr,
+		     char *key, char *value, va_list &ap)
 {
     // We've reached the end.
     if (option_ptr+4 >= strlen(options)) return false;
@@ -82,7 +83,7 @@ static bool get_item(char *options, unsigned int &option_ptr,
     strncpy(key, &options[option_ptr], 3);
     key[3] = '\0';
     option_ptr += 3;
-    
+
     SPAN_BLANKS(options, option_ptr);
     if (options[option_ptr] != '=')
     {
@@ -121,7 +122,7 @@ static bool get_item(char *options, unsigned int &option_ptr,
 	    value[value_ptr++] = '"';
 	    continue;
 	}
-	
+
 	// Check for the end of the value
 	if (options[option_ptr] == end_char)
 	{
@@ -136,6 +137,44 @@ static bool get_item(char *options, unsigned int &option_ptr,
     // Terminate the string
     value[value_ptr] = '\0';
 
+
+    // Check for % options which indicate items in the variable argument list
+    if (value[0] == '%')
+    {
+	int len = 0;
+	int ptr = 1;
+	int intval;
+	char *charval;
+
+	if (value[1] == '*') // Length is also an argument
+	{
+	    ptr++;
+	    len = va_arg(ap, int);
+	}
+	switch (value[ptr])
+	{
+	case 'd':
+	    // Rather depressingly we have to convert this to a string before 
+	    // converting it back to a number :-(
+	    intval = va_arg(ap, int);
+	    sprintf(value, "%d", intval);
+	    break;
+
+	case 's':
+	    charval = va_arg(ap, char *);
+	    if (len)
+	    {
+		memcpy(value, charval, len);
+	    }
+	    else
+	    {
+		strcpy(value, charval);
+	    }
+	    break;
+	}
+    }
+
+
     // If there's a comma then skip past it
     SPAN_BLANKS(options, option_ptr);
     if (options[option_ptr] == ',')
@@ -149,11 +188,7 @@ static bool get_item(char *options, unsigned int &option_ptr,
 // Options consist of a set of comma separated key=value pairs. If the
 // value contains a space it must be surrounded by double quotes. If it
 // contains a double quote then it must be doubled up or in single quotes.
-//
-// The understood option actions are hard-coded in this routine but they are 
-// not going to change much anyway :-)
-//
-bool parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab)
+bool parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab, va_list ap)
 {
     unsigned int option_ptr = 0;
     char key[4];     // All option names are 3 letters
@@ -165,7 +200,7 @@ bool parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab)
     // a NULL option string is legal
     if (!options) return true;
 
-    while (get_item(options, option_ptr, key, value))
+    while (get_item(options, option_ptr, key, value, ap))
     {
 	int i=0;
 	while (field_types[i].key)
@@ -193,12 +228,19 @@ static void set_key(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
     rms_conn *rc = (rms_conn *)h;
 
 // Save the key for this RAB
-    strcpy(rc->key, string);
+    if (rab->rab$b_ksz)
+    {
+	memcpy(rc->key, string, rab->rab$b_ksz);
+    }
+    else
+    {
+        strcpy(rc->key, string);
+        rab->rab$b_ksz = 0;
+    }
     rab->rab$l_kbf = rc->key;
 
 // As this is set_key - add rac=key and set the key size
     rab->rab$b_rac |= RAB$C_KEY;
-    rab->rab$b_ksz = 0; // Don't make lower layers copy it
 }
 
 static void set_val(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
@@ -207,7 +249,7 @@ static void set_val(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
 
     if (field_types[entry].rabfab == types::FAB)
 	ptr = (char *)fab+field_types[entry].offset;
-    else	
+    else
 	ptr = (char *)rab+field_types[entry].offset;
 
     switch (field_types[entry].type)

@@ -23,6 +23,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 #include "connection.h"
@@ -337,59 +338,80 @@ int rms_rewind(RMSHANDLE h, struct RAB *rab)
     return 0;
 }
 
-int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options)
+int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_read(h, buf, maxlen, &rab);
 }
 
-int rms_t_find(RMSHANDLE h, char *options)
+int rms_t_find(RMSHANDLE h, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_find(h, &rab);
 }
 
-int rms_t_write(RMSHANDLE h, char *buf, int len, char *options)
+int rms_t_write(RMSHANDLE h, char *buf, int len, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_write(h, buf, len, &rab);
 }
 
-int rms_t_update(RMSHANDLE h, char *buf, int len, char *options)
+int rms_t_update(RMSHANDLE h, char *buf, int len, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_update(h, buf, len, &rab);
 }
 
-int rms_t_delete(RMSHANDLE h, char *options)
+int rms_t_delete(RMSHANDLE h, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_delete(h, &rab);
 }
 
-int rms_t_truncate(RMSHANDLE h, char *options)
+int rms_t_truncate(RMSHANDLE h, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_truncate(h, &rab);
 }
 
 
-int rms_t_rewind(RMSHANDLE h, char *options)
+int rms_t_rewind(RMSHANDLE h, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(h, options, &fab, &rab)) return -1;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(h, options, &fab, &rab, ap)) return -1;
     return rms_rewind(h, &rab);
 }

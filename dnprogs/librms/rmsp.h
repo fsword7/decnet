@@ -45,5 +45,5 @@ class rms_conn
 
 int   rms_getreply(RMSHANDLE h, int wait, dap_message **msg);
 int   check_status(rms_conn *c, dap_message *m);
-bool  parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab);
+bool  parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab, va_list ap);
 

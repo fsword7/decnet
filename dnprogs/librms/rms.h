@@ -42,16 +42,16 @@ char *rms_lasterror(RMSHANDLE h);
 int   rms_lasterrorcode(RMSHANDLE h);
 char *rms_openerror(void);
 
-RMSHANDLE rms_t_open(char *name, int mode, char *options);
+RMSHANDLE rms_t_open(char *name, int mode, char *options, ...);
 int   rms_t_close(RMSHANDLE h);
-int   rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options);
-int   rms_t_write(RMSHANDLE h, char *buf, int maxlen, char *options);
-int   rms_t_update(RMSHANDLE h, char *buf, int maxlen, char *options);
-int   rms_t_find(RMSHANDLE h, char *options);
-int   rms_t_delete(RMSHANDLE h, char *options);
-int   rms_t_rewind(RMSHANDLE h, char *options);
-int   rms_t_truncate(RMSHANDLE h, char *options);
-    
+int   rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options, ...);
+int   rms_t_write(RMSHANDLE h, char *buf, int maxlen, char *options, ...);
+int   rms_t_update(RMSHANDLE h, char *buf, int maxlen, char *options, ...);
+int   rms_t_find(RMSHANDLE h, char *options, ...);
+int   rms_t_delete(RMSHANDLE h, char *options, ...);
+int   rms_t_rewind(RMSHANDLE h, char *options, ...);
+int   rms_t_truncate(RMSHANDLE h, char *options, ...);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,7 +1,7 @@
 /*
     open.cc from librms
 
-    Copyright (C) 1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1999-2001 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
 #include <errno.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
@@ -171,11 +172,14 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
 }
 
 // Open with text arguments
-RMSHANDLE rms_t_open(char *name, int mode, char *options)
+RMSHANDLE rms_t_open(char *name, int mode, char *options, ...)
 {
     struct FAB fab;
     struct RAB rab;
-    if (!parse_options(NULL, options, &fab, &rab)) return NULL;
+    va_list ap;
+
+    va_start(ap, options);
+    if (!parse_options(NULL, options, &fab, &rab, ap)) return NULL;
     
     return rms_open(name, mode, &fab);
 }

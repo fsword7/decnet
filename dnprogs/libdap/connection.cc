@@ -249,7 +249,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
     memcpy(s.sdn_add.a_addr, binadr->n_addr, sizeof(s.sdn_add.a_addr));
 
     // Try very hard to get the local username for proxy access
-    char *local_user = getlogin();
+    char *local_user = cuserid(NULL);
     if (!local_user || local_user == (char *)0xffffffff)
 	local_user = getenv("LOGNAME");
 

@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     read_configfile();
 
     syslog(LOG_ERR, "running as %d\n", getuid());
-    
+
     // Get the relevant fields from the mail header
     if (parse_header(&to, &subject, &from, &reply_to) == 0)
     {
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 	if (send_to_vms(to, subject, from, reply_to) == -1)
 	{
 	    char err[256];
-	    
+
 	    sprintf(err, "Error sending to VMS system: %s\n", strerror(errno));
 	    mail_error(reply_to, to, subject, err);
 	    return 0;
@@ -96,10 +96,10 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
     do
     {
 	fgets(input_line, sizeof(input_line), stdin);
-	
+
 	input_line[strlen(input_line)-1] = '\0';
 //	syslog(LOG_INFO, "line: %s\n", input_line);
-	
+
 	if (strncmp(input_line, "Subject: ", 9) == 0)
 	{
 	    *subject = malloc(strlen(input_line));
@@ -134,9 +134,9 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
 	{
 	    char *ptr;
 	    char *endline;
-	    
+
 	    ptr=strchr(input_line, '(');
-	    
+
 	    if (ptr) // probably 'vmsmail@pandh (tramp::patrick)' format
 	    {
 		endline=strchr(input_line, ')');
@@ -165,7 +165,7 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
 		if (ptr)
 		{
 		    int p;
-		    
+
 		    *ptr = '\0';
 		    // Remove trailing spaces.
 		    p = strlen(input_line)-1;
@@ -199,19 +199,19 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
 	*subject = malloc(32);
 	strcpy(*subject, "No subject");
     }
-    
+
     // Make sure we have all the bits
     if (error == NULL && (*to==NULL || *from==NULL || *subject==NULL || *real_from==NULL) )
     {
 	error="The message header was incomplete";
     }
-    
+
     if (error)
     {
 	mail_error(*real_from, *to, *subject, error);
 	return -1;
     }
-    
+
     return 0;
 }
 
@@ -222,7 +222,7 @@ int mail_error(char *to, char *name, char *subject, char *error)
 {
     char buf[256];
     FILE *mailpipe;
-    
+
     // Open a pipe to sendmail.
     sprintf(buf, "%s", SENDMAIL_COMMAND);
     mailpipe = popen(buf, "w");
@@ -234,7 +234,7 @@ int mail_error(char *to, char *name, char *subject, char *error)
 	fprintf(mailpipe, "Subject: Error in transmission\n");
 
 	fprintf(mailpipe, "\n");
-	
+
 	fprintf(mailpipe, "Your message to '%s' could not be delivered to\n", name);
 	fprintf(mailpipe, "VMS because of the following error:\n");
 	fprintf(mailpipe, "\n");
@@ -263,8 +263,8 @@ int open_socket(char *node)
     int                  i;
     struct sockaddr_dn   sockaddr;
     struct accessdata_dn accessdata;
-    
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
 	return -1;
     }
@@ -276,21 +276,21 @@ int open_socket(char *node)
     }
 
     memset(&accessdata, 0, sizeof(accessdata));
-    
+
     // Try very hard to get the local username
-    local_user = getlogin();
+    local_user = cuserid(NULL);
     if (!local_user || local_user == (char *)0xffffffff)
 	local_user = getenv("LOGNAME");
     if (!local_user) local_user = getenv("USER");
     if (local_user)
     {
-	
+
 	strcpy((char *)accessdata.acc_acc, local_user);
 	accessdata.acc_accl = strlen((char *)accessdata.acc_acc);
 	for (i=0; i<accessdata.acc_accl; i++)
 	    accessdata.acc_acc[i] = toupper(accessdata.acc_acc[i]);
     }
-    
+
     if (setsockopt(sockfd,DNPROTO_NSP,SO_CONACCESS,&accessdata,
 		   sizeof(accessdata)) < 0)
     {
@@ -302,13 +302,13 @@ int open_socket(char *node)
     sockaddr.sdn_objnamel  = 0x00;
     sockaddr.sdn_add.a_len = 0x02;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
-    
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+
+    if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
     {
 	return -1;
     }
-    
+
     return sockfd;
 }
 
@@ -340,19 +340,19 @@ int send_to_vms(char *to, char *subject, char *from, char *reply_to)
 
     // Local user -- VMS add nodename::
     if (write(sockfd, from, strlen(from)) < 0) return -1;
-	
+
     vmsuser = strchr(to, ':') + 2; // VMS user
     if (write(sockfd, vmsuser, strlen(vmsuser)) < 0) return -1;
-    
+
     recvlen = read(sockfd, recvbuf, sizeof(recvbuf));
     if (recvlen < 0) return -1;
-    
+
     // Check for error - most likely an unknown user
     if (recvbuf[0] != '\001')
     {
 	if (recvlen == 4) // Get the message text
 	    recvlen = read(sockfd, recvbuf, sizeof(recvbuf));
-	
+
 	if (recvlen < 0) return -1;
 	recvbuf[recvlen] = '\0';
 
@@ -360,7 +360,7 @@ int send_to_vms(char *to, char *subject, char *from, char *reply_to)
 	mail_error(reply_to, to, subject, recvbuf);
 	return 0;
     }
-    
+
     if (write(sockfd, "\0", 1) < 0) return -1;
     if (write(sockfd, to, strlen(to)) < 0) return -1;
     if (write(sockfd, subject, strlen(subject)) < 0) return -1;
@@ -396,9 +396,9 @@ int send_to_vms(char *to, char *subject, char *from, char *reply_to)
 
 	if (recvlen < 0) return -1;
 	recvbuf[recvlen] = '\0';
-	
+
 	syslog(LOG_ERR, "Error returned from VMS after sending message: %s\n", recvbuf);
-	
+
 	mail_error(reply_to, to, subject, recvbuf);
 	return 0;
     }

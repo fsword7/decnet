@@ -1,7 +1,7 @@
 /******************************************************************************
     (c) 1998      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
                   K.   Humborg            kenn@avalon.wombat.ie
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -72,7 +72,7 @@ void be_interactive(void)
     tv.tv_sec  = timeout;
     tv.tv_usec = 0;
 
-    /* Loop for input */    
+    /* Loop for input */
     while ( select(sockfd+1, &in, NULL, NULL, (timeout==0?NULL:&tv)) > 0)
     {
 	if (FD_ISSET(sockfd, &in)) // From VMS to us
@@ -103,11 +103,11 @@ void be_interactive(void)
 	        perror("reading from stdin");
 		return;
 	    }
-	    if (len == 0) return; //EOF 
+	    if (len == 0) return; //EOF
 	    if (buf[len-1] == '\n') buf[--len] = '\0';
 	    write(sockfd, buf, len);
 	}
-	
+
 	// Reset for another select
 	FD_ZERO(&in);
 	FD_SET(sockfd, &in);
@@ -124,7 +124,7 @@ void be_interactive(void)
 void print_output(void)
 {
     int len;
-    
+
     while ( ((len = read(sockfd, buf, sizeof(buf)))) )
     {
         if (len == -1)
@@ -132,7 +132,7 @@ void print_output(void)
 	    if (errno != ENOTCONN)  perror("Error reading from network");
 	    break;
         }
-	
+
         if (binary_mode)
 	{
             write(STDOUT_FILENO, buf, len);
@@ -164,7 +164,7 @@ int setup_link(void)
         exit(2);
     }
 
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
 	perror("socket");
 	exit(-1);
@@ -178,7 +178,7 @@ int setup_link(void)
 
     // Provide access control and proxy information
     if (setsockopt(sockfd,DNPROTO_NSP,SO_CONACCESS,&accessdata,
-		   sizeof(accessdata)) < 0) 
+		   sizeof(accessdata)) < 0)
     {
 	perror("setsockopt");
 	exit(-1);
@@ -198,8 +198,8 @@ int setup_link(void)
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
     sockaddr.sdn_add.a_len = 2;
 
-    
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0) 
+
+    if (connect(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
     {
 	perror("connect");
 	exit(-1);
@@ -230,22 +230,22 @@ int main(int argc, char *argv[])
     {
 	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(stdout);
 	    exit(1);
 
 	case '?':
 	    usage(stderr);
 	    exit(1);
-	    
+
 	case 'i':
 	    interactive = 1;
 	    break;
-	    
+
 	case 't':
 	    timeout = atoi(optarg);
 	    break;
-	    
+
 	case 'V':
 	    printf("\ndntask from dntools version %s\n\n", VERSION);
 	    exit(1);
@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 	usage(stderr);
 	exit(1);
     }
-    
+
     /* Parse the command into its parts */
     if (!parse(argv[optind]))
     {
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 	print_output();
     else
 	be_interactive();
-    
+
     close(sockfd);
     return 0;
 }
@@ -290,7 +290,7 @@ static int parse(char *fname)
     int   n0=0;
     int   n1=0;
     char *local_user;
-    
+
     state = NODE; /* Node is mandatory */
 
     while (state != FINISHED)
@@ -300,7 +300,7 @@ static int parse(char *fname)
 	case NODE:
 	    if (fname[n0] != ':' && fname[n0] != '\"' && fname[n0] != '\'')
 	    {
-		if (n1 >= MAX_NODE || 
+		if (n1 >= MAX_NODE ||
 		    fname[n0] == ' ' || fname[n0] == '\n')
 		{
 		    lasterror = "File name parse error";
@@ -420,7 +420,7 @@ static int parse(char *fname)
     }
 
     // Try very hard to get the local username
-    local_user = getlogin();
+    local_user = cuserid(NULL);
     if (!local_user || local_user == (char *)0xffffffff)
       local_user = getenv("LOGNAME");
     if (!local_user) local_user = getenv("USER");
@@ -438,10 +438,10 @@ static int parse(char *fname)
 
 
 
-    /* If the password is "-" and fd 0 is a tty then 
+    /* If the password is "-" and fd 0 is a tty then
        prompt for a password */
     if (accessdata.acc_pass[0] == '-' && accessdata.acc_pass[1] == '\0' && isatty(0))
-    {	
+    {
 	char *password = getpass("Password: ");
 	if (password == NULL || strlen(password) > (unsigned int)MAX_PASSWORD)
 	{
@@ -451,7 +451,7 @@ static int parse(char *fname)
 	strcpy(accessdata.acc_pass, password);
     }
 
-    
+
     /* Complete the accessdata structure */
     accessdata.acc_userl = strlen(accessdata.acc_user);
     accessdata.acc_passl = strlen(accessdata.acc_pass);

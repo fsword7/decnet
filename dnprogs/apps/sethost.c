@@ -444,7 +444,7 @@ static void	ct_setup_link(void)
 
 
 	// Try very hard to get the local username
-    	local_user = getlogin();
+    	local_user = cuserid(NULL);
     	if (!local_user || local_user == (char *)0xffffffff)
       		local_user = getenv("LOGNAME");
     	if (!local_user) local_user = getenv("USER");

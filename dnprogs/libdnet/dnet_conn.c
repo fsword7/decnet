@@ -102,7 +102,7 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 	 * the moment, anyway.
 	 */
 	if (uid == 0) {
-		char *tname = getlogin();
+		char *tname = cuserid(NULL);
 		char *uname = (tname && *tname) ? tname : "anonymous";
 		int len = strlen(uname);
 

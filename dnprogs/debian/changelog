@@ -1,4 +1,4 @@
-dnprogs (2.16-1) unstable; urgency=low
+dnprogs (2.16-1potato) unstable; urgency=low
 
   * Remove pre-increment in FAL so that close-time attributes get
     applied to the right file - and don't crash on the last file.

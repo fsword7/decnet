@@ -2,7 +2,7 @@
     (c) 1998 Eduardo.M Serrat             emserrat@hotmail.com
     Username/Password additions by David G North 1999
     Optarg additions by Rob Davies - Feb 2000
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -79,15 +79,15 @@ void tvsub(register struct timeval *out, register struct timeval *in)
 }
 
 
-void init_accdata( char *user, char *password, 
+void init_accdata( char *user, char *password,
 		   struct accessdata_dn *accessdata)
 {
-    char *local_user = getlogin();
+    char *local_user = cuserid(NULL);
     char *cp;
 
     if ((options & DNF_DEBUG) && (local_user))
     {
-	printf("getlogin() - LOCAL USER: %s\n",local_user); 
+	printf("cuserid() - LOCAL USER: %s\n",local_user);
     }
 
     memset(accessdata, 0, sizeof(*accessdata));
@@ -97,7 +97,7 @@ void init_accdata( char *user, char *password,
     accessdata->acc_userl = strlen((char *)accessdata->acc_user);
 
 
-    /* If the password is "-" and fd 0 is a tty then 
+    /* If the password is "-" and fd 0 is a tty then
        prompt for a password */
     if (password[0] == '-' && password[1] == '\0' && isatty(0))
     {
@@ -107,9 +107,9 @@ void init_accdata( char *user, char *password,
 	    fprintf(stderr, "Password too long");
 	    return;
 	}
-	
+
     }
-    
+
     memcpy(accessdata->acc_pass, password, MIN(strlen(password),DN_MAXACCL));
     accessdata->acc_pass[DN_MAXACCL-1] = '\0';
     accessdata->acc_passl = strlen((char *)accessdata->acc_pass);
@@ -121,25 +121,25 @@ void init_accdata( char *user, char *password,
 
 	if ((options & DNF_DEBUG) && (local_user))
 	{
-	    printf("getenv(LOGNAME) - LOCAL USER: %s\n",local_user); 
+	    printf("getenv(LOGNAME) - LOCAL USER: %s\n",local_user);
 	}
 
     }
-   
+
     if (!local_user)
     {
 	local_user = getenv("USER");
 
 	if ((options & DNF_DEBUG) && (local_user))
 	{
-	    printf("getenv(USER) - LOCAL USER: %s\n",local_user); 
+	    printf("getenv(USER) - LOCAL USER: %s\n",local_user);
 	}
 
     }
 
     if (local_user)
     {
-	strncpy((char *)accessdata->acc_acc, local_user, 
+	strncpy((char *)accessdata->acc_acc, local_user,
 		MIN(strlen(local_user),DN_MAXACCL));
 	accessdata->acc_acc[DN_MAXACCL-1] = '\0';
 	accessdata->acc_accl = strlen((char *)accessdata->acc_acc);
@@ -151,7 +151,7 @@ void init_accdata( char *user, char *password,
 
 	if (options & DNF_DEBUG)
 	{
-	    printf("LOCAL USER: NULL\n"); 
+	    printf("LOCAL USER: NULL\n");
 	}
 
     }
@@ -187,7 +187,7 @@ int main(int argc, char *argv[])
 
     while ((ch = getopt(argc, argv, "c:di:qs:u:p:vt")) != EOF)
     {
-	switch(ch) 
+	switch(ch)
 	{
 	case 'c':               /* number of packets to send */
             npackets = atoi(optarg);
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 	exit(-1);
     }
 
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
 	if ( (options & DNF_QUIET) == 0 )
 	{
@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
 	exit(-1);
     }
 
-    if ((((options & DNF_USERNAME) == 0) && ((options & DNF_PASSWORD) != 0)) || 
+    if ((((options & DNF_USERNAME) == 0) && ((options & DNF_PASSWORD) != 0)) ||
 	(((options & DNF_USERNAME) != 0) && ((options & DNF_PASSWORD) == 0)))
     {
 	if ( (options & DNF_QUIET) == 0 )
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 	}
 	exit(-1);
     }
-      
+
     if ( ((options & (DNF_USERNAME|DNF_PASSWORD) ) == 0) && (argc > 2) )
     {
 	snprintf(username,sizeof(username),"%s",argv[1]);
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
 	{
 	    printf("USERNAME: %s\nPASSWORD: %s\n", username, password);
 	}
-      
+
 	init_accdata(username, password, &accessdata);
 	if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
 		       sizeof(accessdata)) < 0)
@@ -335,8 +335,8 @@ int main(int argc, char *argv[])
     sockaddr.sdn_objnamel  = 0x00;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+    if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
     {
 	if ( (options & DNF_QUIET) == 0 )
 	{
@@ -351,7 +351,7 @@ int main(int argc, char *argv[])
     }
     obuf[0]=0x00;
 
-    cmplen = (datalen - 1) - 
+    cmplen = (datalen - 1) -
 	(options & DNF_TIMESTAMPS)?sizeof(struct timeval):0;
     if (options & DNF_DEBUG)
     {
@@ -364,7 +364,7 @@ int main(int argc, char *argv[])
 	printf("OFFSET: %d\n",offset);
     }
 
-    snd=0; 
+    snd=0;
     rcv=0;
 
     for (i = 0; i < npackets; i++)
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
             }
 	    exit(-1);
 	}
-	if (options & (DNF_DEBUG|DNF_VERBOSE)) 
+	if (options & (DNF_DEBUG|DNF_VERBOSE))
 	{
 	    printf("PKT: %-4d   WRITE: %d ",i+1,num);
 	}
@@ -405,7 +405,7 @@ int main(int argc, char *argv[])
 	    printf("READ: %d ",num);
 	}
 
-	if (memcmp(&obuf[offset],&ibuf[offset],cmplen) != 0) 
+	if (memcmp(&obuf[offset],&ibuf[offset],cmplen) != 0)
 	{
 	    if ( (options & (DNF_QUIET|DNF_DEBUG|DNF_VERBOSE)) == 0 )
             {

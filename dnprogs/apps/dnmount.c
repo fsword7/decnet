@@ -1,7 +1,7 @@
 /* dnmount.c */
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat             emserrat@geocities.com
-    
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -38,7 +38,7 @@
 #include <linux/fs.h>
 #endif
 #include <linux/dap_fs.h>
- 
+
 /* DECnet phase IV limits */
 #define MAX_NODE      6
 #define MAX_USER     12
@@ -80,7 +80,7 @@ static int parse(char *fname)
     int   n1=0;
     int   i;
     char *local_user;
-    
+
     state = NODE; /* Node is mandatory */
 
     while (state != FINISHED)
@@ -90,7 +90,7 @@ static int parse(char *fname)
 	case NODE:
 	    if (fname[n0] != ':' && fname[n0] != '\"' && fname[n0] != '\'')
 	    {
-		if (n1 >= MAX_NODE || 
+		if (n1 >= MAX_NODE ||
 		    fname[n0] == ' ' || fname[n0] == '\n')
 		{
 		    lasterror = "File name parse error";
@@ -213,7 +213,7 @@ static int parse(char *fname)
        the situation where no directory is provided (node::) and where a
        directory (node::[patrick]) is provided. Logical names must end with
        a colon for this to happen or we will not be able to distinguish it
-       from a filename 
+       from a filename
 
 	EMS: Changed wildcard to *.*;0 so we only get the last version of
              the files. This is useful for the dapfs.
@@ -224,7 +224,7 @@ static int parse(char *fname)
     */
 
     // Try very hard to get the local username
-    local_user = getlogin();
+    local_user = cuserid(NULL);
     if (!local_user || local_user == (char *)0xffffffff)
       local_user = getenv("LOGNAME");
     if (!local_user) local_user = getenv("USER");
@@ -251,23 +251,23 @@ static int parse(char *fname)
 static int	dap_setup_link(void)
 {
     int	sockfd;
-    if ((sockfd=socket(AF_DECnet,SOCK_STREAM,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_STREAM,DNPROTO_NSP)) == -1)
     {
 	perror("socket");
 	exit(-1);
     }
 
-    
+
     if (setsockopt(sockfd,DNPROTO_NSP,SO_CONACCESS,&accessdata,
-		   sizeof(accessdata)) < 0) 
+		   sizeof(accessdata)) < 0)
     {
 	perror("setsockopt");
 	exit(-1);
     }
-    
 
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+
+    if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
     {
 	perror("socket");
 	exit(-1);
@@ -294,17 +294,17 @@ static void	dap_exchg_config(int sockfd)
 	0xA8,   /* Supp. Seq Access/Del  */
 	0x7C	/* WildCrds/Ren/Seg Msgs */
     };
-    
+
     if ((er=write(sockfd,confmsg,sizeof(confmsg))) < 0)
     {
 	perror("Send DAP config msg");
 	exit(-1);
-    }			      
+    }
     if ((er=read(sockfd,buf,sizeof(buf))) < 0)
     {
 	perror("Recv DAP config msg");
 	exit(-1);
-    }			      
+    }
     /* Assume that Peer Supports the minimal characteristis we
        setup here
     */
@@ -336,13 +336,13 @@ dn_setmountentry(void)
 	mount_entry.mnt_freq   = 0;
 	mount_entry.mnt_passno = 0;
 
-	
+
 
 	if ( (MFD = open (MOUNTED "~", O_RDWR | O_CREAT | O_EXCL, 0600)) < 0)
 	{
 		perror("opening /etc/mtab file");
 		exit(-1);
-	}	
+	}
 	close(MFD);
 	if ( (mtab = setmntent(MOUNTED, "a+")) == NULL)
 	{
@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
 	struct	passwd	*pwd;
 	struct	group	*grp;
 	char		opt;
-	
+
 	memset(&vms_directory,0,sizeof(vms_directory));
 	memset(&mount_point,0,sizeof(mount_point));
 	data.uid=getuid();
@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 				mount_point);
 		exit(2);
 	}
-	if ( (getuid() != 0) && ((getuid() != st.st_uid) || 
+	if ( (getuid() != 0) && ((getuid() != st.st_uid) ||
 	     ((st.st_mode & S_IRWXU) != S_IRWXU)))
 	{
 		fprintf(stderr, "Must be root to mount\n");

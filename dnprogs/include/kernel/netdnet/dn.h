@@ -7,8 +7,9 @@
  * DON'T BLAME ME!
  *
  * You should patch your kernel with the patches from
- * http://linux.dreamtime.org/decnet  or
+ * http://linux-decnet.sourceforge.net  or
  * http://www.sucs.swan.ac.uk/~rohan/DECnet
+ * or a released 2.4.0+ kernel
  * and then build the programs. That way we can support you.
 */
 

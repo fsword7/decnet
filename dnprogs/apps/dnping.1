@@ -4,7 +4,7 @@
 dnping \- Loopbacks diagnostic packets through a remote node
 
 .SH SYNOPSIS
-.B dnping 
+.B dnping
 nodename [user pass] count
 .br
 or
@@ -14,7 +14,7 @@ nodename [options] nodename
 .br
 Options:
 .br
-[\dqsv] [\-c number] [\-i interval] [\-p password] [\-s size] [\-u username]
+[\dqsv] [\-c number] [\-i interval] [\-p password] [\-s size] [\-u username] [\-w timeout]
 .br
 .SH DESCRIPTION
 .PP
@@ -25,9 +25,16 @@ the number of packets specified by
 to test the link between the two systems. Optionally a
 username and password may be specified for the connection as well as
 several other options. NOTE that if you dnping another Linux box it must
-have 
+have
 .B dnetd
 running.
+.br
+NOTE also that dnping is not really like an IP "ping" in that it needs
+a registered object at the other end to connect to. So, just because
+you cannot ping a machine does not, necessarily, mean that machine
+is not available, just that the MIRROR object is not available. There
+is not (to my knowledge) a low-level equivalent in DECnet of the ICMP
+ping message.
 
 .SH OPTIONS
 .TP
@@ -55,9 +62,14 @@ timestamps mode (default off)
 .I "-u username"
 access control username
 .TP
+.I "-w timeout"
+Specifies a timeout (in seconds). If not response is received
+after this time then dnping will abort. The default is to wait
+forever.
+.TP
 .I "-v"
 verbose mode (default off)
- 
+
 .SH EXAMPLES
 .br
 Pings 10 packets through remote node "mv3100"

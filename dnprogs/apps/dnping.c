@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <signal.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <netdnet/dn.h>
@@ -37,6 +38,7 @@
 #define DNF_QUIET         0x040
 #define DNF_DEBUG         0x080
 #define DNF_TIMESTAMPS    0x100
+#define DNF_TIMEOUT       0x200
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
@@ -65,6 +67,7 @@ static void usage(void)
     printf("\t-t             timestamps mode {OFF}\n");
     printf("\t-u username    access control username {}\n");
     printf("\t-v             verbose mode {OFF}\n");
+    printf("\t-w seconds     maximum wait time (timeout)\n");
     exit(0);
 }
 
@@ -159,17 +162,24 @@ void init_accdata( char *user, char *password,
     return;
 }
 
+void sig_alarm(int s)
+{
+    printf("Connect timed out\n");
+    exit(1);
+}
+
 /*-------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
     struct  sockaddr_dn             sockaddr;
     struct  accessdata_dn           accessdata;
     static  struct  nodeent         *np;
+    int                     sockfd,i,ch;
     char                    nodename[20],
 	ibuf[MAX_DN_PACKETSIZE],
 	obuf[MAX_DN_PACKETSIZE];
     short                   snd,rcv,num;
-    int                     sockfd,i,ch;
+
     char                    username[DN_MAXACCL],password[DN_MAXACCL];
     int                     npackets = 10,
 	datalen = 40,
@@ -180,12 +190,12 @@ int main(int argc, char *argv[])
 	tmin = LONG_MAX, /* minimum round trip time */
 	tmax = 0;        /* maximum round trip time */
     unsigned long           tsum = 0; /* sum of all times, for doing average */
+    unsigned long           timeout_sec;
+    struct timeval          timeout;
 
+    signal(SIGALRM, sig_alarm);
 
-
-
-
-    while ((ch = getopt(argc, argv, "c:di:qs:u:p:vt")) != EOF)
+    while ((ch = getopt(argc, argv, "c:di:qs:u:p:w:vt")) != EOF)
     {
 	switch(ch)
 	{
@@ -241,8 +251,13 @@ int main(int argc, char *argv[])
             options |= DNF_PASSWORD;
             snprintf(password,sizeof(password),"%s",optarg);
             break;
+	case 'w':
+	    options |= DNF_TIMEOUT;
+	    timeout_sec = atoi(optarg);
+	    break;
 	default:
             usage();
+	    break;
 	}
     }
     argc -= optind;
@@ -335,6 +350,11 @@ int main(int argc, char *argv[])
     sockaddr.sdn_objnamel  = 0x00;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 
+    /* This is the cheesy, cowards way of checking for
+       a connect timeout */
+    if (options & DNF_TIMEOUT)
+	alarm(timeout_sec);
+
     if (connect(sockfd, (struct sockaddr *)&sockaddr,
 		sizeof(sockaddr)) < 0)
     {
@@ -344,6 +364,11 @@ int main(int argc, char *argv[])
 	}
 	exit(-1);
     }
+
+    /* Cancel the connect() alarm */
+    if (options & DNF_TIMEOUT)
+	alarm(0);
+
 
     for (i = 0; i < datalen; i++)
     {
@@ -388,6 +413,30 @@ int main(int argc, char *argv[])
 	}
 	snd++;
 
+	if (options & DNF_TIMEOUT)
+	{
+	    int status;
+	    fd_set in_fd;
+
+	    FD_ZERO(&in_fd);
+	    FD_SET(sockfd, &in_fd);
+	    timeout.tv_sec = timeout_sec;
+	    timeout.tv_usec = 0;
+
+	    status = select(sockfd+1, &in_fd, NULL, NULL, &tv);
+	    if (status < 0)
+	    {
+		perror("select");
+		close(sockfd);
+		exit(-1);
+	    }
+	    if (status == 0)
+	    {
+		fprintf(stderr, "Timeout\n");
+		close(sockfd);
+		exit(-1);
+	    }
+	}
 	num = read(sockfd,ibuf,sizeof(ibuf));
 	if ( num < 0 )
 	{

@@ -12,13 +12,13 @@ SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 
 all: 	
 #	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
-	@for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 install:
-	@for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 dep depend:	
-	@for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 tags:	
 	etags */*.cc */*.c

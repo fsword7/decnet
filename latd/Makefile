@@ -6,11 +6,11 @@ PROG1=latd
 PROG2=latcp
 MANPAGES8=latd.8 latcp.8
 PROG1OBJS=main.o utils.o server.o connection.o session.o \
-	  serversession.o clientsession.o services.o latcpcircuit.o
+	  serversession.o clientsession.o services.o latcpcircuit.o lat_messages.o
 PROG2OBJS=latcp.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\"
-DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DOLDSTUFF 
+DEFS+=-DOLDSTUFF # -DVERBOSE_DEBUG -DNO_FORK
 
 #  Look for libdnet and use it if it's there
 ifeq (/usr/lib/libdnet.a,$(wildcard /usr/lib/libdnet.a))
@@ -78,7 +78,7 @@ clientsession.o: /usr/include/sys/ttydefaults.h /usr/include/sys/ioctl.h
 clientsession.o: /usr/include/bits/ioctls.h /usr/include/asm/ioctls.h
 clientsession.o: /usr/include/asm/ioctl.h /usr/include/bits/ioctl-types.h
 clientsession.o: session.h connection.h latcpcircuit.h server.h
-clientsession.o: clientsession.h
+clientsession.o: clientsession.h lat_messages.h
 connection.o: /usr/include/stdio.h /usr/include/features.h
 connection.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 connection.o: /usr/lib/gcc-lib/i386-linux/2.95.2/include/stddef.h
@@ -104,6 +104,7 @@ connection.o: /usr/include/asm/ioctls.h /usr/include/asm/ioctl.h
 connection.o: /usr/include/bits/ioctl-types.h session.h serversession.h
 connection.o: clientsession.h connection.h latcpcircuit.h server.h services.h
 connection.o: dn_endian.h
+lat_messages.o: lat_messages.h
 latcp.o: /usr/include/sys/types.h /usr/include/features.h
 latcp.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 latcp.o: /usr/include/bits/types.h
@@ -248,7 +249,7 @@ server.o: /usr/include/asm/posix_types.h /usr/include/linux/socket.h
 server.o: /usr/include/linux/if_packet.h /usr/include/linux/if_ether.h lat.h
 server.o: utils.h /usr/include/pty.h /usr/include/termios.h
 server.o: /usr/include/bits/termios.h session.h connection.h latcpcircuit.h
-server.o: server.h services.h dn_endian.h
+server.o: server.h services.h lat_messages.h dn_endian.h
 serversession.o: /usr/include/sys/types.h /usr/include/features.h
 serversession.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 serversession.o: /usr/include/bits/types.h

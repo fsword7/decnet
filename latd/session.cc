@@ -280,8 +280,23 @@ LATSession::~LATSession()
 // Send the issue.net greeting file
 void LATSession::send_issue()
 {
+    char issue_name[PATH_MAX];
+    struct stat st;
+
+    // Look for /etc/issue.lat.<service>, /etc/issue.lat, /etc/issue.net
+    sprintf(issue_name, "/etc/issue.lat.%s", parent.get_servicename());
+    if (stat(issue_name, &st))
+    {
+	strcpy(issue_name, "/etc/issue.lat");
+	if (stat(issue_name, &st))
+	{
+	    strcpy(issue_name, "/etc/issue.net");
+	}
+    }
+
+
     // Send /etc/issue.net
-    int f = open("/etc/issue.net", O_RDONLY);
+    int f = open(issue_name, O_RDONLY);
     if (f >= 0)
     {
 	unsigned char *issue = new unsigned char[255];

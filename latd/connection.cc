@@ -62,7 +62,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     debuglog(("New connection: (c: %x, s: %x)\n",
              last_sequence_number, last_ack_number));
     
-    get_string(buf, &ptr, servicename);
+    get_string(buf, &ptr, servicename); // This is actually local nodename
     get_string(buf, &ptr, remnode);
 
     debuglog(("Connect from %s (LAT %d.%d) for %s, window size: %d\n",
@@ -296,6 +296,20 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			ptr = sizeof(LAT_SessionStartCmd);
 			unsigned char name[256];
 			get_string(buf, &ptr, name);
+
+                        // Do parameters -- look for a 5 (remote port name)
+			while (ptr < len)
+			{
+			    int param_type = buf[ptr++];
+			    if (param_type == 5)
+			    {
+				get_string(buf, &ptr, portname);
+			    }
+			    else
+			    {
+				ptr += buf[ptr]+1; // Skip over it
+			    }
+			}
 			
 			if (!LATServer::Instance()->is_local_service((char *)name))
 			{
@@ -312,6 +326,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			    uid_t uid;
 			    gid_t gid;
 			    LATServer::Instance()->get_service_info((char *)name, cmd, maxcon, uid, gid);
+			    strcpy((char *)servicename, (char *)name);
 			    
 			    newsessionnum = next_session_number();
 			    newsession = new ServerSession(*this,
@@ -319,7 +334,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							   cmd, uid, gid,
 							   slotcmd->remote_session, 
 							   newsessionnum, false);
-			    if (newsession->new_session(remnode, "", "",
+			    if (newsession->new_session(remnode, "", (char *)portname,
 							credits) == -1)
 			    {
 				newsession->send_disabled_message();

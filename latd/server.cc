@@ -1350,7 +1350,6 @@ int LATServer::get_service_info(char *name, string &cmd, int &maxcon, uid_t &uid
 	uid = sii->get_uid();
 	gid = sii->get_gid();
 
-	syslog(LOG_INFO, "get_service_info: uid=%d, gid=%d\n", uid, gid);
 	return 0;
     }
 

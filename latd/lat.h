@@ -29,7 +29,7 @@
 /* Structure of a LAT header */
 typedef struct
 {
-    unsigned char  cmd             __attribute__ ((packed));            
+    unsigned char  cmd             __attribute__ ((packed));
     unsigned char  num_slots       __attribute__ ((packed));
     unsigned short remote_connid   __attribute__ ((packed));
     unsigned short local_connid    __attribute__ ((packed));
@@ -52,7 +52,7 @@ typedef struct
   unsigned short mtu             __attribute__ ((packed)); // 1500
   unsigned char  multicast_timer __attribute__ ((packed)); // Multicast timer (seconds)
   unsigned char  node_status     __attribute__ ((packed)); // 2 (accepting connections)
-  unsigned char  group_length    __attribute__ ((packed)); 
+  unsigned char  group_length    __attribute__ ((packed));
 
   // Following:
   // Node groups
@@ -139,7 +139,7 @@ typedef struct
     unsigned short request_id    __attribute__ ((packed));
     unsigned short entry_id      __attribute__ ((packed));
     unsigned char  opcode        __attribute__ ((packed));
-    unsigned char  modifier      __attribute__ ((packed));     
+    unsigned char  modifier      __attribute__ ((packed));
     // ASCIC Destination node name
     // ASCIC Source node name
     // ASCIC Source node port name (usually NUL)
@@ -161,7 +161,7 @@ typedef struct
     // ASCIC Service Name (usually NUL)
     // ASCIC Port Name
     // ASCIC Service description
-    
+
 } LAT_StatusEntry;
 
 typedef struct

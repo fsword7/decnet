@@ -62,13 +62,13 @@ int ServerSession::new_session(unsigned char *_remote_node,
     strcpy(remote_service, service);
     strcpy(remote_port, port);
 
+    strcpy(remote_node, (char *)_remote_node);
     int status = create_session(_remote_node);
     if (status == 0)
     {
 	status = send_login_response();
 	if (credit) send_issue();
     }
-    strcpy(remote_node, (char *)_remote_node);
     return status;
 }
 
@@ -251,14 +251,19 @@ void ServerSession::execute_command(const char *command)
 	argv[argc] = (char *)malloc(strlen(thisarg)+1);
 	strcpy(argv[argc], thisarg);
 
-	syslog(LOG_INFO, "PJC: arg[%d] = %s\n", argc, argv[argc]);
-
 	thisarg = strtok(NULL, " ");
 	argc++;
     } while (thisarg);
 
     // Need a NULL at the end of the list
     argv[argc++] = NULL;
+
+    // Set some environment variables. 
+    // login will clear these it's true but other 
+    // services may find them useful.
+    setenv("LAT_LOCAL_SERVICE", parent.get_servicename(), 1);
+    setenv("LAT_REMOTE_NODE", remote_node, 1);
+    setenv("LAT_REMOTE_PORT", remote_port, 1);
 
     // Run it.
     execvp(fullcmd, argv);

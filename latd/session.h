@@ -32,7 +32,7 @@ class LATSession
 			    char *service, char *port, unsigned char c)=0;
     virtual void do_read() {}
 
-    
+
  protected:
     enum {NEW, STARTING, RUNNING, STOPPED} state;
     char           remote_node[32]; // Node name
@@ -48,7 +48,7 @@ class LATSession
     unsigned char  local_session;
     int            max_read_size;
     bool           clean; // Connection should be 8bit clean
-    
+
     // Flow control
     int            credit;
     bool           stopped;

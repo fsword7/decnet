@@ -13,7 +13,7 @@ clean:
 	-rm -f build
 	-make clean
 	-rm -f `find . -name "*~"`
-	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
+	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ! -name po` debian/files* core
 	-rm -f debian/*substvars
 	dh_clean -k
 
@@ -60,7 +60,7 @@ binary-indep: checkroot build
 
 binary-arch: checkroot build
 	$(checkdir)
-	-rm -rf debian/tmp `find debian/* -type d ! -name CVS `
+	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ! -name po`
 	install -d debian/tmp
 	mkdir -p debian/tmp/etc/modutils
 	mkdir -p debian/tmp/etc/default

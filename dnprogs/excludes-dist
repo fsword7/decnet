@@ -1,6 +1,6 @@
 *core
 *.o
-*.po
+*lib*/*.po
 *.a
 *.bak
 *~

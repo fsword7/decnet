@@ -8,6 +8,7 @@ LIBNAME=libdap
 SHAREDLIB=$(LIBNAME).so.$(VERSION)
 STATICLIB=$(LIBNAME).a
 
+CXXFLAGS+=-Wno-format-y2k
 
 all: $(STATICLIB) $(SHAREDLIB)
 

@@ -102,8 +102,8 @@ endif
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE
 INCLUDES=-I../libdap -I../include
-CXXFLAGS+=-pipe -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
-CFLAGS  +=-pipe -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
+CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(DFLAGS)
 
 # Conditional for shared/static libs
 ifdef LINKSTATIC

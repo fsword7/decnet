@@ -81,12 +81,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     window_size = 0;
     lat_eco = msg->latver_eco;
 
-    // I don't think this is actually true (TODO CHECK!)
-    // but it seems to work.
-    if (max_window_size < 4)
-	max_slots_per_packet = 1;
-    else
-	max_slots_per_packet = 4;
+    max_slots_per_packet = 4;
 
     memset(sessions, 0, sizeof(sessions));
 }

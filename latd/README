@@ -20,28 +20,26 @@ features:
 - moprc for remote management for terminal servers.
 - To send BREAK to a remote server in a reverse-LAT session press ^@
 
-You will need Packet Socket support in the kernel, but I think that's
-usually the default anyway.
+For Linux you will need Packet Socket support in the kernel, but I think that's
+usually the default anyway. BSD systems use the Berkeley Packet Filter.
 
-This software will not work on kernels 2.0 or lower.
+This software will not work on Linux kernels 2.0 or lower.
 
-You should start latd with the latcp -s command. Starting latd manually
-is not supported and may result in unexpected behaviour. See the man
-page for latcp for more information.
+You should start latd with the latcp -s command. Starting latd manually is not
+supported and may result in unexpected behaviour. See the man page for latcp
+for more information.
 
 This code is a clean-room reverse-engineering effort. I have no access to
 HP technical documentation or source code for LAT and nor do I want any.
 
-This software should work on all Linux architectures. I have tested it on
-Intel, Alpha, SPARC, MIPS, PA-RISC and PowerPC.
-
-See the file lat.html for information on using LAT on Linux.
+This software should work on all architectures supported by the target
+operating systems. I have tested it on Intel, Alpha, SPARC, MIPS, PA-RISC and
+PowerPC.
 
 SUPPORTED SYSTEMS
 -----------------
-LATD itself currently only runs on Linux but it shouldn't be too hard
-to port to other Unix-like platforms by writing an interface class for
-that platform, I have tried hard to keep the rest of the code portable.
+LATD itself runs on Linux and several BSD systems: NetBSD, FreeBSD and Darwin
+have been tested though not very thoroughly, as I primarily use Linux.
 
 The following systems I know to work with LATD because I have tested them,
 others may also work.
@@ -53,13 +51,42 @@ DECserver 90M
 DECserver 90L+
 DECserver 700
 
+COMPILING
+---------
+LAT uses GNU autoconf to configure and build so all you should need to
+do is 
+
+./configure && make
+
+to compile, and
+
+make install
+
+to install
+
+There are several things you can tweak in the configuration process:
+
+--enable-debug   Build a debug binary that does not daemonise itself
+                 and issues lots of loggin messages to stderr
+--prefix         Sets where the binaries are installed 
+                (default /usr/local)
+--sysconfdir     Sets where the config file is kept 
+                 (default is /usr/local again)
+                 Note that if you set --prefix to /usr, you will probably
+                 also want to set --sysconfdir to / so that the config 
+                 file goes in /etc rather than /usr/etc
+
 
 CREDITS
 -------
+The BPF interface used in the *BSD ports was written by Matthew Fredette
+(fredette@netbsd.org)
+
 I'd like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
-I am also very much indebted to Real Dupeux for sending me a DECserver 200 for
+I am also very much indebted to Real Dupeux for sending me a DECserver 200
+for
 the project, without which it would be much impoverished. I use it a for
 reverse-LAT every day of the week to log in to the consoles of my various
 machines.

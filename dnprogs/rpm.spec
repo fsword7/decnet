@@ -34,6 +34,7 @@ instructions on how to apply it.
 %%PREFIX%%/sbin/phoned
 %%PREFIX%%/sbin/dnetd
 %%PREFIX%%/sbin/fal
+%%PREFIX%%/sbin/dnroute
 %%PREFIX%%/sbin/startnet
 %%PREFIX%%/sbin/decnetconf
 %%PREFIX%%/man/man1/dncopy.1
@@ -63,6 +64,7 @@ instructions on how to apply it.
 %%PREFIX%%/man/man5/dnetd.conf.5
 %%PREFIX%%/man/man5/vmsmail.conf.5
 %%PREFIX%%/man/man8/fal.8
+%%PREFIX%%/man/man8/dnroute.8
 %%PREFIX%%/man/man8/phoned.8
 %%PREFIX%%/man/man8/dnetd.8
 %%PREFIX%%/man/man8/ctermd.8

@@ -156,6 +156,13 @@ int main(int argc, char *argv[])
 	if (!show_services) exit(usage(argv[0]));
     }
 
+    // This is just a bit like microcom...
+    if (use_port)
+    {
+	do_use_port(service, quit_char, crlf, bsdel);
+	return 0;
+    }
+
     // Open socket to latd
     if (!open_socket(false)) return 2;
 
@@ -176,14 +183,7 @@ int main(int argc, char *argv[])
 	
 	delete[] result;  
 	return 0;
-    }
-    
-// This is just a bit like microcom...
-    if (use_port)
-    {
-	do_use_port(service, quit_char, crlf, bsdel);
-	return 0;
-    }
+    }   
 
     make_upper(node);
     make_upper(service);

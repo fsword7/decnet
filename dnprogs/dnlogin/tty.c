@@ -39,6 +39,8 @@ extern int finished;
 
 /* Input state buffers & variables */
 static unsigned char terminators[32];
+static char rahead_buf[128];
+static int  rahead_len=0;
 static char input_buf[1024];
 static int  input_len=0;
 static int  input_pos=0;
@@ -48,6 +50,7 @@ static char esc_buf[132];
 static int  esc_len=0;
 static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
+static int  reading = 0;
 static int  insert_mode = 0;
 
 /* Output processor */
@@ -68,18 +71,35 @@ void tty_set_terminators(char *buf, int len)
 void tty_start_read(char *prompt, int len, int promptlen)
 {
     if (debug & 4)
-	fprintf(stderr, "TTY start_read prompt='%s' len = %d, maxlen=%d\n",
-		prompt, promptlen, len);
+	fprintf(stderr, "TTY start_read promptlen = %d, maxlen=%d\n",
+		promptlen, len);
     if (promptlen) write(termfd, prompt, promptlen);
 
     /* Save the actual prompt in one buffer and the prefilled
-       data in th input buffer */
+       data in the input buffer */
     memcpy(prompt_buf, prompt, promptlen);
     prompt_len = promptlen;
 
-    memcpy(input_buf, prompt+promptlen, len-promptlen);
-    input_len = len-promptlen;
+    memcpy(input_buf, prompt+promptlen, len);
+    input_len = 0;
     input_pos = input_len;
+    max_read_len = len;
+
+    /* Now add in any typeahead
+       TODO: Are there flags to disable this? */
+    if (rahead_len)
+    {
+	int copylen = rahead_len;
+
+	fprintf(stderr, "PJC: readahead = %d bytes\n", rahead_len);
+	/* Don't overflow the input buffer */
+	if (input_len + copylen > sizeof(input_buf))
+	    copylen = sizeof(input_buf)-input_len;
+
+	memcpy(input_buf+input_len, rahead_buf, copylen);
+	input_len += copylen;
+    }
+    reading = 1;
 }
 
 void tty_set_timeout(unsigned short to)
@@ -141,7 +161,7 @@ static short is_terminator(char c)
 /* Erase to end of line */
 static void erase_eol(void)
 {
-    write(termfd, "\033[1K", 4);
+    write(termfd, "\033[0K", 4);
 }
 
 /* Move to column "hpos", where hpos starts at 0 */
@@ -154,7 +174,7 @@ static void move_cursor_abs(int hpos)
 }
 
 /* Input from keyboard */
-int tty_process_terminal(char *buf, int len)
+int tty_process_terminal(unsigned char *buf, int len)
 {
     int i;
 
@@ -166,16 +186,20 @@ int tty_process_terminal(char *buf, int len)
 	    return 0;
 	}
 
+	/* Terminators */
+	// TODO: flag for echoing terminators
+	if (is_terminator(buf[i]))
+	{
+	    send_input(&buf[i], 1, 0);
+	    reading = 0;
+	    return 0;
+	}
+
 	/* Swap LF for CR */
 	//PJC: is this right??
 	if (buf[i] == '\n')
 	    buf[i] = '\r';
 
-	if (is_terminator(buf[i]))
-	{
-	    send_input(&buf[i], 1, 0);
-	    return 0;
-	}
 
 	/* Is it ESCAPE ? */
 	if (buf[i] == ESC && esc_len == 0)
@@ -184,6 +208,8 @@ int tty_process_terminal(char *buf, int len)
 	    continue;
 	}
 
+	fprintf(stderr, "input_pos=%d, input_len = %d\n", input_pos, input_len);
+
 	/* Still processing escape sequence */
 	if (esc_len)
 	{
@@ -191,7 +217,7 @@ int tty_process_terminal(char *buf, int len)
 	    if (isalpha(buf[i]))
 	    {
 		/* Process escape sequences */
-		if (strncmp(esc_buf, "\033[C", 3)) /* Cursor RIGHT */
+		if (strncmp(esc_buf, "\033[D", 3)) /* Cursor RIGHT */
 		{
 		    if (input_pos < input_len)
 		    {
@@ -199,9 +225,9 @@ int tty_process_terminal(char *buf, int len)
 			write(termfd, esc_buf, esc_len);
 		    }
 		}
-		if (strncmp(esc_buf, "\033[D", 3)) /* Cursor LEFT */
+		if (strncmp(esc_buf, "\033[C", 3)) /* Cursor LEFT */
 		{
-		    if (input_pos)
+		    if (input_pos > 0)
 		    {
 			input_pos--;
 			write(termfd, esc_buf, esc_len);
@@ -213,7 +239,7 @@ int tty_process_terminal(char *buf, int len)
 	}
 
 	/* Process non-terminator control chars */
-	if (buf[i] < ' ')
+	if (buf[i] < ' ' || buf[i] == DEL)
 	{
 	    switch (buf[i])
 	    {
@@ -223,7 +249,7 @@ int tty_process_terminal(char *buf, int len)
 	    case CTRL_U: // delete input line
 		move_cursor_abs(prompt_len);
 		erase_eol();
-		input_pos = 0;
+		input_pos = input_len = 0;
 		break;
 	    case CTRL_H: // back to start of line
 		move_cursor_abs(prompt_len);
@@ -235,13 +261,34 @@ int tty_process_terminal(char *buf, int len)
 	    case CTRL_M:
 		send_input(input_buf, input_len, 0);
 		input_len = input_pos = 0;
+		reading = 0;
+		break;
+	    case DEL:
+		if (input_pos > 0)
+		{
+		    input_pos--;
+		    input_len = input_pos;
+		    write(termfd, "\033[D \033[D", 7);
+		}
 		break;
 	    }
 	    continue;
 	}
 
+
+	/* Read not active, store in the read ahead buffer */
+	if (!reading)
+	{
+	    if (rahead_len < sizeof(rahead_buf))
+		rahead_buf[rahead_len++] = buf[i];
+	    continue;
+	}
+
+
 	if (echo)
+	{
 	    write(termfd, &buf[i], 1);
+	}
 
 	if (debug & 4) fprintf(stderr, "TTY: input_len=%d, pos=%d\n",
 			       input_len, input_pos);
@@ -250,10 +297,15 @@ int tty_process_terminal(char *buf, int len)
 	if (input_len < input_pos)
 	    input_len = input_pos;
 
-	if (input_len == max_read_len)
+	if (input_len >= max_read_len)
 	{
-	    send_input(input_buf, input_len, 0);
+	    char buf[1024];
+	    memcpy(buf, prompt_buf, prompt_len);
+	    memcpy(buf+prompt_len, input_buf, input_len);
+
+	    send_input(buf, input_len+prompt_len, 0);
 	    input_len = input_pos = 0;
+	    reading = 0;
 	}
     }
     return 0;

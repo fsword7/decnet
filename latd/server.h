@@ -86,7 +86,7 @@ class LATServer
     gid_t lat_group;
 
     void  read_lat(int sock);
-    float get_loadavg();
+    double get_loadavg();
     void  reply_to_enq(unsigned char *inbuf, int len, int interface,
 		      unsigned char *remote_mac);
     void  forward_status_messages(unsigned char *inbuf, int len);

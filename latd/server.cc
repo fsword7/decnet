@@ -733,20 +733,18 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
 }
 
 /* Get the system load average */
-float LATServer::get_loadavg(void)
+double LATServer::get_loadavg(void)
 {
-    float a,b,c;
-    FILE *f = fopen("/proc/loadavg", "r");
+    double avg[3];
 
-    if (!f)
+    if (getloadavg(avg, 3) > 0)
+    {
+	return avg[0];
+    }
+    else
+    {
 	return 0;
-
-    if (fscanf(f, "%g %g %g", &a, &b, &c) != 3)
-	a = b = c = 0.0;
-
-    fclose(f);
-
-    return b;
+    }
 }
 
 // Forward status messages to their recipient connection objects.

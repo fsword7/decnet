@@ -122,6 +122,7 @@ AC_CHECK_HEADER(lockdev.h)
 AC_CHECK_LIB(lockdev, dev_lock, have_lockdev=yes)
 if test "x$have_lockdev" = "xyes"; then
   LIBLOCKDEV=-llockdev
+  AC_DEFINE(HAVE_LOCKDEV_H)
 fi
 
 dnl Configure the latcp socket.

@@ -4,7 +4,7 @@ This collection comprises all the programs and libraries you will need
 to get DECnet for Linux working. It assumes you already have the
 kernel patch installed and built.
 
-You MUST be running the latest Eduardo kernel patch (version number 0.0.11 or 
+You MUST be running the latest Eduardo kernel patch (version number 0.0.11 or
 later) or a 2.4+ kernel to use these programs. If you are not
 then several things (particularly dnetd) will NOT work. You will be warned
 if you try to compile on old kernel versions.
@@ -23,32 +23,31 @@ system programs in /usr/local/sbin and the man pages under /usr/local/man.
 Libraries will be installed in /usr/lib. If you would prefer them to be in
 /usr/local/lib then edit Makefile.common and change libprefix.
 If you do this you need to ensure that the libraries will be found by either
-adding /usr/local/bin to the file /etc/ld.so.conf or by setting the 
+adding /usr/local/bin to the file /etc/ld.so.conf or by setting the
 environment variable LD_LIBRARY_PATH. See the man page for ld.so for more
 information.
 
-[Please don't send me mail about compiler warnings on libc5 based systems, I 
+[Please don't send me mail about compiler warnings on libc5 based systems, I
 know. It compiles fine on libc6 systems (I can recommend Debian) because the
 header files are more POSIX compliant.]
 
 It will also install a startup script appropriate to your distribution. You
 will need to set up your system so that this script is run at system startup
-time. 
+time.
 
-NOTE: These startup scripts are out of date for everthimng except Debian. 
+NOTE: These startup scripts are out of date for everthing except Debian.
 If you can help with startup scripts for your particular distribution then
 please contact me.
 
-Debian 
+Debian
 ------
-DECnet is included in Debian woody (3.0) and later. "apt-get dnet-progs" will
-install all the bits you need.
+DECnet is included in Debian woody (3.0) and later.
+"apt-get install dnet-progs" will install all the bits you need.
 
 Redhat
 ------
-The startup script is "/etc/rc.d/init.d/decnet"
-It should be linked to "/etc/rc.d/rc3.d/S09decnet"
-You can use control-panel or tksysv to do this.
+The startup script is "/etc/init.d/decnet"
+It should be installed using the command "chkconfig --level 345 decnet on"
 
 Caldera
 -------
@@ -58,37 +57,32 @@ It should be linked to "/etc/rc.d/rc5.d/S01decnet"
 You should also add the -f switch to the startnet command.
 See the comments in the file for more detail.
 
-Slackware   
+Slackware
 ---------
 The startup script is "/etc/rc.decnet"
 Put a call to this very near the start of your /etc/rc.d/rc.inet1 file.
 
-SuSE
-----
-The startup script is "/sbin/init.d/decnet"
-It should be linked to "/sbin/init.d/rc2.d/S05decnet"
 
-
-NOTE: Wherever you put call the startup script from it *MUST* be run before 
+NOTE: Wherever you put call the startup script from it *MUST* be run before
 the TCP/IP initialisation because it needs to set the MAC address of the
 ethernet card.
 
-You will also now have an example configuration file (called 
+You will also now have an example configuration file (called
 /etc/decnet.conf.sample). You should copy this to /etc/decnet.conf and edit it
 to contain the details for your Linux machine (the executor) and all DECnet
 nodes with which you want to communicate - see the man page for more details.
 
 Alternatively you can use the script in scripts/setup.sh to aid in setting
-up your DECnet configuration. This will prompt you for the necessary 
-information and create an /etc/decnet.conf file for you. This script is run 
+up your DECnet configuration. This will prompt you for the necessary
+information and create an /etc/decnet.conf file for you. This script is run
 automatically when you first install a binary distribution.
 
-You may also want to configure a DECnet proxies file. See the FAL 
+You may also want to configure a DECnet proxies file. See the FAL
 documentation and the decnet.proxy(5) man page for more information.
 
 UPGRADING FROM 1.x
 ------------------
-All the libraries in the distribution carry the version number of the 
+All the libraries in the distribution carry the version number of the
 distribution itself rather than an ABI-type number. This is purely for
 my convenience and there are many people who will tell me that this is just
 plain wrong. Well so be it. The V2 libraries are all backward compatible
@@ -107,8 +101,8 @@ man pages are provided for all the programs and also the routines in libdnet.
 Also you will find some documentation in the Documentation directory of this
 distribution.
 
-If you have any problems then please consult the FAQ at 
-http://linux-decnet.sourceforge.net/faq.html before emailing the list with 
+If you have any problems then please consult the FAQ at
+http://linux-decnet.sourceforge.net/faq.html before emailing the list with
 questions.
 
 
@@ -139,6 +133,8 @@ phoned      -  phone server (needed for any phone functionality)
 dnetd       -  DECnet super server
 decnetconf  -  Shell script to help in setting up /etc/decnet.conf
 dnmount     -  mount a VMS filesystem (still beta - requires dapfs)
+setether    -  shell script to set the MAC address of any/all ethernet
+               cards. preferable to using startnet for 2.4+ kernels.
 
 Libraries in /usr/lib
 ---------------------
@@ -159,7 +155,7 @@ produce code that is more portable; a lot of the widget creation code was
 produced using the UI builder GLADE. I am an experienced X-Windows programmer
 but that experience is with Xt and Motif because it was gained in a commercial
 environment (using VMS rather than Unix since you asked!). I believe that GTK+
-is the future of - free - software development and Motif, despite the 
+is the future of - free - software development and Motif, despite the
 excellent efforts of the Lesstif team, is merely a legacy toolkit.
 
 
@@ -180,14 +176,14 @@ package so peruse them and learn!
 
 If all you want to do is access RMS files from Linux then librms is a much
 easier way of achieving this because it contains open/read/write/close calls
-that you will be more familiar with. See the librms directory for more 
+that you will be more familiar with. See the librms directory for more
 information.
 
 
 ALSO INCLUDED
 -------------
 This distribution also contains uulib from the uudeview suite by Frank Pilhofer
-(fp@informatik.uni-frankfurt.de). 
+(fp@informatik.uni-frankfurt.de).
 
 I have supplied it here pre-configured for Linux and it seems OK for me on
 libc5 and 6 systems, Intel, SPARC and Alpha.
@@ -229,24 +225,24 @@ And to everyone who has submitted bug reports - please don't stop.
 
 SUPPORT
 -------
-These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3 & 2.4 on Intel, 
+These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3 & 2.4 on Intel,
 Alpha and SPARC machines (though not necessarily all combinations!) userland
 compiles on HPPA machines but there seems to be a kernel problem with that
-architecture. atthe moment.
+architecture at the moment.
 
 I encourage all users to join the linux-decnet mailing list by visiting the
-mailing list web site at 
+mailing list web site at
 http://lists.sourceforge.net/lists/listinfo/linux-decnet-user
 
-The list is archived at http://www.geocrawler.com/lists/3/SourceForge/3243/0/
+The list is archived at http://sourceforge.net/mailarchive/forum.php?forum_id=7244
 
-If you need help with the software, think you have found a bug or would 
+If you need help with the software, think you have found a bug or would
 like to request a feature then please send your messages to this mailing list.
 
 Note that while I cannot guarantee you will get support for these programs,
 we on the list will endeavour to help where possible.
 
-If you send me or the mailing list a message that is answered in this file or 
+If you send me or the mailing list a message that is answered in this file or
 the online FAQ (at http://linux-decnet.sourceforge.net/faq.html) then it
 will probably be ignored. I have a life to lead and a job to hold down.
 

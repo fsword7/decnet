@@ -43,7 +43,7 @@ main(void)
   nodename = dnet_nextnode(nodelist);
   while(nodename)
   {
-      printf("Found node %s\n", nodename);
+      printf("Found node %s\\n", nodename);
       nodename = dnet_nextnode(nodelist);
   }
   dnet_endnode(nodelist);

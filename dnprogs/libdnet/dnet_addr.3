@@ -37,7 +37,7 @@ main(void)
 
     if ( (binaddr=dnet_addr("mv3100")) == NULL)
     {
-	   printf("No entry in /etc/decnet.conf for mv3100\n");
+	   printf("No entry in /etc/decnet.conf for mv3100\\n");
 	   exit(0);
      }
      if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 

@@ -43,7 +43,7 @@ int main(int argc, char **argv)
         while (!dnet_eof(insock)) 
         { 
             readnum=read(insock,ibuf,sizeof(ibuf));
-            fprintf(stderr, "%-*s\n", readnum, ibuf);
+            fprintf(stderr, "%-*s\\n", readnum, ibuf);
         }
         close(insock);
     }

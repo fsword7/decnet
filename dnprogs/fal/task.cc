@@ -94,6 +94,8 @@ void fal_task::add_vroot(char *name)
     // Add in the vroot
     if (params.vroot_len)
     {
+	int oldlen = strlen(name);
+
 	/* Security measure...if the name has ".." in it then blank the whole lot out and
 	   confuse the user.
 	   well, it stops them escaping the root
@@ -102,8 +104,11 @@ void fal_task::add_vroot(char *name)
 	    name[0] = '\0';
 
 	if (verbose > 3) DAPLOG((LOG_DEBUG, "add_vroot: name is %s, vroot='%s' (len=%d)\n", name, params.vroot, params.vroot_len));
-	memmove(name + params.vroot_len, name, strlen(name));
+	memmove(name + params.vroot_len, name, oldlen);
 	memmove(name, params.vroot, params.vroot_len);
+
+	/* Make sure it's NUL-terminated */
+	name[oldlen+params.vroot_len] = '\0';
 
 	if (verbose > 3) DAPLOG((LOG_DEBUG, "add_vroot: name is now %s\n", name));
     }
@@ -116,7 +121,7 @@ void fal_task::remove_vroot(char *name)
     {
 	if (verbose > 3) DAPLOG((LOG_INFO, "remove_vroot: name is %s\n", name));
 
-	memmove(name, name + params.vroot_len-1, strlen(name));
+	memmove(name, name + params.vroot_len-1, strlen(name)+1);
 
 	if (verbose > 3) DAPLOG((LOG_INFO, "remove_vroot: name is now %s\n", name));
     }

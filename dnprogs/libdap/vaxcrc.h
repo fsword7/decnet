@@ -17,9 +17,9 @@ private:
     vaxcrc(unsigned short poly,unsigned short inicrc);
     unsigned short	getcrc();
     void 		setcrc(unsigned short newcrc);
-    void 		calc1shift(char *stream, int len);
-    void 		calc2shift(char *stream, int len);
-    void 		calc4shift(char *stream, int len);
+    void 		calc1shift(unsigned char *stream, int len);
+    void 		calc2shift(unsigned char *stream, int len);
+    void 		calc4shift(unsigned char *stream, int len);
    
 };
 #endif

@@ -57,7 +57,7 @@ unsigned short vaxcrc::getcrc()
 	return crc;
 }
 /*-------------------------------------------------------------------------*/
-void vaxcrc::calc1shift(char *stream, int len)
+void vaxcrc::calc1shift(unsigned char *stream, int len)
 {
 	while (len--)
 	{
@@ -67,7 +67,7 @@ void vaxcrc::calc1shift(char *stream, int len)
 	}	
 }
 /*-------------------------------------------------------------------------*/
-void vaxcrc::calc2shift(char *stream, int len)
+void vaxcrc::calc2shift(unsigned char *stream, int len)
 {
 	while (len--)
 	{
@@ -77,7 +77,7 @@ void vaxcrc::calc2shift(char *stream, int len)
 	}	
 }
 /*-------------------------------------------------------------------------*/
-void vaxcrc::calc4shift(char *stream, int len)
+void vaxcrc::calc4shift(unsigned char *stream, int len)
 {
 	while (len--)
 	{

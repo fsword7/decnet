@@ -112,6 +112,12 @@ string LATServer::print_interfaces()
 	    str.append(ifr.ifr_name);
 	    str.append(" ");
 	}
+	else
+	{
+	    char num[10];
+	    snprintf(num, sizeof(num), "%d ", interface_num[i]);
+	    str.append(num);
+	}
     }
     
     close(sock);
@@ -375,24 +381,24 @@ void LATServer::interface_error(int ifnum, int err)
 	// Look for it
 	for (i=0; i<num_interfaces; i++)
 	{
-	    if (interface_num[i] == ifnum) break;
+	    if (interface_num[i] == ifnum) goto remove_if;
 	}
 
 	// Ugh, didn't find it. that can't be right!
-	if (i>MAX_INTERFACES)
+	if (i>=num_interfaces)
 	{	    
 	    syslog(LOG_ERR, "Don't seem to have a reference to this interface....\n");
 	    return;
 	}
-	
+
+    remove_if:
 	// Shuffle the list down
 	for (j=i; j<num_interfaces-1; j++)
 	{
 	    interface_num[j] = interface_num[j+1];
 	}
 
-	num_interfaces--;
-	if (num_interfaces == 0)
+	if (--num_interfaces == 0)
 	{
 	    syslog(LOG_ERR, "No valid interfaces left. LATD closing down\n");
 	    
@@ -811,13 +817,33 @@ int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned
   sock_info.sll_halen    = 6;  
   memcpy(sock_info.sll_addr, macaddr, 6);
   
-  if (sendto(lat_socket, buf, len, 0,
-	     (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+
+  if (interface == 0) // Send to all
   {
-      interface_error(interface, errno);
-      return -1;
+      for (int i=0; i<num_interfaces;i++)
+      {
+	  sock_info.sll_ifindex  = interface_num[i];
+	  if (sendto(lat_socket, buf, len, 0,
+		     (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+	  {
+	      interface_error(interface_num[i], errno);
+	  }
+	  else
+	      interface_errs[interface_num[i]] = 0; // Clear errors
+      
+      }
   }
-  interface_errs[interface] = 0; // Clear errors
+  else
+  {
+      if (sendto(lat_socket, buf, len, 0,
+		 (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+      {
+	  interface_error(interface, errno);
+	  return -1;
+      }
+      interface_errs[interface] = 0; // Clear errors
+  }
+
   return 0;
   
 }

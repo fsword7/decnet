@@ -75,3 +75,13 @@ class LATinterfaces
     static int ProtoLAT;
     static int ProtoMOP;
 };
+
+// Make sure we have the packet types
+#ifndef ETHERTYPE_LAT
+#define ETHERTYPE_LAT 0x6004
+#endif
+
+#ifndef ETHERTYPE_MOPRC
+#define ETHERTYPE_MOPRC 0x6002
+#endif
+

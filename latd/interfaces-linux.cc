@@ -142,12 +142,16 @@ int LinuxInterfaces::bind_socket(int interface)
     return 0;
 }
 
-// Find an interface number by name
+// Find an interface number by name, or
+// use the first one if name is NULL.
 int LinuxInterfaces::find_interface(char *name)
 {
     struct ifreq ifr;
     int iindex = 1;
     int sock = socket(PF_PACKET, SOCK_RAW, 0);
+
+    // Default "1st" interface
+    if (!name) name = "eth0";
 
     ifr.ifr_ifindex = iindex;
 
@@ -212,6 +216,7 @@ int LinuxInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], 
     struct sockaddr_ll sock_info;
     int    len;
 
+    memset(&msg, 0, sizeof(msg));
     msg.msg_name = &sock_info;
     msg.msg_namelen = sizeof(sock_info);
     msg.msg_iovlen = 1;

@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <time.h>
 
 #include <strstream>
 #include <list>

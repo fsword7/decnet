@@ -15,11 +15,6 @@
 #include <string>
 #include "interfaces.h"
 
-#ifdef __linux__
-#include "interfaces-linux.h"
-#endif
-
-
 LATinterfaces::LATinterfaces()
 {
 }

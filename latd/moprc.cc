@@ -62,7 +62,7 @@ static int usage(FILE *f, char *cmd)
     fprintf(f, "   -?         Show this usage message\n");
     fprintf(f, "   -h         Show this usage message\n");
     fprintf(f, "   -V         Show the version of moprc\n");
-    fprintf(f, "   -i         Ethernet interface to use (default eth0)\n");
+    fprintf(f, "   -i         Ethernet interface to use (default to first found)\n");
     fprintf(f, "   -t         Trigger (reboot) the server\n");
     fprintf(f, "   -v         Show target information\n");
     fprintf(f, "\n");
@@ -79,9 +79,13 @@ static int usage(FILE *f, char *cmd)
 /* Send a MOP message to a specified MAC address */
 static int send_message(unsigned char *buf, int len, int interface, u_int8_t *macaddr)
 {
+    int status;
     if (len < 46) len = 46;
 
-    return iface->send_packet(interface, macaddr, buf, len);
+    status = iface->send_packet(interface, macaddr, buf, len);
+    if (status < 0)
+	    perror("send message");
+    return status;
 }
 
 static int send_last_message(int interface, u_int8_t *macaddr)
@@ -94,8 +98,8 @@ int main(int argc, char *argv[])
     int opt;
     int interface = -1;
     int trigger=0;
-    char *env;
-    char ifname[255];
+    char ifname_buf[255];
+    char *ifname;
     struct ether_addr addr;
 
     if (argc < 2)
@@ -104,15 +108,7 @@ int main(int argc, char *argv[])
     }
 
     /* Look for MOPRC_INTERFACE environment variable */
-    env = getenv("MOPRC_INTERFACE");
-    if (env)
-    {
-	strcpy(ifname, env);
-    }
-    else
-    {
-	strcpy(ifname, "eth0");
-    }
+    ifname = getenv("MOPRC_INTERFACE");
 
 /* Get command-line options */
     opterr = 0;
@@ -135,7 +131,8 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'i':
-	    strcpy(ifname, optarg);
+	    strcpy(ifname_buf, optarg);
+	    ifname = ifname_buf;
 	    break;
 
 	case 'V':
@@ -180,11 +177,14 @@ int main(int argc, char *argv[])
     interface = iface->find_interface(ifname);
     if (interface == -1)
     {
-	fprintf(stderr, "Cannot resolve interface %s\n", ifname);
+	if (ifname)
+	    fprintf(stderr, "Cannot resolve interface %s\n", ifname);
+	else
+	    fprintf(stderr, "Cannot find any ethernet interfaces\n");
 	return 2;
     }
 
-    mop_socket = iface->get_fd(0);
+    mop_socket = iface->get_fd(interface);
     if (iface->bind_socket(interface))
 	return 3;
 

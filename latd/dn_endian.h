@@ -20,6 +20,11 @@
 #define __BYTE_ORDER BYTE_ORDER
 #endif
 
+#ifdef __APPLE__
+#include <architecture/byte_order.h>
+#define __BYTE_ORDER BYTE_ORDER
+#endif
+
 
 #ifndef __BYTE_ORDER
     #error "Can't determine endianness - please inform patrick@debian.org with your distribution and hardware type."

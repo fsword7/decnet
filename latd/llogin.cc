@@ -38,7 +38,9 @@
 #include <limits.h>
 #include <assert.h>
 #include <termios.h>
+#ifdef DEVICE_LOCKING
 #include <lockdev.h>
+#endif
 
 #include <list>
 #include <queue>
@@ -70,7 +72,9 @@ static int usage(char *cmd)
     printf ("       -d         show learned services\n");
     printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local device rather than a service\n");
+#ifdef DEVICE_LOCKING
     printf ("       -L         Don't do device locking when using -p\n");
+#endif
     printf ("       -H <node>  remote node name\n");
     printf ("       -R <port>  remote port name\n");
     printf ("       -r <port>  remote port name\n");
@@ -299,7 +303,7 @@ static bool open_socket(bool quiet)
 {
     struct sockaddr_un sockaddr;
 
-    latcp_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
+    latcp_socket = socket(PF_UNIX, SOCK_STREAM, 0);
     if (latcp_socket == -1)
     {
 	if (!quiet) perror("Can't create socket");
@@ -440,6 +444,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     struct termios old_term;
     struct termios new_term;
 
+#ifdef DEVICE_LOCKING
     if (!nolock)
     {
 	if (dev_lock(portname))
@@ -448,12 +453,15 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
 	    return -1;
 	}
     }
+#endif
 
     termfd = open(portname, O_RDWR);
     if (termfd < 0)
     {
 	fprintf(stderr, "Cannot open device %s: %s\n", portname, strerror(errno));
+#ifdef DEVICE_LOCKING
 	dev_unlock(portname, getpid());
+#endif
 	return -1;
     }
 
@@ -478,6 +486,8 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     tcsetattr(termfd, TCSANOW, &old_term);
     close(termfd);
 
+#ifdef DEVICE_LOCKING
     if (!nolock) dev_unlock(portname, getpid());
+#endif
     return 0;
 }

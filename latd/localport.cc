@@ -91,7 +91,9 @@ void LocalPort::init_port()
     tcgetattr(master_fd, &tio);
     tio.c_iflag |= IGNBRK|BRKINT;
     tio.c_oflag &= ~ONLCR;
+#ifdef OCRNL
     tio.c_oflag &= ~OCRNL;
+#endif
     tio.c_iflag &= ~INLCR;
     tio.c_iflag &= ~ICRNL;
     tcsetattr(master_fd, TCSANOW, &tio);

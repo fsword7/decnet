@@ -801,8 +801,6 @@ void start_latd(int argc, char *argv[])
 	    fprintf(stderr, "readlink in /proc failed. Make sure the the proc filesystem is mounted on /proc\n");
 	    exit(2);
 	}
-#else
-#error OK, a bit more porting work needed here too.
 #endif
 	sprintf(latcp_env, "LATCP=%s", latcp_bin);
 
@@ -928,7 +926,7 @@ bool open_socket(bool quiet)
 {
     struct sockaddr_un sockaddr;
 
-    latcp_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
+    latcp_socket = socket(PF_UNIX, SOCK_STREAM, 0);
     if (latcp_socket == -1)
     {
 	if (!quiet) perror("Can't create socket");

@@ -13,13 +13,16 @@
 ******************************************************************************/
 #include <sys/types.h>
 #include <sys/uio.h>
-#include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/socket.h>
 #include <sys/utsname.h>
+#ifdef HAVE_NET_ETHERNET_H
+#include <net/ethernet.h>
+#endif
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>
@@ -58,6 +61,10 @@
 #include "services.h"
 #include "lat_messages.h"
 #include "dn_endian.h"
+
+#ifdef __APPLE__
+typedef int socklen_t;
+#endif
 
 // Remove any dangling symlinks in the /dev/lat directory
 void LATServer::tidy_dev_directory()
@@ -280,6 +287,7 @@ void LATServer::send_service_announcement(int sig)
     {
 	if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
 	{
+    	    debuglog(("sending service announcement, send error: %d\n", errno));
 	    interface_error(interface_num[i], errno);
 	}
 	else

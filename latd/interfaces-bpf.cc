@@ -182,7 +182,7 @@ void BPFInterfaces::get_all_interfaces(int *ifs, int &num)
 // Print the name of an interface
 std::string BPFInterfaces::ifname(int ifn)
 {
-    string str;
+    std::string str;
 
     if (ifn == 0 && _latd_bpf_interface_name != NULL) {
       str.append(_latd_bpf_interface_name);
@@ -240,6 +240,7 @@ int BPFInterfaces::find_interface(char *ifname)
   ifr_user = NULL;
   for(ifr_offset = 0;; ifr_offset += SIZEOF_IFREQ(ifr)) {
 
+	  
     /* stop walking if we have run out of space in the buffer.  note
        that before we can use SIZEOF_IFREQ, we have to make sure that
        there is a minimum number of bytes in the buffer to use it
@@ -373,7 +374,7 @@ int BPFInterfaces::send_packet(int ifn, unsigned char macaddr[], unsigned char *
   ether_packet.ether_type = htons(ETHERTYPE_LAT);
 
   /* write this packet: */
-  iov[0].iov_base = &ether_packet;
+  iov[0].iov_base = (char* )&ether_packet;
   iov[0].iov_len = sizeof(ether_packet);
   iov[1].iov_base = data;
   iov[1].iov_len = len;
@@ -405,6 +406,7 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
 			_latd_bpf_buffer,
 			_latd_bpf_buffer_size);
       if (buffer_end <= 0) {
+	if (errno == EAGAIN) return 0;
 	debuglog(("bpf: failed to read packets: %s\n", strerror(errno)));
 	return (-1);
       }
@@ -660,3 +662,7 @@ int BPFInterfaces::bind_socket(int ifn)
 
     return 0;
 }
+
+// These are just flag values
+int LATinterfaces::ProtoLAT = 1;
+int LATinterfaces::ProtoMOP = 2;

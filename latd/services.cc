@@ -13,7 +13,7 @@
 ******************************************************************************/
 
 #include <stdio.h>
-#include <sys/time.h>
+#include <time.h>
 #include <netinet/in.h>
 #include <list>
 #include <string>

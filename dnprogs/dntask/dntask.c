@@ -54,6 +54,7 @@ static  int                     binary_mode;
 
 static int parse(char *);
 static void usage(FILE *);
+static char *connerror(int sockfd);
 /*-------------------------------------------------------------------------*/
 
 /*
@@ -80,7 +81,7 @@ void be_interactive(void)
 	    len = read(sockfd, buf, sizeof(buf));
 	    if (len < 0)
 	    {
-	        perror("reading from VMS");
+		fprintf(stderr, "Read failed: %s\n", connerror(sockfd));
 		return;
 	    }
 
@@ -129,7 +130,10 @@ void print_output(void)
     {
         if (len == -1)
 	{
-	    if (errno != ENOTCONN)  perror("Error reading from network");
+	    if (errno != ENOTCONN)
+		perror("Error reading from network");
+	    else
+		fprintf(stderr, "Read failed: %s\n", connerror(sockfd));
 	    break;
         }
 
@@ -201,7 +205,7 @@ int setup_link(void)
 
     if (connect(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
     {
-	perror("connect");
+	fprintf(stderr, "Connect failed: %s\n", connerror(sockfd));
 	exit(-1);
     }
     return TRUE;
@@ -476,4 +480,67 @@ static void usage(FILE *f)
     fprintf(f, " dntask 'myvax::'  - defaults to TASK.COM and proxy username\n");
     fprintf(f, " dntask -i 'clustr\"patrick thecats\"::do_dcl.com'\n");
     fprintf(f, "\n");
+}
+
+// Return the text of a connection error
+static char *connerror(int sockfd)
+{
+#ifdef DSO_CONDATA
+    struct optdata_dn optdata;
+    unsigned int len = sizeof(optdata);
+    char *msg;
+
+    if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
+		   &optdata, &len) == -1)
+    {
+	return strerror(errno);
+    }
+
+    // Turn the rejection reason into text
+    switch (optdata.opt_status)
+    {
+    case DNSTAT_REJECTED: msg="Rejected by object";
+	break;
+    case DNSTAT_RESOURCES: msg="No resources available";
+	break;
+    case DNSTAT_NODENAME: msg="Unrecognised node name";
+	break;
+    case DNSTAT_LOCNODESHUT: msg="Local Node is shut down";
+	break;
+    case DNSTAT_OBJECT: msg="Unrecognised object";
+	break;
+    case DNSTAT_OBJNAMEFORMAT: msg="Invalid object name format";
+	break;
+    case DNSTAT_TOOBUSY: msg="Object too busy";
+	break;
+    case DNSTAT_NODENAMEFORMAT: msg="Invalid node name format";
+	break;
+    case DNSTAT_REMNODESHUT: msg="Remote Node is shut down";
+	break;
+    case DNSTAT_ACCCONTROL: msg="Login information invalid at remote node";
+	break;
+    case DNSTAT_NORESPONSE: msg="No response from object";
+	break;
+    case DNSTAT_NODEUNREACH: msg="Node Unreachable";
+	break;
+    case DNSTAT_MANAGEMENT: msg="Abort by management/third party";
+	break;
+    case DNSTAT_ABORTOBJECT: msg="Remote object aborted the link";
+	break;
+    case DNSTAT_NODERESOURCES: msg="Node does not have sufficient resources for a new link";
+	break;
+    case DNSTAT_OBJRESOURCES: msg="Object does not have sufficient resources for a new link";
+	break;
+    case DNSTAT_BADACCOUNT: msg="The Account field in unacceptable";
+	break;
+    case DNSTAT_TOOLONG: msg="A field in the access control message was too long";
+	break;
+    default: msg=strerror(errno);
+	break;
+    }
+    return msg;
+#else
+    return strerror(errno);
+
+#endif
 }

@@ -1,6 +1,8 @@
-This package was debianized by Patrick patrick@pandh.demon.co.uk on
-Sun, 10 Sep 2000 14:26:12 +0000.
+Copyright: 
 
-Latest versions can always be found at http://linux-decnet.sourceforge.net
+(C) 2000-2001 Patrick Caulfield
 
-Copyright: Most recent version of the GPL.
+You are free to distribute this software under the terms of the GNU General 
+Public License. The full text of this license can be found in the file
+/usr/share/common-licenses/GPL
+

@@ -370,12 +370,12 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
 	else
 	{
 	    // Skip root directory specs
-	    if (dir[i] == '0' && strncmp(&dir[i], "000000", 6))
+	    if (dir[i] == '0' && (strncmp(&dir[i], "000000", 6) == 0))
 	    {
 		i += 5;
 		continue;
 	    }
-	    if (dir[i] == '0' && strncmp(&dir[i], "0,0", 3))
+	    if (dir[i] == '0' && (strncmp(&dir[i], "0,0", 3) == 0))
 	    {
 		i += 2;
 		continue;

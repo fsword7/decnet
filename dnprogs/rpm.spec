@@ -5,7 +5,7 @@ Release: 1
 Vendor: Patrick Caulfield and The Linux DECnet Project team
 Copyright: GPL
 Group: Networking/Utilities
-Source: http://linux.dreamtime.org/decnet/%%PACKAGENAME%%-%%VERSION%%.tar.gz
+Source: http://download.sourceforge.net/linux-decnet/%%PACKAGENAME%%-%%VERSION%%.tar.gz
 %description
 
 DECnet programs for Linux.
@@ -15,7 +15,7 @@ They provide file/terminal access facilities between OpenVMS and Linux and
 remote execution of commands.
 
 To use them you will need to have DECnet built into your kernel.
-See http://linux.dreamtime.org/decnet to get the kernel patch and
+See http://linux-decnet.sourceforge.net to get the kernel patch and
 instructions on how to apply it.
 
 %files

@@ -992,26 +992,24 @@ int LATServer::make_client_connection(unsigned char *service,
 bool LATServer::show_characteristics(bool verbose, ostrstream &output)
 {
     output <<endl;
-    output << "Node Name:  " << get_local_node() << setw(16-strlen((char*)get_local_node())) << " " << "     LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << endl;
-    output << "Node State: On " << "                  LATD Version:               " << VERSION << endl;
+    output << "Node Name:  " << get_local_node() << setw(16-strlen((char*)get_local_node())) << " " << "    LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << endl;
+    output << "Node State: On " << "                 LATD Version:               " << VERSION << endl;
     output << "Node Ident: " << greeting << endl;
     output << endl;
 
     output << "Service Responder : " << (responder?"Enabled":"Disabled") << endl;
     output << endl;
 
-    output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "      Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;
+    output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "    Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;
     output << "Retransmit Limit:     " << setw(6) << retransmit_limit << endl;
     output << "Multicast Timer (sec):" << setw(6) << multicast_timer << endl;
     output <<endl;
-
-    output << "Service Name   Status   Rating Identification" << endl;
-
 
     // Groups go here...
 
 
     // Show services we are accepting for.
+    output << "Service Name   Status   Rating  Identification" << endl;
     list<serviceinfo>::iterator i(servicelist.begin());    
     for (; i != servicelist.end(); i++)
     {

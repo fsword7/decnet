@@ -41,7 +41,7 @@ SUPPORTED SYSTEMS
 -----------------
 LATD itself currently only runs on Linux but it shouldn't be too hard
 to port to other Unix-like platforms by writing an interface class for
-that platform.
+that platform, I have tried hard to keep the rest of the code portable.
 
 The following systems I know to work with LATD because I have tested them,
 others may also work.
@@ -60,7 +60,7 @@ I'd like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
 I am also very much indebted to Real Dupeux for sending me a DECserver 200 for
-the project, without which is would be much impoverished. I use it a for
+the project, without which it would be much impoverished. I use it a for
 reverse-LAT every day of the week to log in to the consoles of my VAX, Alpha,
 SPARC and MIPS machines.
 

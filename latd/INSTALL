@@ -1,9 +1,13 @@
 Just type "make; make install"
 
+You will need to arrange for the daemon to be started when the system boots
+up, add the command "latcp -s" to a suitable startup script.
+
+
 There are a few things you can tweak in the Makefile:
 
 See the lines:
-DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
+DEFS+=-DUSE_OPENPTY 
 #DEFS+=-DVERBOSE_DEBUG -DNO_FORK
 
 
@@ -14,14 +18,8 @@ test it or not wanting to try to fix it then you can remove this.
 This is the default. It causes latd to use the openpty call in libutil 
 to generate the pairs of pseudo-terminals. Without this it will use old-style
 code. If you have a RedHat 5.2 (or similar vintage) distribution you might
-need to remove this to get latd to work. Any system with glibc 2.1.3 will be 
-fine with it though.
-
--DSETLOGIN_HOST
-This depends on your login command. It works fine on RedHat 6.0+ and Debian
-2.1+ but not on SuSE 6.4 or Redhat 5.x so I've left it commented out by
-default. If you define it then the "who" command will show the name of the 
-terminal server/host you came from.
+need to remove this to get latd to work. Any system with glibc 2.1.3 or
+later will be fine with it though.
 
 -DNO_FORK prevent the daemon from forking into the background when run. Without
 this and without the -d flag, latd wil detach itself from the current process

@@ -36,6 +36,7 @@ binary-indep: checkroot build
 	echo "PRIORITY=32" >> debian/tmp/etc/default/decnet
 	cp README debian/tmp/usr/share/doc/dnet-common
 	cp Documentation/*README debian/tmp/usr/share/doc/dnet-common
+	cp debian/dnet-common.README debian/tmp/usr/share/doc/dnet-common/README.Debian
 	cp apps/decnet.conf debian/tmp/usr/share/doc/dnet-common/decnet.conf.sample
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share

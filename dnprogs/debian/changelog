@@ -1,3 +1,15 @@
+dnprogs (2.25) unstable; urgency=low
+
+  * po-debconf support and German & French description translations
+    Closes: #210661, #211635
+  * Get rid of the "-1" in the version number as it's not right, this 
+    really is a debian package. But include a README.Debian to keep 
+    some people happy.
+    Closes: #197332
+  * Don't use SIGIO in sethost as it's unreliable and tacky.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 24 Sep 2003 13:57:47 +0100
+
 dnprogs (2.24-1) unstable; urgency=low
 
   * support for large files.

@@ -1,0 +1,3 @@
+- Remove dead routes
+- Add routes based on incoming routing messages
+- Check outgoing routing messages are still correct

@@ -230,6 +230,20 @@ bool dap_connection::do_connect(const char *node, const char *user,
 	return false;
     }
 
+    /* If the password is "-" and fd 0 is a tty then 
+       prompt for a password */
+    if (password[0] == '-' && password[1] == '\0' && isatty(0))
+    {
+	password = getpass("Password: ");
+	if (password == NULL || strlen(password) > (unsigned int)MAX_PASSWORD)
+	{
+	    strcpy(errstring, "Password input cancelled");
+	    lasterror = errstring;
+	    return false;
+	}
+	
+    }
+
     memcpy(accessdata.acc_user, user, strlen(user));
     memcpy(accessdata.acc_pass, password, strlen(password));
     memcpy(s.sdn_add.a_addr, binadr->n_addr, sizeof(s.sdn_add.a_addr));
@@ -248,7 +262,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
     }
     else
         accessdata.acc_acc[0] = '\0';
-    
+
 
     accessdata.acc_userl = strlen(user);
     accessdata.acc_passl = strlen(password);

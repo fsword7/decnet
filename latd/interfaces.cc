@@ -28,12 +28,5 @@ LATinterfaces::~LATinterfaces()
 {
 }
 
-
-LATinterfaces *LATinterfaces::Create()
-{
-#ifdef __linux__
-    return new LinuxInterfaces();
-#endif
-
-// TODO Stick others here...
-}
+// LATinterfaces *LATinterfaces::Create() is in
+// a real implementation class.

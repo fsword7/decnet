@@ -292,3 +292,8 @@ int LinuxInterfaces::remove_lat_multicast(int ifn)
     return 0;
 }
 
+// Here's where we know how to instantiate the class.
+LATinterfaces *LATinterfaces::Create()
+{
+    return new LinuxInterfaces();
+}

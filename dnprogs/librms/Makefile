@@ -9,6 +9,7 @@ LIBNAME=librms
 
 EXAMPLE1=example
 EXAMPLE2=t_example
+EXAMPLES=$(EXAMPLE1) $(EXAMPLE2)
 
 SHAREDLIB=$(LIBNAME).so.$(VERSION)
 STATICLIB=$(LIBNAME).a
@@ -16,7 +17,7 @@ INCLUDEFILES=rms.h fabdef.h rabdef.h
 
 CFLAGS+=-I. -I../include -I../libdap -fdollars-in-identifiers
 
-all: $(STATICLIB) $(SHAREDLIB) $(EXAMPLE1) $(EXAMPLE2)
+all: $(STATICLIB) $(SHAREDLIB) $(EXAMPLES)
 
 $(STATICLIB): $(LIBOBJS)
 	ar -rv $@ $^
@@ -43,7 +44,7 @@ dep depend:
 
 clean:
 	makedepend
-	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so*
+	rm -f *.o *.po *.bak $(STATICLIB) $(SHAREDLIB) $(LIBNAME).so* $(EXAMPLES)
 
 install:
 	install -d $(prefix)/lib

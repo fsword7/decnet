@@ -1,6 +1,7 @@
 TODO in no particular order
 ----
 
+- Send break (reverse LAT)
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
 - Test service responder - can someone to this for me please??

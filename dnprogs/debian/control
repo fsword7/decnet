@@ -7,7 +7,7 @@ Standards-Version: 3.5.5
 
 Package: dnet-common
 Architecture: all
-Depends: debconf, debianutils (>=1.13), mawk | awk
+Depends: debconf(>=0.5.00), debianutils (>=1.13), mawk | awk
 Priority: extra
 Section: net
 Conflicts: dnprogs
@@ -24,7 +24,7 @@ Description: Base package for Linux DECnet
 
 Package: dnet-progs
 Architecture: any
-Depends: ${shlibs:Depends}, libdnet(>=${Source-Version})
+Depends: ${shlibs:Depends}
 Priority: extra
 Section: net
 Description: DECnet user programs and daemons

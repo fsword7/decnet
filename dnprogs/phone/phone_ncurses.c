@@ -56,7 +56,7 @@ static int  cmd_x=1,  cmd_y=1;
 static char command[80];
 
 // All the information about a user. userinfo[0] is the local user.
-static struct user
+static struct user_info
 {
     PANEL      *panel;
     WINDOW     *window; // The window belonging to the panel.

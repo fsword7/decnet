@@ -35,6 +35,7 @@
 #include <syslog.h>
 #include <limits.h>
 #include <dirent.h>
+#include <time.h>
 #include <pwd.h>
 #include <utmp.h>
 #include <grp.h>

@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <regex.h>
 #include <ctype.h>
+#include <time.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 

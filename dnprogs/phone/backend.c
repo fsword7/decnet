@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <ctype.h>
 #include <utmp.h>
+#include <time.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <sys/uio.h>

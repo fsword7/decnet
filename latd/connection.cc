@@ -312,6 +312,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			else
 			{
 			    last_msg_type = 0;
+			    (*master_conn)->last_msg_type = 0;
 
 			    // Connect a new port session to it
 			    ClientSession *cs = (ClientSession *)(*master_conn)->sessions[1];
@@ -692,7 +693,6 @@ void LATConnection::circuit_timer(void)
 	if (tt - last_msg_time > 5)
 	{
 	    last_msg_time = tt;
-
 	    switch (last_msg_type)
 	    {
 		// Connect

@@ -42,7 +42,7 @@ lloginSession::lloginSession(class LATConnection &p,
 {
     master_fd = dup(fd);
     // This is the socket FD - we dup it because the original
-    // will be closed when it changes from a LLOGIN_FD to a PTY
+    // will be closed when it "changes" from a LLOGIN_FD to a PTY
     debuglog(("new llogin session: localid %d, remote id %d\n",
 	    localid, remid));
     remote_node[0] = '\0';
@@ -56,7 +56,6 @@ int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 
     LATServer::Instance()->add_pty(this, master_fd);
-
 
 // Auto-connect
     if (!connect_parent())
@@ -136,7 +135,7 @@ void lloginSession::disconnect_session(int reason)
 {
     debuglog(("lloginSession::disconnect_session()\n"));
     // If the reason was some sort of error then send it to 
-    // the PTY
+    // the user.
     if (reason > 1)
     {
 	char *msg = lat_messages::session_disconnect_msg(reason);
@@ -157,24 +156,6 @@ lloginSession::~lloginSession()
 
 void lloginSession::do_read()
 {
-#if 0
-    debuglog(("lloginSession::do_read(), connected: %d\n", connected));
-    if (!connected)
-    {
-	if (!connect_parent())
-	{
-	    state = STARTING;
-	    
-	    // Disable reads on the PTY until we are connected (or it fails)
-	    LATServer::Instance()->set_fd_state(master_fd, true);
-	}
-	else
-	{
-	    // Service does not exist or we haven't heard of it yet.
-	    disconnect_sock();
-	}
-    }
-#endif
     if (connected)
     {
 	read_pty();

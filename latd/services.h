@@ -26,15 +26,16 @@ class LATServices
     // Get the highest rated node for this service name.
     bool get_highest(const string &service,
 		     string &node,
-		     unsigned char *macaddr);
+		     unsigned char *macaddr,
+		     int *interface);
 
     bool get_node(const string &service,
 		  const string &node,
-		  unsigned char *macaddr);
+		  unsigned char *macaddr, int *interface);
 
     // Add/update a service.
     bool add_service(const string &node, const string &service, const string &ident,
-		     int rating, unsigned char *macaddr);
+		     int rating, int interface, unsigned char *macaddr);
 
     bool remove_node(const string &node);
     bool list_services(bool verbose, ostrstream &output);
@@ -50,21 +51,22 @@ class LATServices
     public:
       serviceinfo() {}
       serviceinfo(const string &node, const string &_ident,
-		  const unsigned char *macaddr, int rating)
+		  const unsigned char *macaddr, int rating, int interface)
 	  {
 	      ident = _ident;
-	      nodes[node] = nodeinfo(macaddr, rating, ident);
+	      nodes[node] = nodeinfo(macaddr, rating, ident, interface);
 	  }
       
       void add_or_replace_node(const string &node, const string &_ident,
-			       const unsigned char *macaddr, int rating)
+			       const unsigned char *macaddr, int rating,
+			       int interface)
 	  {
 	      ident = _ident;
 	      nodes.erase(node); // Don't care if this fails
-	      nodes[node] = nodeinfo(macaddr, rating, ident);
+	      nodes[node] = nodeinfo(macaddr, rating, ident, interface);
 	  }
-      bool         get_highest(string &node, unsigned char *macaddr);
-      bool         get_node(const string &node, unsigned char *macaddr);
+      bool         get_highest(string &node, unsigned char *macaddr, int *interface);
+      bool         get_node(const string &node, unsigned char *macaddr, int *interface);
       const string get_ident() { return ident; }
       bool         is_available();
       bool         remove_node(const string &node);
@@ -75,14 +77,16 @@ class LATServices
 	{
 	public:
 	  nodeinfo() {}
-	  nodeinfo(const unsigned char *_macaddr, int _rating, string _ident):
+	  nodeinfo(const unsigned char *_macaddr, int _rating, string _ident, int _interface):
 	      rating(_rating),
+	      interface(_interface),
 	      available(true)
 	    {
 	      memcpy(macaddr, _macaddr, 6);
 	      ident = _ident;
 	    }
 	  int                  get_rating()          { return rating; }
+	  int                  get_interface()       { return interface; }
 	  const unsigned char *get_macaddr()         { return macaddr; }
 	  bool                 is_available()        { return available; }
 	  void                 set_available(bool a) { available = a; }
@@ -91,6 +95,7 @@ class LATServices
 	private:
 	  unsigned char macaddr[6];
 	  int           rating;
+	  int           interface;
 	  bool          available;
 	  string        ident;
 	};// class LATServices::service::nodeinfo

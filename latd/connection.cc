@@ -39,10 +39,12 @@
 
 // Create a server connection
 LATConnection::LATConnection(int _num, unsigned char *buf, int len,
+			     int _interface,
 			     unsigned char _seq,
 			     unsigned char _ack,
 			     unsigned char *_macaddr):
     num(_num),
+    interface(_interface),
     keepalive_timer(0),
     last_sequence_number(_ack),
     last_ack_number(_seq),
@@ -161,11 +163,17 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 	
 	debuglog(("No data: cmd: %d, credit: %d\n", msg->header.cmd, credits));
 	
+	LATSession *session = sessions[slotcmd->local_session];
 	if (credits)
 	{	    
-	    LATSession *session = sessions[slotcmd->local_session];
 	    if (session) session->add_credit(credits);
 	}       
+	if (replyhere && session && session->get_remote_credit() < 1)
+	{
+	    retcmd |= 15;
+	    session->inc_remote_credit(15);
+	}
+
     }
     else
     {
@@ -201,6 +209,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		    // has run out.
 		    if (session->get_remote_credit() < 1)
 		    {
+			replyhere = true;
 			retcmd |= 15;
 			session->inc_remote_credit(15);
 		    }
@@ -430,7 +439,7 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     keepalive_timer = 0;
 
     if (type == DATA) last_message = pending_msg(buf, len, (type==DATA) );
-    return LATServer::Instance()->send_message(buf, len, macaddr);
+    return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
 
@@ -572,7 +581,7 @@ void LATConnection::circuit_timer(void)
 	    header->sequence_number = last_sequence_number;
 	    header->ack_number      = last_ack_number;
 	    buf[ptr++] = 0x06; // Retransmission limit reached.
-	    LATServer::Instance()->send_message(buf, ptr, macaddr);
+	    LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
 
 	    LATServer::Instance()->delete_connection(num);
 	    
@@ -581,7 +590,7 @@ void LATConnection::circuit_timer(void)
 	    return;
 	}	
 	debuglog(("Last message not ACKed: RESEND\n"));
-	last_message.send(macaddr);
+	last_message.send(interface, macaddr);
 	return;
     }
     else
@@ -662,7 +671,7 @@ void LATConnection::circuit_timer(void)
         debuglog(("Sending message on circuit timer: seq: %d, ack: %d (need_ack: %d)\n",
 		  last_sequence_number, last_ack_number, need_ack));
  
-        msg.send(macaddr);
+        msg.send(interface, macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
         pending.pop();
 	window_size++;
@@ -686,18 +695,19 @@ int LATConnection::connect()
 {
    // Look up the service name.
     string node;
+    int  this_int;
 
     // If no node was specified then just use the highest rated one
     if (remnode[0] == '\0')
     {
 	if (!LATServices::Instance()->get_highest(string((char*)servicename),
-						  node, macaddr))
+						  node, macaddr, &this_int))
 	{
 	    debuglog(("Can't find service %s, checking for node %s\n", 
 		      servicename, remnode));
 	    // Can't find service: look up by node name
 	    if (!LATServices::Instance()->get_highest(string((char*)remnode), 
-						      node, macaddr))
+						      node, macaddr, &this_int))
 	    {
 		debuglog(("Can't find node %s\n", remnode));	
 
@@ -713,7 +723,7 @@ int LATConnection::connect()
     {
 	// Try to find the node
 	if (!LATServices::Instance()->get_node(string((char*)servicename),
-					       string((char*)remnode), macaddr))
+					       string((char*)remnode), macaddr, &this_int))
 	{
 	    debuglog(("Can't find node %s in service\n", remnode, servicename));
 	    
@@ -729,6 +739,7 @@ int LATConnection::connect()
     last_sequence_number = 0xff;
     last_ack_number = 0xff;
     remote_connid = 0;
+    interface = this_int;
     
     // Queued connection or normal?
     if (queued)
@@ -765,7 +776,7 @@ int LATConnection::connect()
 	add_string(buf, &ptr, portname);
 
 	// Send it raw.
-	return LATServer::Instance()->send_message(buf, ptr, macaddr);
+	return LATServer::Instance()->send_message(buf, ptr, interface, macaddr);
     }
     else
     {
@@ -839,7 +850,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     }
     else
     {
-	LATServer::Instance()->send_connect_error(2, &reply->header, macaddr);
+	LATServer::Instance()->send_connect_error(2, &reply->header, interface, macaddr);
     }
 
     return 0;
@@ -893,9 +904,9 @@ bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
     return false;
 }
 
-int LATConnection::pending_msg::send(unsigned char *macaddr)
+int LATConnection::pending_msg::send(int interface, unsigned char *macaddr)
 {
-    return LATServer::Instance()->send_message(buf, len, macaddr);
+    return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
 void LATConnection::show_client_info(ostrstream &output)

@@ -26,10 +26,10 @@ Any arguments for latd can be added to the latcp -s command line or set in
 .SS OPTIONS
 .TP
 .I "\-i"
-Set the interface to be used for LAT communication. Currently only one is allowed.
-The default is either eth0 or the interface used for decnet defined in 
-/etc/decnet.conf depending on whether latd was compiled on a system with DECnet
-support.
+Set the interface to be used for LAT communication. If this is not specified
+then all ethernet interfaces will be used. Only one interface is allowed
+on the command-line so you can use either all interfaces or just one.
+
 .TP
 .I "\-g"
 Sets the greeting for this node.

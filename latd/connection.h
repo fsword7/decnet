@@ -20,6 +20,7 @@ class LATConnection
     typedef enum {REPLY, DATA, CONTINUATION} send_type;
   
     LATConnection(int _num, unsigned char *buf, int len,
+		  int _interface,
 		  unsigned char _seq,
 		  unsigned char _ack,
 		  unsigned char *_macaddr);
@@ -47,6 +48,7 @@ class LATConnection
     
  private:
     int            num;           // Local connection ID
+    int            interface;     // Ethernet i/f we are using
     int            remote_connid; // Remote Connection ID
     int            keepalive_timer; // Counting up.
     unsigned char  last_sequence_number;
@@ -108,12 +110,12 @@ class LATConnection
 	  return *this;
       }
       
-      int send(unsigned char *macaddr);
-      int send(unsigned char seq, unsigned char *macaddr)
+      int send(int interface, unsigned char *macaddr);
+      int send(int interface, unsigned char seq, unsigned char *macaddr)
       {
 	  LAT_Header *header = (LAT_Header *)buf;
 	  header->sequence_number = seq;
-	  return send(macaddr);
+	  return send(interface, macaddr);
       }
       LAT_Header *get_header() { return (LAT_Header *)buf;}
       bool needs_ack() { return need_ack;}

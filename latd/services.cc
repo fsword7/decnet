@@ -29,7 +29,7 @@
 
 // Add or replace a node in the service table
 bool LATServices::add_service(const string &node, const string &service, const string &ident,
-			      int rating, unsigned char *macaddr)
+			      int rating, int interface, unsigned char *macaddr)
 {
     debuglog(("Got service. Node: %s, service %s, rating: %d\n",
 	     node.c_str(), service.c_str(), rating));
@@ -37,28 +37,29 @@ bool LATServices::add_service(const string &node, const string &service, const s
     map<string, serviceinfo, less<string> >::iterator test = servicelist.find(service);
     if (test == servicelist.end())
     {
-	servicelist[service] = serviceinfo(node, ident, macaddr, rating);
+	servicelist[service] = serviceinfo(node, ident, macaddr, rating, interface);
     }
     else
     {
-	servicelist[test->first].add_or_replace_node(node, ident, macaddr, rating);
+	servicelist[test->first].add_or_replace_node(node, ident, macaddr, rating, interface);
     }
     return true;
 }
 
 // Return the highest rated node providing a named service
-bool LATServices::get_highest(const string &service, string &node, unsigned char *macaddr)
+bool LATServices::get_highest(const string &service, string &node, unsigned char *macaddr, 
+			      int *interface)
 {
   map<string, serviceinfo, less<string> >::iterator test = servicelist.find(service);
   if (test != servicelist.end())
   {
-      return servicelist[test->first].get_highest(node, macaddr);
+      return servicelist[test->first].get_highest(node, macaddr, interface);
   }
   return false; // Not found
 }
 
 // Return the highest rated node providing this service
-bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr)
+bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr, int *interface)
 {
   int                  highest_rating=0;
   string               highest_node;
@@ -91,24 +92,25 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr)
 
 // Return the node macaddress if the node provides this service
 bool LATServices::get_node(const string &service, const string &node, 
-			   unsigned char *macaddr)
+			   unsigned char *macaddr, int *interface)
 {
   map<string, serviceinfo, less<string> >::iterator test = servicelist.find(service);
   if (test != servicelist.end())
   {
-      return servicelist[test->first].get_node(node, macaddr);
+      return servicelist[test->first].get_node(node, macaddr, interface);
   }
   return false; // Not found
 }
 
 
 // Return the node's macaddress
-bool LATServices::serviceinfo::get_node(const string &node, unsigned char *macaddr)
+bool LATServices::serviceinfo::get_node(const string &node, unsigned char *macaddr, int *interface)
 {
   map<string, nodeinfo, less<string> >::iterator test = nodes.find(node);
   if (test != nodes.end())
   {
       memcpy(macaddr, nodes[node].get_macaddr(), 6);
+      *interface = nodes[node].get_interface();
       return true;
   }
   else

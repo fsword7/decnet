@@ -31,10 +31,6 @@
 #include <sys/time.h>
 #include <sys/utsname.h>
 #include <netinet/in.h>
-#ifdef HAVE_LIBDNET
-#include <netdnet/dn.h>
-#include <netdnet/dnetdb.h>
-#endif
 #include <sys/socket.h>
 #include <features.h>    /* for the glibc version number */
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
@@ -79,11 +75,7 @@ static void usage(char *prog, FILE *f)
     fprintf(f," -s<name>  Service name\n");
     fprintf(f," -c<num>   Circuit Timer in ms (default 80)\n");
     fprintf(f," -g<text>  Greeting text\n");
-#ifdef HAVE_LIBDNET
-    fprintf(f," -i<name>  Interface name (Default to DECnet interface)\n");
-#else
-    fprintf(f," -i<name>  Interface name (Default to eth0)\n");
-#endif
+    fprintf(f," -i<name>  Interface name (Default to all ethernet)\n");
     fprintf(f," -l<type>  Logging type(s:syslog, e:stderr, m:mono)\n");
     fprintf(f," -V        Show version number\n\n");
 }
@@ -136,14 +128,11 @@ int main(int argc, char *argv[])
     char service[256];
     char greeting[256];
     int  static_rating = 0;
-    int  interface_num = 2;
+    int  interface_num = 0;
 
     strcpy(greeting,  "A Linux box");
-#ifdef HAVE_LIBDNET
-    strcpy(interface, getexecdev());
-#else
-    strcpy(interface, "eth0");
-#endif
+    interface[0] = '\0';
+
     strcpy(service, (char *)LATServer::Instance()->get_local_node());
     
     // Deal with command-line arguments. Do these before the check for root
@@ -285,12 +274,15 @@ int main(int argc, char *argv[])
     
     // Find network interface & our MAC address
     char macaddr[6];
-    if ( (interface_num=find_interface(interface, macaddr)) == -1)
+    if (interface[0])
     {
-	fprintf(stderr, "Can't find interface %s\n", interface);
-	exit(2);
+	if ( (interface_num=find_interface(interface, macaddr)) == -1)
+	{
+	    fprintf(stderr, "Can't find interface %s\n", interface);
+	    exit(2);
+	}
+	debuglog(("interface %s is number %d\n", interface, interface_num));
     }
-    debuglog(("interface %s is number %d\n", interface, interface_num));
 
     openlog("latd", LOG_PID, LOG_DAEMON);
 

@@ -12,6 +12,7 @@
     GNU General Public License for more details.
 ******************************************************************************/
 // Singleton server object
+#define MAX_INTERFACES 255
 
 class LATServer
 {
@@ -36,7 +37,7 @@ class LATServer
     void remove_fd(int fd);
     void add_pty(LATSession *session, int fd);
     void set_fd_state(int fd, bool disabled);
-    int  send_message(unsigned char *buf, int len, unsigned char *macaddr);
+    int  send_message(unsigned char *buf, int len, int interface, unsigned char *macaddr);
     void delete_session(LATConnection *, unsigned char, int);
     void delete_connection(int);
     unsigned char *get_local_node();
@@ -45,7 +46,7 @@ class LATServer
     void  set_retransmit_limit(int r) { retransmit_limit=r; }
     int   get_keepalive_timer()       { return keepalive_timer; }
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
-    void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
+    void  send_connect_error(int reason, LAT_Header *msg, int interface, unsigned char *macaddr);
     bool  is_local_service(char *);
     gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
@@ -68,8 +69,9 @@ class LATServer
     unsigned char greeting[255];
     unsigned char our_macaddr[6];
     unsigned char local_name[256]; //  Node name
+    int  interface_num[MAX_INTERFACES];
+    int  num_interfaces;
     unsigned char multicast_incarnation;
-    int  interface_num;
     int  verbosity;
     int  lat_socket;
     int  latcp_socket;
@@ -78,15 +80,17 @@ class LATServer
     int  next_connection;
     gid_t lat_group;
 
+    void  get_all_interfaces();
     void  read_lat(int sock);
     float get_loadavg();
-    void  reply_to_enq(unsigned char *inbuf, int len,
+    void  reply_to_enq(unsigned char *inbuf, int len, int interface,
 		      unsigned char *remote_mac);
     void  send_service_announcement(int sig);
-    int   make_new_connection(unsigned char *buf, int len, LAT_Header *header, unsigned char *macaddr);
+    int   make_new_connection(unsigned char *buf, int len, int interface,
+			      LAT_Header *header, unsigned char *macaddr);
     int   get_next_connection_number();
 
-    void  add_services(unsigned char *, int, unsigned char *);
+    void  add_services(unsigned char *, int, int, unsigned char *);
     void  accept_latcp(int);
     void  read_latcp(int);
     void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);

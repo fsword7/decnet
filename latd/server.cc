@@ -35,10 +35,6 @@
 #include <signal.h>
 #include <assert.h>
 #include <netinet/in.h>
-#ifdef HAVE_LIBDNET
-#include <netdnet/dn.h>
-#include <netdnet/dnetdb.h>
-#endif
 #include <features.h>    /* for the glibc version number */
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
@@ -46,6 +42,7 @@
 #else
 #include <asm/types.h>
 #include <linux/if.h>
+#include <linux/if_arp.h>
 #include <linux/if_packet.h>
 #include <linux/if_ether.h>   /* The L2 protocols */
 #endif
@@ -70,17 +67,42 @@
 #include "lat_messages.h"
 #include "dn_endian.h"
 
+
+
+
+// Get all ethernet interfaces
+void LATServer::get_all_interfaces()
+{
+    struct ifreq ifr;
+    int iindex = 1;
+
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    num_interfaces = 0;
+
+    ifr.ifr_ifindex = iindex;
+
+    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+    {
+	// Only use ethernet interfaces
+	ioctl(sock, SIOCGIFHWADDR, &ifr);		    
+	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+	{
+	    debuglog(("interface %d: %d\n", num_interfaces, iindex));
+	    interface_num[num_interfaces++] = iindex;
+	}	    
+	ifr.ifr_ifindex = ++iindex;
+    }
+    
+    close(sock);
+}
+
+
 unsigned char *LATServer::get_local_node(void)
 {
     unsigned int i;
     
     if (local_name[0] == '\0')
     {
-#ifdef HAVE_LIBDNET
-	struct dn_naddr *addr;
-        addr = getnodeadd();
-	sprintf((char *)local_name, "%s", dnet_htoa(addr));
-#else
 	struct utsname uts;
 	uname(&uts);
 	if (strchr(uts.nodename, '.'))
@@ -88,7 +110,6 @@ unsigned char *LATServer::get_local_node(void)
 	    *strchr(uts.nodename, '.') = '\0';
 	}
 	strcpy((char *)local_name, uts.nodename);
-#endif
 	
 	// Make it all upper case
 	for (i=0; i<strlen((char *)local_name); i++)
@@ -206,7 +227,7 @@ void LATServer::send_service_announcement(int sig)
 	if (!do_shutdown)
 	    LATServices::Instance()->add_service(string((char*)get_local_node()),
 	  				         name,
-					         id, real_rating, our_macaddr);
+					         id, real_rating, 0, our_macaddr);
     }
     
 
@@ -219,7 +240,6 @@ void LATServer::send_service_announcement(int sig)
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_LAT);
-    sock_info.sll_ifindex  = interface_num;
     sock_info.sll_hatype   = 0;
     sock_info.sll_pkttype  = PACKET_MULTICAST;
     sock_info.sll_halen    = 6;
@@ -232,9 +252,13 @@ void LATServer::send_service_announcement(int sig)
     sock_info.sll_addr[4]  = 0x00;
     sock_info.sll_addr[5]  = 0x0f;
 
-    if (sendto(lat_socket, packet, ptr, 0,
-	       (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
-	syslog(LOG_ERR, "sendto: %m");
+    for (int i=0; i<num_interfaces;i++)
+    {
+	sock_info.sll_ifindex  = interface_num[i];
+	if (sendto(lat_socket, packet, ptr, 0,
+		   (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+	    syslog(LOG_ERR, "sendto: %m");	
+    }
 
     /* Send it every minute */
     signal(SIGALRM, &alarm_signal);
@@ -257,22 +281,23 @@ void LATServer::run()
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_LAT);
-    sock_info.sll_ifindex  = interface_num;
 
-    // Bind it to the interface
-
-    if (bind(lat_socket, (struct sockaddr *)&sock_info, sizeof(sock_info)))
+    // If there's only one interface then bind to it.
+    if (num_interfaces == 1)
     {
-        syslog(LOG_ERR, "can't bind lat socket: %m\n");
-        exit(1);
+	sock_info.sll_ifindex  = interface_num[0];
+	if (bind(lat_socket, (struct sockaddr *)&sock_info, sizeof(sock_info)))
+	{
+	    syslog(LOG_ERR, "can't bind lat socket: %m\n");
+	    exit(1);
+	}
     }
+    
 
     // Add Multicast membership for LAT on socket
-
     struct packet_mreq pack_info;
 
     /* Fill in socket options */
-    pack_info.mr_ifindex     = interface_num;
     pack_info.mr_type        = PACKET_MR_MULTICAST;
     pack_info.mr_alen        = 6;
 
@@ -284,13 +309,17 @@ void LATServer::run()
     pack_info.mr_address[4]  = 0x00;
     pack_info.mr_address[5]  = 0x0f;
 
-    if (setsockopt(lat_socket, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
-                   &pack_info, sizeof(pack_info)))
+    for (int i=0; i<num_interfaces;i++)
     {
-        syslog(LOG_ERR, "can't add lat socket multicast : %m\n");
-        exit(1);
-    }
+	pack_info.mr_ifindex = interface_num[i];
 
+	if (setsockopt(lat_socket, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
+		       &pack_info, sizeof(pack_info)))
+	{
+	    syslog(LOG_ERR, "can't add lat socket multicast : %m\n");
+	    exit(1);
+	}
+    }
   
     // Add it to the sockets list    
     fdlist.push_back(fdinfo(lat_socket, 0, LAT_SOCKET));
@@ -463,7 +492,8 @@ void LATServer::read_lat(int sock)
 	    else
 	    {
 		// Message format error
-		send_connect_error(2, header, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, sock_info.sll_ifindex, 
+				   (unsigned char *)&sock_info.sll_addr);
 	    }
 	}
 	break;
@@ -482,12 +512,13 @@ void LATServer::read_lat(int sock)
 	    if (strcmp((char *)name, (char *)get_local_node()))
 	    {
 		// How the &?* did that happen?
-		send_connect_error(2, header, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
 		return;
 	    }
 	    
      	    // Make a new connection.
-	    if ( ((i=make_new_connection(buf, len, header, (unsigned char *)&sock_info.sll_addr) )) > 0)
+	    if ( ((i=make_new_connection(buf, len, sock_info.sll_ifindex,
+					 header, (unsigned char *)&sock_info.sll_addr) )) > 0)
 	    {
 		debuglog(("Made new connection: %d\n", i));
 		connections[i]->send_connect_ack();
@@ -506,7 +537,7 @@ void LATServer::read_lat(int sock)
 	    else
 	    {
 		// Insufficient resources
-		send_connect_error(7, header, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(7, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
 	    }
 	}
 	break;
@@ -538,18 +569,18 @@ void LATServer::read_lat(int sock)
 	    else
 	    {
 		// Message format error
-		send_connect_error(2, header, (unsigned char *)&sock_info.sll_addr);
+		send_connect_error(2, header, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
 	    }
 	}
 	break;
 
     case LAT_CCMD_SERVICE:
 	// Keep a list of known services
-	add_services(buf, len, (unsigned char *)&sock_info.sll_addr);
+	add_services(buf, len, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
 	break;
 
     case LAT_CCMD_ENQUIRE:
-	reply_to_enq(buf, len, (unsigned char *)&sock_info.sll_addr);
+	reply_to_enq(buf, len, sock_info.sll_ifindex, (unsigned char *)&sock_info.sll_addr);
 	break;
 
     case LAT_CCMD_STATUS:
@@ -600,7 +631,7 @@ void LATServer::set_fd_state(int fd, bool disabled)
 
 
 /* Send a LAT message to a specified MAC address */
-int LATServer::send_message(unsigned char *buf, int len, unsigned char *macaddr)
+int LATServer::send_message(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
   struct sockaddr_ll sock_info;
 
@@ -610,7 +641,7 @@ int LATServer::send_message(unsigned char *buf, int len, unsigned char *macaddr)
   /* Build the sockaddr_ll structure */
   sock_info.sll_family   = AF_PACKET;
   sock_info.sll_protocol = htons(ETH_P_LAT);
-  sock_info.sll_ifindex  = interface_num;
+  sock_info.sll_ifindex  = interface;
   sock_info.sll_hatype   = 0;
   sock_info.sll_pkttype  = PACKET_MULTICAST;
   sock_info.sll_halen    = 6;  
@@ -644,7 +675,7 @@ float LATServer::get_loadavg(void)
 }
 
 /* Reply to an ENQUIRE message with our MAC address & service name */
-void LATServer::reply_to_enq(unsigned char *inbuf, int len, 
+void LATServer::reply_to_enq(unsigned char *inbuf, int len, int interface,
 			     unsigned char *remote_mac)
 {
     int inptr, outptr, i;
@@ -677,7 +708,7 @@ void LATServer::reply_to_enq(unsigned char *inbuf, int len,
     
     string node;
     if (LATServices::Instance()->get_highest(string((char *)req_service), 
-					     node, reply_macaddr))
+					     node, reply_macaddr, &interface))
     {
 	reply_node = (unsigned char *)node.c_str();
     }
@@ -718,7 +749,7 @@ void LATServer::reply_to_enq(unsigned char *inbuf, int len,
     outhead->sequence_number = inhead->sequence_number;
     outhead->ack_number      = inhead->ack_number;
 
-    send_message(outbuf, outptr, remote_mac);
+    send_message(outbuf, outptr, interface, remote_mac);
 }
 
 void LATServer::shutdown()
@@ -739,8 +770,18 @@ void LATServer::init(bool _static_rating, int _rating,
 				      _static_rating));
 
     strcpy((char *)greeting, _greeting);
-    interface_num = _interface_num;
     verbosity = _verbosity;
+
+    if (_interface_num)
+    {
+	interface_num[0] = _interface_num;
+	num_interfaces = 1;
+    }
+    else
+    {
+	get_all_interfaces();
+    }
+
 
 // Save these two for any newly added services
     rating = _rating;
@@ -769,6 +810,7 @@ void LATServer::init(bool _static_rating, int _rating,
 
 // Create a new connection object for this remote node.
 int LATServer::make_new_connection(unsigned char *buf, int len, 
+				   int interface,
 				   LAT_Header *header,
 				   unsigned char *macaddr)
 {
@@ -778,7 +820,7 @@ int LATServer::make_new_connection(unsigned char *buf, int len,
     if (i >= 0)
     {
 	next_connection = i+1;
-	connections[i] = new LATConnection(i, buf, len,
+	connections[i] = new LATConnection(i, buf, len, interface,
 					   header->sequence_number,
 					   header->ack_number,
 					   macaddr);
@@ -786,7 +828,7 @@ int LATServer::make_new_connection(unsigned char *buf, int len,
     else
     {
 // Number of virtual circuits exceeded
-	send_connect_error(9, header, macaddr); 
+	send_connect_error(9, header, interface, macaddr); 
 	return -1;
     }
     return i;
@@ -808,7 +850,7 @@ void LATServer::delete_connection(int conn)
 }
 
 // Add services received from a service announcement multicast
-void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr)
+void LATServer::add_services(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
     LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)buf;
     int ptr = sizeof(LAT_ServiceAnnounce);
@@ -867,7 +909,9 @@ void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr
 	{
 	    LATServices::Instance()->add_service(string((char*)nodename), 
 						 string((char*)service),
-						 string((char*)ident), rating, macaddr);
+						 string((char*)ident), 
+						 rating, 
+						 interface, macaddr);
 	}
 	else
 	{
@@ -967,7 +1011,8 @@ void LATServer::process_data(fdinfo &fdi)
 }
 
 // Send a circuit disconnect with error code
-void LATServer::send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr)
+void LATServer::send_connect_error(int reason, LAT_Header *msg, int interface,
+				   unsigned char *macaddr)
 {
     unsigned char buf[1600];
     LAT_Header *header = (LAT_Header *)buf;
@@ -980,7 +1025,7 @@ void LATServer::send_connect_error(int reason, LAT_Header *msg, unsigned char *m
     header->sequence_number = msg->sequence_number;
     header->ack_number      = msg->ack_number;
     buf[ptr++]              = reason;
-    send_message(buf, ptr, macaddr);
+    send_message(buf, ptr, interface, macaddr);
 }
 
 // Shutdown by latcp

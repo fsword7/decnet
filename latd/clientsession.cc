@@ -29,6 +29,7 @@
 #include "latcpcircuit.h"
 #include "server.h"
 #include "clientsession.h"
+#include "lat_messages.h"
 
 ClientSession::ClientSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
@@ -79,7 +80,7 @@ void ClientSession::connect_parent()
     parent.connect();
 }
 
-void ClientSession::connect()
+void ClientSession::connect(char *port)
 {
     debuglog(("connecting client session to '%s'\n", remote_node));
 
@@ -102,9 +103,17 @@ void ClientSession::connect()
     buf[ptr++] = 0x00; // 
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
-                       // INFO: Param type 4 is remote port name.
     add_string(buf, &ptr, (unsigned char *)ltaname);
     buf[ptr++] = 0x00; // NUL terminated (??)
+
+    // If the user wanted a particular port number then add it 
+    // into the message
+    if (port[0] != '\0')
+    {
+	buf[ptr++] = 0x04; // Param type 4 (Remote port name)
+	add_string(buf, &ptr, (unsigned char *)port);
+	buf[ptr++] = 0x00; // NUL terminated (??)
+    }
  
     // Send message...
     reply->header.cmd          = LAT_CCMD_SDATA;
@@ -131,6 +140,29 @@ void ClientSession::disconnect()
     // Now open it all up again ready for a new connection
     new_session((unsigned char *)remote_node, 0);    
 }
+
+
+// Remote end disconnects
+void ClientSession::disconnect_session(int reason)
+{
+    // If the reason was some sort of error then send it to 
+    // the PTY
+
+    if (reason > 1)
+    {
+	char *msg = lat_messages::session_disconnect_msg(reason);
+	write(master_fd, msg, strlen(msg));
+	write(master_fd, "\n", 1);
+    }
+
+
+    // Get the server to delete us when we are off the stack.
+    if (connected)
+	LATServer::Instance()->delete_session(&parent, local_session, master_fd);
+    connected = false;
+    return;
+}
+
 
 ClientSession::~ClientSession()
 {

@@ -34,8 +34,9 @@ class LATConnection
 
 
     // Client session routines
-    LATConnection(int _num, const char *_remnode, const char *_macaddr,
-		  const char *_lta);
+    LATConnection(int _num,
+		  const char *_service, const char *_portname,
+		  const char *_lta, const char *remnode, bool queued);
     int connect();
     int create_client_session();
     int disconnect_client();              // From LATServer
@@ -50,12 +51,14 @@ class LATConnection
     unsigned int   next_session;
     unsigned char  macaddr[6];
     unsigned char  servicename[255];
+    unsigned char  portname[255];
     unsigned char  remnode[255];
     LATSession    *sessions[256];
 
     unsigned char  last_sent_sequence; // Last sequence number we sent
     unsigned char  last_message_acked;
     bool           need_ack;
+    bool           queued;             // Client for queued connection.
 
     int next_session_number();
     void send_a_reply(unsigned char local_session, unsigned char remote_session);

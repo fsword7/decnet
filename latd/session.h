@@ -17,13 +17,13 @@ class LATSession
     int  send_data_to_process(unsigned char *buf, int len);
     int  read_pty();
     void remove_session();
-    void disconnect_session();
     void send_disabled_message();
     void add_credit(signed short c);
     void set_port(unsigned char *inbuf);
     int  get_remote_credit() { return remote_credit; }
     void inc_remote_credit(int inc) { remote_credit+=inc; }
-    
+
+    virtual void disconnect_session(int reason);
     virtual int new_session(unsigned char *_remote_node, unsigned char c)=0;
     virtual void do_read() {}
     

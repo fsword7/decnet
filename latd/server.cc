@@ -65,6 +65,7 @@
 #include "latcpcircuit.h"
 #include "server.h"
 #include "services.h"
+#include "lat_messages.h"
 #include "dn_endian.h"
 
 unsigned char *LATServer::get_local_node(void)
@@ -437,9 +438,10 @@ void LATServer::read_lat(int sock)
     case LAT_CCMD_CONREF: 
     case LAT_CCMD_DISCON:
         {
-	    debuglog(("Disconnecting connection %d: status %x\n", 
+	    debuglog(("Disconnecting connection %d: status %x(%s)\n", 
 		      header->remote_connid,
-		      buf[sizeof(LAT_Header)]));
+		      buf[sizeof(LAT_Header)],
+		      lat_messages::connection_disconnect_msg(buf[sizeof(LAT_Header)]) ));
 	    if (header->remote_connid <= MAX_CONNECTIONS)
 	    {
 		LATConnection *conn = connections[header->remote_connid];
@@ -922,29 +924,14 @@ int LATServer::make_client_connection(unsigned char *service,
     {
 	return -1; // Failed
     }
-    // Look up the service name.
-    // TODO what to do with the port name????
 
-    unsigned char macaddr[6];
-    string node;
-    if (!LATServices::Instance()->get_highest(string((char*)service), 
-					      node, macaddr))
-    {
-	debuglog(("Can't find service %s, checking for node %s\n", 
-		  service, remnode));
-	// Can't find service: look up by node name
-	if (!LATServices::Instance()->get_highest(string((char*)remnode), 
-						  node, macaddr))
-	{
-	    debuglog(("Can't find node %s\n", remnode));
-	    return -2; // Never eard of it!
-	}
-    }
-    // TODO: what to do with queued???
+    // Create a new connection instance.
     connections[connid] = new LATConnection(connid, 
-					    (char *)remnode, 
-					    (char *)macaddr,
-					    (char *)devname);
+					    (char *)service, 
+					    (char *)portname,
+					    (char *)devname, 
+					    (char *)remnode,
+					    queued);
     connections[connid]->create_client_session();
     return 0;
 }

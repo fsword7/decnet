@@ -75,16 +75,19 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
 }
 
 // Create a client connection
-LATConnection::LATConnection(int _num, const char *_remnode,
-			     const char *_macaddr, const char *_lta):
+LATConnection::LATConnection(int _num, const char *_service,
+			     const char *_portname, const char *_lta, 
+			     const char *_remnode, bool queued):
     num(_num),
     last_sequence_number(0xff),
     last_ack_number(0xff),
+    queued(queued),
     role(CLIENT)
 {
     debuglog(("New client connection for %s created\n", _remnode));
-    memcpy(macaddr, _macaddr, 6);
     memset(sessions, 0, sizeof(sessions));
+    strcpy((char *)servicename, _service);
+    strcpy((char *)portname, _portname);
     strcpy((char *)remnode, _remnode);
     strcpy(lta_name, _lta);
 
@@ -251,9 +254,10 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
 	    case 0xd0:  // Disconnect
 		// TODO: something not quite right here.
-		if (session) session->disconnect_session();
+		if (session) session->disconnect_session(credits);
 		retcmd = 0xd0;
 		replyhere=true;
+		
 		break;	  
 
 	    default:
@@ -563,8 +567,27 @@ void LATConnection::remove_session(unsigned char id)
     }
 }
 
+// Initiate a client connection
 int LATConnection::connect()
 {
+   // Look up the service name.
+    string node;
+    if (!LATServices::Instance()->get_highest(string((char*)servicename),
+					      node, macaddr))
+    {
+	debuglog(("Can't find service %s, checking for node %s\n", 
+		  servicename, remnode));
+	// Can't find service: look up by node name
+	if (!LATServices::Instance()->get_highest(string((char*)remnode), 
+						  node, macaddr))
+	{
+	    debuglog(("Can't find node %s\n", remnode));
+	    return -2; // Never eard of it!
+	}
+    }
+
+    // TODO queued connections
+
     int ptr;
     unsigned char buf[1600];
     LAT_Start *msg = (LAT_Start *)buf;
@@ -623,11 +646,12 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     debuglog(("got connect ack. seq: %d, ack: %d\n", 
 	      last_sequence_number, last_message_acked));
 
-// Start clientsession 1
+// Start clientsession 1 (as a client connection we
+// only have one client session attached)
     ClientSession *cs = (ClientSession *)sessions[1];
     if (cs)
     {
-	cs->connect();
+	cs->connect((char *)portname);
     }
     else
     {

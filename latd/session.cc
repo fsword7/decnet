@@ -93,10 +93,6 @@ int LATSession::send_data_to_process(unsigned char *buf, int len)
 	    newbuf[newlen++] = buf[i];
 	}
 
-	newbuf[newlen] = '\0';
-	debuglog(("REALLY To PTY(%d): %s\n", newlen, newbuf));
-
-
 	write(master_fd, newbuf, newlen);
     }
 
@@ -158,7 +154,7 @@ int LATSession::read_pty()
 	add_slot(buf, ptr, 0xd1, slotbuf, 0);
 	parent.queue_message(buf, ptr);
 	
-	disconnect_session();
+	disconnect_session(1); // User requested!
 	return 0;
     }
 
@@ -203,7 +199,7 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
 
 
 // Remote end disconnects
-void LATSession::disconnect_session()
+void LATSession::disconnect_session(int reason)
 {
     // Get the server to delete us when we are off the stack.
     if (connected)
@@ -235,7 +231,7 @@ LATSession::~LATSession()
 {
     if (pid != -1) kill(pid, SIGTERM);
     close(master_fd);
-    disconnect_session();
+    disconnect_session(0);
 }
 
 

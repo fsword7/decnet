@@ -282,6 +282,8 @@ int main(int argc, char *argv[])
     }
     debuglog(("interface %s is number %d\n", interface, interface_num));
 
+    openlog("latd", LOG_PID, LOG_DAEMON);
+
     // Go!
     LATServer *server = LATServer::Instance();
     server->init(static_rating, rating, service, greeting,

@@ -21,8 +21,9 @@ class ClientSession: public LATSession
   virtual ~ClientSession();
   virtual int new_session(unsigned char *remote_node, unsigned char c);
   virtual void do_read();
-
-  void connect();
+  virtual void disconnect_session(int reason);
+    
+  void connect(char *port);
   void disconnect();
   void connect_parent();
   void got_connection(unsigned char);

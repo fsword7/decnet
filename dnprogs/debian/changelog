@@ -5,8 +5,11 @@ dnprogs (2.16-1) unstable; urgency=low
   * Look at OPEN as well as CLOSE time attributes for SPL, DLT and TEF.
   * fal's directory output now correctly sends the new directory information
     if a double wildcard is used: eg [*]*
+  * Fix bug in fal where binary files got corrupted if copied in "record" 
+    mode
+  * setether now also sets the default interface for 2.4 kernels
 
- --
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 16 Oct 2001 14:25:38 +0100
 
 dnprogs (2.15-1) unstable; urgency=low
 

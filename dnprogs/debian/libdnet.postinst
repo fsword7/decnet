@@ -2,11 +2,11 @@
 #
 set -e
 
-if [ "$1" != "configure" ]
+if [ "$1" == "configure" ]
 then
-  exit 0
+  ldconfig
 fi
 
-ldconfig
+
 
 #DEBHELPER#

@@ -123,7 +123,7 @@ void ClientSession::connect(char *service, char *port)
     int ptr = sizeof(LAT_SessionData);
     
     buf[ptr++] = 0x01; // Service Class
-    buf[ptr++] = 0x01; // Max Attention slot size
+    buf[ptr++] = 0x01; // Max Attention slot size..
     buf[ptr++] = 0xfe; // Max Data slot size
     
     add_string(buf, &ptr, (unsigned char *)service);
@@ -147,7 +147,7 @@ void ClientSession::connect(char *service, char *port)
     }
  
     // Send message...
-    reply->header.cmd          = LAT_CCMD_SDATA;
+    reply->header.cmd          = LAT_CCMD_SESSION;
     reply->header.num_slots    = 1;
     reply->slot.remote_session = local_session;
     reply->slot.local_session  = remote_session;
@@ -248,7 +248,7 @@ void ClientSession::got_connection(unsigned char _remid)
     remote_session = _remid;
 
     // Send a data_b slot
-    reply->header.cmd       = LAT_CCMD_SDATA;
+    reply->header.cmd       = LAT_CCMD_SESSION;
     reply->header.num_slots = 0;
     reply->slot.length      = 0;
     reply->slot.cmd         = 0x0;

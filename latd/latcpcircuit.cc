@@ -253,8 +253,8 @@ bool LATCPCircuit::do_command()
 	get_string((unsigned char*)cmdbuf, &ptr, name);
 	get_string((unsigned char*)cmdbuf, &ptr, ident);
 	max_connections = cmdbuf[ptr++];
-	target_uid = *(uid_t *)(cmdbuf+ptr); ptr += sizeof(uid_t);
-	target_gid = *(gid_t *)(cmdbuf+ptr); ptr += sizeof(gid_t);
+	memcpy(&target_uid, cmdbuf+ptr, sizeof(uid_t)); ptr += sizeof(uid_t);
+	memcpy(&target_gid, cmdbuf+ptr, sizeof(uid_t)); ptr += sizeof(gid_t);
 	get_string((unsigned char*)cmdbuf, &ptr, command);
 
 	debuglog(("latcp: add service: %s (%s)\n",

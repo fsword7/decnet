@@ -668,8 +668,8 @@ void add_service(int argc, char *argv[])
 	add_string((unsigned char*)message, &ptr, (unsigned char*)name);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)ident);
 	message[ptr++] = max_connections;
-	*(uid_t *)(message+ptr) = target_uid; ptr += sizeof(uid_t);
-	*(gid_t *)(message+ptr) = target_gid; ptr += sizeof(gid_t);
+	memcpy(message+ptr, &target_uid, sizeof(uid_t)); ptr += sizeof(uid_t);
+	memcpy(message+ptr, &target_gid, sizeof(uid_t)); ptr += sizeof(gid_t);
 	add_string((unsigned char*)message, &ptr, (unsigned char*)command);
 
 	send_msg(latcp_socket, LATCP_ADDSERVICE, message, ptr);

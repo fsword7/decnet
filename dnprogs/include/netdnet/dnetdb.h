@@ -24,8 +24,8 @@ extern  int               dnet_conn(char *node, char *object, int type,
 extern  char             *dnet_htoa(struct dn_naddr *add);
 extern  char             *dnet_ntoa(struct dn_naddr *add);
 extern  struct  dn_naddr *getnodeadd(void);
-extern  struct  nodeent  *getnodebyaddr(char *addr, int len, int type);
-extern  struct  nodeent  *getnodebyname(char *name);
+extern  struct  nodeent  *getnodebyaddr(const char *addr, int len, int type);
+extern  struct  nodeent  *getnodebyname(const char *name);
 
 extern  char             *getexecdev(void);
 extern  void              setnodeent(int);

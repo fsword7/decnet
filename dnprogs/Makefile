@@ -105,7 +105,6 @@ deb:
 	make prefix=/usr RELEASE=true -j
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
-#	cd ../$(PKGNAME)-$(VERSION); fakeroot debian/rules binary-arch
 	cd ../$(PKGNAME)-$(VERSION); dpkg-buildpackage -rfakeroot
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 
@@ -114,7 +113,7 @@ deb:
 # Only really works on my Intel machine, hence the check
 #
 bindist: dist rpm deb
-	@if [ `uname -n` != "pandh" ]; then echo "Only do this on Patrick\'s Intel box"; exit 1; fi
+	@if [ `uname -n` != "tyke" ]; then echo "Only do this on Patrick\'s Intel box"; exit 1; fi
 	cp /usr/src/redhat/SOURCES/$(PKGNAME)-$(VERSION).tar.gz /home/patrick/public_html/decnet
 	cp ../$(PKGNAME)_$(VERSION)-1_i386.deb /home/patrick/public_html/decnet
 	cp /usr/src/redhat/RPMS/$(ARCH)/$(PKGNAME)-$(VERSION)-1.i386.rpm /home/patrick/public_html/decnet

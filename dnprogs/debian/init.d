@@ -2,7 +2,7 @@
 #
 # dnprogs.sh 
 #
-# Starts/Stops DECnet processes
+# Sets up the ethernet interface(s) and starts/stops DECnet processes
 #
 # This script MUST be run before TCP/IP is started.
 #

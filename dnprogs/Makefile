@@ -66,8 +66,8 @@ snap:
 #
 rpm:
 	rm -rf rpmbuild BUILD RPMS
-	echo "%_topdir `pwd`" > ~/.rpmmacros
-	echo "macrofiles $(HOME)/.rpmmacros"
+	echo "%_topdir `pwd`" > .rpmmacros
+	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 	make clean
 	make prefix=/usr RELEASE=true -j
 	make DESTDIR=`pwd`/rpmbuild install
@@ -87,8 +87,8 @@ rpm:
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
-	rpm -bb --buildroot `pwd`/rpmbuild -v $(PKGNAME).spec
-	rm -f $(PKGNAME).spec  ~/.rpmrc ~/.rpmmacros
+	rpm -bb --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
+	rm -f $(PKGNAME).spec  .rpmrc .rpmmacros
 
 #
 # Make Debian package. It's best to do this immediately after 'make rpm'

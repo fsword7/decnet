@@ -686,6 +686,7 @@ static void	ct_init_term(void)
 		perror("Open /dev/tty");
 		exit(-1);
 	}
+        fcntl(ttyfd, F_SETFL, fcntl(ttyfd, F_GETFL, 0) | O_NONBLOCK);
 
 	memcpy(&raw,&cooked,sizeof(struct termio));
 

@@ -1,7 +1,7 @@
 This is latd - a LAT terminal daemon for Linux
 
-WARNING: This is alpha software. It does not work properly and has many 
-features missing. Do not use it in a production environment.
+WARNING: This is beta software. It may not work properly and has many 
+features missing. 
 
 The daemon is purely userland code and should not crash your system but it
 might. Don't say I didn't warn you.
@@ -73,8 +73,8 @@ Patrick
 
 CREDITS
 -------
-I'd very much like to thank Eduardo for providing much help and trace logs
-in this reverse-engineering effort.
+I'd very much like to thank Eduardo Serrat for providing much help, trace logs
+and encouragement in this reverse-engineering effort.
 
 I would also like to thank Real Dupeux for sending me a DECserver 200 for
 the project.

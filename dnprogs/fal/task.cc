@@ -961,9 +961,11 @@ void fal_task::create_metafile(char *name, dap_attrib_message *attrib_msg)
 	for (unsigned int i=0; i<current_record; i++)
 	    if (record_lengths[i] > lrl) lrl = record_lengths[i];
 	
-	// Our record lengths include the terminating LF
-	metadata.lrl = lrl - 1;
-	
+	// Our record lengths include the terminating LF so 
+	// subtract that from the length.
+        // If there are no records then put MRS in there.
+	metadata.lrl = (lrl?(lrl - 1):metadata.mrs);
+
 	// Write it out.
 	if (::fwrite(&metadata, sizeof(metadata), 1, mf) != 1)
 	{

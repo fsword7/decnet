@@ -1,5 +1,5 @@
-0.9
-------------------
+0.9 14th August 2000
+--------------------
 - latcp now shows local ports too
 - Send group numbers with queued connect request
 - Increased maximum number of connections to 254

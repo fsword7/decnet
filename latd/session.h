@@ -11,6 +11,7 @@ class LATSession
 	max_read_size(250),
 	clean(_clean),
 	credit(0),
+	request_id(0),
 	stopped(false),
 	remote_credit(0)
       {}
@@ -51,6 +52,7 @@ class LATSession
     int            max_read_size;
     bool           clean; // Connection should be 8bit clean
     char           ltaname[255];
+    unsigned short request_id;
 
     // Flow control
     int            credit;

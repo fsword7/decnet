@@ -59,9 +59,5 @@ int ReverseSession::new_session(unsigned char *_remote_node,
     strcpy(remote_port, port);
 
     strcpy(remote_node, (char *)_remote_node);
-    int status = create_session(_remote_node);
-    if (status == 0)
-    {
-//	connect();
-    }
+    return create_session(_remote_node);
 }

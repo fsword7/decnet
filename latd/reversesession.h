@@ -24,7 +24,7 @@ class ReverseSession: public ServerSession
   virtual int new_session(unsigned char *remote_node,
 			  char *service, char *port, unsigned char c);
 
-
+  void set_request_id(unsigned short id) {request_id = id;}
  protected:
 
  private:

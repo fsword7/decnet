@@ -441,6 +441,21 @@ void LATSession::connect()
 	buf[ptr++] = 0x00; // NUL terminated (??)
     }
 
+
+    // Add in the request ID for reverse connections
+    if (request_id)
+    {
+	if (ptr%1) ptr++;
+	debuglog(("Sending request id %d, and port %s\n", request_id, ptyname));
+	buf[ptr++] = 2; // Parameter number
+	buf[ptr++] = 2; // Length of the short int
+	buf[ptr++] = request_id & 0xFF;
+	buf[ptr++] = request_id >> 8;
+
+	buf[ptr++] = 5;
+	add_string(buf, &ptr, (unsigned char *)ptyname);
+    }
+
     // Send message...
     reply->header.cmd          = LAT_CCMD_SESSION;
     reply->header.num_slots    = 1;
@@ -489,6 +504,7 @@ void LATSession::got_connection(unsigned char _remid)
 	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
 	credit--;
     }
+
     if (parent.isClient())
 	parent.queue_message(buf, ptr);
     else

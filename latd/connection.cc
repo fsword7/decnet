@@ -728,20 +728,6 @@ void LATConnection::circuit_timer(void)
 		    add_string(buf, &ptr, remnode);
 		    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 		    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
-
-		    if (request_id)
-		    {
-			buf[ptr++] = 1; // Parameter number
-			buf[ptr++] = 2; // Length of the short int
-			buf[ptr++] = 2;
-			buf[ptr++] = 0;
-
-			buf[ptr++] = 2; // Parameter number
-			buf[ptr++] = 2; // Length of the short int
-			buf[ptr++] = request_id & 0xFF;
-			buf[ptr++] = request_id >> 8;
-		    }
-
 		    send_message(buf, ptr, LATConnection::DATA);
 		    return;
 		}
@@ -1097,7 +1083,7 @@ int LATConnection::connect(LATSession *session)
 	    add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	    add_string(buf, &ptr, (unsigned char *)LATServer::greeting);
 
-	    // If we have a request ID then this is a connect for a
+ 	    // If we have a request ID then this is a connect for a
 	    // queued connection (via a COMMAND message) so we need to include
 	    // it as parameter 2 in the connect message
 	    if (request_id)
@@ -1159,21 +1145,6 @@ int LATConnection::rev_connect()
 
     add_string(buf, &ptr, remnode);
     add_string(buf, &ptr, LATServer::Instance()->get_local_node());
-
-// Add in the request ID
-    buf[ptr++] = 1; // Parameter number
-    buf[ptr++] = 2; // Length of the short int
-    buf[ptr++] = 2;
-    buf[ptr++] = 0;
-
-    buf[ptr++] = 2; // Parameter number
-    buf[ptr++] = 2; // Length of the short int
-    buf[ptr++] = request_id & 0xFF;
-    buf[ptr++] = request_id >> 8;
-
-    // NOTES: params 4 & 5 have port name in 
-    //        param 6 is short int "1"
-
 
     // Save the time we sent the connect so we
     // know if we got a response.
@@ -1246,7 +1217,7 @@ int LATConnection::create_reverse_session(const char *service,
     uid_t uid;
     gid_t gid;
 
-    debuglog(("Create server session for %s\n", service));
+    debuglog(("Create reverse session for %s\n", service));
 
     if (LATServer::Instance()->get_service_info((char *)service, cmd, maxcon, uid, gid) == -1)
     {
@@ -1275,6 +1246,7 @@ int LATConnection::create_reverse_session(const char *service,
 	return -1;
     }
     sessions[newsessionnum] = newsession;
+    newsession->set_request_id(reqid);
 
     // Start it connecting.
     rev_connect();
@@ -1337,7 +1309,6 @@ int LATConnection::disconnect_client()
 bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
 {
     int ptr = sizeof(LAT_SessionCmd)+3;
-    unsigned char temp[256];
 
     ptr += buf[ptr]+1; // Skip over destination service
     if (ptr >= len) return false;
@@ -1346,6 +1317,7 @@ bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
     if (ptr >= len) return false;
 
     queued_slave = false;
+
 // Do parameters -- look for a 2
     while (ptr < len)
     {
@@ -1359,20 +1331,14 @@ bool LATConnection::is_queued_reconnect(unsigned char *buf, int len, int *conn)
 	    *conn = param;
 	    queued_slave = true;
 	    ptr +=2;
-//	    return true;
+	    return true;
 	}
 	else
 	{
-	    printf("PJC: got param %d, len=%d\n", param_type, buf[ptr]);
-	    printf("PJC: value: ");
-	    for (int i=0; i< buf[ptr]; i++)
-		printf("%02x (%c) ", buf[ptr+i+1], buf[ptr+i+1]);
-	    printf("\n");
 	    ptr += buf[ptr]+1; // Skip over it
-	    
 	}
     }
-    return queued_slave;
+    return false;
 }
 
 int LATConnection::pending_msg::send(int interface, unsigned char *macaddr)

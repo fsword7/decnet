@@ -1094,7 +1094,7 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
 	      service, portname, remnode, remport));
 
     // Make a new connection
-    // TODO: can we reuse connections here ????
+    // TODO: we can reuse connections here...
     int connid = get_next_connection_number();
     connections[connid] = new LATConnection(connid,
 					    (char *)service,
@@ -1111,7 +1111,7 @@ void LATServer::process_command_msg(unsigned char *buf, int len, int interface, 
     startcmd.dataslotsize = 255;
     if (connections[connid]->create_reverse_session((const char *)service,
 						    (const char *)&startcmd,
-						    msg->request_id,
+						    dn_ntohs(msg->request_id),
 						    interface, macaddr) == -1)
     {
 	// TODO Destroy connection & send error message.

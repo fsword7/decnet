@@ -1,0 +1,7 @@
+*.o
+*~
+.depend
+Makefile.bak
+core
+dnsubmit
+dnprint

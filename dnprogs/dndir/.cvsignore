@@ -1,0 +1,6 @@
+*.o
+*~
+.depend
+Makefile.bak
+core
+dndir

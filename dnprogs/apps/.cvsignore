@@ -1,0 +1,11 @@
+*.o
+*~
+.depend
+Makefile.bak
+core
+sethost
+ctermd
+rmtermd
+dnping
+dnmount
+startnet

@@ -53,7 +53,8 @@ class LATServer
     LATConnection **get_connection(int id) { return &connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }
     int   find_connection_by_node(const char *node);
-    void  send_enq(unsigned char *);
+    void  send_enq(const char *);
+    void  add_slave_node(const char *);
 
     static unsigned char greeting[255];
 
@@ -66,6 +67,7 @@ class LATServer
 	responder(false),
         static_rating(false),
         rating(12),
+	alarm_mode(0),
         num_interfaces(0),
         multicast_incarnation(0),
         verbosity(0),
@@ -83,6 +85,8 @@ class LATServer
     // These two are defaults for new services added
     bool static_rating;
     int  rating;
+
+    int alarm_mode; // For slave solicit .. PJC investigate
 
     unsigned char local_name[256]; //  Node name
     int  interface_num[MAX_INTERFACES];
@@ -105,6 +109,7 @@ class LATServer
 			      unsigned char *remote_mac);
     void  forward_status_messages(unsigned char *inbuf, int len);
     void  send_service_announcement(int sig);
+    void  send_solicit_messages(int sig);
     int   make_new_connection(unsigned char *buf, int len, int interface,
 			      LAT_Header *header, unsigned char *macaddr);
     int   get_next_connection_number();
@@ -260,6 +265,10 @@ class LATServer
     std::list<serviceinfo>     servicelist;
     std::list<LocalPort>       portlist;
 
+    // Slave Nodes or Dummy Nodes. Well, no-self-advertised nodes
+    std::list<std::string>   slave_nodes;
+    std::list<std::string>   known_slave_nodes;
+
     // Connections indexed by ID
     LATConnection *connections[MAX_CONNECTIONS];
 
@@ -291,6 +300,7 @@ class LATServer
     void set_nodename(unsigned char *);
     void unlock();
     bool show_characteristics(bool verbose, std::ostrstream &output);
+    bool show_nodes(bool verbose, std::ostrstream &output);
     int  create_local_port(unsigned char *, unsigned char *,
 			   unsigned char *, unsigned char *, bool, bool,
 			   unsigned char *);

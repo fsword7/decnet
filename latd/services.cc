@@ -1,5 +1,6 @@
 /******************************************************************************
-    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,10 +99,25 @@ bool LATServices::get_node(const std::string &service, const std::string &node,
 			   unsigned char *macaddr, int *interface)
 {
   std::map<std::string, serviceinfo, std::less<std::string> >::iterator test = servicelist.find(service);
+    std::map<std::string, serviceinfo, std::less<std::string> >::iterator c =
+servicelist.begin();
+    int i =0;
+     for(;c != servicelist.end();c++) {
+       i++;
+debuglog(("LATServices::get_node : service %2d '%s' \n",
+  i, c->first.c_str()));
+}
+
   if (test != servicelist.end())
   {
+//      std::map<std::string, serviceinfo, std::less<std::string> >::iterator c = test;
+//	  int i =0;
+//	   for(;c != servicelist.end();c++) { i++; };
+debuglog(("LATServices::get_node : service found '%s', number: %d \n", service.c_str(), i));
       return servicelist[test->first].get_node(node, macaddr, interface);
   }
+debuglog(("LATServices::get_node : no service '%s' \n", service.c_str()));
+
   return false; // Not found
 }
 
@@ -110,6 +126,20 @@ bool LATServices::get_node(const std::string &service, const std::string &node,
 bool LATServices::serviceinfo::get_node(const std::string &node, unsigned char *macaddr, int *interface)
 {
   std::map<std::string, nodeinfo, std::less<std::string> >::iterator test = nodes.find(node);
+
+   std::map<std::string, nodeinfo, std::less<std::string> >::iterator c =
+nodes.begin();
+    int i =0;
+     for(;c != nodes.end();c++) {
+       i++;
+debuglog(("LATServices::serinfo::get_node :node %2d '%s' \n",
+  i, c->first.c_str()));
+}
+
+debuglog(("LATServices::serinfo::get_node looking for '%s' \n",
+  node.c_str()));
+
+
   if (test != nodes.end())
   {
       memcpy(macaddr, nodes[node].get_macaddr(), 6);
@@ -118,6 +148,7 @@ bool LATServices::serviceinfo::get_node(const std::string &node, unsigned char *
   }
   else
   {
+debuglog(("LATServices::serviceinfo::get_node : no node '%s' \n", node.c_str()));
       return false;
   }
 }
@@ -209,6 +240,83 @@ void LATServices::serviceinfo::list_service(std::ostrstream &output)
  	          nodes[n->first].get_ident() <<  std::endl;
     }
 }
+
+void LATServices::serviceinfo::list_nodes(std::ostrstream &output)
+{
+    std::map<std::string, nodeinfo, std::less<std::string> >::iterator n(nodes.begin());
+    const unsigned char *addr = NULL;
+
+    output << "Node Name        Status       Address            Identification" << std::endl;
+    for (; n != nodes.end(); n++)
+    {
+        addr = n->second.get_macaddr();
+        output.width(17);
+        output.setf(std::ios::left, std::ios::adjustfield);
+        output << n->first.c_str() <<
+            (n->second.check_respond_counter()?"Reachable  ":"Unreachable") << "  ";
+
+        output.setf(std::ios::hex, std::ios::basefield);
+
+        output << setiosflags(std::ios::right | std::ios::uppercase) << std::setfill('0')
+           << std::setw(2) << (int)addr[0] << '-'
+           << std::setw(2) << (int)addr[1] << '-'
+           << std::setw(2) << (int)addr[2] << '-'
+           << std::setw(2) << (int)addr[3] << '-'
+           << std::setw(2) << (int)addr[4] << '-'
+           << std::setw(2) << (int)addr[5]
+           << resetiosflags(std::ios::right | std::ios::uppercase) << std::setfill(' ');
+
+        output.setf(std::ios::right, std::ios::adjustfield);
+        output << "  " << n->second.get_ident() <<  std::endl;
+    }
+}
+
+bool LATServices::list_dummy_nodes(bool verbose, std::ostrstream &output)
+{
+    std::map<std::string, serviceinfo, std::less<std::string> >::iterator dummies =
+             servicelist.find("");
+
+    if ( dummies == servicelist.end()) {
+        output << "No dummy nodes available." << std::endl;
+        return true;
+    }
+
+    output << std::endl;
+    output << "Service Name:    " << "Slave nodes" << std::endl;
+    output << "Service Status:  " << (servicelist[dummies->first].is_available()?"Available ":"Unavailable") << "   " << std::endl;
+    output << "Service Ident:   " << servicelist[dummies->first].get_ident() << std::endl << std::endl;
+    dummies->second.list_nodes(output);
+    output << "--------------------------------------------------------------------------------" << std::endl;
+
+
+    return true;
+}
+
+bool LATServices::touch_dummy_node_respond_counter(const std::string &str_name)
+{
+    std::map<std::string, serviceinfo, std::less<std::string> >::iterator dummies =
+             servicelist.find("");
+
+    if ( dummies == servicelist.end()) {
+        return false; // no node
+    }
+
+    return dummies->second.touch_dummy_node_respond_counter(str_name);
+}
+
+bool LATServices::serviceinfo::touch_dummy_node_respond_counter(const std::string &str_name)
+{
+    std::map<std::string, nodeinfo, std::less<std::string> >::iterator n = nodes.find(str_name);
+
+    if (n == nodes.end()) {
+        return false; // no node
+    }
+
+    debuglog(("touch_respond() : node: %s ", n->first.c_str()));
+    n->second.touch_respond_counter();
+    return true;
+}
+
 
 // List all known services
 bool LATServices::list_services(bool verbose, std::ostrstream &output)

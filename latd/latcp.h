@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ const int LATCP_UNSETSERVERGROUPS = 23;
 const int LATCP_SETUSERGROUPS     = 24;
 const int LATCP_UNSETUSERGROUPS   = 25;
 const int LATCP_TERMINALSESSION   = 26;
+const int LATCP_SHOWNODES         = 27;
 const int LATCP_ERRORMSG          = 99; // Fatal
 
 

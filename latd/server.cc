@@ -1,5 +1,6 @@
 /******************************************************************************
-    (c) 2001-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -117,16 +118,21 @@ unsigned char *LATServer::get_local_node(void)
     }
     return local_name;
 }
+
 void LATServer::alarm_signal(int sig)
 {
-    Instance()->send_service_announcement(sig);
+     if (Instance()->alarm_mode == 0)
+     {
+	 Instance()->send_service_announcement(sig);
+     }
+     Instance()->send_solicit_messages(sig);
 
 }
 
 
 // Send ENQUIRY for a node - mainly needed for DS90L servers that
 // don't advertise.
-void LATServer::send_enq(unsigned char *node)
+void LATServer::send_enq(const char *node)
 {
     unsigned char packet[1600];
     static unsigned char id = 1;
@@ -143,7 +149,7 @@ void LATServer::send_enq(unsigned char *node)
     enqmsg->id  = id++;
     enqmsg->retrans_timer = 75; // * 10ms - give it more time to respond
 
-    add_string(packet, &ptr, node);
+    add_string(packet, &ptr, (const unsigned char *)node);
     packet[ptr++] = 1; /* Length of group data */
     packet[ptr++] = 1; /* Group mask */
 
@@ -156,10 +162,13 @@ void LATServer::send_enq(unsigned char *node)
     /* This is the LAT multicast address */
     static unsigned char addr[6] = { 0x09, 0x00, 0x2b, 0x00, 0x00, 0x0f };
 
+debuglog(("send_enq : node: %s, local_name: %s\n", node, local_name));
+
     for (int i=0; i<num_interfaces;i++)
     {
 	if (iface->send_packet(interface_num[i], addr, packet, ptr) < 0)
 	{
+debuglog(("Error send packet\n"));
 	    interface_error(interface_num[i], errno);
 	}
 	else
@@ -167,6 +176,23 @@ void LATServer::send_enq(unsigned char *node)
 	    interface_errs[interface_num[i]] = 0; // Clear errors
 	}
     }
+
+    LATServices::Instance()->touch_dummy_node_respond_counter(node);
+}
+
+void LATServer::add_slave_node(const char *node_name)
+{
+    sig_blk_t _block(SIGALRM);
+    for (std::list<std::string>::iterator iter = slave_nodes.begin();
+         iter != slave_nodes.end();
+         iter++)
+    {
+        if (*iter == node_name) {
+           // do not duplicate nodes
+           return;
+        }
+    }
+    slave_nodes.push_front(node_name);
 }
 
 /* Called on the multicast timer - advertise our service on the LAN */
@@ -305,6 +331,64 @@ void LATServer::send_service_announcement(int sig)
     /* Send it every minute */
     signal(SIGALRM, &alarm_signal);
     alarm(multicast_timer);
+}
+
+// Send solicit messages to slave nodes
+void LATServer::send_solicit_messages(int sig)
+{
+    static int counter = 0;
+    static int last_list_size = 0;
+    if (alarm_mode == 0)
+    {
+	counter = 0;
+	alarm_mode = 1;
+	debuglog(("set alarm_mode to 1\n"));
+
+	if (!known_slave_nodes.empty())
+	{
+	    std::string known_node = known_slave_nodes.front();
+	    known_slave_nodes.pop_front();
+	    slave_nodes.push_back(known_node);
+	    debuglog(("known(%d) => slave(%d) : %s\n", known_slave_nodes.size(),
+		       slave_nodes.size(), known_node.c_str()));
+	    if (slave_nodes.size() == 1)
+	    {
+		alarm_mode = 0;
+		debuglog(("set alarm_mode to 0 - one slave\n"));
+		send_enq(slave_nodes.front().c_str());
+		// alarm() is already charged by send_service_announcement()
+		return;
+	    }
+	}
+    }
+    else
+    {
+	if (slave_nodes.size() < last_list_size)
+	{
+	    counter -= last_list_size - slave_nodes.size();
+	}
+    }
+
+    if (slave_nodes.size() > counter && !slave_nodes.empty())
+    {
+	std::string node_name = slave_nodes.front();
+	slave_nodes.pop_front();
+	slave_nodes.push_back(node_name);
+
+	send_enq(node_name.c_str());
+
+	alarm(1);
+	counter++;
+	last_list_size = slave_nodes.size();
+    }
+    else
+    {
+	alarm_mode = 0;
+
+	//well, it's not quite correct, I know...
+	alarm(counter >= multicast_timer ? 1 : multicast_timer - counter);
+	debuglog(("set alarm_mode to 0, timer %d\n", counter >= multicast_timer ? 1 : multicast_timer - counter));
+    }
 }
 
 // Log an error against an interface. If we get three of these
@@ -1060,21 +1144,71 @@ void LATServer::delete_connection(int conn)
 // Got a reply from a DS90L - add it to the services list in a dummy service
 void LATServer::got_enqreply(unsigned char *buf, int len, int interface, unsigned char *macaddr)
 {
-    int ptr = 23;
+    int off = 14;
+    unsigned char node_addr[6];
+    char node_description[256];
+    char node_name[256];
 
-// Don't know the format of this packet before this...
+    memset(node_addr, 0x00, sizeof(node_addr));
+    if (0 == memcmp(node_addr, buf + off, sizeof(node_addr)))
+    {
+	return;
+    }
 
-    ptr += buf[ptr++]; /* Skip group codes; */
+    memset(node_addr, 0xFF, sizeof(node_addr));
+    if (0 == memcmp(node_addr, buf + off, sizeof(node_addr)))
+    {
+	return;
+    }
 
-    unsigned char nodename[32];
-    get_string(buf, &ptr, nodename);
+    // Node MAC address
+    memcpy(node_addr, buf + off, sizeof(node_addr));
+
+    // Skip destination node name
+    off = 22;
+    off += buf[off] + 1;
+
+    // Skip node groups
+    off += buf[off] + 1;
+
+    get_string(buf, &off, (unsigned char*)node_name);
+    get_string(buf, &off, (unsigned char*)node_description);
+
+#if defined(debuglog)
+    if (memcmp(node_addr, macaddr, sizeof(node_addr))) {
+	debuglog(("got_enqreply : macaddr is different : %02hhX-%02hhX-%02hhX-%02hhX-%02hhX-%02hhX\n",
+		  macaddr[0], macaddr[1], macaddr[2], macaddr[3], macaddr[4], macaddr[5]));
+    }
+#endif
 
 // Add it to the dummy service.
-    LATServices::Instance()->add_service(std::string((char*)nodename),
-					 std::string((char*)""), // Dummy service name
-					 std::string((char*)"Dummy Service for DS90L servers"),
+    debuglog(("got_enqreply : node: '%s' : %02hhX-%02hhX-%02hhX-%02hhX-%02hhX-%02hhX\n",
+	      node_name,
+	      node_addr[0], node_addr[1], node_addr[2], node_addr[3], node_addr[4], node_addr[5]));
+    LATServices::Instance()->add_service(std::string(node_name),
+					 std::string(""), // Dummy service name
+					 std::string(node_description),
 					 0,
-					 interface, macaddr);
+					 interface, node_addr);
+
+    {
+        sig_blk_t _block(SIGALRM);
+	std::list<std::string>::iterator sl_iter;
+        sl_iter = find(slave_nodes.begin(), slave_nodes.end(), node_name);
+        if (sl_iter != slave_nodes.end()) {
+            debuglog(("got_enqreply : to remove from slave(%d), node: '%s'\n", 
+		      slave_nodes.size(), sl_iter->c_str()));
+	    slave_nodes.erase(sl_iter);
+	}
+
+        sl_iter = find(known_slave_nodes.begin(), known_slave_nodes.end(), node_name);
+        if (sl_iter == known_slave_nodes.end()) {
+	    known_slave_nodes.push_back(node_name);
+            debuglog(("got_enqreply : added to known(%d), node: '%s'\n", 
+		      known_slave_nodes.size(),
+		       node_name));
+	}
+    }
 }
 
 
@@ -1141,7 +1275,7 @@ void LATServer::add_services(unsigned char *buf, int len, int interface, unsigne
     LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)buf;
     int ptr = sizeof(LAT_ServiceAnnounce);
     unsigned char service_groups[32];
-    unsigned char nodename[32];
+    unsigned char nodename[256];
     unsigned char greeting[255];
     unsigned char service[255];
     unsigned char ident[255];
@@ -1302,6 +1436,10 @@ void LATServer::delete_entry(deleted_session &dsl)
 	if (connections[dsl.get_conn()])
 	    connections[dsl.get_conn()]->remove_session(dsl.get_id());
 	break;
+
+    default:
+        debuglog(("Unknown LAT message: %d, 0x%X\n", header->cmd, header->cmd));
+       break;
     }
 }
 
@@ -1535,6 +1673,7 @@ void LATServer::set_nodename(unsigned char *name)
 // Start sending service announcements
 void LATServer::unlock()
 {
+    sig_blk_t _block(SIGALRM);
     locked = false;
     alarm_signal(SIGALRM);
 }
@@ -1554,6 +1693,7 @@ int LATServer::make_connection(int fd, const char *service, const char *rnode, c
     // If no node was specified then use the highest rated one
     if (node[0] == '\0')
     {
+debuglog(("make_connection : no node, use highest\n"));
 	if (!LATServices::Instance()->get_highest(std::string((char*)service),
 						  servicenode, macaddr,
 						  &this_int))
@@ -1565,6 +1705,7 @@ int LATServer::make_connection(int fd, const char *service, const char *rnode, c
     }
     else
     {
+debuglog(("make_connection : node : %s\n", node));
 	// Try to find the node
 	if (!LATServices::Instance()->get_node(std::string((char*)service),
 					       std::string((char*)node), macaddr,
@@ -1632,6 +1773,8 @@ int LATServer::make_port_connection(int fd, LocalPort *lport,
 {
     int ret;
     int connid;
+    debuglog(("LATServer::make_port_connection : fd %d, lport '0x%X', service '%s', rnode '%s', port '%s', localport '%s', pwd '%s'\n",
+	      fd, lport, service, rnode, port, localport, password));
 
     connid = make_connection(fd, service, rnode, port, localport, password, queued);
     if (connid < 0)
@@ -1747,6 +1890,11 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
     output << std::endl << ends;
 
     return true;
+}
+
+bool LATServer::show_nodes(bool verbose, std::ostrstream &output)
+{
+    return LATServices::Instance()->list_dummy_nodes(verbose, output);
 }
 
 // Return a number for a new connection

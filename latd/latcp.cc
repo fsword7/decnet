@@ -1,5 +1,6 @@
 /******************************************************************************
-    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -211,10 +212,11 @@ void display(int argc, char *argv[])
     char verboseflag[1] = {'\0'};
     signed char opt;
     bool show_services = false;
+    bool show_nodes = false;
 
     if (!open_socket(false)) return;
 
-    while ((opt=getopt(argc,argv,"lv")) != EOF)
+    while ((opt=getopt(argc,argv,"lvd")) != EOF)
     {
 	switch(opt)
 	{
@@ -226,12 +228,30 @@ void display(int argc, char *argv[])
 	    verboseflag[0] = 1;
 	    break;
 
+	case 'd':
+	    show_nodes = true;
+	    break;
+
 	default:
 	    fprintf(stderr, "only -v or -l valid with -d flag\n");
 	    exit(2);
 	}
     }
 
+     if (show_nodes)
+     {
+     	send_msg(latcp_socket, LATCP_SHOWNODES, verboseflag, 1);
+         unsigned char *result;
+         int len;
+         int cmd;
+         if (!read_reply(latcp_socket, cmd, result, len))
+	 {
+	     cout << result;
+
+	     delete[] result;
+	 }
+         return;
+     }
 
     if (show_services)
     {
@@ -245,11 +265,13 @@ void display(int argc, char *argv[])
     unsigned char *result = NULL;
     int len;
     int cmd;
-    read_reply(latcp_socket, cmd, result, len);
 
-    cout << result;
+    if (!read_reply(latcp_socket, cmd, result, len))
+    {
+	cout << result;
 
-    delete[] result;
+	delete[] result;
+    }
 }
 
 
@@ -950,8 +972,9 @@ bool open_socket(bool quiet)
 
     // Send our version
     send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
-    read_reply(latcp_socket, cmd, result, len); // Read version number back
-    delete[] result;
+
+    if (!read_reply(latcp_socket, cmd, result, len)) // Read version number back
+	delete[] result;
 
     return true;
 }

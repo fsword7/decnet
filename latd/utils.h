@@ -47,11 +47,37 @@ int pjc_openpty(int*,int*, char*,char*,char*);
 #define openpty pjc_openpty
 #endif
 
+#if defined(VERBOSE_DEBUG)
+#include <stdarg.h>
+extern void pjc_debuglog(char *,...);
+#endif
+
 #ifdef VERBOSE_DEBUG
 #define debuglog(x) pjc_debuglog x
 
-#include <stdarg.h>
-extern void pjc_debuglog(char *,...);
+//#include <stdarg.h>
+//extern void pjc_debuglog(char *,...);
 #else
 #define debuglog(x)
 #endif
+
+#include <signal.h>
+
+class sig_blk_t {
+public:
+    sig_blk_t(int sig_num)
+    {
+        sigset_t new_set;
+
+        sigemptyset(&new_set);
+        sigaddset(&new_set, sig_num);
+        sigprocmask(SIG_BLOCK, &new_set, &saved_set);
+    }
+    virtual ~sig_blk_t()
+    {
+        sigprocmask(SIG_SETMASK, &saved_set, NULL);
+    }
+
+private:
+    sigset_t saved_set;
+};

@@ -1,5 +1,6 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2004 Patrick Caulfield                 patrick@debian.org
+    (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +42,9 @@ class LATServices
     bool list_services(bool verbose, std::ostrstream &output);
     void purge() {servicelist.clear(); }
     void expire_nodes();
+    bool list_dummy_nodes(bool verbose, std::ostrstream &output);
+    bool touch_dummy_node_respond_counter(const std::string &str_name);
+
 
  private:
     LATServices()
@@ -66,13 +70,15 @@ class LATServices
 	      nodes.erase(node); // Don't care if this fails
 	      nodes[node] = nodeinfo(macaddr, rating, ident, interface);
 	  }
-      bool         get_highest(std::string &node, unsigned char *macaddr, int *interface);
-      bool         get_node(const std::string &node, unsigned char *macaddr, int *interface);
+      bool  get_highest(std::string &node, unsigned char *macaddr, int *interface);
+      bool  get_node(const std::string &node, unsigned char *macaddr, int *interface);
       const std::string get_ident() { return ident; }
-      bool         is_available();
-      bool         remove_node(const std::string &node);
-      void         serviceinfo::list_service(std::ostrstream &output);
-      void         expire_nodes(time_t);
+      bool  is_available();
+      bool  remove_node(const std::string &node);
+      void  serviceinfo::list_service(std::ostrstream &output);
+      void  expire_nodes(time_t);
+      void  list_nodes(std::ostrstream &output);
+      bool  touch_dummy_node_respond_counter(const std::string &str_name);
 
     private:
       class nodeinfo
@@ -82,7 +88,8 @@ class LATServices
 	  nodeinfo(const unsigned char *_macaddr, int _rating, std::string _ident, int _interface):
 	      rating(_rating),
 	      interface(_interface),
-	      available(true)
+	      available(true),
+	      slave_reachable(5) // if it doesn't respond five times...
 	    {
 	      memcpy(macaddr, _macaddr, 6);
 	      ident = _ident;
@@ -100,6 +107,18 @@ class LATServices
 	  void                 set_available(bool a) { available = a; }
 	  std::string          get_ident()           { return ident; }
 
+	  int touch_respond_counter()
+	      {
+		  if (slave_reachable > 0)
+		  {
+		      slave_reachable--;
+		  }
+		  debuglog(("touch_respond_counter() %d\n", slave_reachable));
+		  return slave_reachable;
+	      }
+
+         bool check_respond_counter() { return slave_reachable > 0; }
+
 	private:
 	  unsigned char macaddr[6];
 	  int           rating;
@@ -107,6 +126,9 @@ class LATServices
 	  bool          available;
 	  std::string   ident;
 	  time_t        updated;
+
+	  // for slave nodes
+	  int slave_reachable;
 	};// class LATServices::service::nodeinfo
 
       std::map<std::string, nodeinfo, std::less<std::string> > nodes;

@@ -14,6 +14,7 @@
 
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/ioctl.h>
 #include <sys/resource.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -162,11 +163,14 @@ int ServerSession::create_session(unsigned char *remote_node)
     {
 	int fd = slave_fd;
 
+	setsid();
+
 	// Set terminal characteristics
 	struct termios tio;
 	tcgetattr(slave_fd, &tio);
 	tio.c_oflag |= ONLCR;
 	tcsetattr(slave_fd, TCSANOW, &tio);
+	ioctl(fd, TIOCSCTTY, (char *)NULL);
 
 	close(master_fd);
 	if (fd != 0) dup2(fd, 0);
@@ -175,8 +179,6 @@ int ServerSession::create_session(unsigned char *remote_node)
 	if (fd > 2) close (fd);
 
 	close_all_fds();
-
-	setsid();
 
 	// Become the requested user.
 	struct passwd *user_pwd = getpwuid(cmd_uid);

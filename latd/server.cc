@@ -124,7 +124,7 @@ void LATServer::send_enq(unsigned char *service)
     enqmsg->lover = 5;
     enqmsg->latver = 5;
     enqmsg->latver_eco = 2;
-    enqmsg->mtu = 1500;
+    enqmsg->mtu = dn_htons(1500);
     enqmsg->id  = 1; /* Something here */
     enqmsg->retrans_timer = 2;
 
@@ -132,7 +132,7 @@ void LATServer::send_enq(unsigned char *service)
     packet[ptr++] = 1; /* Length of group data */
     packet[ptr++] = 1; /* Group mask */
 
-    add_string(packet, &ptr, (unsigned char*)"GRILLOCKS");
+    add_string(packet, &ptr, local_name);
 
     unsigned char addr[6];
     /* This is the LAT multicast address */
@@ -154,8 +154,6 @@ void LATServer::send_enq(unsigned char *service)
 	    interface_errs[interface_num[i]] = 0; // Clear errors
 	}
     }
-
-
 }
 
 /* Called on the multicast timer - advertise our service on the LAN */
@@ -905,7 +903,7 @@ void LATServer::init(bool _static_rating, int _rating,
     // Remove any old /dev/lat symlinks
     tidy_dev_directory();
 
-    // Saave these two for any newly added services
+    // Save these two for any newly added services
     rating = _rating;
     static_rating = _static_rating;
 
@@ -975,7 +973,7 @@ void LATServer::got_enqreply(unsigned char *buf, int len, int interface, unsigne
 {
     int ptr = 23;
 
-/* Dont know the format of this packet before this... */
+/* Don't know the format of this packet before this... */
 
     ptr += buf[ptr++]; /* Skip group codes; */
 

@@ -49,7 +49,7 @@ int ServerSession::new_session(unsigned char *remote_node, unsigned char c)
     if (status == 0)
     {
 	status = send_login_response();
-	send_issue();
+	if (credit) send_issue();
     }
     return status;
 }
@@ -100,7 +100,12 @@ int ServerSession::send_login_response()
     slotbuf[slotptr++] = 0x13; // Stop  input char  XOFF
     slotbuf[slotptr++] = 0x11; // Start input char  XON
 
-    add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
+    // data_b slots count against credit
+    if (credit)
+    {
+	add_slot(buf, ptr, 0xaf, slotbuf, slotptr);
+	credit--;
+    }
     slotptr = 0;
 
     // Stuff the client full of credits
@@ -111,7 +116,7 @@ int ServerSession::send_login_response()
     slotbuf[slotptr++] = 0x0A;
     slotbuf[slotptr++] = 0x0D;
     add_slot(buf, ptr, 0x0f, slotbuf, 0);
-    credit--;
+
 
     // Hmmm, don't know why this needs doing... for Tru64 only...grrr!
 //    reply->slot.length = ptr-sizeof(LAT_SessionCmd);

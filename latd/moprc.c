@@ -36,6 +36,7 @@
 #include <signal.h>
 #include <assert.h>
 #include <netinet/in.h>
+#include <netinet/ether.h>
 #include <features.h>    /* for the glibc version number */
 #if (__GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
@@ -52,16 +53,29 @@
 
 #include "moprc.h"
 
-static int mop_socket;
-static int do_moprc(char *, int);
+static int  mop_socket;
+static char last_message[1500];
+static int  last_message_len;
+static int  do_moprc(char *, int);
 
-static void usage(FILE *f)
+static int usage(FILE *f, char *cmd)
 {
-    fprintf(f, "Usage: \n");
+    fprintf(f, "\nUsage: %s [?hV] [-i <interface>] <node name>|<macaddr>\n", cmd);
+
+    fprintf(f, "   -?         Show this usage message\n");
+    fprintf(f, "   -h         Show this usage message\n");
+    fprintf(f, "   -V         Show the version of moprc\n");
+    fprintf(f, "   -i         Ethernet interface to use (default eth0)\n");
+    fprintf(f, "\n");
+    fprintf(f, "Node names are read from /etc/ethers\n");
+    fprintf(f, "MAC addresses in colon-seperated form. eg:\n");
+    fprintf(f, "\n%s -i eth1 08:00:2B:2B:AD:99\n", cmd);
+    fprintf(f, "\nYou will probably need to be root to run this program.\n");
+    fprintf(f, "\n");
+    return -1;
 }
 
 /* Find the interface named <ifname> and return it's number
-   Also save the MAC address in <macaddr>.
    Return -1 if we didn't find it or it's not ethernet,
 */
 static int find_interface(char *ifname)
@@ -76,7 +90,7 @@ static int find_interface(char *ifname)
     {
 	if (strcmp(ifr.ifr_name, ifname) == 0)
 	{
-	    // Also check it's ethernet while we are here
+	    /* Also check it's ethernet while we are here */
 	    ioctl(sock, SIOCGIFHWADDR, &ifr);
 	    if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
 	    {
@@ -88,7 +102,7 @@ static int find_interface(char *ifname)
 	}
 	ifr.ifr_ifindex = ++iindex;
     }
-    // Didn't find it
+    /* Didn't find it */
     close(sock);
     return -1;
 }
@@ -99,7 +113,7 @@ static int open_mop_socket(int interface)
     int mop_socket;
     struct sockaddr_ll sock_info;
 
-    // Open LAT protocol socket
+    /* Open MOP protocol socket */
     mop_socket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_DNA_RC));
     if (mop_socket < 0)
     {
@@ -135,10 +149,13 @@ static int send_message(unsigned char *buf, int len, int interface, unsigned cha
     sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_DNA_RC);
     sock_info.sll_ifindex  = interface;
-    sock_info.sll_hatype   = 0;//ARPHRD_ETHER;
+    sock_info.sll_hatype   = 0;
     sock_info.sll_pkttype  = PACKET_MULTICAST;
     sock_info.sll_halen    = 6;
     memcpy(sock_info.sll_addr, macaddr, 6);
+
+    memcpy(last_message, buf, len);
+    last_message_len = len;
 
     if (sendto(mop_socket, buf, len, 0,
 	       (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
@@ -150,17 +167,20 @@ static int send_message(unsigned char *buf, int len, int interface, unsigned cha
     return 0;
 }
 
+static int send_last_message(int interface, unsigned char *macaddr)
+{
+    return send_message(last_message, last_message_len, interface, macaddr);
+}
+
 int main(int argc, char *argv[])
 {
     int opt;
-    int interface = 1;
-    int a,b,c,d,e,f;
-    char macaddr[6];
+    int interface = find_interface("eth0");
+    struct ether_addr addr;
 
     if (argc < 2)
     {
-        usage(stdout);
-        exit(1);
+        return usage(stdout, argv[0]);
     }
 
 /* Get command-line options */
@@ -171,12 +191,10 @@ int main(int argc, char *argv[])
 	switch(opt)
 	{
 	case 'h':
-	    usage(stdout);
-	    exit(1);
+	    return usage(stdout, argv[0]);
 
 	case '?':
-	    usage(stderr);
-	    exit(1);
+	    return usage(stdout, argv[0]);
 
 	case 'i':
 	    interface = find_interface(optarg);
@@ -189,35 +207,38 @@ int main(int argc, char *argv[])
 
 	case 'V':
 	    printf("\nMoprc version %s\n\n", VERSION);
-	    exit(1);
+	    exit(0);
 	    break;
 	}
     }
 
     if (!argv[optind])
     {
-	usage(stderr);
-	exit(1);
+	return usage(stderr, argv[0]);
     }
 
-    /* Parse ethernet MAC address */
-    if (sscanf(argv[optind], "%x-%x-%x-%x-%x-%x", &a, &b, &c, &d, &e, &f) != 6)
+    /* Check for a hostname in /etc/ethers */
+    if (ether_hostton(argv[optind], &addr) != 0)
     {
-	usage(stderr);
-	exit(3);
-    }
+	struct ether_addr *addr1;
 
-    macaddr[0]=a;
-    macaddr[1]=b;
-    macaddr[2]=c;
-    macaddr[3]=d;
-    macaddr[4]=e;
-    macaddr[5]=f;
+	/* Otherwise parse ethernet MAC address */
+	addr1 = ether_aton(argv[optind]);
+	if (addr1)
+	{
+	    addr = *addr1;
+	}
+	else
+	{
+	    fprintf(stderr, "unknown node name or bad MAC address %s\n", argv[optind]);
+	    return 3;
+	}
+    }
 
     mop_socket = open_mop_socket(interface);
     if (mop_socket == -1) exit(4);
 
-    return do_moprc(macaddr, interface);
+    return do_moprc(addr.ether_addr_octet, interface);
 }
 
 static int readmop(int mop_socket, char *buf, int buflen)
@@ -308,20 +329,21 @@ static int do_moprc(char *macaddr, int interface)
 {
     enum {STARTING, CONNECTED} state=STARTING;
     fd_set         in;
-    struct timeval tv;
-    int            len;
-    int            status;
-    int            timeout = 100000; /* Poll interval */
     unsigned char  buf[1500];
-    int termfd = STDIN_FILENO;
+    struct timeval tv;
     struct termios old_term;
     struct termios new_term;
-    int            waiting_ack = 1;
+    int            len;
+    int            status;
+    int            timeout = 160000; /* Poll interval */
+    int            waiting_ack;
+    int            resends = 0;
+    int            termfd = STDIN_FILENO;
 
     tcgetattr(termfd, &old_term);
     new_term = old_term;
 
-// Set local terminal characteristics
+    /* Set local terminal characteristics */
     new_term.c_iflag &= ~BRKINT;
     new_term.c_iflag |= IGNBRK | INLCR;
     new_term.c_lflag &= ~ISIG;
@@ -334,24 +356,40 @@ static int do_moprc(char *macaddr, int interface)
     /* Send connect packets */
     send_reserve(macaddr, interface);
     send_reqid(macaddr, interface);
+    waiting_ack = 1;
 
     /* Main loop */
     FD_ZERO(&in);
     FD_SET(mop_socket, &in);
-    FD_SET(STDIN_FILENO, &in);
     tv.tv_sec  = 5;
     tv.tv_usec = 0;
 
     /* Loop for input */
     while ( (status = select(mop_socket+1, &in, NULL, NULL, &tv)) >= 0)
     {
+	/* No data, poll for any input from the terminal server */
 	if (status == 0 && !waiting_ack)
 	{
 	    char dummybuf[1];
 	    send_data(dummybuf, 0, macaddr, interface);
 	    waiting_ack = 1;
+	    resends = 0;
 	}
-	if (FD_ISSET(mop_socket, &in)) // From Them to us
+
+	/* Waiting for an ACK but not got one. Resend the last
+	   packet */
+	if (status == 0 && waiting_ack)
+	{
+	    send_last_message(interface, macaddr);
+	    if (++resends == 3)
+	    {
+		printf("\nTarget does not respond\n");
+		break;
+	    }
+	}
+
+	/* Data from the terminal server */
+	if (FD_ISSET(mop_socket, &in))
 	{
 	    int cmd;
 	    int datalen;
@@ -367,7 +405,7 @@ static int do_moprc(char *macaddr, int interface)
 	    waiting_ack = 0;
 	    cmd = buf[2];
 	    datalen = buf[0] | buf[1] <<8;
-//	    if (datalen !=2) fprintf(stderr, "got cmd %x, len %d\n", cmd, datalen);
+
 	    switch (cmd)
 	    {
 	    case MOPRC_CMD_RESERVE:
@@ -376,6 +414,7 @@ static int do_moprc(char *macaddr, int interface)
 		fprintf(stderr, "Got unsupported MOPRC function %d\n", cmd);
 		break;
 
+		/* Got some data to display */
 	    case MOPRC_CMD_RESPONSE:
 		if (datalen >= 2)
 		{
@@ -391,10 +430,13 @@ static int do_moprc(char *macaddr, int interface)
 		}
 		break;
 
+		/* Response to our REQUESTID message means
+		   we are connected */
 	    case MOPRC_CMD_SYSTEMID:
 		if (state == STARTING)
 		{
-		    printf("Console connected (press CTRL/D when finished)\n");
+		    if (isatty(STDIN_FILENO))
+			printf("Console connected (press CTRL/D when finished)\n");
 
 		    state = CONNECTED;
 		    // TODO Check response & print server info.
@@ -405,7 +447,9 @@ static int do_moprc(char *macaddr, int interface)
 		break;
 	    }
 	}
-	if (FD_ISSET(STDIN_FILENO, &in)) // from us to Them
+
+	/* Keyboard input */
+	if (FD_ISSET(STDIN_FILENO, &in))
 	{
 	    int i;
 	    len = read(STDIN_FILENO, buf, sizeof(buf));
@@ -423,27 +467,21 @@ static int do_moprc(char *macaddr, int interface)
 		if (buf[i] == '\n') buf[i] = '\r';
 	    }
 	    waiting_ack = 1;
+	    resends = 0;
 	    send_data(buf, len, macaddr, interface);
 	}
 
-	if (state == STARTING)
-	{
-	    printf("Target does not respond\n");
-	    break;
-	}
-	else
-	{
-	    tv.tv_usec  = timeout;
-	    tv.tv_sec = 0;
-	}
-	// Reset for another select
+	/* Reset for another select */
+	tv.tv_usec  = timeout;
+	tv.tv_sec = 0;
+
 	FD_ZERO(&in);
 	FD_SET(mop_socket, &in);
 	if (!waiting_ack) FD_SET(STDIN_FILENO, &in);
-
     }
+
  finished:
-    // Send disconnect
+    /* Send disconnect */
     send_release(macaddr, interface);
 
     tcsetattr(termfd, TCSANOW, &old_term);

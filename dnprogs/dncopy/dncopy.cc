@@ -280,7 +280,14 @@ int main(int argc, char *argv[])
 		    out->perror("Error setting protection");
 		    // Non-fatal error this one.
 		}
-		if (!dntype) out->close();
+		if (!dntype)
+		{
+		    if (out->close())
+		    {
+			out->perror("Error closing output");
+			return 3;
+		    }
+		}
 
 		// Log the operation if we were asked
 		if (verbose && !dntype)
@@ -291,7 +298,11 @@ int main(int argc, char *argv[])
 			   in->get_format_name());
 
 	    }
-	    in->close();
+	    if (in->close())
+	    {
+		out->perror("Error closing input");
+		return 3;
+	    }
 	}
 	while(in->next());
     }
@@ -303,12 +314,12 @@ int main(int argc, char *argv[])
 	long centi_seconds;
 	double rate;
 	double show_secs;
-	
+
 	gettimeofday(&stop_tv, NULL);
 	centi_seconds = (stop_tv.tv_sec - start_tv.tv_sec) * 100 +
 	    (stop_tv.tv_usec - start_tv.tv_usec) / 10000;
 	show_secs = (double)centi_seconds/100.0;
-	
+
 	rate = (double)(bytes_copied/1024) / (double)centi_seconds * 100.0;
 	printf("Sent %ld bytes in %1.2f seconds: %4.2fK/s\n",
 	       bytes_copied, show_secs, rate);

@@ -78,7 +78,7 @@ class LATConnection
     bool           queued_slave;       // We are a slave connection for a queued client
     bool           eightbitclean;
     bool           connected;
-    LATConnection *master_conn;        // Client connection we are slave to
+    LATConnection **master_conn;       // Client connection we are slave to
     bool           connecting;
 
     int next_session_number();

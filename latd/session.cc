@@ -121,7 +121,7 @@ int LATSession::read_pty()
     if (credit <= 0)
     {
 	// Disable the FD so we don't start looping
-	if (!stopped) 
+	if (!stopped)
         {
             LATServer::Instance()->set_fd_state(master_fd, true);
 	    stopped = true;
@@ -130,6 +130,10 @@ int LATSession::read_pty()
 	return 0; // Not allowed!
     }
     msglen = read(master_fd, buf, max_read_size);
+    // TODO BUG:
+    // If the the PTY is closed while we are stopped then we
+    // don't notice until the remote end sends more credit...
+
 
 #ifdef REALLY_VERBOSE_DEBUGLOG
     if (msglen > 0)
@@ -243,6 +247,7 @@ int LATSession::send_data(unsigned char *buf, int msglen, int command)
 	stopped = true;
 	tcflow(master_fd, TCOOFF);
     }
+
     return 0;
 }
 

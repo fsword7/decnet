@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -134,11 +134,6 @@ int ServerSession::send_login_response()
     add_slot(buf, ptr, 0x0f, slotbuf, 0);
     add_slot(buf, ptr, 0x0f, slotbuf, 0);
 
-    slotbuf[slotptr++] = 0x0D;
-    slotbuf[slotptr++] = 0x0A;
-    slotbuf[slotptr++] = 0x0D;
-    add_slot(buf, ptr, 0x0f, slotbuf, 0);
-
     parent.queue_message(buf, ptr);
 
     return 0;
@@ -217,7 +212,7 @@ int ServerSession::create_session(unsigned char *remote_node)
     return 0;
 }
 
-/* Hopefully this will work for BSDs 
+/* Hopefully this will work for BSDs
    as well as Linux */
 #ifdef RLIMIT_NOFILE
 #  define LAT_RLIMIT_FILES RLIMIT_NOFILE
@@ -288,7 +283,7 @@ void ServerSession::execute_command(const char *command)
     argv[argc++] = NULL;
 
     // Set some environment variables.
-    // login will clear these it's true but other
+    // /bin/login will clear these it's true but other
     // services may find them useful.
     setenv("LAT_LOCAL_SERVICE", parent.get_servicename(), 1);
     setenv("LAT_REMOTE_NODE", remote_node, 1);

@@ -58,6 +58,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     queued_slave(false),
     eightbitclean(false),
     connected(false),
+    master_conn(NULL),
     role(SERVER)
 {
     memcpy(macaddr, (char *)_macaddr, 6);
@@ -80,7 +81,6 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     max_window_size = 1; // PJC All we can manage
     window_size = 0;
     lat_eco = msg->latver_eco;
-
     max_slots_per_packet = 4;
 
     memset(sessions, 0, sizeof(sessions));
@@ -101,6 +101,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     queued_slave(false),
     eightbitclean(clean),
     connected(false),
+    master_conn(NULL),
     connecting(false),
     role(CLIENT)
 {
@@ -295,7 +296,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 		    if (is_queued_reconnect(buf, len, &queued_connection))
 		    {
 			master_conn = LATServer::Instance()->get_connection(queued_connection);
-			if (!master_conn)
+			if (!(*master_conn))
 			{
 			    debuglog(("Got queued reconnect for non-existant request ID\n"));
 
@@ -309,7 +310,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 			else
 			{
 			    // Connect a new port session to it
-			    ClientSession *cs = (ClientSession *)master_conn->sessions[1];
+			    ClientSession *cs = (ClientSession *)(*master_conn)->sessions[1];
 
 			    newsessionnum = next_session_number();
 			    newsession = new QueuedSession(*this,
@@ -317,7 +318,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							 cs,
 							 slotcmd->remote_session,
 							 newsessionnum,
-							 master_conn->eightbitclean);
+							 (*master_conn)->eightbitclean);
 			    if (newsession->new_session(remnode, "","",
 							credits) == -1)
 			    {
@@ -592,10 +593,10 @@ LATConnection::~LATConnection()
     // Do we need to notify our master?
     if (queued_slave)
     {
-	ClientSession *cs = NULL;
-	if (master_conn)
-		cs = (ClientSession *)master_conn->sessions[1];
+        if((*master_conn)) {
+            ClientSession *cs = (ClientSession *)(*master_conn)->sessions[1];
 	if (cs) cs->restart_pty();
+    }
     }
     else
     {

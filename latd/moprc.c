@@ -445,6 +445,7 @@ static int do_moprc(char *macaddr, int interface)
     struct termios old_term;
     struct termios new_term;
     int            len;
+    int            last_msg_tag = 99; /* Dummy */
     int            status;
     int            timeout = 200000; /* Poll interval */
     int            waiting_ack;
@@ -516,6 +517,11 @@ static int do_moprc(char *macaddr, int interface)
 	    waiting_ack = 0;
 	    cmd = buf[2];
 	    datalen = buf[0] | buf[1] <<8;
+
+	    /* Ignore duplicates */
+	    if (last_msg_tag == buf[3])
+		continue;
+	    last_msg_tag = buf[3];
 
 	    switch (cmd)
 	    {

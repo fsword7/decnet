@@ -657,7 +657,6 @@ void del_service(int argc, char *argv[])
 	case 'p':
 	    got_port = true;
 	    strcpy(name, optarg);
-	    make_upper(name);
 	    break;
 
 	default:

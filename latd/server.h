@@ -208,7 +208,8 @@ class LATServer
     void SetResponder(bool onoff) { responder = onoff;}
     void Shutdown();
     void add_service(char *name, char *ident);
-    void remove_service(char *name);
+    bool remove_service(char *name);
+    bool remove_port(char *name);
     void set_multicast(int newtime);
     int  make_client_connection(unsigned char *, unsigned char *,
 				unsigned char *, unsigned char *, bool);

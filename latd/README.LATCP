@@ -4,7 +4,7 @@ page when it is more complete.
 latcp -s         Start latd and runs /etc/latd.conf
 latcp -h         Halt latd killing all connections
 latcp -A         Add a service, login and reverse LAT
-latcp -D         Delete a service
+latcp -D         Delete a service or a port
 latcp -j         Enable service responder (for smaller DECservers)
 latcp -J         Disable service responder
 latcp -d         Show learned and advertised services
@@ -65,11 +65,17 @@ use /dev/lat/lta1 of course! These names are just symlinks to PTYs.
 
 
 
-latcp -D <service>
+latcp -D -a <service>
 
-Delete an advertised login service. You currently cannot delete a reverse LAT service.
+Delete an advertised login service. 
+
+
+latcp -D -p /dev/lat/<name>
+
+Delete a reverse-LAT port.
 
 
 latcp -m <seconds>
 
-Set the multicast timer to <seconds>. The default is 60.
+Set the multicast timer to <seconds>. The default is 60
+

@@ -42,6 +42,7 @@ class LATConnection
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}
+    const char *getLocalPortName() { return lta_name; }
     
  private:
     int            num;           // Local connection ID

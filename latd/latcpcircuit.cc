@@ -137,8 +137,26 @@ bool LATCPCircuit::do_command()
 
 	debuglog(("latcp: del service: %s\n", name));
 
-	LATServer::Instance()->remove_service((char*)name);
-	send_reply(LATCP_ACK, "", -1);
+	if (LATServer::Instance()->remove_service((char*)name))
+	    send_reply(LATCP_ACK, "", -1);
+	else
+	    send_reply(LATCP_ERRORMSG, "Local service does not exist", -1);
+    }
+    break;
+
+    case LATCP_REMPORT:
+    {
+	unsigned char name[255];
+	int  ptr=0;
+
+	get_string((unsigned char*)cmdbuf, &ptr, name);
+
+	debuglog(("latcp: del service: %s\n", name));
+
+	if (LATServer::Instance()->remove_port((char*)name))
+	    send_reply(LATCP_ACK, "", -1);
+	else
+	    send_reply(LATCP_ERRORMSG, "Local port does not exist", -1);
     }
     break;
 

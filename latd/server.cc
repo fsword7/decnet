@@ -907,23 +907,47 @@ void LATServer::add_service(char *name, char *ident)
     send_service_announcement(-1);
 }
 
+// Remove reverse-LAT port via latcp
+bool LATServer::remove_port(char *name)
+{
+    // Search for it.
+    for (int i=1; i<MAX_CONNECTIONS; i++)
+    {
+	if (connections[i])
+	{
+	    if (connections[i]->isClient() &&
+		strcmp(connections[i]->getLocalPortName(), name) == 0)
+	    {
+		delete connections[i];
+		connections[i] = NULL;
+		return true;
+	    }
+	}
+    }
+    return false;
+}
+
+
+
 // Remove service via latcp
-void LATServer::remove_service(char *name)
+bool LATServer::remove_service(char *name)
 {
     // Only add the service if it does not already exist.
     list<serviceinfo>::iterator sii;
     sii = find(servicelist.begin(), servicelist.end(), name);
-    if (sii == servicelist.end()) return; // Does not exist
+    if (sii == servicelist.end()) return false; // Does not exist
     
     servicelist.erase(sii);
 
-    // This is ovefkill but it gets rid of the service in the known
+    // This is overkill but it gets rid of the service in the known
     // services table.
     LATServices::Instance()->remove_node(string((char*)get_local_node()));
     
     // Resend the announcement message -- this will re-add our node
     // services back into the known services list.
     send_service_announcement(-1);
+
+    return true;
 }
 
 // Change the multicast timer

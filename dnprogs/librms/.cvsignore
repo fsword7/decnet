@@ -1,9 +1,0 @@
-*.o
-*.po
-*~
-.depend
-Makefile.bak
-core
-librms*
-example
-t_example

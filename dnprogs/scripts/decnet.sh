@@ -33,14 +33,7 @@ prefix=/usr
 # address. If you do not want to do that (or don't want to do it here)
 # then remove the -hw switch from the command.
 #
-# If running on Caldera OpenLinux you may need to add the -f switch to
-# startnet to force it to change the MAC address because that
-# distribution's startup scripts UP all the interfaces before calling any
-# other scripts :-(
-#
 interfaces=""
-
-startnet="$prefix/sbin/startnet -hw $interfaces"
 
 #
 # Set up some variables.
@@ -76,7 +69,7 @@ case $1 in
      echo "$NODE" > /proc/sys/net/decnet/node_address
      CCT=`grep executor /etc/decnet.conf | awk '{print $6}'`
      echo "$CCT" > /proc/sys/net/decnet/default_device
-     $prefix/sbin/setether $NODE $CCT
+     $prefix/sbin/setether $NODE $interfaces
 
      for i in $daemons
      do

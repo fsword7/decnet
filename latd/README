@@ -5,7 +5,7 @@ features:
 - Can have multiple login services with different service ratings
 - Static and dynamic service ratings are supported
 - Provides Reverse-LAT. "devices" in /dev/lat/ can be used to connect to
-  advertised services on a DECservers or VMS/Tru64 hosts
+  advertised services on DECservers or VMS/Tru64 hosts
 - Provides queueing facility for reverse LAT ports. Useful for printers
 - Can provide a node responder service for small-memory DECservers
 - Full featured latcp control program - most internal parameters can be
@@ -33,18 +33,19 @@ This code is a clean-room reverse-engineering effort. I have no access to
 Compaq technical documentation or source code for LAT and nor do I want any.
 
 This software should work on all Linux architectures. I have tested it on
-Intel, Alpha, SPARC and PowerPC.
+Intel, Alpha, SPARC, MIPS and PowerPC.
 
-More documentation is in the file lat.html
+See the file lat.html for information on using LAT on Linux.
 
 CREDITS
 -------
-I'd very much like to thank Eduardo Serrat for providing much help, trace logs
+I'd like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
 I am also very much indebted to Real Dupeux for sending me a DECserver 200 for
-the project, in fact I use it a for reverse-LAT every day of the week to
-log in to the consoles of my VAX, Alpha, SPARC and MIPS machines.
+the project, without which is would be much impoverished. I use it a for
+reverse-LAT every day of the week to log in to the consoles of my VAX, Alpha,
+SPARC and MIPS machines.
 
 I would also like to express gratitude to ABB for providing a DECserver 90M and
 to Rob Davies for DECserver 90L+s.

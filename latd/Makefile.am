@@ -28,7 +28,6 @@ latd_SOURCES = main.cc \
 	session.h session.cc \
 	utils.h utils.cc \
 	dn_endian.h lat.h
-latd_LDADD = -lutil
 latcp_SOURCES = latcp.h latcp.cc utils.h utils.cc \
 	 dn_endian.h lat.h
 llogin_SOURCES = llogin.cc utils.cc
@@ -36,13 +35,11 @@ moprc_SOURCES = moprc.h moprc.cc interfaces.cc utils.cc
 EXTRA_DIST = $(man_MANS) WARRANTY latd.conf lat.html \
 	interfaces-linux.cc interfaces-linux.h \
 	interfaces-bpf.cc interfaces-bpf.h
-EXTRA_latd_SOURCES = @INTERFACE_SOURCE@
-EXTRA_moprc_SOURCES = $(EXTRA_latd_SOURCES)
 
-latd_DEPENDENCIES = @INTERFACE_SOURCE@
+latd_DEPENDENCIES = @INTERFACE@
 latd_LDADD = $(latd_DEPENDENCIES) @LIBUTIL@
 
-moprc_DEPENDENCIES = @INTERFACE_SOURCE@
+moprc_DEPENDENCIES = @INTERFACE@
 moprc_LDADD = $(moprc_DEPENDENCIES)
 
 llogin_LDADD = @LIBLOCKDEV@

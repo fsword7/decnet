@@ -17,5 +17,5 @@ Description: What is your DECnet node address?
  seperated with a period (eg 3.45) where the first number denotes the
  area and the second is the node within that area.
  .
- Do not make up a number here, If you do not know your DECnet node addres
+ Do not make up a number here, If you do not know your DECnet node address
  then ask your system administrator.

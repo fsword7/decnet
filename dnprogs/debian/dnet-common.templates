@@ -3,9 +3,9 @@ Type: string
 Default: linux
 _Description: DECnet node name
  All nodes on a DECnet network have a node name. This is similar to the IP
- hostname but can only be a maximum of 6 characters long. . It is common
- that the DECnet name is the same as the IP name (if your machine has one).
- If you do not know the answer to this question please contact your system
+ hostname but can only be a maximum of 6 characters long. . It is common that
+ the DECnet name is the same as the IP name (if your machine has one). If you
+ do not know the answer to this question please contact your system
  administrator.
 
 Template: dnet-common/nodeaddr
@@ -24,8 +24,8 @@ Type: note
 _Description: DECnet startup changes your ethernet hardware address
  The "setether" program in this package will change the hardware (MAC)
  address of all ethernet cards in your system (by default) to match the
- DECnet node address. This is essential for the operation of DECnet and so
- is not optional. However, if you have more than one ethernet card you may
+ DECnet node address. This is essential for the operation of DECnet and so is
+ not optional. However, if you have more than one ethernet card you may
  want to edit /etc/default/decnet to alter the list of cards whose hardware
  addresses are changed.
  .
@@ -33,8 +33,8 @@ _Description: DECnet startup changes your ethernet hardware address
  their ARP cache may no longer be able to communicate with you via IP
  protocols until this cache has timed out or been flushed.
  .
- The MAC address cannot be changed on-the-fly so you will need to reboot
- your machine before DECnet can function.
+ The MAC address cannot be changed on-the-fly so you will need to reboot your
+ machine before DECnet can function.
  .
  You should also edit /etc/decnet.conf to add the names and addresses of
  DECnet nodes you want to communicate with.

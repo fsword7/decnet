@@ -14,7 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dnprogs 2.24-1\n"
-"POT-Creation-Date: 2003-09-12 06:32+0200\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-07-09 13:38+0100\n"
 "PO-Revision-Date: 2003-09-12 18:21+0100\n"
 "Last-Translator: Christian Perrier <bubulle@debian.org>\n"
 "Language-Team: French <debian-l10n-french@lists.debian.org>\n"
@@ -22,11 +23,13 @@ msgstr ""
 "Content-Type: text/plain; charset=iso-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:4
 msgid "DECnet node name"
 msgstr "Nom de noeud DECnet"
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:4
 msgid ""
@@ -41,11 +44,13 @@ msgstr ""
 "usuellement le même que le nom IP (si votre machine en possède un). Si vous "
 "ne connaissez pas ce nom, veuillez consulter votre administrateur réseau."
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid "DECnet node address"
 msgstr "Adresse de noeud DECnet"
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid ""
@@ -57,6 +62,7 @@ msgstr ""
 "de deux nombres séparés par un point (p. ex. 3.45) où le premier nombre "
 "correspond à la zone et le second représente le noeud au sein de cette zone."
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid ""
@@ -67,11 +73,13 @@ msgstr ""
 "votre adresse de noeud DECnet, veuillez consulter votre administrateur "
 "réseau."
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid "DECnet startup changes your ethernet hardware address"
 msgstr "Le démarrage de DECnet va modifier votre adresse matérielle Ethernet"
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -90,6 +98,7 @@ msgstr ""
 "devriez modifier /etc/default/decnet pour changer la liste des cartes dont "
 "l'adresse matérielle sera modifiée."
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -101,6 +110,7 @@ msgstr ""
 "son cache ARP ne pourra plus communiquer avec vous via les protocoles IP "
 "tant que ce cache n'aura pas expiré ou été vidé."
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -110,6 +120,7 @@ msgstr ""
 "L'adresse matérielle ne peut pas être modifiée à la volée et vous devrez "
 "donc redémarrer votre machine avant de pouvoir utiliser DECnet."
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""

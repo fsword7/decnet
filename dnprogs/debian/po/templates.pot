@@ -11,12 +11,11 @@
 #
 #    Developers do not need to manually edit POT or PO files.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2003-09-12 06:32+0200\n"
+"POT-Creation-Date: 2004-07-09 13:38+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -24,11 +23,13 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:4
 msgid "DECnet node name"
 msgstr ""
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:4
 msgid ""
@@ -39,11 +40,13 @@ msgid ""
 "administrator."
 msgstr ""
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid "DECnet node address"
 msgstr ""
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid ""
@@ -52,6 +55,7 @@ msgid ""
 "and the second is the node within that area."
 msgstr ""
 
+#. Type: string
 #. Description
 #: ../dnet-common.templates:14
 msgid ""
@@ -59,11 +63,13 @@ msgid ""
 "then ask your system administrator."
 msgstr ""
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid "DECnet startup changes your ethernet hardware address"
 msgstr ""
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -75,6 +81,7 @@ msgid ""
 "addresses are changed."
 msgstr ""
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -83,6 +90,7 @@ msgid ""
 "protocols until this cache has timed out or been flushed."
 msgstr ""
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""
@@ -90,6 +98,7 @@ msgid ""
 "machine before DECnet can function."
 msgstr ""
 
+#. Type: note
 #. Description
 #: ../dnet-common.templates:24
 msgid ""

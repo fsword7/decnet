@@ -3,14 +3,13 @@ BUGS
 
 fal
   Reports of problems with FAL on DECnet/E. I'm sending too many ACKS again.
+  Also odd problems on RSX11M, maybe the same.
 
 phone:
   Race condition in ANSWER where you can get the message "no-one is calling
   you now" when there is. Only happens with "phone answer" on the shell
   command line. Only happens rarely (to me!)
 
-ctermd: 
-  DEL key not recognised.
-  In fact line-editting doesn't work at all. This is quite a large problem
-  ...I need volunteers for this.
-
+sethost
+  line-editting needs adding - rewrite as dnlogin started.
+  problem with sethost->VMS then set host to VMS again. maybe echo troubles

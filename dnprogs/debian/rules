@@ -10,7 +10,7 @@ build:
 
 clean:
 	$(checkdir)
-	#-rm -f build
+	-rm -f build
 	-make clean
 	-rm -f `find . -name "*~"`
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
@@ -52,7 +52,6 @@ binary-arch: checkroot build
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	mv debian/tmp/usr/sbin/startnet debian/tmp/sbin
-	ln -sf libdnet.so.2 debian/tmp/usr/lib/libdnet.so.1
 	dh_testversion 2
 	dh_installdirs
 	dh_installchangelogs

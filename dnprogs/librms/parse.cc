@@ -73,8 +73,23 @@ struct types
     {NULL, 0} // End of the list
 };
 
+/* I really hate having to do this but I don't think there's any other way 
+   around it. Because of the odd way in which PPC defines a va_list it does
+   not seem to be possible to pass it around in such as way as it can be 
+   modified so th edefinition here actually BREAKS the code on PPC - any 
+   attempt to use extended args on a PPC machine will core dump.
+
+   Given the number of people who need to use this feature of this library
+   with DECnet on a PPC is unlikely to be >0 I'm only going to worry about this
+   if anyone sends me a bug report stating they actually want to use it.
+*/
+#if defined (__PPC__) && (defined (_CALL_SYSV) || defined (_WIN32))
+static bool get_item(char *options, unsigned int &option_ptr,
+		     char *key, char *value, va_list ap)
+#else
 static bool get_item(char *options, unsigned int &option_ptr,
 		     char *key, char *value, va_list &ap)
+#endif
 {
     // We've reached the end.
     if (option_ptr+4 >= strlen(options)) return false;
@@ -188,7 +203,8 @@ static bool get_item(char *options, unsigned int &option_ptr,
 // Options consist of a set of comma separated key=value pairs. If the
 // value contains a space it must be surrounded by double quotes. If it
 // contains a double quote then it must be doubled up or in single quotes.
-bool parse_options(RMSHANDLE h, char *options, struct FAB *fab, struct RAB *rab, va_list ap)
+bool parse_options(RMSHANDLE h, char *options, struct FAB *fab, 
+		   struct RAB *rab, va_list ap)
 {
     unsigned int option_ptr = 0;
     char key[4];     // All option names are 3 letters

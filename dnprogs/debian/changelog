@@ -1,3 +1,9 @@
+dnprogs (2.24-1) unstable; urgency=low
+
+  * support for large files.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri,  6 Jun 2003 12:03:39 +0100
+
 dnprogs (2.23.2-1) unstable; urgency=low
 
   * Always return 0 from init scripts in case someone installs DECnet

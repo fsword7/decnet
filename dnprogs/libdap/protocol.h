@@ -877,7 +877,8 @@ class dap_date_message: public dap_message
 	rdt(18),
 	edt(18),
 	rvn(2),
-	bdt(18)
+	bdt(18),
+	udt(18) // Ultrix date
 	{msg_type = DATE;}
 
     virtual bool read(dap_connection&);
@@ -887,11 +888,13 @@ class dap_date_message: public dap_message
     char *get_rdt();
     char *get_edt();
     char *get_bdt();
+    char *get_udt();
 
     time_t get_cdt_time();
     time_t get_rdt_time();
     time_t get_edt_time();
     time_t get_bdt_time();
+    time_t get_udt_time();
     int    get_rvn();
 
     void set_cdt(time_t);
@@ -909,9 +912,10 @@ class dap_date_message: public dap_message
     dap_bytes rdt;
     dap_bytes edt;
     dap_bytes rvn;
-    dap_bytes bdt; // backup date is not mentinoed in the DAP spec but
+    dap_bytes bdt; // backup date is not mentioned in the DAP spec but
                    // it exists in real life I promise you.
-
+    dap_bytes udt; // Gah! another one. This one from Ultrix
+    
     char *time_to_string(time_t);
     time_t string_to_time_t(const char *);
 

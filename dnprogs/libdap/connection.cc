@@ -232,7 +232,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
 
     memcpy(accessdata.acc_user, user, strlen(user));
     memcpy(accessdata.acc_pass, password, strlen(password));
-    memcpy(s.sdn_add.a_addr, binadr->n_addr, 6);
+    memcpy(s.sdn_add.a_addr, binadr->n_addr, sizeof(s.sdn_add.a_addr));
 
     // Try very hard to get the local username for proxy access
     char *local_user = getlogin();
@@ -653,6 +653,16 @@ char *dap_connection::get_error()
 int dap_connection::get_length()
 {
     return buflen-bufptr;
+}
+
+// Called in dire emergencies. Usually when the caller wants to send
+// a response to an unexpected message from the remote end (eg. I ran out of
+// disk space so stop sending)
+void dap_connection::clear_output_buffer()
+{
+    if (verbose > 2) DAPLOG((LOG_INFO, "Output buffer cleared\n"));
+    outbufptr = 0;
+    last_msg_start = 0;
 }
 
 

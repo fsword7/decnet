@@ -1617,6 +1617,12 @@ bool dap_date_message::read(dap_connection &c)
     if (datmenu.get_bit(2) && !edt.read(c)) return false;
     if (datmenu.get_bit(3) && !rvn.read(c)) return false;
     if (datmenu.get_bit(4) && !bdt.read(c)) return false;
+
+// Bit 6 is the Ultrix changed date but I don't know what bit 5 is.
+// Since we don't use either date I'll just dump them both in the same 
+// place for now (and hope they are both in the same format!)
+    if (datmenu.get_bit(5) && !udt.read(c)) return false;
+    if (datmenu.get_bit(6) && !udt.read(c)) return false;
     return true;
 }
 
@@ -1640,6 +1646,11 @@ char *dap_date_message::get_bdt()
     return bdt.get_string();
 }
 
+char *dap_date_message::get_udt()
+{
+    return bdt.get_string();
+}
+
 time_t dap_date_message::get_cdt_time()
 {
     return string_to_time_t(edt.get_string());
@@ -1655,8 +1666,12 @@ time_t dap_date_message::get_edt_time()
     return string_to_time_t(edt.get_string());
 }
 
-
 time_t dap_date_message::get_bdt_time()
+{
+    return string_to_time_t(bdt.get_string());
+}
+
+time_t dap_date_message::get_udt_time()
 {
     return string_to_time_t(bdt.get_string());
 }
@@ -1700,6 +1715,8 @@ char *dap_date_message::time_to_string(time_t t)
     static char d[25];
     struct tm tm = *localtime(&t);
 
+// This causes a warning because of the 2-digit year but
+// it's what DAP requires!
     strftime(d, sizeof(d), "%d-%b-%y %H:%M:%S", &tm);
 
 // Convert the month to uppercase (strftime makes the last two letters lower)
@@ -1714,7 +1731,7 @@ time_t dap_date_message::string_to_time_t(const char *d)
     struct tm tm;
     char month[5];
 
-    sscanf(d, "%d-%s-%d %d:%d:%d", 
+    sscanf(d, "%d-%3s-%d %d:%d:%d", 
 	   &tm.tm_mday, month,      &tm.tm_year, 
 	   &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
 
@@ -1737,20 +1754,43 @@ char *dap_date_message::make_y2k(char *dt)
 {
     static char y2kdate[25];
     int year;
+    int timepos;
 
-    strcpy(y2kdate, dt);
+    strcpy(y2kdate, dt);   
     
-    year = (dt[7]-'0')*10 + dt[8]-'0';
-    if (year >= 70) 
-	year += 1900;
+// Workaround for Y2K bug in Ultrix:
+// Dates come back as three digits with 2000 as 100
+    if (dt[9] == ' ') 
+    {
+	// Correct behaviour
+	year = (dt[7]-'0')*10 + dt[8]-'0';
+	if (year >= 70) 
+	    year += 1900;
+	else
+	    year += 2000;
+	timepos = 7;
+    }
     else
-	year += 2000;
+    {
+	// Broken behaviour
+	year = (dt[7]-'0')*100 + (dt[8]-'0')*10 + dt[9]-'0';
+	if (year >= 70) 
+	    year += 1900;
+	else
+	    year += 2000;
+	timepos = 8;
+    }
 
     char yearstr[5];
     sprintf(yearstr, "%04d", year);
     y2kdate[7] = '\0';
     strcat(y2kdate, yearstr);
-    strcat(y2kdate, dt+9);
+    strcat(y2kdate, dt+timepos+2);
+
+    // Because the year is 3 digits on broken Ultrix, the seconds
+    // are truncated to 1 digit. Add a trailing zero so they look nice.
+    if (timepos == 8)
+	strcat(y2kdate, "0");
 
     return y2kdate;
 }

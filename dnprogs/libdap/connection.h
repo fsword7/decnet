@@ -46,6 +46,7 @@ class dap_connection
     int  get_fd() { return sockfd; }
     int  get_remote_os() { return remote_os; };
     bool exchange_config();
+    void clear_output_buffer();
     
 // Static utility functions
     static void makelower(char *s);

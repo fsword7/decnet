@@ -50,7 +50,7 @@ struct	handler_maintained_characteristics
 					    1,FALSE,FALSE};
 unsigned char			char_attr[256];
 
-unsigned char			*nodename,inpbuf[132],buf[1000],
+unsigned char			*nodename,inpbuf[132],buf[1600],
 				ahead[32];
 short				bufptr,blklen,cnt;
 static int			sockfd, ttyfd;
@@ -73,6 +73,8 @@ unsigned char escbuf[32];
 static int      debug=0; /*ed*/
 unsigned char tty; /*moved from dterm_bind_reply ed*/
 static int htype; /*ed*/
+
+static void (*kb_handler)(int);
 
 /* Routines in this program:
 static void usage(char *prog, FILE *f)
@@ -287,24 +289,24 @@ static void ct_input_proc (char car)
 		return;
 	}
 /*
-	if ((zz == 2 ) && (car == ESC) && (han_char.input_escseq_recognition)) 
+	if ((zz == 2 ) && (car == ESC) && (han_char.input_escseq_recognition))
 */
 	if (car == ESC)
 		escseq=TRUE;
-	if (!escseq) 
+	if (!escseq)
 		ct_echo_input_char(&car);
-	
+
 	inpbuf[inpptr++]=car;
 	inpcnt += 1;
 	if (inpcnt == max_len) ct_terminate_read(4);
 	if (escseq)
 	{
 		esclen += 1;
-		
+
 		if (escseq_terminator(car))  ct_terminate_read(1);
 		return;
 	}
-	if (zz==2) 
+	if (zz==2)
 	{
 		if  (car < 0x1B)
 		ct_terminate_read(0);
@@ -322,13 +324,13 @@ static int	ct_out_of_band (int car)
 	if (debug == 2) { printf(" Entered static int ct_out_of_band...\n");}
 
 	if (flavor != CTERM) return 0;
-	
+
 	oo=char_attr[car] & 0x03;
 	i =(char_attr[car] & 0x04) >> 2;
 	d =(char_attr[car] & 0x08) >> 3;
 	ee=(char_attr[car] & 0x30) >> 4;
 	f =(char_attr[car] & 0x40) >> 6;
-	
+
 	if (oo==0) return 0;
 	msg[5]=d;
 	msg[6]=car;
@@ -348,10 +350,10 @@ static int	ct_out_of_band (int car)
 		aheadcnt=rptr=wptr=wrpflg=0;
 	if (oo==3)
 		redisplay=TRUE;
-	if ((oo==3) && (i==1)) return 0; 
-	
+	if ((oo==3) && (i==1)) return 0;
+
 	return 1;
-	
+
 }
 /*-------------------------------------------------------------------------*/
 /*-------------------------------------------------------------------------*/
@@ -365,7 +367,7 @@ static void	ct_setup(void)
 
 	for (i=0; i < 32; i++) term_tab[i]=0;
 	for (i=0; i < 256; i++) char_attr[i]=0;
-	
+
 
 	if ( (np=getnodebyname(nodename)) == NULL)
 	{
@@ -556,7 +558,7 @@ static void	ct_setup_link(void)
 		exit(-1);
 	}
 
-	if ( (cnt=read(sockfd,buf,sizeof(buf))) < 0)
+	if ( (cnt=dnet_recv(sockfd, buf, sizeof(buf), MSG_EOR)) < 0)
 	{
 		int status = 0;
 		/* try to do it the old way */
@@ -596,7 +598,7 @@ static void	ct_setup_link(void)
 			exit(-1);
 		}
 
-		if ( (cnt=read(sockfd,buf,sizeof(buf))) < 0)
+		if ( (cnt=dnet_recv(sockfd,buf,sizeof(buf),MSG_EOR)) < 0)
 		{
 			printf("ct_setup_link: error receiving bind from host\n");
 			exit(-1);
@@ -649,7 +651,7 @@ static void	ct_setup_link(void)
 			exit(-1);
 		}
 
-		if ( (cnt=read(sockfd,buf,sizeof(buf))) < 0)
+		if ( (cnt=dnet_recv(sockfd,buf,sizeof(buf),MSG_EOR)) < 0)
 		{
 			printf("ct_setup_link: error receiving initiate/host\n");
 			exit(-1);
@@ -694,7 +696,7 @@ static void	ct_init_term(void)
 	raw.c_lflag &= ~(ICANON | ISIG | ECHO);
 	raw.c_cc[4] = 1;
 	raw.c_cc[5] = 2;
-	
+
 	if ( ioctl(ttyfd,TCSETA,&raw) < 0)
 	{
 		perror("ioctl TCSETA");
@@ -706,12 +708,7 @@ static void	ct_init_term(void)
 		ct_reset_term();
 		exit(-1);
 	}
-	if ( (fcntl(ttyfd,F_SETFL,savflgs|FASYNC)) < 0)
-	{
-		perror("setflg");
-		ct_reset_term();
-		exit(-1);
-	}
+
 }
 /*-------------------------------------------------------------------------*/
 
@@ -725,7 +722,7 @@ static void ct_preinput_proc(int x)
 
 	cntx=read(ttyfd,&buf,80);
 	for (i=0; i < cntx; i++)
-	{	
+	{
 		c=buf[i];
 		if (c==exit_char)
 		{
@@ -741,7 +738,7 @@ static void ct_preinput_proc(int x)
 			case CTRL_X:	wptr = rptr = wrpflg = 0;
 					break;
 			case CTRL_O:	discard = ~discard;
-					if (discard) 
+					if (discard)
 					   write(ttyfd,"\n*output off*\n",14);
 					else
 					   write(ttyfd,"\n*output on*\n",13);
@@ -752,7 +749,7 @@ static void ct_preinput_proc(int x)
 					break;
 			default:
 					if (ct_out_of_band(c)) break;
-					if (read_present) 
+					if (read_present)
 					{
 						ct_input_proc(c);
 						if (q) alarm(timeout);
@@ -762,8 +759,7 @@ static void ct_preinput_proc(int x)
 					       	  write(ttyfd,&BELL,1);
 		}
 	}
-	signal(SIGIO,ct_preinput_proc);	/* re-establish itself     */
-} 
+}
 /*-------------------------------------------------------------------------*/
 static void rsts_preinput_proc(int x)
 {
@@ -774,7 +770,7 @@ static void rsts_preinput_proc(int x)
 
 	cntx=read(ttyfd, &buf[4], 80);
 	for (i=0; i < cntx; i++)
-	{	
+	{
 		c=buf[i + 4];
 		if (c==exit_char)
 		{
@@ -798,8 +794,7 @@ static void rsts_preinput_proc(int x)
 		ct_reset_term();
 		exit(-1);
 	}
-	signal(SIGIO, rsts_preinput_proc);	/* re-establish itself     */
-} 
+}
 /*-------------------------------------------------------------------------*/
 static void rsx_preinput_proc(int x)
 {       if (debug == 2) { printf(" Entered static void rsx_preinput_proc...\n");}
@@ -816,7 +811,7 @@ static void tops_preinput_proc(int x)
 
 	cntx=read(ttyfd, &buf, 80);
 	for (i=0; i < cntx; i++)
-	{	
+	{
 		c=buf[i];
 		if (c==exit_char)
 		{
@@ -835,8 +830,7 @@ static void tops_preinput_proc(int x)
 		ct_reset_term();
 		exit(-1);
 	}
-	signal(SIGIO, tops_preinput_proc);	/* re-establish itself     */
-} 
+}
 /*-------------------------------------------------------------------------*/
 static void ct_print_char(char *c)
 {       if (debug == 2) { printf(" Entered static void ct_print_char...\n");}
@@ -900,37 +894,37 @@ static void ct_read_req(void)
 
 	bufptr  += 1;
 	flg=buf[bufptr];
-	
+
 	ee  = (flg & 0x03);
 	bufptr += 1;				/* Point to next char */
 
 	p=(void *)&buf[bufptr];
 	max_len=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 
 	p=(void *)&buf[bufptr];
 	end_of_data=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 
 	p=(void *)&buf[bufptr];
 	timeout=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 
 	p=(void *)&buf[bufptr];
 	end_of_prompt=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 
 	p=(void *)&buf[bufptr];
 	start_of_display=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 
 	p=(void *)&buf[bufptr];
 	low_water=dn_ntohs(*p);
-	bufptr += 2;	
+	bufptr += 2;
 	termlen = buf[bufptr];
 	bufptr += 1;
 	procnt=17;
-	for (i=0; i < termlen; i++) 
+	for (i=0; i < termlen; i++)
 	{
 		term_tab[i]=buf[bufptr];
 		bufptr += 1;
@@ -994,7 +988,7 @@ static void ct_write_req(void)
 	qq = (flgs & 0x300) >> 8;
 	s  = (flgs & 0x400) >> 10;
 	t  = (flgs & 0x800) >> 11;
-	
+
 	prefix = buf[bufptr];
 	bufptr += 1;
 	postfix = buf[bufptr];
@@ -1007,7 +1001,7 @@ static void ct_write_req(void)
 	else lockflg=TRUE;
 
 	if (d) discard=FALSE;
-	if (pp==1) 
+	if (pp==1)
 	{
 		for (i=0; i < pp; i++) ct_print_char(&lf);
 	}
@@ -1020,8 +1014,8 @@ static void ct_write_req(void)
 		bufptr += 1;
 		procnt += 1;
 		ct_print_char(&c);
-	}		
-	if (qq==1) 
+	}
+	if (qq==1)
 	{
 		for (i=0; i < qq; i++) ct_print_char(&lf);
 	}
@@ -1080,7 +1074,7 @@ static void ct_readchar_req(void)
 		if ((selector & 0x300) == 0x000) /* Physical Charac	*/
 		{
         if (debug == 2) { printf(" ct_readchar_req...Phys char!\n");}
-		   switch (selector & 0xFF)	
+		   switch (selector & 0xFF)
 		   {
 			case 0x01:	/* Input speed			*/
 					p=(void *)&outbuf[ouptr];
@@ -1211,7 +1205,7 @@ static void ct_readchar_req(void)
 					procnt += 2;
 					bufptr += 2;
 					break;
-					
+
 			case 0x02:	/* Terminal attributes		*/
 					p=(void *)&outbuf[ouptr];
 					set_short(p,0x0102);
@@ -1642,41 +1636,41 @@ static void ct_read_pkt(void)
 {
 	fd_set	rdfs;
 	int	retval;
-	long	numbytes;
         if (debug == 2) { printf(" Entered static void ct_read_pkt...\n");}
 
 	do {
 		FD_ZERO(&rdfs);
 		FD_SET(sockfd,&rdfs);
-		retval=select(sockfd+1,&rdfs,NULL,NULL, NULL); 
-	} while (retval <= 0); 
+		FD_SET(ttyfd,&rdfs);
+		retval=select(FD_SETSIZE,&rdfs,NULL,NULL, NULL);
+	} while (retval <= 0);
 
-	ioctl(sockfd,FIONREAD,&numbytes);
-	cnt=read(sockfd,buf,numbytes);
-	if (cnt <= 0)
+
+	if (FD_ISSET(sockfd, &rdfs))
 	{
+	    cnt=dnet_recv(sockfd,buf,sizeof(buf),MSG_EOR);
+	    if (cnt <= 0)
+	    {
 		unbind = TRUE;
 		return;
-	}
-/*
-	if ( (cnt=read(sockfd,buf,sizeof(buf))) < 0)
-	{
-		perror("read pkt");
-		ct_reset_term();
-		exit(-1);
-	}
-*/
-	if (flavor == CTERM)
-	{
+	    }
+	    if (flavor == CTERM)
+	    {
 		if (buf[0] == 0x09) bufptr = 2;
 		if ( (cnt==3) && (buf[0] == 0x02)) unbind = TRUE;
-	}
-	else
-	{
+	    }
+	    else
+	    {
 		if (cnt == 0)
-			unbind = TRUE;
+		    unbind = TRUE;
 		bufptr = 0;
+	    }
 	}
+      	if (FD_ISSET(ttyfd, &rdfs))
+	{
+	    kb_handler(0);
+	}
+
 }
 /*-------------------------------------------------------------------------*/
 static void proc_rsts_pkt(void)
@@ -1704,7 +1698,7 @@ static void proc_rsts_pkt(void)
 			ct_reset_term();
 			exit(-1);
 		}
-		write(ttyfd, buf + 4, data_cnt);	
+		write(ttyfd, buf + 4, data_cnt);
 	}
 	bufptr = cnt;
 }
@@ -1726,7 +1720,7 @@ static void proc_cterm_pkt (void)
 {       if (debug == 2) { printf(" Entered static void proc_cterm_pkt...\n");}
 
 	blklen=buf[bufptr] | (buf[bufptr+1]<<8);
-	bufptr += 2;	
+	bufptr += 2;
 	switch(buf[bufptr])
 	{
 	case 0x02:		/* Start Read 		*/
@@ -1789,7 +1783,7 @@ int main(int argc, char *argv[])
 {
     struct sigaction sa;
     sigset_t ss;
-    
+
     int verbosity;
     /*int debug = 0;*/
     char log_char = 'l';
@@ -1801,9 +1795,9 @@ int main(int argc, char *argv[])
     optind = 0;
     while ((opt=getopt(argc,argv,"?Vhdte:")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(argv[0], stdout);
 	    exit(0);
 
@@ -1833,14 +1827,14 @@ int main(int argc, char *argv[])
     if (optind >= argc)
     {
 	usage(argv[0], stderr);
-	exit(2);   
+	exit(2);
     }
 
     nodename = argv[optind];
-    
-    ct_setup();				/* Resolve remote node addr*/	
+
+    ct_setup();				/* Resolve remote node addr*/
     /* ct_setup_link may use "cooked" to send terminal characteristics
-     * to the other end 
+     * to the other end
      */
     if ( ioctl(ttyfd,TCGETA,&cooked) < 0)
     {
@@ -1848,9 +1842,9 @@ int main(int argc, char *argv[])
 	    exit(-1);
     }
     ct_setup_link();			/* Setup link		   */
-    
+
     ct_init_term();				/* Set terminal in raw mode*/
-    
+
     sigemptyset(&ss);
     if (debug == 1)
     {
@@ -1859,32 +1853,26 @@ int main(int argc, char *argv[])
     switch (flavor)
     {
     case CTERM:
-	    sa.sa_handler = ct_preinput_proc;
+	    kb_handler = ct_preinput_proc;
 	    break;
     case RSTS:
-	    sa.sa_handler = rsts_preinput_proc;
-	    break; 
+	    kb_handler = rsts_preinput_proc;
+	    break;
     case RSX:
-	    sa.sa_handler = rsx_preinput_proc;
+	    kb_handler = rsx_preinput_proc;
 	    break;
     case TOPS20:
-	    sa.sa_handler = tops_preinput_proc;
+	    kb_handler = tops_preinput_proc;
 	    break;
     case VMS:
 	    /* keep the compiler happy by mentioning this case */
 	    break;
     }
-    sa.sa_mask  = ss;
-    sa.sa_flags = 0;
-    sigaction(SIGIO, &sa, NULL);            /* Setup SIGIO Handler for */
-    /*  keyboard input         */
-    sa.sa_handler=ct_timeout_proc;
-    sigaction(SIGALRM, &sa, NULL);
     alarm(0);
-    
+
     ct_proc_pkt();				/* Process input packets   */
-    
+
     ct_reset_term();
-    
+
     return 0;
 }

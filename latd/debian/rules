@@ -17,6 +17,8 @@ clean:
 	-rm -f `find . -name "*~"`
 	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
 	-rm -f debian/*substvars
+	-rm -rf BUILD RPMS .deps
+	-rm -f config.status
 	dh_clean -k
 
 binary-indep: checkroot build

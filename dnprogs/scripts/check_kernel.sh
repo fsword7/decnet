@@ -48,7 +48,7 @@ then
   echo
   echo You can still compile the programs without the kernel available by
   echo typing the command \'make please\' but be aware that some of the
-  echo programs may not work echo correctly or at all if you do this so make 
+  echo programs may not work correctly or at all. If you do this so make 
   echo sure you know what you are doing.
   echo
   return 1

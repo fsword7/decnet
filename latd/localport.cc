@@ -80,9 +80,11 @@ void LocalPort::init_port()
 
     debuglog(("openpty: master_fd=%d, slave_fd=%d\n", master_fd, slave_fd));
 
-    // Send a request for the service if we are queued so that
+    // For ports with no service name (ie on DS90L servers)
+    // send a request for the service if we are queued so that
     // by the time the user comes to use this port, we know about it.
-    LATServer::Instance()->send_enq((unsigned char *)remnode.c_str());
+    if (service == "")
+	LATServer::Instance()->send_enq((unsigned char *)remnode.c_str());
 
     // Set terminal characteristics
     struct termios tio;
@@ -128,7 +130,6 @@ void LocalPort::init_port()
 
 LocalPort::~LocalPort()
 {
-    close_and_delete();
 }
 
 void LocalPort::close_and_delete()

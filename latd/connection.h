@@ -68,6 +68,7 @@ class LATConnection
     unsigned char  servicename[255];
     unsigned char  portname[255];
     unsigned char  remnode[255];
+    unsigned long  last_time;
     LATSession    *sessions[256];
 
     unsigned char  last_sent_sequence; // Last sequence number we sent

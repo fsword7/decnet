@@ -52,6 +52,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     keepalive_timer(0),
     last_sequence_number(_ack),
     last_ack_number(_seq),
+    last_time(0L),
     queued_slave(false),
     eightbitclean(false),
     connected(false),
@@ -96,6 +97,7 @@ LATConnection::LATConnection(int _num, const char *_service,
     keepalive_timer(0),
     last_sequence_number(0xff),
     last_ack_number(0xff),
+    last_time(0L),
     queued(queued),
     queued_slave(false),
     eightbitclean(clean),
@@ -602,25 +604,39 @@ int LATConnection::next_session_number()
 void LATConnection::circuit_timer(void)
 {
 
-    // Increment keepalive timer - timer is measured in the same units
-    // as the circut timer(100ths/sec) but the keepalive timer in the Server
-    // is measured in seconds.
+    // Increment keepalive timer and trigger it if we are getting too close.
+    // Keepalive time is help in milli-seconds.
 
     // Of course, we needn't send keepalive messages when we are a
     // disconnected client.
     if (role == SERVER ||
 	(role == CLIENT && connected))
     {
-	keepalive_timer += LATServer::Instance()->get_circuit_timer();
-	if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
+	struct timeval tv;
+	long time_in_msec;
+
+	// Initialise last_time for the first time
+	if (last_time == 0)
+	{
+	    gettimeofday(&tv, NULL);
+	    last_time = tv.tv_sec*1000 + tv.tv_usec/1000;
+	}
+
+	gettimeofday(&tv, NULL);
+	time_in_msec = tv.tv_sec*1000 + tv.tv_usec/1000;
+
+	keepalive_timer += time_in_msec - last_time;
+	last_time = time_in_msec;
+
+	if (keepalive_timer > (LATServer::Instance()->get_keepalive_timer()-1)*1000 )
 	{
 	    // Send an empty message that needs an ACK.
 	    // If we don't get a response to this then we abort the circuit.
 	    debuglog(("keepalive timer expired: %d: limit: %d\n", keepalive_timer,
-		      LATServer::Instance()->get_keepalive_timer()*100));
+		      LATServer::Instance()->get_keepalive_timer()*1000));
 
 	    // If we get into this block then there is no chance that there is
-	    // an outstanding ack (or if there is then it's all gone horribly wrong anyway
+	    // an outstanding ack (or if there is then it's all gone horribly wrong anyway)
 	    // so it's safe to just send a NULL message out.
 	    // If we do exqueued properly this may need revisiting.
 	    unsigned char replybuf[1600];
@@ -634,7 +650,7 @@ void LATConnection::circuit_timer(void)
 	    reply->slot.cmd            = 0;
 
 	    if (role == CLIENT) reply->header.cmd = LAT_CCMD_SESSION | 2;
-
+	    window_size = 0;
 	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
 	    return;
 	}

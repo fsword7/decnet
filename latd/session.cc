@@ -139,7 +139,7 @@ int LATSession::read_pty()
 	buf[10] = tmp;
     }
 #else
-    debuglog(("Session %d From PTY(%d)\n", local_session, msglen));
+//    debuglog(("Session %d From PTY(%d)\n", local_session, msglen));
 #endif
 
     // EOF or error on PTY - tell remote end to disconnect

@@ -247,7 +247,8 @@ int main(int argc, char *argv[])
     int cmd;
     int ret;
     ret = read_reply(latcp_socket, cmd, result, len);
-    if (ret) return ret;
+    if (ret)
+	return ret;
 
     // If the reply was good then go into terminal mode.
     terminal(latcp_socket, quit_char, crlf, bsdel, lfvt);
@@ -374,7 +375,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 	    break;
 	}
 
-	// Read from keyboard. One at a time
+	// Read from keyboard
 	if (FD_ISSET(termfd, &in_set))
 	{
 	    int len;

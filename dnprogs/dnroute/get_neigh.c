@@ -241,6 +241,8 @@ int main(int argc, char **argv)
     if (!no_daemon)
     {
 	pid_t pid;
+	int devnull;
+
 	switch ( pid=fork() )
 	{
 	case -1:
@@ -256,7 +258,7 @@ int main(int argc, char **argv)
 	}
 
 	// Detach ourself from the calling environment
-	int devnull = open("/dev/null", O_RDWR);
+	devnull = open("/dev/null", O_RDWR);
 	close(0);
 	close(1);
 	close(2);

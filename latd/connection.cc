@@ -754,8 +754,11 @@ int LATConnection::connect()
 	msg->modifier    = 1; // Send status periodically
 
 	add_string(buf, &ptr, remnode);
-	buf[ptr++] = 1; // Groups length
-	buf[ptr++] = 1; // Groups. TODO this properly.
+	
+	buf[ptr++] = 32; // Groups length
+	memcpy(buf + ptr, LATServer::Instance()->get_user_groups(), 32);
+	ptr += 32;
+	    
 	add_string(buf, &ptr, LATServer::Instance()->get_local_node());
 	buf[ptr++] = 0; // ASCIC source port
 	add_string(buf, &ptr, (unsigned char *)"LAT for Linux");

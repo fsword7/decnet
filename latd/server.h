@@ -48,6 +48,7 @@ class LATServer
     void  send_connect_error(int reason, LAT_Header *msg, unsigned char *macaddr);
     bool  is_local_service(char *);
     LATConnection *get_connection(int id) { return connections[id]; }
+    const unsigned char *get_user_groups() { return user_groups; }
     
  private:
     LATServer():

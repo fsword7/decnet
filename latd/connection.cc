@@ -710,7 +710,7 @@ int LATConnection::connect()
 	    debuglog(("Can't find service %s\n", servicename));
 	    // Tell the user
 	    ClientSession *cs = (ClientSession *)sessions[1];
-	    cs->disconnect_session(7);
+	    if (cs) cs->disconnect_session(7);
 	    return -2; // Never eard of it!
 	}
 	strcpy((char *)remnode, node.c_str());

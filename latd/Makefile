@@ -1,6 +1,6 @@
 # Makefile for LAT server
 
-VERSION=1.0
+VERSION=1.01
 PKGNAME=latd
 
 
@@ -29,17 +29,6 @@ CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exc
 ifdef DESTDIR
 prefix=$(DESTDIR)/usr
 endif
-
-
-# Look for libdnet and use it if it's there. Unless we are building a
-# release package in which case don't use it at all.
-ifndef RELEASE
-ifeq (/usr/lib/libdnet.a,$(wildcard /usr/lib/libdnet.a))
-DEFS+=-DHAVE_LIBDNET
-LIBDNET=-ldnet
-endif
-endif
-
 
 # For a released binary, make it portable and optimised
 ifdef RELEASE

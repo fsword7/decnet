@@ -1,11 +1,8 @@
 TODO in no particular order
 ----
-
+- Find out why sending BREAKs can crash a DS90M (and fix it)
 - Update to Debian policy 2.5.9 (see section 11.1 on DEB_BUILD_OPTIONS)
 - support limited reverse LAT connections (command-line already there)
-- Test service responder.
-- Find out we send so many more packets than Tru64. Probably related 
-  to the second item below.
 
 THINGS I MAY NOT DO
 -------------------

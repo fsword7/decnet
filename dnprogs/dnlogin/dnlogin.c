@@ -36,6 +36,7 @@
 static int termfd = -1;
 static int exit_char = 035; /* Default to ^] */
 static int finished = 0;    /* terminate mainloop */
+
 int debug = 0;
 
 
@@ -47,7 +48,43 @@ static char prompt_buf[1024];
 static char prompt_len;
 static char esc_buf[132];
 static int  esc_len;
+static int  max_read_len = sizeof(input_buf);
+static int  echo = 1;
 
+/* Raw write to terminal */
+int tty_write(char *buf, int len)
+{
+    return (write(termfd, buf, len) == len);
+}
+
+void tty_set_terminators(char *buf, int len)
+{
+    memset(terminators, 0, sizeof(terminators));
+    memcpy(terminators, buf, len);
+}
+
+void tty_start_read(char *prompt, int len, int promptlen)
+{
+    write(termfd, prompt, len);
+
+    /* Save the actual prompt in one buffer and the prefilled
+       data in th input buffer */
+    memcpy(prompt_buf, prompt, promptlen);
+    prompt_len = promptlen;
+
+    memcpy(input_buf, prompt+promptlen, len-promptlen);
+    input_len = len-promptlen;
+}
+
+void tty_set_timeout(unsigned short to)
+{
+    // TODO:
+}
+
+void tty_set_maxlen(unsigned short len)
+{
+    max_read_len = len;
+}
 
 /* Set/Reset the local TTY mode */
 static int setup_tty(char *name, int setup)
@@ -79,54 +116,54 @@ static int setup_tty(char *name, int setup)
 
     return 0;
 }
-static const char *hosttype[] = {
-    "RT-11",
-    "RSTS/E",
-    "RSX-11S",
-    "RSX-11M",
-    "RSX-11D",
-    "IAS",
-    "VAX/VMS",
-    "TOPS-20",
-    "TOPS-10",
-    "OS8",
-    "RTS-8",
-    "RSX-11M+",
-    "??13", "??14", "??15", "??16", "??17",
-    "Ultrix-32",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "", "",
-    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
-    "Unix-dni"
-};
 
+static short is_terminator(char c)
+{
+    short termind, msk, aux;
+
+    termind = c / 8;
+    aux = c - (termind * 8);
+    msk = (1 << aux);
+
+    if (terminators[termind] && msk)
+    {
+	return 1;
+    }
+    return 0;
+}
 
 /* Input from keyboard */
 static int process_terminal(char *buf, int len)
 {
-    if (buf[0] == exit_char)
+    int i;
+
+    for (i=0; i<len; i++)
     {
-	finished = 1;
-	return 0;
+	if (buf[i] == exit_char)
+	{
+	    finished = 1;
+	    return 0;
+	}
+
+	if (echo)
+	    write(termfd, &buf[i], 1);
+
+	if (is_terminator(buf[i]))
+	{
+	    cterm_write(&buf[i], 1);
+	    return 0;
+	}
+
+	// TODO: process line-editting keys & flags
+	input_buf[input_len++] = buf[i];
+	if (input_len == max_read_len)
+	{
+	    cterm_write(input_buf, input_len);
+	}
+
+	// TODO: Loads more.
     }
-
-    /* TODO: */
-
-    return -1;
+    return 0;
 }
 
 static int mainloop(void)
@@ -238,7 +275,7 @@ int main(int argc, char *argv[])
 	exit(2);
     }
 
-    if (found_setup_link(argv[optind],DNOBJECT_CTERM) == 0)
+    if (found_setup_link(argv[optind], DNOBJECT_CTERM, process_cterm) == 0)
     {
 	setup_tty("/dev/tty", 1);
 	mainloop();

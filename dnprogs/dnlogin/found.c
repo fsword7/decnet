@@ -28,26 +28,84 @@
 #include <sys/fcntl.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
-#include "cterm.h"
 #include "dn_endian.h"
 #include "dnlogin.h"
 
-static int sockfd = -1;
 
-static int send_bind(void)
+/* Foundation services messages */
+#define FOUND_MSG_BIND        1
+#define FOUND_MSG_UNBIND      3
+#define FOUND_MSG_BINDACCEPT  4
+#define FOUND_MSG_ENTERMODE   5
+#define FOUND_MSG_EXITMODE    6
+#define FOUND_MSG_CONFIRMMODE 7
+#define FOUND_MSG_NOMODE      8
+#define FOUND_MSG_COMMONDATA  9
+#define FOUND_MSG_MODEDATA   10
+
+
+static const char *hosttype[] = {
+    "RT-11",
+    "RSTS/E",
+    "RSX-11S",
+    "RSX-11M",
+    "RSX-11D",
+    "IAS",
+    "VMS",
+    "TOPS-20",
+    "TOPS-10",
+    "OS8",
+    "RTS-8",
+    "RSX-11M+",
+    "??13", "??14", "??15", "??16", "??17",
+    "Ultrix-32",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "", "",
+    "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+    "Unix-dni"
+};
+
+
+/* Header for a single-message "common data" message */
+struct common_header
+{
+    unsigned char msg;
+    unsigned char pad;
+    unsigned short len;
+};
+
+
+static int sockfd = -1;
+static int (*terminal_processor)(char *, int);
+
+static int send_bindaccept(void)
 {
     int wrote;
-    unsigned char bindmsg[] =
+    unsigned char bindacc_msg[] =
     {
-// TODO annotate correctly
-	4,
-	2,4,0,
-	7,0,
-	16,0,
+	FOUND_MSG_BINDACCEPT,
+	2,4,0,  /* Version triplet */
+	7,0,    /* OS = VMS */
+	0x10,   /* We talk terminal protocol */
+	0,      /* Empty rev string */
     };
 
-    wrote = write(sockfd, bindmsg, sizeof(bindmsg));
-    if (wrote != sizeof(bindmsg))
+    wrote = write(sockfd, bindacc_msg, sizeof(bindacc_msg));
+    if (wrote != sizeof(bindacc_msg))
     {
 	fprintf(stderr, "%s\n", found_connerror("read error"));
 	return -1;
@@ -61,10 +119,33 @@ int found_getsockfd()
     return sockfd;
 }
 
-int found_write(char *buf, int len)
+/* Write "Common data" with a foundation header */
+int found_common_write(char *buf, int len)
 {
-    // TODO: write header then message with EOR using sendmsg
-    return -1;
+    struct iovec vectors[2];
+    struct msghdr msg;
+    struct common_header header;
+
+    memset(&msg, 0, sizeof(msg));
+    vectors[0].iov_base = (void *)&header;
+    vectors[0].iov_len  = sizeof(header);
+    vectors[1].iov_base = buf;
+    vectors[1].iov_len  = len;
+
+    msg.msg_name    = NULL;
+    msg.msg_namelen = 0;
+    msg.msg_iovlen  = 2;
+    msg.msg_iov     = vectors;
+    msg.msg_flags   = 0;
+
+    header.msg = FOUND_MSG_COMMONDATA;
+    header.pad = 0;
+    header.len = dn_htons(len);
+
+    if (debug > 2)
+	fprintf(stderr, "FOUND: sending common message %d bytes:\n", len);
+
+    return sendmsg(sockfd, &msg, MSG_EOR);
 }
 
 int found_read()
@@ -72,22 +153,49 @@ int found_read()
     int len;
     char inbuf[1024];
 
-    if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT))
-	 <= 0)
+    if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT)) <= 0)
 
     {
+	if (len == -1 && errno == EAGAIN)
+	    return 0;
+
 	fprintf(stderr, "%s\n", found_connerror("read sock"));
 	return -1;
     }
 
-    /* TODO: something about the foundation message codes */
+    if (debug > 2)
+	fprintf(stderr, "FOUND: got message %d bytes:\n", len);
+    if (debug > 3)
+    {
+	int i;
 
-    /* TODO: Know the protocol, switch cterm/dterm etc? */
-    return process_cterm(inbuf+4, len-4);
+	for (i=0; i<len; i++)
+	    fprintf(stderr, "%02x  ", (unsigned char)inbuf[i]);
+	fprintf(stderr, "\n\n");
+    }
+
+
+    /* Dispatch a foundation message */
+    switch (inbuf[0])
+    {
+    case FOUND_MSG_BIND:
+	if (debug)
+	    printf("connected to %s host\n", hosttype[inbuf[4]-1]);
+	return send_bindaccept();
+
+	/* Common data goes straight to the terminal processor */
+    case FOUND_MSG_COMMONDATA:
+	return terminal_processor(inbuf+4, len-4);
+
+    default:
+	fprintf(stderr, "Unknown foundation services message %d received\n",
+		inbuf[0]);
+    }
+    return -1;
 }
 
 /* Open the DECnet connection */
-int found_setup_link(char *node, int object)
+int found_setup_link(char *node, int object, int (*processor)(char *, int))
 {
     struct nodeent *np;
     struct sockaddr_dn sockaddr;
@@ -120,7 +228,8 @@ int found_setup_link(char *node, int object)
 	return -1;
     }
 
-    return send_bind();
+    terminal_processor = processor;
+    return 0;
 }
 
 

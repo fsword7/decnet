@@ -18,8 +18,12 @@ extern char *found_connerror(char *default_msg);
 extern int found_getsockfd(void);
 extern int found_write(char *buf, int len);
 extern int found_read(void);
-extern int found_setup_link(char *node, int object);
+extern int found_setup_link(char *node, int object, int (*processor)(char *, int));
+extern int found_common_write(char *buf, int len);
+
+
 extern int process_cterm(char *buf, int len);
 
+extern int tty_write(char *buf, int len);
 extern int debug;
 

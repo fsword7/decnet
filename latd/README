@@ -16,6 +16,7 @@ features:
 - User-space daemon. No kernel patching or recompiling necessary
 - Does not need DECnet support from the kernel or libraries
 - Supports a group called "lat" to restrict users of reverse-LAT ports
+- llogin program so users can log into LAT services from Linux
 - To send BREAK to a remote server in a revsese-LAT session press ^@
 	   
 You will need Packet Socket support in the kernel, but I think that's
@@ -40,6 +41,6 @@ I'd very much like to thank Eduardo Serrat for providing much help, trace logs
 and encouragement in this reverse-engineering effort.
 
 I am also very much indebted to Real Dupeux for sending me a DECserver 200 for
-the project, in fact I use it a for reverse-LAT every day of the week - who
-need multi-port serial boards !
+the project, in fact I use it a for reverse-LAT every day of the week to
+log in to the consoles of my VAX, Alpha, SPARC and MIPS machines.
 

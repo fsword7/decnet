@@ -33,7 +33,7 @@ install:
 	install -d $(prefix)/man/man1
 	install -m 0755 -s $(PROG1) $(prefix)/sbin
 	install -m 0755 -s $(PROG2) $(prefix)/sbin
-#	install -m 0644 $(MANPAGES) $(prefix)/man/man8
+	install -m 0644 $(MANPAGES) $(prefix)/man/man8
 
 dep depend:	
 	makedepend *.cc *.c 2>/dev/null

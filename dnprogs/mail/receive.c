@@ -21,17 +21,18 @@
 #include <syslog.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-// Horrible hack for glibc 2.1 which defines getnodebyname
-#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1
+// Horrible hack for glibc 2.1+ which defines getnodebyname
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
 #define getnodebyname ipv6_getnodebyname
 #endif
 
 #include <netdb.h>
 
-#if __GLIBC__ >= 2 && __GLIBC_MINOR__ >= 1
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
 #undef getnodebyname 
 #endif
 
@@ -39,15 +40,49 @@
 #include <netdnet/dn.h>
 #include <netinet/in.h>
 #include <uudeview.h>
+#include <dn_endian.h>
 #include "configfile.h"
 
 #ifndef SENDMAIL_COMMAND
 #define SENDMAIL_COMMAND "/usr/sbin/sendmail -oem"
 #endif
 
+#define FB$UDF   0
+#define FB$FIX   1
+#define FB$VAR   2
+#define FB$VFC   3
+#define FB$STM   4
+#define FB$STMLF 5
+#define FB$STMCR 6
+
+//RATs:
+#define FB$FTN   0
+#define FB$CR    1
+#define FB$PRN   2
+#define FB$BLK   3
+#define FB$LSA   6
+
+
+
+#define read(x,y,z) dnet_recv(x,y,z,MSG_EOR)
+
+struct config_data
+{
+    unsigned char protocol_ver;
+    unsigned char eco;
+    unsigned char custeco;
+    unsigned char os;
+    unsigned int  options; /* Little-endian */
+    unsigned int  iomode;  /* Little-endian */
+    unsigned char rfm;
+    unsigned char rat;
+};
+extern int block_mode;
+
 char response[1024];
 int send_smtp(int sock,
 	      char *addressees,
+	      char *cc_addressees,
 	      char *remote_hostname,
 	      char *remote_user,
 	      char *subject,
@@ -56,6 +91,7 @@ int send_smtp(int sock,
 
 int send_smail(int sock,
 	       char *addressees,
+	       char *cc_addressees,
 	       char *remote_hostname,
 	       char *remote_user,
 	       char *subject,
@@ -69,6 +105,7 @@ int smtp_error(FILE *sockstream);
 
 extern int verbosity;
 static int is_binary = 0;
+static struct config_data *config;
 
 // Receive a message from VMS and pipe it into sendmail
 void receive_mail(int sock)
@@ -76,6 +113,7 @@ void receive_mail(int sock)
     char   remote_user[256]; // VMS only sends 12 but...just in case!
     char   local_user[256];
     char   addressees[65536];
+    char   cc_addressees[65536];
     char   full_user[256];
     char   subject[256];
     char   remote_hostname[256];
@@ -87,11 +125,16 @@ void receive_mail(int sock)
     int    namlen = sizeof(sockaddr);
     int    optlen = sizeof(optdata);
 
-    // If the CONDATA structure contains 16 bytes then we are being sent binary
-    // data using MAIL/FOREIGN
+    // See if we are being sent binary data.
+    // We classify binary data as anything with fixed length records
+    // or an undefined record type.
     getsockopt(sock, DNPROTO_NSP, SO_CONDATA, &optdata, &optlen);
-    if (optdata.opt_optl == 0x10)
+    config=(struct config_data *)optdata.opt_data;
+    if (config->rfm == FB$FIX || config->rfm == FB$UDF)
+    {
 	is_binary = 1;
+    }
+
     
     // Get the remote host name
     stat = getpeername(sock, (struct sockaddr *)&sockaddr, &namlen);
@@ -112,7 +155,7 @@ void receive_mail(int sock)
     stat = read(sock, remote_user, sizeof(remote_user)); 
     if (stat < 0)
     {
-	DNETLOG((LOG_ERR, "Error reading remote user: %m"));
+	DNETLOG((LOG_ERR, "Error reading remote user: %m\n"));
 	return;
     }
 
@@ -130,7 +173,7 @@ void receive_mail(int sock)
 	stat = read(sock, local_user, sizeof(local_user));
 	if (stat == -1)
 	{
-	    DNETLOG((LOG_ERR, "Error reading local user: %m"));
+	    DNETLOG((LOG_ERR, "Error reading local user: %m\n"));
 	    return;
 	}
 	if (local_user[0] != '\0')
@@ -161,30 +204,44 @@ void receive_mail(int sock)
     stat = read(sock, full_user, sizeof(full_user));
     if (stat == -1)
     {
-	DNETLOG((LOG_ERR, "Error reading full_user: %m"));
+	DNETLOG((LOG_ERR, "Error reading full_user: %m\n"));
 	return;
     }
     full_user[stat] = '\0';
     
+    stat = read(sock, cc_addressees, sizeof(cc_addressees));
+    cc_addressees[stat] = '\0';
+    for (i=0; i<strlen(cc_addressees); i++)
+	cc_addressees[i] = tolower(cc_addressees[i]);
+
     // Get the subject
     stat = read(sock, subject, sizeof(subject));
     if (stat == -1)
     {
-	DNETLOG((LOG_ERR, "Error reading subject: %m"));
+	DNETLOG((LOG_ERR, "Error reading subject: %m\n"));
 	return;
     }
     subject[stat] = '\0';
 
+/* Not sure about this so just swallow it */
+    { char bcc[255];
+    stat = read(sock, bcc, sizeof(bcc));
+    bcc[stat]='\0';
+    }
+
+    
     DNETLOG((LOG_INFO, "Forwarding mail from %s::%s to %s\n",
 	     remote_hostname, remote_user, addressees));
 
 // Decide on sendmail or SMTP
 
     if (config_smtphost[0] == '\0')
-	stat = send_smail(sock, addressees, remote_hostname, remote_user,
+	stat = send_smail(sock, addressees, cc_addressees,
+			  remote_hostname, remote_user,
 			  subject, full_user);
     else
-	stat = send_smtp(sock, addressees, remote_hostname, remote_user,
+	stat = send_smtp(sock, addressees, cc_addressees,
+			 remote_hostname, remote_user,
 			 subject, full_user);
 	
     if (stat == 0)
@@ -200,6 +257,7 @@ void receive_mail(int sock)
 
 int send_smtp(int sock,
 	      char *addressees,
+	      char *cc_addressees,
 	      char *remote_hostname,
 	      char *remote_user,
 	      char *subject,
@@ -219,7 +277,7 @@ int send_smtp(int sock,
     smtpsock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (smtpsock == -1)
     {
-	DNETLOG((LOG_ERR, "Can't open socket for SMTP: %m"));
+	DNETLOG((LOG_ERR, "Can't open socket for SMTP: %m\n"));
 	return -1;
     }
     
@@ -244,14 +302,13 @@ int send_smtp(int sock,
     
     if (connect(smtpsock, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) == -1)
     {
-	DNETLOG((LOG_ERR, "Cannot connect to SMTP server: %m"));
+	DNETLOG((LOG_ERR, "Cannot connect to SMTP server: %m\n"));
 	return -1;
     }
 
 /* Send initial SMTP commands and swallow responses */
     sockfile = fdopen(smtpsock, "a+");
     if (smtp_response(sockfile) != 220) return smtp_error(sockfile);
-
 	
     fprintf(sockfile, "HELO %s\n", config_hostname);
     stat = smtp_response(sockfile);
@@ -271,6 +328,15 @@ int send_smtp(int sock,
 	
 	addr = strtok(NULL, ",");
     }
+
+    addr = strtok(cc_addressees, ",");
+    while(addr)
+    {
+	fprintf(sockfile, "RCPT TO:<%s>\n", addr);
+	if (smtp_response(sockfile) != 250) return smtp_error(sockfile);
+	
+	addr = strtok(NULL, ",");
+    }
     
     fprintf(sockfile, "DATA\n");
     if (smtp_response(sockfile) != 354) return smtp_error(sockfile);
@@ -281,6 +347,7 @@ int send_smtp(int sock,
 	    remote_user);
     fprintf(sockfile, "Subject: %s\n", subject);
     fprintf(sockfile, "To: %s\n", addressees);
+    fprintf(sockfile, "Cc: %s\n", cc_addressees);
     if (is_binary)
     {
 	fprintf(sockfile, "Mime-Version: 1.0\n");
@@ -306,6 +373,7 @@ int send_smtp(int sock,
 
 int send_smail(int sock,
 	       char *addressees,
+	       char *cc_addressees,
 	       char *remote_hostname,
 	       char *remote_user,
 	       char *subject,
@@ -327,6 +395,7 @@ int send_smail(int sock,
 		remote_user);
 	fprintf(mailpipe, "Subject: %s\n", subject);
 	fprintf(mailpipe, "To: %s\n", addressees);
+	fprintf(mailpipe, "Cc: %s\n", cc_addressees);
 	if (is_binary)
 	{
 	    fprintf(mailpipe, "Mime-Version: 1.0\n");
@@ -343,7 +412,7 @@ int send_smail(int sock,
     }
     else
     {
-	DNETLOG((LOG_ERR, "Can't open pipe to sendmail: %m"));
+	DNETLOG((LOG_ERR, "Can't open pipe to sendmail: %m\n"));
 	return -1;
     }
     return 0;
@@ -380,11 +449,100 @@ int smtp_error(FILE *sockstream)
     return -1;
 }
 
+int send_with_nlreplacement(FILE *f, char *buf, int len, char nlchar)
+{
+    int i,j;
+    char newbuf[len];
+
+    for (i=0, j=0; i<len; i++)
+    {
+	if (buf[i] == nlchar)
+	    newbuf[j++] = '\n';
+	else
+	    newbuf[j++] = buf[i];	    
+    }
+    return fwrite(newbuf, j, 1, f);    
+}
+
+/* Convert RMS formatted text to Unix StreamLF */
+int write_text(FILE *f, char *buf, int len)
+{
+    int reclen;
+    int done,i;
+    char *ptr = buf;
+    char nlchar;
+    static int carry = 0;
+    
+    if (block_mode)
+    {
+	switch (config->rfm)
+	{
+	case FB$UDF:
+	case FB$FIX:
+	case FB$STMLF:
+	default:
+	    return fwrite(buf, len, 1, f);
+	    break;
+	    
+	case FB$VAR:
+	case FB$VFC:
+	    done = 0;
+	    if (carry)
+	    {
+		fprintf(f, "%.*s\n", carry, ptr);
+		ptr += carry;
+		if (carry%2) ptr++;
+		carry = 0;
+	    }
+
+	    /* Process the buffer */
+	    while (done < len)
+	    {
+		reclen = dn_ntohs(*(unsigned short *)ptr);
+		ptr++;
+		ptr++;
+		/* VFC files have two extra bytes at the start of each
+		   record */
+		if (config->rfm == FB$VFC)
+		{
+		    reclen -= 2;
+		    ptr += 2;
+		}
+
+		/* Check for end of block */
+		if ((ptr-buf)+reclen > len)
+		{
+		    carry = (done+reclen) - len + 4;
+		    reclen = len-done-2;
+		    fprintf(f, "%.*s", reclen, ptr);
+		    return 0;
+		}
+		fprintf(f, "%.*s\n", reclen, ptr);
+		
+		/* Records are word-padded */
+		if (reclen%2) reclen++;
+		ptr += reclen;
+		done = ptr-buf;
+	    }
+	    break;
+	    
+	case FB$STMCR:
+	    send_with_nlreplacement(f, buf, len, '\r');
+	    break;
+	}
+    }
+    else
+    {
+	fprintf(f, "%.*s\n", len, buf);
+    }
+    return 0;
+}
+
 // Sends the message body, converting binary messages to MIME if necessary
 int send_body(int dnsock, FILE *unixfile)
 {
     char  buf[65535];
-    int   stat;
+    int   stat, i;
     int   finished = 0;
     
     // Get the text of the message
@@ -395,31 +553,38 @@ int send_body(int dnsock, FILE *unixfile)
 	    stat = read(dnsock, buf, sizeof(buf));
 	    if (stat == -1 && errno != ENOTCONN)
 	    {
-		DNETLOG((LOG_ERR, "Error reading message text: %m"));
+		DNETLOG((LOG_ERR, "Error reading message text: %m\n"));
 		return -1;
 	    }
-	    
-	    // VMS sends a NUL as the end of the message
-	    if (buf[stat-1] == '\0') finished = 1;
-	    if (stat > 0)
+
+	    // VMS sends a lone NUL as the end of the message
+	    if ((stat == 1 && buf[0] == '\0')) finished = 1;
+	    if (stat > 0 && !finished)
 	    {
-		buf[stat] = '\0';
-		fprintf(unixfile, "%s\n", buf);
+		/* Interpret text format*/
+		write_text(unixfile, buf, stat);
 	    }
 	}
-	while (stat > 0 && !finished);
+	while (stat >= 0 && !finished);
     }
     else
     {
 	int len;
-	char tempname[64];
-	FILE *t;
+	char tempname[PATH_MAX];
+	int tempfile;
 
-	sprintf(tempname, "/tmp/vmsmail-%d", getpid());
-	t = fopen(tempname, "w+");
+	sprintf(tempname, "/tmp/vmsmailXXXXXX");
+	tempfile = mkstemp(tempname);
+	if (tempfile < 0)
+	{
+	    DNETLOG((LOG_ERR, "Failed to make temp file: %s\n", strerror(errno)));
+	    return -1;
+	}
 	while ( (len=read(dnsock, buf, sizeof(buf))) > 1)
-	    fwrite(buf, len, 1, t);
-	fclose (t);
+	{	    
+	    write(tempfile, buf, len);
+	}
+	close (tempfile);
 
 	// Base64 encode it.
 	UUInitialize();

@@ -37,12 +37,14 @@
 
 // Global variables.
 int verbosity = 0;
+int block_mode = 0;
 
 void usage(char *prog, FILE *f)
 {
     fprintf(f,"\n%s options:\n", prog);
     fprintf(f," -v        Verbose messages\n");
     fprintf(f," -h        Show this help text\n");
+    fprintf(f," -f        Accept MAIL/FOREIGN\n");
     fprintf(f," -l<type>  Logging type(s:syslog, e:stderr, m:mono)\n");
     fprintf(f," -U        Don't check that reply user exists\n");
     fprintf(f," -V        Show version number\n\n");
@@ -61,11 +63,8 @@ int main(int argc, char *argv[])
     int                len = sizeof(sockaddr);
     int                check_user=1;
     char               log_char = 'l'; // Default to syslog(3)
-    char               optdata_bytes[] = {0x03, 01, 00, 07, 00, 00, 00, 00,
-					  0xa2, 02, 00, 00, 01, 00, 00, 00};
-
-    // Set up logging
-    init_daemon_logging("vmsmaild", log_char);
+    char               optdata_bytes[] = {  03, 01, 00, 18, 00, 00, 00, 00,
+					  0xA0, 02, 00, 00, 01, 00, 00, 00};
 
     read_configfile();
     
@@ -73,7 +72,7 @@ int main(int argc, char *argv[])
     // so we can check the version number and get help without being root.
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?vVdhu:Ul:")) != EOF)
+    while ((opt=getopt(argc,argv,"?vVdhu:Ufl:")) != EOF)
     {
 	switch(opt) 
 	{
@@ -87,6 +86,11 @@ int main(int argc, char *argv[])
 
 	case 'v':
 	    verbosity++;
+	    break;
+
+	case 'f':
+	    optdata_bytes[8] |= 0x02;
+	    block_mode = 1;
 	    break;
 
 	case 'd':
@@ -120,6 +124,9 @@ int main(int argc, char *argv[])
 	}
     }
 
+    // Initialise logging
+    init_daemon_logging("vmsmaild", log_char);
+
     // See if the vmsmail user exists on this system
     if (check_user)
     {
@@ -138,7 +145,7 @@ int main(int argc, char *argv[])
  
     if (insock > -1)
     {
-	dnet_accept(insock, 0, optdata_bytes, sizeof(optdata_bytes));
+        dnet_accept(insock, 0, optdata_bytes, sizeof(optdata_bytes));
 	receive_mail(insock);
     }
     return 0;

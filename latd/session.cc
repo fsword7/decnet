@@ -141,7 +141,7 @@ int LATSession::read_pty()
     // EOF or error on PTY - tell remote end to disconnect
     if (msglen <= 0)
     {
-	if (errno == EAGAIN) return 0; // Just no data.
+	if (msglen < 0 && errno == EAGAIN) return 0; // Just no data.
 	
 	debuglog(("EOF on PTY\n"));
 	unsigned char slotbuf[5];

@@ -18,13 +18,13 @@ PROG3OBJS=llogin.o utils.o
 
 DEFS=-DVERSION=\"$(VERSION)\" -DLATCP_SOCKNAME=\"$(LATCPSOCK)\" -DLLOGIN_SOCKNAME=\"$(LLOGINSOCK)\"
 DEFS+=-DUSE_OPENPTY #-DSETLOGIN_HOST
-#DEFS+=-DVERBOSE_DEBUG -DNO_FORK
+#DEFS+=-DVERBOSE_DEBUG -DNO_FORK -DDEBUG_MALLOC
 
 prefix=/usr/local
 LATCPSOCK="/var/run/latcp"
 LLOGINSOCK="/var/run/latlogin"
 OPTDEBUG=-g
-CXX=g++
+CXX=g++ 
 CXXFLAGS+=$(OPTDEBUG) $(DEFS) -pipe -Wstrict-prototypes -Wall -fno-rtti -fno-exceptions
 
 #

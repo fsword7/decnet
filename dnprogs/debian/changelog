@@ -1,3 +1,11 @@
+dnprogs (2.12-1) unstable; urgency=low
+
+  * Don't use makedepend for dependancies.
+    Closes: bug#104961
+  * Fix symlinks for dn_accept man page
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 17 Jul 2001 10:18:32 +0100
+
 dnprogs (2.11-1) unstable; urgency=low
 
   * Remove build-depends on fakeroot so it can build on MIPS/MIPSEL

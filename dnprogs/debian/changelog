@@ -1,3 +1,12 @@
+dnprogs (2.10-1) unstable; urgency=low
+
+  * Fix crash in libdap if the first byte of a message is the last
+    byte of a packet.
+  * Add man page symlinks for dnet_accet/dnet_reject and 
+    dnet_endnode/dnet_nextnode.   Closes: bug#99611
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat,  2 Jun 2001 11:03:54 +0100
+
 dnprogs (2.09-1) unstable; urgency=low
 
   * Fix config script to allow node numbers > 63

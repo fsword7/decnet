@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
 void display(int argc, char *argv[])
 {   
     char verboseflag[1] = {'\0'};
-    char opt;
+    signed char opt;
     bool show_services = false;
     
     if (!open_socket(false)) return;
@@ -256,7 +256,7 @@ void set_rating(int argc, char *argv[])
     int new_rating = 0;
     bool static_rating = false;
     char service[256];
-    char opt;
+    signed char opt;
     
     if (!open_socket(false)) return;
 
@@ -312,7 +312,7 @@ void set_ident(int argc, char *argv[])
 {
     char service[256];
     char ident[256];
-    char opt;
+    signed char opt;
     
     if (!open_socket(false)) return;
 
@@ -351,7 +351,7 @@ void set_ident(int argc, char *argv[])
 
 void set_server_groups(int argc, char *argv[])
 {
-    char opt;
+    signed char opt;
     int  cmd;
     char groups[256];
     
@@ -391,7 +391,7 @@ void set_server_groups(int argc, char *argv[])
 
 void set_user_groups(int argc, char *argv[])
 {
-    char opt;
+    signed char opt;
     int  cmd;
     char groups[256];
     
@@ -516,7 +516,7 @@ void add_service(int argc, char *argv[])
     char localport[255] = {'\0'};
     char remnode[255] = {'\0'};
     char remservice[255] = {'\0'};
-    char opt;
+    signed char opt;
     bool got_service=false;
     bool got_port=false;
     bool static_rating=false;
@@ -636,7 +636,7 @@ void add_service(int argc, char *argv[])
 void del_service(int argc, char *argv[])
 {
     char name[255] = {'\0'};
-    char opt;
+    signed char opt;
     bool got_service = false;
     bool got_port = false;
     opterr = 0;

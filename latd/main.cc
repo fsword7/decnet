@@ -126,7 +126,7 @@ int find_interface(char *ifname, char *macaddr)
 /* Start Here */
 int main(int argc, char *argv[])
 {
-    char opt;
+    signed char opt;
     int  verbosity = 0;
     int  debug = 0;
     char log_char='l';

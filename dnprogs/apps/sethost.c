@@ -1653,7 +1653,7 @@ static void ct_read_pkt(void)
 
 	ioctl(sockfd,FIONREAD,&numbytes);
 	cnt=read(sockfd,buf,numbytes);
-	if (cnt < 0)
+	if (cnt <= 0)
 	{
 		unbind = TRUE;
 		return;

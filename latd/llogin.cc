@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,8 +62,8 @@ static void make_upper(char *str);
 static int  read_reply(int fd, int &cmd, unsigned char *&cmdbuf, int &len);
 static bool send_msg(int fd, int cmd, char *buf, int len);
 static bool open_socket(bool);
-static int  terminal(int latfd, int, int, int, int);
-static int  do_use_port(char *service, int quit_char, int crlf, int bsdel, int lfvt, int nolock);
+static int  terminal(int latfd, int, int, int, int, char *);
+static int  do_use_port(char *service, int quit_char, int crlf, int bsdel, int lfvt, int nolock, char *logfile);
 
 static int usage(char *cmd)
 {
@@ -72,6 +72,7 @@ static int usage(char *cmd)
     printf ("       -d         show learned services\n");
     printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local device rather than a service\n");
+    printf ("       -f <file>  log all output to <file>\n");
 #ifdef HAVE_LOCKDEV_H
     printf ("       -L         Don't do device locking when using -p\n");
 #endif
@@ -97,6 +98,7 @@ int main(int argc, char *argv[])
     char port[256] = {'\0'};
     char localport[256] = {'\0'};
     char password[256] = {'\0'};
+    char logfile[PATH_MAX] = {'\0'};
     signed char opt;
     int verbose = 0;
     int crlf = 1;
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
     // Set the default local port name
     if (ttyname(0)) strcpy(localport, ttyname(0));
 
-    while ((opt=getopt(argc,argv,"dpcvhlbQWLH:R:r:q:n:w:")) != EOF)
+    while ((opt=getopt(argc,argv,"dpcvhlbQWLH:R:r:q:n:w:f:")) != EOF)
     {
 	switch(opt)
 	{
@@ -176,6 +178,10 @@ int main(int argc, char *argv[])
 	    strcpy(port, optarg);
 	    break;
 
+	case 'f':
+	    strcpy(logfile, optarg);
+	    break;
+
 	case 'n':
 	    strcpy(localport, optarg);
 	    break;
@@ -199,7 +205,7 @@ int main(int argc, char *argv[])
     // This is just a bit like microcom...
     if (use_port)
     {
-	do_use_port(service, quit_char, crlf, bsdel, lfvt, nolock);
+	do_use_port(service, quit_char, crlf, bsdel, lfvt, nolock, logfile);
 	return 0;
     }
 
@@ -265,7 +271,7 @@ int main(int argc, char *argv[])
     delete[] result;
 
     // If the reply was good then go into terminal mode.
-    terminal(latcp_socket, quit_char, crlf, bsdel, lfvt);
+    terminal(latcp_socket, quit_char, crlf, bsdel, lfvt, logfile);
 
     shutdown(latcp_socket, 3);
     close(latcp_socket);
@@ -359,14 +365,24 @@ static bool send_msg(int fd, int cmd, char *buf, int len)
 }
 
 // Pretend to be a terminal connected to a LAT service
-static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
+static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt, char *logfile)
 {
     int termfd = STDIN_FILENO;
     struct termios old_term;
     struct termios new_term;
+    FILE *logstream = NULL;
 
     tcgetattr(termfd, &old_term);
     new_term = old_term;
+
+// Open the logfile, this is not fatal if it fails but
+// have the courtesy to tell the user.
+    if (logfile[0])
+    {
+	logstream = fopen(logfile, "w+");
+	if (!logstream)
+	    perror("Can't open logfile");
+    }
 
 // Set local terminal characteristics
     new_term.c_iflag &= ~BRKINT;
@@ -414,6 +430,8 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 		    inbuf[i] = '\010';
 	    }
 	    write(latfd, inbuf, len);
+	    if (logstream)
+		fwrite(inbuf, len, 1, logstream);
 	}
 
 	// Read from LAT socket. buffered.
@@ -431,6 +449,9 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
 			    inbuf[i] = '\v';
 		}
 		write(termfd, inbuf, len);
+		if (logstream)
+		    fwrite(inbuf, len, 1, logstream);
+
 	    }
 	}
     }
@@ -442,7 +463,7 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt)
     return 0;
 }
 
-static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt, int nolock)
+static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int lfvt, int nolock, char *logfile)
 {
     int termfd;
     struct termios old_term;
@@ -486,7 +507,7 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     tcsetattr(termfd, TCSANOW, &new_term);
 
     // Be a terminal
-    terminal(termfd, quit_char, crlf, bsdel, lfvt);
+    terminal(termfd, quit_char, crlf, bsdel, lfvt, logfile);
 
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);

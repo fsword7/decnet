@@ -1,0 +1,51 @@
+.TH LLOGIN 1 "February 10 2001" LAT utilities"
+
+.SH NAME
+llogin \- Connect to a LAT service
+
+.SH SYNOPSIS
+.B llogin 
+[options] service
+.br
+Options:
+.br
+[\-cbhQ] [\-H node] [\-R port] [\-q quit char]
+.SH DESCRIPTION
+.PP
+llogin connects your terminal to a LAT service via latd, the service name
+must be known to latd for this to work.
+.br
+
+.SH OPTIONS
+.TP
+.I "\-H <node>"
+Remote nodename. If the service is advertised by more than one node and you
+want to connect to a particular node then use this switch. By default
+you will be connected to the node with the highest rating.
+.TP
+.I "\-P"
+Connect to a specific port on (usually) a terminal server. This is the port 
+NAME on the server and not the port number.
+.TP
+.I "\-c"
+Convert LF to CR. By default all characters entered at the keyboard will be
+send unaltered to the remote system. This switch will cause the CR key to send
+LF instead. Useful for connecting to VMS consoles.
+.TP
+.I "\-b"
+Convert DEL to BS. By default all characters entered at the keyboard will be
+send unaltered to the remote system. This switch will cause the DEL key to send
+BS instead. Useful for some Unix systems connected via terminal servers.
+.TP
+.I "\-q <char>"
+Change the quit character. By default z NUL (shift-@) will quit the terminal 
+session, entering a character after -q will cause CTRL-<char> to be the quit 
+character for that session. -q0 will disable the quit character. If you use 
+this make sure you are connected to a service that will disconnect you when 
+you log out!
+.I "\-Q"
+Tells latd that the service you are connecting to is queued service and not a
+normal login service.
+
+.SS SEE ALSO
+.BR latcp "(8), " latd "(8)"

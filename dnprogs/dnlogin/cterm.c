@@ -58,7 +58,8 @@ static int cterm_process_initiate(char *buf, int len)
 	  0x01, 0x02, 0x00, 0x02,	/* Max msg size */
 	  0x02, 0x02, 0xF4, 0x03,	/* Max input buf */
 	  0x03, 0x04, 0xFE, 0x7F, 0x00,	/* Supp. Msgs */
-	  0x00};
+	  0x00
+	};
 
     found_common_write(initsq, sizeof(initsq));
     return len;
@@ -130,7 +131,7 @@ static int cterm_process_input_state(char *buf, int len)
 {return len;}
 
 /* Process buffer from cterm host */
-int process_cterm(char *buf, int len)
+int cterm_process_network(char *buf, int len)
 {
     int offset = 0;
 
@@ -194,7 +195,7 @@ int process_cterm(char *buf, int len)
 }
 
 
-int cterm_write(char *buf, int len)
+int cterm_send_input(char *buf, int len, int flags)
 {
     char newbuf[len+9];
 

@@ -51,6 +51,9 @@ static int  esc_len;
 static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
 
+/* Output processor */
+int (*send_input)(char *buf, int len, int flags);
+
 /* Raw write to terminal */
 int tty_write(char *buf, int len)
 {
@@ -150,7 +153,7 @@ static int process_terminal(char *buf, int len)
 
 	if (is_terminator(buf[i]))
 	{
-	    cterm_write(&buf[i], 1);
+	    send_input(&buf[i], 1, 0);
 	    return 0;
 	}
 
@@ -158,7 +161,7 @@ static int process_terminal(char *buf, int len)
 	input_buf[input_len++] = buf[i];
 	if (input_len == max_read_len)
 	{
-	    cterm_write(input_buf, input_len);
+	    send_input(input_buf, input_len, 0);
 	}
 
 	// TODO: Loads more.
@@ -275,7 +278,8 @@ int main(int argc, char *argv[])
 	exit(2);
     }
 
-    if (found_setup_link(argv[optind], DNOBJECT_CTERM, process_cterm) == 0)
+    send_input = cterm_send_input;
+    if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
     {
 	setup_tty("/dev/tty", 1);
 	mainloop();

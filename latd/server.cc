@@ -1237,7 +1237,7 @@ bool LATServer::is_local_service(char *name)
 }
 
 // Return the command info for a service
-int LATServer::get_service_info(char *name, string &cmd, int &maxcon, uid_t &uid, gid_t &gid)
+int LATServer::get_service_info(char *name, std::string &cmd, int &maxcon, uid_t &uid, gid_t &gid)
 {
     // Look for it.
     std::list<serviceinfo>::iterator sii;

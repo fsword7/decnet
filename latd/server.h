@@ -48,7 +48,7 @@ class LATServer
     void  set_keepalive_timer(int k)  { keepalive_timer=k; }
     void  send_connect_error(int reason, LAT_Header *msg, int interface, unsigned char *macaddr);
     bool  is_local_service(char *);
-    int   get_service_info(char *name, string &cmd, int &maxcon, uid_t &uid, gid_t &gid);
+    int   get_service_info(char *name, std::string &cmd, int &maxcon, uid_t &uid, gid_t &gid);
     gid_t get_lat_group() { return lat_group; }
     LATConnection *get_connection(int id) { return connections[id]; }
     const unsigned char *get_user_groups() { return user_groups; }

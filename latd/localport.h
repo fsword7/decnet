@@ -27,7 +27,7 @@ class LocalPort
   int get_port_fd();
   void show_info(bool verbose, std::ostrstream &output);
   void close_and_delete();
-  const string &get_devname() { return devname; };
+  const std::string &get_devname() { return devname; };
   void init_port();
 
  private:

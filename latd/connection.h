@@ -41,7 +41,7 @@ class LATConnection
 		  bool queued, bool clean);
     int connect(class ClientSession *);
     int create_client_session(char *, char *);
-    int create_llogin_session(int, char *service, char *port);
+    int create_llogin_session(int, char *service, char *port, char *localport);
     int disconnect_client();              // From LATServer
     int got_connect_ack(unsigned char *); // Callback from LATServer
     bool isClient() { return role==CLIENT;}

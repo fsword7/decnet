@@ -1548,7 +1548,7 @@ int LATServer::make_llogin_connection(int fd, char *service, char *node, char *p
     }
 
     debuglog(("lloginSession for %s has connid %d\n", service, connid));
-    ret = connections[connid]->create_llogin_session(fd, service, port);
+    ret = connections[connid]->create_llogin_session(fd, service, port, localport);
 
     // Remove LLOGIN socket from the list as it's now been
     // added as a PTY (honest!)

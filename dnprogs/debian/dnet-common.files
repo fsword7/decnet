@@ -2,7 +2,7 @@
 ./etc/modutils/decnet
 ./etc/dnetd.conf
 ./etc/decnet.proxy
-./sbin/startnet
+./sbin/setether
 ./usr/sbin/decnetconf
 ./usr/share/doc/dnet-common/README
 ./usr/share/doc/dnet-common/decnet.conf.sample

@@ -19,24 +19,15 @@ FLAGS="start 39 S .  stop 11 1 ."
 # program you must do it some other way.
 #
 
-[ ! -f /sbin/startnet ] && exit 0
+[ ! -f /sbin/setether ] && exit 0
 
 . /etc/default/decnet
 
-interfaces="-hw $DNET_INTERFACES"
+interfaces="$DNET_INTERFACES"
 
-if [ "$DNET_INTERFACES" = "all" -o "$DNET_INTERFACES" = "ALL" ]
-then
-  interfaces="-hw"
-fi
+ADDR="`grep executor /etc/decnet.conf | cut -f2`"
 
-# if DNET_INTERFACES is empty then don't do any
-if [ -z "$DNET_INTERFACES" ]
-then
-  interfaces=""
-fi
-
-startnet="/sbin/startnet $interfaces"
+setether="/sbin/setether $ADDR $interfaces"
 
 case $1 in
    start)
@@ -58,7 +49,7 @@ case $1 in
      fi
 
      echo -n "Starting DECnet: "
-     $startnet
+     $setether
      ;;
 
    stop)

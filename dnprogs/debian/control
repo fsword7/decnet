@@ -2,11 +2,11 @@ Source: dnprogs
 Section: net
 Priority: extra
 Maintainer: Patrick Caulfield <patrick@debian.org>
-Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev, libstdc++2.10-dev
+Build-Depends: fakeroot, debhelper(>=2.0), libncurses5-dev
 Standards-Version: 3.5.0
 
 Package: dnet-common
-Architecture: any
+Architecture: all
 Depends: debconf, debianutils (>=1.13), mawk | awk
 Priority: extra
 Section: net

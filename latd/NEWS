@@ -1,9 +1,10 @@
-1.01
+1.01 16th December 2000
 -----------------------
-- Can now use all (or any) ethernet adaptors in a system
 - Listen on LAT multicast address so you don't need to put the interface(s)
   into "allmulti" mode, or have DECnet running
 - Deleting ports now works
+  Thanks to Michael Hasselberg for those two patches
+- Can now use all (or any) ethernet adaptors in a system
 - Fix credit starvation on client sessions
 - Linux latd can talk to another Linux latd now (though not to itself)
 - latd now tidies /dev/lat directory at startup and shutdown

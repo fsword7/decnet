@@ -106,7 +106,8 @@ int pjc_openpty(int *master, int *slave, char *a, char *b, char *d)
 
 /* Expand \ sequences in /etc/issue.net file and add CRs to
    LFs */
-int expand_issue(char *original, int len, char *newstring, int maxlen)
+int expand_issue(const char *original, int len, char *newstring, int maxlen, 
+		 const char *servicename)
 {
     int i,j;
     char scratch[132];
@@ -153,8 +154,8 @@ int expand_issue(char *original, int len, char *newstring, int maxlen)
 		break;
 
 	    case 'l':
-		strcpy(newstring+j, "LAT");
-		j+=3;
+		strcpy(newstring+j, servicename);
+		j+=strlen(servicename);
 		break;
 
 	    case 'm':

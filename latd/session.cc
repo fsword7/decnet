@@ -318,8 +318,9 @@ void LATSession::send_issue()
 	newissue[newlen++] = '\r';
 	newissue[newlen++] = '\n';
 
-	newlen = expand_issue(issue, len, newissue, 255);
+	newlen = expand_issue(issue, len, newissue, 255, parent.get_servicename());
 	echo_expected = false;
+	if (newlen > 255) newlen = 255;
 
 	send_data((unsigned char *)newissue, newlen, 0x01);
 	delete[] issue;

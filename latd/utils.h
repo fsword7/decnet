@@ -20,8 +20,9 @@ void get_string(unsigned char *packet, int *ptr,
 		unsigned char *string);
 
 
-int expand_issue(char *original, int len,
-		 char *newstring, int maxlen);
+int expand_issue(const char *original, int len,
+		 char *newstring, int maxlen,
+		 const char *servicename);
 
 #ifndef USE_OPENPTY
 #define INTERNAL_OPENPTY

@@ -11,9 +11,9 @@ Depends: debconf(>=0.5.00), debianutils (>=1.13), mawk | awk
 Priority: extra
 Section: net
 Conflicts: dnprogs
-Suggests: iproute
+Suggests: iproute, kernel-image-2.4
 Description: Base package for Linux DECnet
- This is the base package for Linux DECnet. it contains the necessary
+ This is the base package for Linux DECnet. It contains the necessary
  configuration files and a script to set up the MAC address of your
  ethernet card(s) at boot-up.
  .

@@ -1,7 +1,10 @@
-dnprogs (2.20-2) unstable; urgency=low
+dnprogs (2.21-1) unstable; urgency=low
 
-  * Remove check_kernel from makefile so
-    autobuilders can built it.
+  * Don't check_kernel when building DEBS so
+    autobuilders can built it. Instead default to kernel 2.4.x
+    Previously I had done this manually but I often forgot, this
+    should remove that possibility
+  * Suggest: kernel-image-2.4
 
  -- Patrick Caulfield <patrick@debian.org>  Fri, 13 Sep 2002 11:48:28 +0100
 

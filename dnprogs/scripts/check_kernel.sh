@@ -3,6 +3,13 @@
 # Check the kernel headers available to us. 
 #
 #
+
+# But not for production builds. we assume a 2.4 kernel
+if [ -n "$RELEASE" ]
+then
+  return 0
+fi
+
 rm -f include/netdnet/dn.h
 
 if [ -f /usr/src/linux/include/netdnet/dn.h ]

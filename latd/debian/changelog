@@ -6,7 +6,7 @@ latd (1.12-1) unstable; urgency=low
   * Split out Linux-specific code into its own class
   * Primitive, but functional support for DS90L terminal servers
 
- --
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 11 Feb 2002 17:02:13 +0000
 
 latd (1.11-1) unstable; urgency=low
 

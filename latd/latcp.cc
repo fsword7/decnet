@@ -464,7 +464,7 @@ void purge_services()
 
 void set_multicast(int newtime)
 {
-    if (newtime < 1 || newtime > 32767)
+    if (newtime < 10 || newtime > 180)
     {
 	fprintf(stderr, "invalid multicast time\n");
 	return;
@@ -476,7 +476,7 @@ void set_multicast(int newtime)
 
 void set_retransmit(int newlim)
 {
-    if (newlim < 1 || newlim > 32767)
+    if (newlim < 4 || newlim > 120)
     {
         fprintf(stderr, "invalid retransmit limit\n");
         return;
@@ -488,7 +488,7 @@ void set_retransmit(int newlim)
 
 void set_keepalive(int newtime)
 {
-    if (newtime < 10 || newtime > 32767)
+    if (newtime < 10 || newtime > 180)
     {
 	fprintf(stderr, "invalid keepalive timer\n");
 	return;

@@ -1,3 +1,57 @@
+dnprogs (2.26) unstable; urgency=low
+
+  * dnetd: Fix log function that could cause daemons to segfault if 
+           they ran as a user with an invalid home directory.
+  * Minor tweaks to rpm building so the Red Hat users always get
+    a useful startup script.
+  * Remove some cruft from the Makefile.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  5 Nov 2003 10:30:29 +0000
+
+dnprogs (2.25) unstable; urgency=low
+
+  * po-debconf support and German & French description translations
+    Closes: #210661, #211635
+  * Get rid of the "-1" in the version number as it's not right, this 
+    really is a debian package. But include a README.Debian to keep 
+    some people happy.
+    Closes: #197332
+  * Don't use SIGIO in sethost as it's unreliable and tacky.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 24 Sep 2003 13:57:47 +0100
+
+dnprogs (2.24-1) unstable; urgency=low
+
+  * support for large files.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri,  6 Jun 2003 12:03:39 +0100
+
+dnprogs (2.23.2-1) unstable; urgency=low
+
+  * Always return 0 from init scripts in case someone installs DECnet
+    when they don't actually want it.
+    Closes: #192052
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue,  6 May 2003 08:14:29 +0100
+
+dnprogs (2.23.1-1) unstable; urgency=low
+
+  * Add library path to dnroute link.
+    Closes: #191946
+  * Get rid of C++ism in dnroute
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  5 May 2003 09:26:55 +0100
+
+dnprogs (2.23-1) unstable; urgency=low
+
+  * sethost no longer gets stuck in a tight loop after shutting down
+    a node.
+  * Move libdnet-dev to libdevel section.
+  * dnroute is now included.
+  * Add routing support to init scripts
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun,  4 May 2003 13:14:33 +0100
+
 dnprogs (2.22-1) unstable; urgency=low
 
   * Make some bits of dncopy conditional on it being connected to VMS.

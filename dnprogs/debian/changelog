@@ -1,3 +1,13 @@
+dnprogs (2.26) unstable; urgency=low
+
+  * dnetd: Fix log function that could cause daemons to segfault if 
+           they ran as a user with an invalid home directory.
+  * Minor tweaks to rpm building so the Red Hat users always get
+    a useful startup script.
+  * Remove some cruft from the Makefile.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  5 Nov 2003 10:30:29 +0000
+
 dnprogs (2.25) unstable; urgency=low
 
   * po-debconf support and German & French description translations

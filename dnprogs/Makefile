@@ -25,11 +25,6 @@ tags:
 	etags */*.cc */*.c
 
 
-backup:
-	rm -f /var/tmp/$(PKGNAME).tgz
-	tar -czvf /var/tmp/$(PKGNAME).tgz -Xexcludes-backup . 
-	cp /var/tmp/$(PKGNAME).tgz /msdos/dev/bosy/
-
 clean:
 	rm -rf debian/tmp
 	rm -f debian/files
@@ -74,11 +69,11 @@ rpm:
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 	make prefix=/usr RELEASE=true -j
 	make DESTDIR=`pwd`/rpmbuild install
+	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
 	make dist
 	install -d rpmbuild/etc/rc.d/init.d
 	install -d rpmbuild/usr/doc
-	install scripts/decnet.sh rpmbuild/etc/rc.d/init.d/decnet
-	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
+	sed -e's@/usr/local@/usr@g' < scripts/decnet.sh >rpmbuild/etc/rc.d/init.d/decnet
 	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'                          \
 	    -e's/%%VERSION%%/$(VERSION)/g'                              \
 	    -e's/%%MAJOR_VERSION%%/$(MAJOR_VERSION)/g'                  \
@@ -88,8 +83,8 @@ rpm:
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
-	fakeroot rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
-	rm -f $(PKGNAME).spec  .rpmrc .rpmmacros
+	rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
+	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
 #
 # Make Debian package.
@@ -98,17 +93,6 @@ deb:
 	rm -f Documentation/*~ Documentation/*.bak
 	rm -f dnlogin/*.o dnlogin/dnlogin
 	dpkg-buildpackage -rfakeroot
-
-#
-# Copy binaries to the web preload directory.
-# Only really works on my Intel machine, hence the check
-#
-bindist: dist rpm deb
-	@if [ `uname -n` != "tyke" ]; then echo "Only do this on Patrick\'s Intel box"; exit 1; fi
-	cp /usr/src/redhat/SOURCES/$(PKGNAME)-$(VERSION).tar.gz /home/patrick/public_html/decnet
-	cp ../$(PKGNAME)_$(VERSION)-1_i386.deb /home/patrick/public_html/decnet
-	cp /usr/src/redhat/RPMS/$(ARCH)/$(PKGNAME)-$(VERSION)-1.i386.rpm /home/patrick/public_html/decnet
-	cp /scratch/sparclinux/$(PKGNAME)-$(VERSION)-1.sparc.rpm /home/patrick/public_html/decnet
 
 #
 # Dummy rule for sub-directories

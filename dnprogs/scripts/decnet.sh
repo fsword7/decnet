@@ -24,16 +24,16 @@
 #
 daemons="dnetd phoned"
 
-# Prefix for where the progs are installed. This is where the RPM puts them
-prefix=/usr
+# Prefix for where the progs are installed. "make install" puts them
+# in /usr/local, the RPM has them in /usr
+prefix=/usr/local
 
 #
-# Interfaces to set the MAC address of. If empty all available
-# ethernet interfaces will have their MAC address set the the DECnet
-# address. If you do not want to do that (or don't want to do it here)
-# then remove the -hw switch from the command.
+# Interfaces to set the MAC address of. By default only the default interface
+# in /etc/decnet.conf will be set. If you want to set up more interfaces
+# for DECnet than add them here.
 #
-interfaces=""
+extra_interfaces=""
 
 #
 # Set up some variables.
@@ -69,7 +69,7 @@ case $1 in
      echo "$NODE" > /proc/sys/net/decnet/node_address
      CCT=`grep executor /etc/decnet.conf | awk '{print $6}'`
      echo "$CCT" > /proc/sys/net/decnet/default_device
-     $prefix/sbin/setether $NODE $interfaces
+     $prefix/sbin/setether $NODE $CCT $extra_interfaces 
 
      for i in $daemons
      do

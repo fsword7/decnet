@@ -268,22 +268,32 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    esc_buf[esc_len++] = buf[i];
 	    if (isalpha(buf[i]))
 	    {
+		int esc_done = 0;
+
 		/* Process escape sequences */
-		if (strncmp(esc_buf, "\033[D", 3)) /* Cursor RIGHT */
+		if (strncmp(esc_buf, "\033[C", 3) == 0) /* Cursor RIGHT */
 		{
 		    if (input_pos < input_len)
 		    {
 			input_pos++;
 			if (echo) write(termfd, esc_buf, esc_len);
 		    }
+		    esc_done = 1;
 		}
-		if (strncmp(esc_buf, "\033[C", 3)) /* Cursor LEFT */
+		if (strncmp(esc_buf, "\033[D", 3) == 0) /* Cursor LEFT */
 		{
 		    if (input_pos > 0)
 		    {
 			input_pos--;
 			if (echo) write(termfd, esc_buf, esc_len);
 		    }
+		    esc_done = 1;
+		}
+		/* If we didn't process it above, then just send it to
+		   the host */
+		if (!esc_done)
+		{
+		    send_input(esc_buf, esc_len, 2);
 		}
 		esc_len = 0;
 	    }

@@ -57,7 +57,7 @@ static const char *hosttype[] = {
     "OS8",
     "RTS-8",
     "RSX-11M+",
-    "??13", "??14", "??15", "??16", "??17",
+    "DEC Unix", "??14", "??15", "??16", "??17",
     "Ultrix-32",
     "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
     "", "",
@@ -225,6 +225,9 @@ int found_read()
 		ptr += msglen;
 	    }
 	}
+	break;
+
+    case 2: /* Reserved */
 	break;
 
     default:

@@ -1,25 +1,17 @@
-Things I still don't understand
--------------------------------
-- Why Tru64 doesn't disconnect cleanly [or connect well any more :-( ]
-
-
 TODO in no particular order
 ----
-- Make more fields configurable (via latcp)
 - Check multiple sessions on the same connection. How many slots can I
   get away with sending? (and stuff like that)
-- Support multiple client sessions in one connection
 - See if there's a better way of translating CR/LF & LF/CR into just LF
 - Modem control??
 - Input flow control in case the PTY stops reading.
-- Manage remote credit properly (may be OK but there are
-  some assumptions I am not happy with)
+- latcp display command - show full configration & maybe active sessions
 - Timeout dead sessions (keepalive timer)
 - Test Service responder
 - Reverse LAT queueing
 - Groups incoming & outgoing
-- Understand more of the parameter fields in the protocol.
 - Keep counters ? 
+- Loopback testing from DECserver
 - Get rid of all the TODOs in the code.
 - Stop putting things in this list!
 
@@ -30,4 +22,5 @@ THINGS I MAY NOT DO
   to 1020 if I'm feeling generous)
 - CR/LF conversion when printing /etc/issue.net - maybe force you
   to use a different file instead.
+- Support multiple client sessions in one connection
 - Put the protocol bits into the kernel.

@@ -592,7 +592,9 @@ LATConnection::~LATConnection()
     // Do we need to notify our master?
     if (queued_slave)
     {
-	ClientSession *cs = (ClientSession *)master_conn->sessions[1];
+	ClientSession *cs = NULL;
+	if (master_conn)
+		cs = (ClientSession *)master_conn->sessions[1];
 	if (cs) cs->restart_pty();
     }
     else

@@ -246,6 +246,20 @@ Then you would only be able to connect reverse LAT ports to services that
 were advertised in group 20 (ie you could not connect to the LINUX service!).
 </p>
 
+<h1>Application services</h1>
+The default for a service configured with the latcp -A -a command is the
+login application but you can define almost any sort of application you like.
+To give an illustration this is how the default login service looks like with
+defaults spelled out:
+<tt><br><b> latcp -A -a LINUX -C /bin/login -u root</b><br></tt>
+You can specify any command you like for -C and any valid user for -u so
+forcing users into a specific application straight from the terminal server,
+of course you may also have to do some authentication too! latd will set the 
+following environment variables which you may find useful:<br>
+LAT_LOCAL_SERVICE<BR>
+LAT_REMOTE_NODE<BR>
+LAT_REMOTE_PORT<BR>
+
 <p></p>
 
 <h1>Other things you can fiddle with</h1>
@@ -328,8 +342,22 @@ script that sets up the services shown in the above example output:</p>
 <p><pre># /etc/latd.conf<br># This is a sample configuration file for latd<br># it is run as s shell script from latcp -s with a minimal<br># environment and PATH (though latcp will be available as $LATCP)<br>#<br># You can fiddle with all the latd parameters you like in here, the first<br># service announcement will not be made until this script completes.<br>#<br>#<br><br># Set the multicast timeout to 30 seconds<br>$LATCP -m 30 <br><br># Add another login service<br>$LATCP -A -a LINUX -r 100<br><br># Add a queued reverse LAT service to consoles<br>$LATCP -A -p /dev/lat/marsinta -Vds200 -RPORT_8 -Q<br>$LATCP -A -p /dev/lat/trillian -Vds200 -RPORT_7 -Q <br>$LATCP -A -p /dev/lat/zaphod   -Vds200 -RPORT_3 -Q <br>$LATCP -A -p /dev/lat/roosta   -Vds200 -RPORT_2 -Q <br><br># LAT to VAX<br>$LATCP -A -p /dev/lat/loginmarsha -Vmarsha    <br><br># DDCMP on Marsha<br>$LATCP -A -p /dev/lat/ddcmp -Vds200 -RPORT_6 -Q -8<br><br>exit<br></pre>
  </p>
 
-<p></p>
+<h1>Managing terminal servers</h1>
+latd also comes with a utility to help you manage your terminal servers, it
+is called <b>moprc</b> and it behaves in a similar manner to the
+ "NCP CONNECT NODE" or "SET HOST/MOP" commands on VMS in that it connects you
+to the management port of a DEC terminal server so you can issue commands
+for changing ports and assigning services. <p>
+Put the names and ethernet addresses of your terminal servers in the file 
+/etc/ethers (see ethers(5) for the format of this file) and you can connect
+to the servers by name:<br>
+<tt><b># moprc DS200 </b></tt><br>
+If your Linux machine has more than one ethernet adaptor you may need to tell
+moprc which card to use - it defaults to eth0.
+
 <br>
+
+<p></p>
 
 <hr width="100%"><br>
 <i>Compaq</i> and <i>Tru64 Unix</i> are trademarks of Compaq Computers Inc

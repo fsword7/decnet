@@ -66,14 +66,16 @@ class LATConnection
     {
     public:
       pending_msg() {}	
-      pending_msg(unsigned char *_buf, int _len):
-	len(_len)
+      pending_msg(unsigned char *_buf, int _len, bool _need_ack):
+	len(_len),
+        need_ack(_need_ack)
 	{
 	    buf = new unsigned char[len];
 	    memcpy(buf, _buf, len);
 	}
       pending_msg(const pending_msg &msg):
-	len(msg.len)
+	len(msg.len),
+	need_ack(msg.need_ack)  
 	{
 	    buf = new unsigned char[len];
 	    memcpy(buf, msg.buf, len);
@@ -88,6 +90,7 @@ class LATConnection
 	  if (&a != this)
 	  {
 	      len = a.len;
+	      need_ack = a.need_ack;
 	      buf = new unsigned char[len];
 	      memcpy(buf, a.buf, len);
 	  }
@@ -102,10 +105,12 @@ class LATConnection
 	  return send(macaddr);
       }
       LAT_Header *get_header() { return (LAT_Header *)buf;}
+      bool needs_ack() { return need_ack;}
       
     private:
       unsigned char *buf;
       int   len;
+      bool  need_ack;
     };
 
     queue<pending_msg> pending;

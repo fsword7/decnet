@@ -116,27 +116,28 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     if (window_size < 0) window_size=0;
 
     // For duplicate checking
-    unsigned char real_last_sequence_number = last_sequence_number;
-    unsigned char real_last_message_acked   = last_message_acked;
+    unsigned char saved_last_sequence_number = last_sequence_number;
+    unsigned char saved_last_message_acked   = last_message_acked;
 
-    last_sequence_number = msg->header.ack_number;
-    last_message_acked   = msg->header.sequence_number;
+    last_sequence_number = msg->header.sequence_number;
+    last_message_acked   = msg->header.ack_number;
   
-    debuglog(("     seq: %d,      ack: %d\n", msg->header.sequence_number, msg->header.ack_number));
-    debuglog(("last seq: %d, last ack: %d\n", last_sequence_number, last_message_acked));
-    debuglog(("last seq: %d, last ack: %d\n", last_message_seq, last_ack_number));
+    debuglog(("MSG:      seq: %d,        ack: %d\n", 
+	      msg->header.sequence_number, msg->header.ack_number));
 
-    // Is this a duplicate
-    if (real_last_sequence_number == last_sequence_number &&
-	real_last_message_acked == last_message_acked)
+    debuglog(("SENT:last seq: %d, last acked: %d\n", 
+	      last_sequence_number, last_message_acked));
+
+    debuglog(("PREV:last seq: %d,   last ack: %d\n", 
+	      last_message_seq, last_ack_number));
+
+    // Is this a duplicate?
+    if (saved_last_sequence_number == last_sequence_number &&
+	saved_last_message_acked == last_message_acked)
     {
 	debuglog(("Duplicate packet received...ignoring it\n"));
 	return false;
     }
-
-    // PJC:TODO: not sure about this. 
-    // It doesn't affect the server but it seems to help the client
-    last_ack_number = last_message_acked;
 
     // No blocks? just ACK it (if we're a server)
     if (msg->header.num_slots == 0)
@@ -327,7 +328,6 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     if (type == DATA)  
     {
 	last_sequence_number++;
-	need_ack = true;
 	retransmit_count = 0;
 	last_message_seq = last_sequence_number;
 	window_size++;
@@ -336,7 +336,6 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
     if (type == REPLY) 
     {
 	last_ack_number++;
-	need_ack = false;
     }
 
     response->local_connid    = num;
@@ -346,7 +345,7 @@ int LATConnection::send_message(unsigned char *buf, int len, send_type type)
 
     debuglog(("Sending message for connid %d\n", num));
 
-    if (need_ack) last_message = pending_msg(buf, len);    
+    if (type == DATA) last_message = pending_msg(buf, len, (type==DATA) );
     return LATServer::Instance()->send_message(buf, len, macaddr);
 }
 
@@ -363,7 +362,7 @@ int LATConnection::queue_message(unsigned char *buf, int len)
 
     debuglog(("Queued messsge for connid %d\n", num));
     
-    pending.push(pending_msg(buf, len));
+    pending.push(pending_msg(buf, len, true));
     return 0;
 }
 
@@ -451,6 +450,7 @@ void LATConnection::circuit_timer(void)
 	}	
 	debuglog(("Last message not ACKed: RESEND\n"));
 	last_message.send(macaddr);
+	return;
     }
     else
     {
@@ -499,7 +499,7 @@ void LATConnection::circuit_timer(void)
 	if (header->num_slots)
 	{
 	    debuglog(("Sending %d slots on circuit timer\n", header->num_slots));
-	    pending.push(pending_msg(buf, len));
+	    pending.push(pending_msg(buf, len, true));
 	}
     }
 
@@ -518,15 +518,15 @@ void LATConnection::circuit_timer(void)
       
         last_sequence_number++;
         last_message_seq = last_sequence_number;
-        need_ack = true;
+        need_ack = msg.needs_ack();
 	retransmit_count = 0;
 	
-        LAT_Header *header = msg.get_header();
+        LAT_Header *header      = msg.get_header();
         header->sequence_number = last_sequence_number;
         header->ack_number      = last_ack_number;
      
-        debuglog(("Sending message on circuit timer: seq: %d, ack: %d\n",
-		  last_sequence_number, last_ack_number));
+        debuglog(("Sending message on circuit timer: seq: %d, ack: %d (%d)\n",
+		  last_sequence_number, last_ack_number, need_ack));
  
         msg.send(macaddr);
 	last_message = msg; // Save it in case it gets lost on the wire;
@@ -600,8 +600,6 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     max_window_size = reply->exqueued+1;
 
     last_ack_number = last_message_acked;
-
-
 
 // Start clientsession 1
     ClientSession *cs = (ClientSession *)sessions[1];

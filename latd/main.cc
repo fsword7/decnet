@@ -37,7 +37,7 @@
 #endif
 #include <sys/socket.h>
 #include <features.h>    /* for the glibc version number */
-#if __GLIBC__ >= 2 && __GLIBC_MINOR >= 1
+#if (__GLIBC__ >= 2 && __GLIBC_MINOR >= 1) || __GLIBC__ >= 3
 #include <netpacket/packet.h>
 #include <net/ethernet.h>     /* the L2 protocols */
 #else
@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 	    break;
 
 	case 'V':
-	    printf("\nlatd ALPHA version %s\n\n", VERSION);
+	    printf("\nlatd version %s\n\n", VERSION);
 	    exit(1);
 	    break;
 	    	    

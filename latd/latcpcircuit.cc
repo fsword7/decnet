@@ -102,6 +102,19 @@ bool LATCPCircuit::do_command()
     }
     break;
 
+    case LATCP_SHOWCHAR:
+    {
+	int verbose = cmdbuf[0];
+	ostrstream st;
+
+	debuglog(("latcp: show_characteristics(verbose=%d)\n", verbose));
+
+	LATServer::Instance()->show_characteristics(verbose?true:false, st);
+	send_reply(LATCP_SHOWCHAR, st.str(), st.pcount());
+    }
+    break;
+
+    
     case LATCP_SETRESPONDER:
     {
 	bool onoff = cmdbuf[0]==0?false:true;

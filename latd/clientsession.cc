@@ -21,6 +21,7 @@
 #include <queue>
 #include <string>
 #include <map>
+#include <strstream>
 
 #include "lat.h"
 #include "utils.h"

@@ -78,11 +78,8 @@ int usage(char *cmd)
     printf ("     where option is one of the following:\n");
     printf ("       -s [<latd args>]\n");
     printf ("       -h\n");
-    printf ("       -A -a service [-i descript] [-o | -p ttylist]\n");
-    printf ("       -A -v reserved_service\n");
+    printf ("       -A -a service [-i descript] [-r rating]\n");
     printf ("       -A -p tty -H rem_node {-R rem_port | -V rem_service} [-Q] [-wpass | -W]\n");
-    printf ("       -A -p tty -O -V learned_service \n");
-    printf ("               [-H rem_node [-R rem_port] ] [-wpass | -W]\n");
     printf ("       -p ttylist -a service\n");
     printf ("       -P ttylist -a service\n");
     printf ("       -D {-a service | -v reserved_service | -p ttylist}\n");
@@ -99,13 +96,7 @@ int usage(char *cmd)
     printf ("       -r retransmit limit\n");
     printf ("       -m multicast timer (100ths/sec)\n");    
     printf ("       -k keepalive timer (seconds)\n");
-#if 0
-    printf ("       -e adaptor\n");
-    printf ("       -E adaptor\n");
-    printf ("       -c count\n");
-#endif
-    printf ("       -d [ [-l [-v learned_service] ] | -H rem_node | -C | -N | -S | \n");
-    printf ("               -P [-p ttylist | -L | -I | -O] ]\n");
+    printf ("       -d [ [-l [-v] ] ]\n");
     printf ("       -z \n");
 
     return 2;
@@ -197,11 +188,39 @@ int main(int argc, char *argv[])
 // Display latd characteristics or learned services
 void display(int argc, char *argv[])
 {   
+    char verboseflag[1] = {'\0'};
+    char opt;
+    bool show_services = false;
+    
     if (!open_socket(false)) return;
 
-    // Just do the one command for the moment - dump service list
-    char verboseflag[1] = {'\0'};
-    send_msg(latcp_socket, LATCP_SHOWSERVICE, verboseflag, 1);
+    while ((opt=getopt(argc,argv,"lv")) != EOF)
+    {
+	switch(opt) 
+	{
+	case 'l':
+	    show_services=true;
+	    break;
+
+	case 'v':
+	    verboseflag[0] = 1;
+	    break;
+
+	default:
+	    fprintf(stderr, "only -v or -l valid with -d flag\n");
+	    exit(2);
+	}
+    }
+
+
+    if (show_services)
+    {
+	send_msg(latcp_socket, LATCP_SHOWSERVICE, verboseflag, 1);
+    }
+    else
+    {
+	send_msg(latcp_socket, LATCP_SHOWCHAR, verboseflag, 1);
+    }
 
     unsigned char *result;
     int len;

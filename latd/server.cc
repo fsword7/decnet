@@ -57,6 +57,7 @@
 #include <iterator>
 #include <string>
 #include <strstream>
+#include <iomanip>
 
 #include "lat.h"
 #include "utils.h"
@@ -981,6 +982,45 @@ int LATServer::make_client_connection(unsigned char *service,
 					    queued);
     connections[connid]->create_client_session();
     return 0;
+}
+
+
+// Make this as much like VMS LATCP SHOW NODE as possible.
+bool LATServer::show_characteristics(bool verbose, ostrstream &output)
+{
+    output <<endl;
+    output << "Node Name:  " << get_local_node() << setw(16-strlen((char*)get_local_node())) << " " << "     LAT Protocol Version:       " << LAT_VERSION << "." << LAT_VERSION_ECO << endl;
+    output << "Node State: On " << "                  LATD Version:               " << VERSION << endl;
+    output << "Node Ident: " << greeting << endl;
+    output << endl;
+
+    output << "Service Responder : " << (responder?"Enabled":"Disabled") << endl;
+    output << endl;
+
+    output << "Circuit Timer (msec): " << setw(6) << circuit_timer*10 << "      Keepalive Timer (sec): " << setw(6) << keepalive_timer << endl;
+    output << "Retransmit Limit:     " << setw(6) << retransmit_limit << endl;
+    output << "Multicast Timer (sec):" << setw(6) << multicast_timer << endl;
+    output <<endl;
+
+    output << "Service Name   Status   Rating Identification" << endl;
+
+
+    // Groups go here...
+
+
+    // Show services we are accepting for.
+    list<serviceinfo>::iterator i(servicelist.begin());    
+    for (; i != servicelist.end(); i++)
+    {
+	output << setw(16) << i->get_name() << setw(15-i->get_name().size()) << " " << "Enabled" << setw(6) << i->get_rating() <<
+	    (i->get_static()?"    ":" D  ") << i->get_id() << endl;
+    }
+    
+    
+    // NUL-terminate it.
+    output << endl << ends;
+
+    return true;
 }
 
 // Return a number for a new connection

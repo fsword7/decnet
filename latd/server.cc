@@ -288,6 +288,7 @@ void LATServer::run()
     {
 	syslog(LOG_ERR, "listen latcp: %m");
     }
+    // Make sure only root can talk to us.
     chmod(LATCP_SOCKNAME, 0600);
     fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));
     
@@ -388,6 +389,9 @@ void LATServer::read_lat(int sock)
     struct iovec iov;
     struct sockaddr_ll sock_info;
     LAT_Header *header = (LAT_Header *)buf;
+
+    // Not listening yet.
+    if (locked) return;
   
     msg.msg_name = &sock_info;
     msg.msg_namelen = sizeof(sock_info);
@@ -520,7 +524,7 @@ void LATServer::read_lat(int sock)
 
     case LAT_CCMD_STATUS:
 	debuglog(("got STATUS message\n"));
-	// TODO something with this.
+	// TODO something with this...but what?
 	break;
     }
 }
@@ -696,6 +700,9 @@ void LATServer::init(bool _static_rating, int _rating,
 		     char *_service, char *_greeting, int _interface_num,
 		     int _verbosity, int _timer, char *_our_macaddr)
 {
+    // Server is locked until latcp has finished
+    locked = true;
+
     // Add the default session
     servicelist.push_back(serviceinfo(_service, 
 				      _rating,
@@ -720,6 +727,7 @@ void LATServer::init(bool _static_rating, int _rating,
     // Enable user group 0
     memset(user_groups, 0, 32);
     user_groups[0] = 1;
+
 }
 
 // Create a new connection object for this remote node.
@@ -767,7 +775,7 @@ void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr
 {
     LAT_ServiceAnnounce *announce = (LAT_ServiceAnnounce *)buf;
     int ptr = sizeof(LAT_ServiceAnnounce);
-    int service_groups[32];
+    unsigned char service_groups[32];
     unsigned char nodename[32];
     unsigned char greeting[255];
     unsigned char service[255];
@@ -776,24 +784,24 @@ void LATServer::add_services(unsigned char *buf, int len, unsigned char *macaddr
     // Set the groups to all zeros initially
     memset(service_groups, 0, sizeof(service_groups));
 
-
-    // Make sure someone isn't pulling out leg.
+    // Make sure someone isn't pulling our leg.
     if (announce->group_length > 32)
 	announce->group_length = 32;
 
     // Get group numbers
     memcpy(service_groups, buf+ptr, announce->group_length);
-
     
     // Compare with our user groups mask (which is always either completely
     // empty or the full 32 bytes)
-
     int i;
     bool gotone = false;
     for (i=0; i<announce->group_length; i++)
     {
 	if (user_groups[i] & service_groups[i])
+	{
 	    gotone = true;
+	    break;
+	}
     }
     
     if (!gotone)
@@ -891,9 +899,6 @@ void LATServer::delete_entry(deleted_session &dsl)
     case DISABLED_PTY:
 	remove_fd(dsl.get_fd());	
 	dsl.get_conn()->remove_session(dsl.get_id());
-	break;
-
-
 	break;
     }
 }
@@ -1095,6 +1100,7 @@ void LATServer::set_nodename(unsigned char *name)
 // Start sending service announcements
 void LATServer::unlock()
 {
+    locked = false;
     alarm_signal(SIGALRM);
 }
 
@@ -1240,7 +1246,7 @@ int LATServer::unset_usergroups(unsigned char *bitmap)
 
 // Print a groups bitmap
 // TODO: print x-y format like we accept in latcp.
-void LATServer::print_bitmap(ostrstream &output, bool isset, char *bitmap)
+void LATServer::print_bitmap(ostrstream &output, bool isset, unsigned char *bitmap)
 {
     if (!isset)
     {

@@ -72,6 +72,7 @@ class LATServer
     int  lat_socket;
     int  latcp_socket;
     bool do_shutdown;
+    bool locked;
     int  next_connection;
 
     void  read_lat(int sock);
@@ -85,7 +86,7 @@ class LATServer
     void  add_services(unsigned char *, int, unsigned char *);
     void  accept_latcp(int);
     void  read_latcp(int);
-    void  print_bitmap(ostrstream &, bool, char *bitmap);
+    void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);
  
     static void alarm_signal(int sig);
 
@@ -212,14 +213,14 @@ class LATServer
     map<int, LATCPCircuit> latcp_circuits;
 
     // LATCP configurable parameters
-    int  circuit_timer;   // Default 8 (=80 ms)
-    int  multicast_timer; // Default 60 (seconds)
-    int  retransmit_limit;// Default 20
-    int  keepalive_timer; // Default ??
-    bool responder;       // Be a service responder (false);
-    char groups[32];      // Bitmap of groups
-    bool groups_set;      // Have the groups been set ?
-    char user_groups[32]; // Bitmap of user groups..always in use
+    int           circuit_timer;   // Default 8 (=80 ms)
+    int           multicast_timer; // Default 60 (seconds)
+    int           retransmit_limit;// Default 20
+    int           keepalive_timer; // Default 20 (seconds)
+    bool          responder;       // Be a service responder (false);
+    unsigned char groups[32];      // Bitmap of groups
+    bool          groups_set;      // Have the server groups been set ?
+    unsigned char user_groups[32]; // Bitmap of user groups..always in use
 
     // LATCP Circuit callins
  public:

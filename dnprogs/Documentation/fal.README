@@ -24,11 +24,20 @@ OpenVMS proxy database in that you can specify remote nodes and usernames
 either explicitly or using wildcards and then indicate which local user
 should be used for thos remote accesses. eg:
 
-tramp::patrick patrick
+^tramp$::^patrick$ patrick
 
 The line above says that if I connect from my VMS machine tramp to the Linux
-machine without providing a username and password then I will be given 
-access to my files on the Linux machine.
+machine without providing a username and password then I will be given  access
+to my files on the Linux machine. Not the regex anchors ^ and $ on the remote
+node name and username, that's because those two fields are actually POSIX
+regular expressions. This may look odd at first but gives you a lot of
+flexibility in specifying proxies. eg:
+
+^cls00[0-4]$::^b.* *
+
+This allow access from any user name starting with b when logged into machine
+cls000 cls001 cls002 cls003 or cls004 to access local files. Note that all user
+names and node names are converted to lower case before comparison.
 
 If you want to make this the case for all users on your network (ie. all VMS
 users who also have an account on the Linux machine will be able to access
@@ -36,15 +45,6 @@ their files without providing a password) then you can use a line such as:
 
 .*::.* *
 
-Note that the wildcards are actually Unix regular expressions rather than VMS 
-wildcards. This may look odd at first but gives you a lot of flexibility in
-specifying proxies. eg:
-
-cls00[0-4]::b.* *
-
-This allow access from any user name starting with b when logged into machine
-cls000 cls001 cls002 cls003 or cls004 to access local files. Note that all user
-names and node names are converted to lower case before comparison.
 
 The last * on the line is not a wildcard, it is just a special character
 that FAL uses to mean "the username on the remote system". If no such user
@@ -52,8 +52,8 @@ exists on the local system the access will be denied.
 
 You can use this last feature to deny access to specific groups of users. eg.
 
-.*::guest none
-www::.*   none
+.*::^guest$ none
+^www$::.*   none
 
 Will deny access to all guest users and also to all users on the machine www.
 This, of course, assumes you have no username called none on your machine.
@@ -164,6 +164,22 @@ returned to the client. If the filename has too few slashes to make a filename
 as shown above then a pseudo volume SYSDISK is used to pad it out 
 (eg /bin/ls becomes SYSDISK:[BIN]LS;1) FAL understands these filenames when
 they are passed back to it so don't worry.
+
+If you start FAL with the -r<dir> flag then all filenames will be relative to
+the directory following the flag. This effectively disables users home
+directories so think about this before doing it. so (eg) if FAL is started as
+
+fal -r /vmsroot
+
+and a VMS users tries to access file
+
+LINUX::[MYDIR]file.txt
+
+then Linux will send the file
+
+/vmsroot/mydir/file.txt
+
+With -r any attempt to go up a directory using .. will fail the file access.
 
 
 HOW IT WORKS

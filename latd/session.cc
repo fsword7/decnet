@@ -215,7 +215,7 @@ void LATSession::disconnect_session(int reason)
 void LATSession::send_disabled_message()
 {
     unsigned char replybuf[1600];
-    LAT_SessionReply *reply = (LAT_SessionReply *)reply;
+    LAT_SessionReply *reply = (LAT_SessionReply *)replybuf;
 
     debuglog(("Sending DISABLED message\n"));
     

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -683,7 +683,6 @@ void del_service(int argc, char *argv[])
     bool got_service = false;
     bool got_port = false;
     opterr = 0;
-    optind = 0;
 
     while ((opt=getopt(argc,argv,"a:p:")) != EOF)
     {

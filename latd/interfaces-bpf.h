@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2002-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -11,7 +11,6 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-#define HAVE_AF_LINK
 // interfaces-bpf.h
 // BPF implementation of LATinterfaces
 class BPFInterfaces : public LATinterfaces

@@ -1,6 +1,5 @@
 /******************************************************************************
-    (c) 1998 P.J. Caulfield               patrick@debian.org
-                                          pcaulfield@cix.co.uk
+    (c) 1998, 2003 P.J. Caulfield               patrick@debian.org
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,7 +14,7 @@
  */
 /* Header file to cope with endian issues */
 
-#ifdef __NetBSD__
+#if defined(__NetBSD__) || defined(__FreeBSD__)
 #include <machine/endian.h>
 #define __BYTE_ORDER BYTE_ORDER
 #endif

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -107,7 +107,6 @@ int main(int argc, char *argv[])
     // Deal with command-line arguments. Do these before the check for root
     // so we can check the version number and get help without being root.
     opterr = 0;
-    optind = 0;
     while ((opt=getopt(argc,argv,"?vVhdl:r:s:t:g:i:c:")) != EOF)
     {
 	switch(opt)

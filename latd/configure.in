@@ -97,7 +97,7 @@ fi
 dnl Configuring for the login program
 if test -f /bin/login; then
   AC_DEFINE_UNQUOTED(LOGIN_BIN, "/bin/login")
-elif test -f /bin/false; then
+elif test -f /usr/bin/login; then
   AC_DEFINE_UNQUOTED(LOGIN_BIN, "/usr/bin/login")
 fi
 

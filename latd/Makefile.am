@@ -2,9 +2,11 @@
 
 AUTOMAKE_OPTIONS = 1.4 foreign
 
-AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wstrict-prototypes -Wno-deprecated -Wno-unused
+AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wstrict-prototypes -Wno-unused
 
 INCLUDES = -DLATD_CONF=\"$(sysconfdir)/latd.conf\" -DSBINDIR=\"$(sbindir)\" -DBINDIR=\"$(bindir)\"
+
+LDFLAGS=$(DEFS)
 
 sbin_PROGRAMS = latd latcp moprc
 bin_PROGRAMS = llogin
@@ -46,3 +48,4 @@ moprc_DEPENDANCIES = @INTERFACE_SOURCE@
 moprc_LDADD = @INTERFACE_SOURCE@
 
 llogin_LDADD = @LIBLOCKDEV@
+

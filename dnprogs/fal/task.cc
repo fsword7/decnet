@@ -1079,6 +1079,7 @@ const char *fal_task::default_types_file  = "#\n\
 .c    r\n\
 .cc   r\n\
 .log  r\n\
+.html r\n\
 # VMS types\n\
 .com  r\n\
 .lis  r\n\
@@ -1088,4 +1089,7 @@ const char *fal_task::default_types_file  = "#\n\
 #Linux types\n\
 .tar  b 10240\n\
 .gz   b 512\n\
+.tgz  b 512\n\
+.bz2  b 512\n\
+.tgz  b 512\n\
 # End of file\n";

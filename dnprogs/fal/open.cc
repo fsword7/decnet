@@ -285,10 +285,17 @@ bool fal_open::process_message(dap_message *m)
 		{
 		    reply.set_cmpfunc(dap_accomp_message::RESPONSE);
 		    reply.write(conn);
+		    return false;
 		}
 		return true;
 
 	    case dap_accomp_message::CLOSE:
+
+		// This option needs to be done before close
+		if (am->get_fop_bit(dap_attrib_message::FB$TEF) ||
+		    attrib_msg->get_fop_bit(dap_attrib_message::FB$TEF))
+		    truncate_file();
+
 		// finished task
 		if (stream)
 		{
@@ -296,20 +303,17 @@ bool fal_open::process_message(dap_message *m)
 		    stream = NULL;
 		}
 
-		// Do close options
+		// Do post-close options
 		if (am->get_fop_bit(dap_attrib_message::FB$SPL) ||
 		    attrib_msg->get_fop_bit(dap_attrib_message::FB$SPL))
 		    print_file();
 		if (am->get_fop_bit(dap_attrib_message::FB$DLT) ||
 		    attrib_msg->get_fop_bit(dap_attrib_message::FB$DLT))
 		    delete_file();
-		if (am->get_fop_bit(dap_attrib_message::FB$TEF) ||
-		    attrib_msg->get_fop_bit(dap_attrib_message::FB$TEF))
-		    truncate_file();
 
 		reply.set_cmpfunc(dap_accomp_message::RESPONSE);
 		reply.write(conn);
-		return false;
+		return true;
 		break;
 
 	    default:

@@ -448,32 +448,39 @@ void LATConnection::circuit_timer(void)
     // Increment keepalive timer - timer is measured in the same units
     // as the circut timer(100ths/sec) but the keepalive timer in the Server 
     // is measured in seconds.
-    keepalive_timer += LATServer::Instance()->get_circuit_timer();
-    if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
+
+    // Of course, we needn't send keepalive messages when we are a
+    // disconnected client.
+    if (role == SERVER ||
+	(role == CLIENT && sessions[1]->isConnected()))
     {
-	// Send an empty message that needs an ACK.
-        // If we don't get a response to this then we abort the circuit.
-	debuglog(("keepalive timer expired: %d: limit: %d\n", keepalive_timer,
-		LATServer::Instance()->get_keepalive_timer()*100));
-
-	// If we get into this block then there is no chance that there is
-	// an outstanding ack (or if there is then it's all gone horribly wrong anyway
-	// so it's safe to just send a NULL messae out.
-	// If we do exqueued properly this may need revisiting.
-	unsigned char replybuf[1600];
-	LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
-	
-	reply->header.cmd          = LAT_CCMD_SDATA;
-	reply->header.num_slots    = 0;
-	reply->slot.remote_session = 0;
-	reply->slot.local_session  = 0;
-	reply->slot.length         = 0;
-	reply->slot.cmd            = 0;
-
-	if (role == CLIENT) reply->header.cmd |= 2; // To Host
-
-	send_message(replybuf, sizeof(LAT_SessionReply), DATA);
-	return;
+	keepalive_timer += LATServer::Instance()->get_circuit_timer();
+	if (keepalive_timer > LATServer::Instance()->get_keepalive_timer()*100 )
+	{
+	    // Send an empty message that needs an ACK.
+	    // If we don't get a response to this then we abort the circuit.
+	    debuglog(("keepalive timer expired: %d: limit: %d\n", keepalive_timer,
+		      LATServer::Instance()->get_keepalive_timer()*100));
+	    
+	    // If we get into this block then there is no chance that there is
+	    // an outstanding ack (or if there is then it's all gone horribly wrong anyway
+	    // so it's safe to just send a NULL messae out.
+	    // If we do exqueued properly this may need revisiting.
+	    unsigned char replybuf[1600];
+	    LAT_SessionReply *reply  = (LAT_SessionReply *)replybuf;
+	    
+	    reply->header.cmd          = LAT_CCMD_SDATA;
+	    reply->header.num_slots    = 0;
+	    reply->slot.remote_session = 0;
+	    reply->slot.local_session  = 0;
+	    reply->slot.length         = 0;
+	    reply->slot.cmd            = 0;
+	    
+	    if (role == CLIENT) reply->header.cmd |= 2; // To Host
+	    
+	    send_message(replybuf, sizeof(LAT_SessionReply), DATA);
+	    return;
+	}
     }
 
     // Did we get an ACK for our last message?

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,27 +12,19 @@
     GNU General Public License for more details.
 ******************************************************************************/
 
-class ClientSession: public LATSession
+class LLOGINCircuit: public Circuit
 {
- public:
-  ClientSession(class LATConnection &p,
-		unsigned char remid, unsigned char localid, char *, bool clean);
-
-  virtual ~ClientSession();
-  virtual int new_session(unsigned char *remote_node, unsigned char c);
-  virtual void do_read();
-  virtual void disconnect_session(int reason);
+    public:
+    LLOGINCircuit(int _fd);
     
-  virtual void connect(char *service, char *port);
-  virtual int  connect_parent();
-  virtual void got_connection(unsigned char);
-  virtual void restart_pty();
-  int get_port_fd();
+    virtual ~LLOGINCircuit();
+    
+    virtual bool do_command();
 
-  
  private:
-  int slave_fd;
-  bool slave_fd_open;
-  char mastername[255];
-  char ltaname[255];
+    enum {STARTING, RUNNING, TERMINAL} state;
+    char msg[1024];
+    char node[256];
+    char service[256];
+    char port[256];    
 };

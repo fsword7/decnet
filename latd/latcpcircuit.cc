@@ -28,12 +28,13 @@
 #include "services.h"
 #include "session.h"
 #include "connection.h"
+#include "circuit.h"
 #include "latcpcircuit.h"
 #include "server.h"
 
 
 LATCPCircuit::LATCPCircuit(int _fd):
-    fd(_fd),
+    Circuit(_fd),
     state(STARTING)
 {
 }
@@ -369,16 +370,3 @@ bool LATCPCircuit::do_command()
     return retval;
 }
 
-bool LATCPCircuit::send_reply(int cmd, char *buf, int len)
-{
-    char outhead[3];
-
-    if (len == -1) len=strlen(buf)+1;
-    
-    outhead[0] = cmd;
-    outhead[1] = len/256;
-    outhead[2] = len%256;
-    if (write(fd, outhead, 3) != 3) return false;
-    if (write(fd, buf, len) != len) return false;
-    return true;
-}

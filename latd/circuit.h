@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -11,17 +11,19 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ******************************************************************************/
-
-class LATCPCircuit: public Circuit
+#include <stdio.h>
+class Circuit
 {
     public:
-    LATCPCircuit(): Circuit(-1) {}
-    LATCPCircuit(int _fd);
+    Circuit(): fd(-1) {}
+    Circuit(int _fd): fd(_fd) {};
 
-    virtual ~LATCPCircuit();
+    virtual ~Circuit() {};
     
-    virtual bool do_command();
+    virtual bool do_command() { return false;};
 
  protected:
-    enum {STARTING, RUNNING} state;
+    int fd;
+
+    bool send_reply(int, char *, int);
 };

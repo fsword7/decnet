@@ -43,6 +43,7 @@
 #include "utils.h"
 #include "session.h"
 #include "connection.h"
+#include "circuit.h"
 #include "latcpcircuit.h"
 #include "server.h"
 

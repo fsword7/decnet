@@ -28,8 +28,10 @@
 #include "session.h"
 #include "serversession.h"
 #include "clientsession.h"
+#include "lloginsession.h"
 #include "portsession.h"
 #include "connection.h"
+#include "circuit.h"
 #include "latcpcircuit.h"
 #include "server.h"
 #include "services.h"
@@ -697,7 +699,7 @@ int LATConnection::connect()
 {
    // Look up the service name.
     string node;
-    int  this_int;
+    int  this_int=0;
 
     // If no node was specified then just use the highest rated one
     if (remnode[0] == '\0')
@@ -787,7 +789,7 @@ int LATConnection::connect()
 	LAT_Start *msg = (LAT_Start *)buf;
 	ptr = sizeof(LAT_Start);
 
-	debuglog(("Requesting connect to service\n"));
+	debuglog(("Requesting connect to service on interface %d\n", interface));
 
 	msg->header.cmd          = LAT_CCMD_CONNECT;
 	msg->header.num_slots    = 0;
@@ -820,6 +822,22 @@ int LATConnection::create_client_session()
     LATSession *newsession = new ClientSession(*this, 0,
 					       newsessionnum, lta_name, 
 					       eightbitclean);
+    if (newsession->new_session(remnode, 0) == -1)
+    {
+	delete newsession;
+	return -1;
+    }
+    sessions[newsessionnum] = newsession;
+    return 0;
+}
+
+int LATConnection::create_llogin_session(int fd)
+{
+// Create a ClientSession
+
+    int newsessionnum = 1;
+    LATSession *newsession = new lloginSession(*this, 0,
+					       newsessionnum, fd);
     if (newsession->new_session(remnode, 0) == -1)
     {
 	delete newsession;

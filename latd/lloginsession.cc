@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,87 +32,39 @@
 #include "latcpcircuit.h"
 #include "server.h"
 #include "clientsession.h"
+#include "lloginsession.h"
 #include "lat_messages.h"
 
-ClientSession::ClientSession(class LATConnection &p, 
+lloginSession::lloginSession(class LATConnection &p, 
 			     unsigned char remid, unsigned char localid,
-			     char *ttyname, bool clean):
-  LATSession(p, remid, localid, clean),
-  slave_fd_open(false)
+			     int fd):
+  ClientSession(p, remid, localid, "", clean)
 {
-    debuglog(("new client session: localid %d, remote id %d\n",
+    master_fd = dup(fd);
+    // This is the socket FD - we dup it because the original
+    // will be closed when it changes from a LLOGIN_FD to a PTY
+    debuglog(("new llogin session: localid %d, remote id %d\n",
 	    localid, remid));
-    if (ttyname) strcpy(ltaname, ttyname);
 }
 
-int ClientSession::new_session(unsigned char *_remote_node, unsigned char c)
+int lloginSession::new_session(unsigned char *_remote_node, unsigned char c)
 {
     credit = c;
-
-// A quick word of explanation here.
-// We keep the slave fd open after openpty because otherwise
-// the master would go away too (EOF). When the user connects to
-// the port we then close the slave fd so that we get EOF when she
-// disconnects. got that?
-
-    if (openpty(&master_fd,
-		&slave_fd, NULL, NULL, NULL) != 0)
-	return -1; /* REJECT */
-  
-
-    // Set terminal characteristics
-    struct termios tio;
-    tcgetattr(master_fd, &tio);
-    tio.c_iflag |= IGNBRK|BRKINT;
-    tcsetattr(master_fd, TCSANOW, &tio);
-
-    strcpy(remote_node, (char *)_remote_node);
-    strcpy(ptyname, ttyname(slave_fd));
-    strcpy(mastername, ttyname(master_fd));
-    state = STARTING;
-    slave_fd_open = true;
-    
-    // Check for /dev/lat & create it if necessary
-    struct stat st;
-    if (stat(LAT_DIRECTORY, &st) == -1)
-    {
-	mkdir(LAT_DIRECTORY, 0755);
-    }
-
-    // Link the PTY to the actual LTA name we were passed
-    if (ltaname[0] == '\0')
-    {
-	sprintf(ltaname, LAT_DIRECTORY "lta%d", local_session);
-    }
-    unlink(ltaname);
-    symlink(ptyname, ltaname);
 
     // Make it non-blocking so we can poll it
     fcntl(master_fd, F_SETFL, fcntl(master_fd, F_GETFL, 0) | O_NONBLOCK);
 
-#ifdef USE_OPENPTY
-    // Set it owned by "lat" if it exists. We only do this for
-    // /dev/pts PTYs.
-    gid_t lat_group = LATServer::Instance()->get_lat_group();
-    if (lat_group)
-    {
-	chown(ptyname, 0, lat_group);
-	chmod(ptyname, 0660);
-    }
-#endif
-
-    debuglog(("made symlink %s to %s\n", ltaname, ptyname));
     LATServer::Instance()->add_pty(this, master_fd);
     return 0;
 }
 
-int ClientSession::connect_parent()
+int lloginSession::connect_parent()
 {
-    debuglog(("connecting parent for %s\n", ltaname));
+    debuglog(("connecting parent for llogin\n"));
     return parent.connect();
 }
 
-void ClientSession::connect(char *service, char *port)
+void lloginSession::connect(char *service, char *port)
 {
     debuglog(("connecting client session to '%s'\n", remote_node));
 
@@ -135,7 +87,7 @@ void ClientSession::connect(char *service, char *port)
     buf[ptr++] = 0x00; // 
 
     buf[ptr++] = 0x05; // Param type 5 (Local PTY name)
-    add_string(buf, &ptr, (unsigned char *)ltaname);
+    add_string(buf, &ptr, (unsigned char*)"llogin");
 
     // If the user wanted a particular port number then add it 
     // into the message
@@ -158,31 +110,19 @@ void ClientSession::connect(char *service, char *port)
 
 }
 
-// Disconnect the local PTY
-void ClientSession::restart_pty()
+// Disconnect the local socket
+void lloginSession::disconnect_sock()
 {
-    debuglog(("ClientSession::restart_pty()\n"));
-    connected = false;
-    remote_session = 0;
-    
-    // Close it all down so the local side gets EOF
-    unlink(ltaname);
-    
-    if (slave_fd_open) close (slave_fd);
-    close (master_fd);
-    LATServer::Instance()->set_fd_state(master_fd, true);
-    LATServer::Instance()->remove_fd(master_fd);
-    
-    // Now open it all up again ready for a new connection
-    new_session((unsigned char *)remote_node, 0);
-
+// TODO THIS!!
+    LATServer::Instance()->set_fd_state(master_fd, false);
+    LATServer::Instance()->delete_session(&parent, local_session, master_fd);
 }
 
 
 // Remote end disconnects or EOF on local PTY
-void ClientSession::disconnect_session(int reason)
+void lloginSession::disconnect_session(int reason)
 {
-    debuglog(("ClientSession::disconnect_session()\n"));
+    debuglog(("lloginSession::disconnect_session()\n"));
     // If the reason was some sort of error then send it to 
     // the PTY
     if (reason > 1)
@@ -191,25 +131,21 @@ void ClientSession::disconnect_session(int reason)
 	write(master_fd, msg, strlen(msg));
 	write(master_fd, "\n", 1);
     }
-    LATServer::Instance()->set_fd_state(master_fd, true);
     connected = false;
-    restart_pty();
+    disconnect_sock();
     return;
 }
 
 
-ClientSession::~ClientSession()
+lloginSession::~lloginSession()
 {
-    if (ltaname[0]) unlink(ltaname);
-    
-    if (slave_fd_open) close (slave_fd);
     close (master_fd);
     LATServer::Instance()->remove_fd(master_fd);
 }
 
-void ClientSession::do_read()
+void lloginSession::do_read()
 {
-    debuglog(("ClientSession::do_read(), connected: %d\n", connected));
+    debuglog(("lloginSession::do_read(), connected: %d\n", connected));
     if (!connected)
     {
 	if (!connect_parent())
@@ -218,14 +154,11 @@ void ClientSession::do_read()
 	    
 	    // Disable reads on the PTY until we are connected (or it fails)
 	    LATServer::Instance()->set_fd_state(master_fd, true);
-
-	    close(slave_fd);
-	    slave_fd_open = false;
 	}
 	else
 	{
 	    // Service does not exist or we haven't heard of it yet.
-	    restart_pty();
+	    disconnect_sock();
 	}
     }
 
@@ -235,7 +168,7 @@ void ClientSession::do_read()
     }
 }
 
-void ClientSession::got_connection(unsigned char _remid)
+void lloginSession::got_connection(unsigned char _remid)
 {
     unsigned char buf[1600];
     unsigned char slotbuf[256];
@@ -243,7 +176,7 @@ void ClientSession::got_connection(unsigned char _remid)
     int ptr = 0;
     int slotptr = 0;
 
-    debuglog(("ClientSession:: got connection for rem session %d\n", _remid));
+    debuglog(("lloginSession:: got connection for rem session %d\n", _remid));
     LATServer::Instance()->set_fd_state(master_fd, false);
     remote_session = _remid;
 
@@ -275,8 +208,7 @@ void ClientSession::got_connection(unsigned char _remid)
 
 // Called from the slave connection - return the master fd so it can 
 // can do I/O on it and close the slave so it gets EOF notification.
-int ClientSession::get_port_fd()
+int lloginSession::get_port_fd()
 {
-    close(slave_fd);
     return master_fd;
 }

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Patrick Caulfield                 patrick@pandh.demon.co.uk
+    (c) 2001 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,7 +62,9 @@
 #include "utils.h"
 #include "session.h"
 #include "connection.h"
+#include "circuit.h"
 #include "latcpcircuit.h"
+#include "llogincircuit.h"
 #include "server.h"
 #include "services.h"
 #include "lat_messages.h"
@@ -427,6 +429,31 @@ void LATServer::run()
     chmod(LATCP_SOCKNAME, 0600);
     fdlist.push_back(fdinfo(latcp_socket, 0, LATCP_RENDEZVOUS));
     
+
+
+    // Open llogin socket
+    unlink(LLOGIN_SOCKNAME);
+    llogin_socket = socket(PF_UNIX, SOCK_STREAM, 0);
+    if (llogin_socket < 0)
+    {
+	syslog(LOG_ERR, "Can't create llogin socket: %m");
+	exit(1);
+    }
+
+    strcpy(sockaddr.sun_path, LLOGIN_SOCKNAME);
+    sockaddr.sun_family = AF_UNIX;
+    if (bind(llogin_socket, (struct sockaddr *)&sockaddr, sizeof(sockaddr)))
+    {
+	syslog(LOG_ERR, "can't bind llogin socket: %m");
+        exit(1);
+    }
+    if (listen(llogin_socket, 1) != 0)
+    {
+	syslog(LOG_ERR, "listen llogin: %m");
+    }
+    // Make sure everyone can use it
+    chmod(LLOGIN_SOCKNAME, 0666);
+    fdlist.push_back(fdinfo(llogin_socket, 0, LLOGIN_RENDEZVOUS));  
     
     // Don't start sending service announcements
     // until we get an UNLOCK message from latcp.
@@ -1031,13 +1058,13 @@ void LATServer::add_pty(LATSession *session, int fd)
 void LATServer::accept_latcp(int fd)
 {
     struct sockaddr_un socka;
-    socklen_t sl;
+    socklen_t sl = sizeof(socka);
     
     int latcp_client_fd = accept(fd, (struct sockaddr *)&socka, &sl);
     if (latcp_client_fd >= 0)
     {
 	debuglog(("Got LATCP connection\n"));
-	latcp_circuits[latcp_client_fd] = LATCPCircuit(latcp_client_fd);
+	latcp_circuits[latcp_client_fd] = new LATCPCircuit(latcp_client_fd);
 	
 	fdlist.push_back(fdinfo(latcp_client_fd, 0, LATCP_SOCKET));	
     }
@@ -1045,15 +1072,46 @@ void LATServer::accept_latcp(int fd)
 	syslog(LOG_WARNING, "accept on latcp failed: %m");
 }
 
+// Got a new connection from llogin
+void LATServer::accept_llogin(int fd)
+{
+    struct sockaddr_un socka;
+    socklen_t sl = sizeof(socka);
+    
+    int llogin_client_fd = accept(fd, (struct sockaddr *)&socka, &sl);
+    if (llogin_client_fd >= 0)
+    {
+	debuglog(("Got llogin connection\n"));
+	latcp_circuits[llogin_client_fd] = new LLOGINCircuit(llogin_client_fd);
+	
+	fdlist.push_back(fdinfo(llogin_client_fd, 0, LLOGIN_SOCKET));
+    }
+    else
+	syslog(LOG_WARNING, "accept on llogin failed: %m");
+}
+
 // Read a request from LATCP
 void LATServer::read_latcp(int fd)
 {
     debuglog(("Got command on latcp socket: %d\n", fd));
     
-    if (!latcp_circuits[fd].do_command())
+    if (!latcp_circuits[fd]->do_command())
     {
 	// Mark the FD for removal
 	deleted_session s(LATCP_SOCKET, NULL, 0, fd);
+	dead_session_list.push_back(s);
+    }
+}
+
+// Read a request from LLOGIN
+void LATServer::read_llogin(int fd)
+{
+    debuglog(("Got command on llogin socket: %d\n", fd));
+
+    if (!latcp_circuits[fd]->do_command())
+    {
+	// Mark the FD for removal
+	deleted_session s(LLOGIN_SOCKET, NULL, 0, fd);
 	dead_session_list.push_back(s);
     }
 }
@@ -1067,15 +1125,18 @@ void LATServer::delete_entry(deleted_session &dsl)
 	
     case LAT_SOCKET:	
     case LATCP_RENDEZVOUS:
-	// These two never get deleted
+    case LLOGIN_RENDEZVOUS:
+	// These never get deleted
 	break;
 	
     case LATCP_SOCKET:
+    case LLOGIN_SOCKET:
 	remove_fd(dsl.get_fd());
 	close(dsl.get_fd());
+	delete latcp_circuits[dsl.get_fd()]; /* PJC is this right ?? */
 	latcp_circuits.erase(dsl.get_fd());
 	break;
-	
+
     case LOCAL_PTY:
     case DISABLED_PTY:
 	remove_fd(dsl.get_fd());	
@@ -1103,9 +1164,17 @@ void LATServer::process_data(fdinfo &fdi)
     case LATCP_RENDEZVOUS:
 	accept_latcp(fdi.get_fd());
 	break;
+
+    case LLOGIN_RENDEZVOUS:
+	accept_llogin(fdi.get_fd());
+	break;
 	
     case LATCP_SOCKET:
 	read_latcp(fdi.get_fd());
+	break;
+
+    case LLOGIN_SOCKET:
+	read_llogin(fdi.get_fd());
 	break;
     }
 }
@@ -1285,6 +1354,35 @@ void LATServer::unlock()
     locked = false;
     alarm_signal(SIGALRM);
 }
+
+int LATServer::make_llogin_connection(int fd, char *service, char *node, char *port, bool queued)
+{
+    int connid = get_next_connection_number();
+    if (connid == -1)
+    {
+	return -1; // Failed
+    }
+
+    // Create a new connection instance.
+    connections[connid] = new LATConnection(connid, 
+					    (char *)service, 
+					    (char *)port,
+					    (char *)"llogin", 
+					    (char *)node,
+					    queued,
+					    false);
+
+    debuglog(("lloginSession for %s has connid %d\n", service, connid));    
+    connections[connid]->create_llogin_session(fd);
+
+    // Remove LLOGIN socket from the list as it's now been
+    // added as a PTY (honest!)
+    deleted_session s(LLOGIN_SOCKET, NULL, 0, fd);
+    dead_session_list.push_back(s);    
+
+    return 0;
+}
+
 
 // Create a new client connection
 int LATServer::make_client_connection(unsigned char *service, 

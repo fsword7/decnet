@@ -38,6 +38,7 @@ const int LATCP_SETSERVERGROUPS   = 22;
 const int LATCP_UNSETSERVERGROUPS = 23;
 const int LATCP_SETUSERGROUPS     = 24;
 const int LATCP_UNSETUSERGROUPS   = 25;
+const int LATCP_TERMINALSESSION   = 26;
 const int LATCP_ERRORMSG          = 99; // Fatal
 
 

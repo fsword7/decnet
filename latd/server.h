@@ -16,8 +16,8 @@
 
 class LATServer
 {
-    typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS,
-		  LATCP_SOCKET, LOCAL_PTY, DISABLED_PTY} fd_type;
+    typedef enum {INACTIVE=0, LAT_SOCKET, LATCP_RENDEZVOUS, LLOGIN_RENDEZVOUS,
+		  LATCP_SOCKET, LLOGIN_SOCKET, LOCAL_PTY, DISABLED_PTY} fd_type;
     
  public:
     static LATServer *Instance()
@@ -75,6 +75,7 @@ class LATServer
     int  verbosity;
     int  lat_socket;
     int  latcp_socket;
+    int  llogin_socket;
     bool do_shutdown;
     bool locked;
     int  next_connection;
@@ -94,7 +95,9 @@ class LATServer
 
     void  add_services(unsigned char *, int, int, unsigned char *);
     void  accept_latcp(int);
+    void  accept_llogin(int);
     void  read_latcp(int);
+    void  read_llogin(int);
     void  print_bitmap(ostrstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
     
@@ -220,7 +223,7 @@ class LATServer
     LATConnection *connections[MAX_CONNECTIONS];
 
     // LATCP connections
-    map<int, LATCPCircuit> latcp_circuits;
+    map<int, Circuit*> latcp_circuits;
 
     // LATCP configurable parameters
     int           circuit_timer;   // Default 8 (=80 ms)
@@ -247,6 +250,7 @@ class LATServer
     bool show_characteristics(bool verbose, ostrstream &output);
     int  make_client_connection(unsigned char *, unsigned char *,
 				unsigned char *, unsigned char *, bool, bool);
+    int  make_llogin_connection(int fd, char *, char *,	char *, bool);
     int  set_servergroups(unsigned char *bitmap);
     int  unset_servergroups(unsigned char *bitmap);
     int  set_usergroups(unsigned char *bitmap);

@@ -74,6 +74,7 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr,
 	  highest_rating  = nodes[i->first].get_rating();
 	  highest_node    = i->first; // Just note the pointer
 	  highest_macaddr = nodes[i->first].get_macaddr();
+	  *interface = nodes[i->first].get_interface();
       }
   }
 
@@ -81,6 +82,7 @@ bool LATServices::serviceinfo::get_highest(string &node, unsigned char *macaddr,
   {
       // OK copy it now.
       memcpy(macaddr, highest_macaddr, 6);
+      node = highest_node;
       return true;
   }
   else

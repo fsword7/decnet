@@ -272,7 +272,7 @@ int dnetfile::dap_get_record(char *rec, int reclen)
     return -1;
 }
 
-// Send a record to VMS
+// Send a record to the other end
 int dnetfile::dap_put_record(char *rec, int reclen)
 {
     if (verbose > 2) DAPLOG((LOG_INFO, "in dap_put_record(%d bytes)\n", reclen));
@@ -280,7 +280,6 @@ int dnetfile::dap_put_record(char *rec, int reclen)
     conn.set_blocked(true);
 
     dap_data_message data;
-
     data.set_data(rec, reclen);
     data.write_with_len(conn);
 
@@ -299,9 +298,13 @@ int dnetfile::dap_send_attributes()
     dap_attrib_message att;
     dap_alloc_message  all;
 
-
     att.set_org(dap_attrib_message::FB$SEQ);
-    att.set_rfm(dap_attrib_message::FB$STMLF);
+
+// Only VMS can cope with StreamLF files.
+    if (conn.get_remote_os() == 7)
+        att.set_rfm(dap_attrib_message::FB$STMLF);
+    else
+        att.set_rfm(dap_attrib_message::FB$VAR);
     att.set_bls(512);
     att.set_mrs(user_bufsize);
 
@@ -324,7 +327,11 @@ int dnetfile::dap_send_attributes()
 
     conn.set_blocked(true);
     att.write(conn);
-    all.write(conn);
+
+// VMS likes an ALLOC message
+    if (conn.get_remote_os() == 7)
+	all.write(conn);
+
     return conn.set_blocked(false);
 }
 
@@ -356,10 +363,15 @@ int dnetfile::dap_check_status(dap_message *m, int status)
 
     // Save this stuff so we can delete the message
     int code = sm->get_code() & 0xFF;
+    int maccode = sm->get_code() >> 12;
     char *err = sm->get_message();
+
+    if (verbose > 1)
+	DAPLOG((LOG_INFO, "dap_check_status. maccode=%d code: octal: %o (hex: %x)\n", maccode, sm->get_code(),sm->get_code()));
 
     delete m;
 
+    if (maccode == 1) return status; // Success
     if (code == 0225) return status; // Success
     if (code == 047)  return code;   // EOF
     lasterror = err;

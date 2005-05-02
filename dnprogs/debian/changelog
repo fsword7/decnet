@@ -1,3 +1,10 @@
+dnprogs (2.29.1) unstable; urgency=low
+
+  * Add Japanese debconf translation from Kenshi Muto.
+  Closes: #307049
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  2 May 2005 11:07:22 +0100
+
 dnprogs (2.29) unstable; urgency=low
 
   * Add -p switch to dncopy, sets the protection of a file

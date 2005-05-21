@@ -63,7 +63,7 @@
 #include "lat_messages.h"
 #include "dn_endian.h"
 
-#ifdef __APPLE__
+#if defined (__APPLE__) && !defined(_SOCKLEN_T)
 typedef int socklen_t;
 #endif
 
@@ -342,8 +342,9 @@ void LATServer::send_service_announcement(int sig)
 // Send solicit messages to slave nodes
 void LATServer::send_solicit_messages(int sig)
 {
-    static int counter = 0;
-    static int last_list_size = 0;
+    static unsigned int counter = 0;
+    static unsigned int last_list_size = 0;
+
     if (alarm_mode == 0)
     {
 	counter = 0;
@@ -525,6 +526,7 @@ void LATServer::run()
 #ifndef __linux__
     struct timeval next_circuit_time;
     next_circuit_time.tv_sec = 0;
+    next_circuit_time.tv_usec = 0;
 #endif
 
     struct timeval tv = {0, circuit_timer*10000};

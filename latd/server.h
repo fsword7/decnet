@@ -277,7 +277,7 @@ class LATServer
 
     // LATCP configurable parameters
     int           circuit_timer;   // Default 8 (=80 ms)
-    int           multicast_timer; // Default 60 (seconds)
+    unsigned int  multicast_timer; // Default 60 (seconds)
     int           retransmit_limit;// Default 20
     int           keepalive_timer; // Default 20 (seconds)
     bool          responder;       // Be a service responder (false);

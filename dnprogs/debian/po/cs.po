@@ -1,0 +1,129 @@
+#
+#    Translators, if you are not familiar with the PO format, gettext
+#    documentation is worth reading, especially sections dedicated to
+#    this format, e.g. by running:
+#         info -n '(gettext)PO Files'
+#         info -n '(gettext)Header Entry'
+#
+#    Some information specific to po-debconf are available at
+#            /usr/share/doc/po-debconf/README-trans
+#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
+#
+#    Developers do not need to manually edit POT or PO files.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: dnprogs\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-07-09 13:38+0100\n"
+"PO-Revision-Date: 2005-06-27 13:54+0200\n"
+"Last-Translator: Miroslav Kure <kurem@debian.cz>\n"
+"Language-Team: Czech <debian-l10n-czech@lists.debian.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:4
+msgid "DECnet node name"
+msgstr "Jméno uzlu v síti DECnet"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:4
+msgid ""
+"All nodes on a DECnet network have a node name. This is similar to the IP "
+"hostname but can only be a maximum of 6 characters long. . It is common that "
+"the DECnet name is the same as the IP name (if your machine has one). If you "
+"do not know the answer to this question please contact your system "
+"administrator."
+msgstr ""
+"Všechny uzly v síti DECnet mají své jméno. To je podobné jako jméno počítače "
+"v IP sítích, avšak je omezeno na maximálně 6 znaků. Běžně se pro DECnet "
+"použije stejné jméno jako má počítač v síti založené na protokolu IP (pokud "
+"nějaké máte). Nevíte-li co zadat, zeptejte se svého správce systému."
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:14
+msgid "DECnet node address"
+msgstr "Adresa uzlu v síti DECnet"
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:14
+msgid ""
+"All nodes on a DECnet network have a node address. This is two numbers "
+"seperated with a period (eg 3.45) where the first number denotes the area "
+"and the second is the node within that area."
+msgstr ""
+"Všechny uzly na síti DECnet mají svou adresu. Formát adresy jsou dvě čísla "
+"oddělená tečkou (např. 3.45), kde první číslo označuje oblast a druhé uzel "
+"v dané oblasti."
+
+#. Type: string
+#. Description
+#: ../dnet-common.templates:14
+msgid ""
+"Do not make up a number here. If you do not know your DECnet node address "
+"then ask your system administrator."
+msgstr ""
+"Adresu DECnet uzlu si nevymýšlejte. Pokud ji neznáte, zeptejte se svého "
+"systémového správce."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:24
+msgid "DECnet startup changes your ethernet hardware address"
+msgstr "Spuštění DECnetu změní vaši ethernetovou hardwarovou adresu"
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:24
+msgid ""
+"The \"setether\" program in this package will change the hardware (MAC) "
+"address of all ethernet cards in your system (by default) to match the "
+"DECnet node address. This is essential for the operation of DECnet and so is "
+"not optional. However, if you have more than one ethernet card you may want "
+"to edit /etc/default/decnet to alter the list of cards whose hardware "
+"addresses are changed."
+msgstr ""
+"Program \"setether\" změní hardwarovou (MAC) adresu všech ethernetových karet "
+"v systému, aby odpovídaly adrese uzlu DECnet. To je nezbytné pro správné "
+"fungování DECnetu a tudíž se musí provést. Pokud však máte více síťových "
+"karet, můžete v souboru /etc/default/decnet upravit seznam karet, jejichž "
+"hardwarová adresa se má změnit."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:24
+msgid ""
+"Be aware that any other machines that have your system's MAC address in "
+"their ARP cache may no longer be able to communicate with you via IP "
+"protocols until this cache has timed out or been flushed."
+msgstr ""
+"Pamatujte, že okolní počítače, které mají MAC adresu vaší síťové karty "
+"uloženu ve své ARP tabulce, s vámi nebudou moci komunikovat přes IP "
+"protokoly do té doby, než jim platnost vašeho záznamu v ARP tabulce vyprší, "
+"nebo dokud ARP tabulku nevyprázdníte."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:24
+msgid ""
+"The MAC address cannot be changed on-the-fly so you will need to reboot your "
+"machine before DECnet can function."
+msgstr ""
+"MAC adresy nemohou být měněny za běhu a proto budete muset před použitím "
+"DECnetu restartovat svůj počítač."
+
+#. Type: note
+#. Description
+#: ../dnet-common.templates:24
+msgid ""
+"You should also edit /etc/decnet.conf to add the names and addresses of "
+"DECnet nodes you want to communicate with."
+msgstr ""
+"Také byste měli do souboru /etc/decnet.conf přidat jména a adresy DECnet "
+"uzlů, se kterými chcete komunikovat."

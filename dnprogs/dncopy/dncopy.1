@@ -15,7 +15,7 @@ source...
 .br
 Options:
 .br
-[\-vdiskVh] [\-m mode] [\-a record attributes] [\-r record format]
+[\-vdisklVh] [\-m mode] [\-a record attributes] [\-r record format]
 [\-b block size] [\-p VMS protection]
 .SH DESCRIPTION
 .PP
@@ -84,6 +84,10 @@ copy command. More than one is really just useful for debugging.
 .I "\-i"
 Interactive operation. Prompts before copying a file. This option is roughly
 equivalent to the /CONFIRM qualifier on the DCL copy command.
+.TP
+.I "\-l"
+Ignore interlocks on files copied from VMS. This will do its best to read the
+data regardless of record or file locking, but it won't always succeed.
 .TP
 .I "\-s"
 Show transfer statistics. This shows the throughput of all copies (in the case

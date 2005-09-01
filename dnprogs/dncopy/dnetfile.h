@@ -12,7 +12,7 @@ public:
     ~dnetfile();
 
 // Stuff overriden from file.
-    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode);
+    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags);
     virtual int   open(char *mode);
     virtual int   open(char *basename, char *mode);
     virtual int   close();
@@ -53,6 +53,7 @@ public:
 /* File attributes, requested and actual */
     int          file_rat, file_rfm;
     int          user_rat, user_rfm;
+    int          user_flags;
     int          transfer_mode;
     int          file_fsz; // Size of VFC fixed part.
     unsigned int user_bufsize;

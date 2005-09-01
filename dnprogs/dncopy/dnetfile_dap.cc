@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,6 +93,12 @@ int dnetfile::dap_send_access()
 	att.set_rfm(dap_attrib_message::FB$VAR);
 	att.set_mrs(0);
 	att.set_datatype(dap_attrib_message::IMAGE);
+	if (user_flags) {
+	    acc.set_shr(1<<dap_access_message::FB$PUT |
+	                1<<dap_access_message::FB$UPD |
+	                1<<dap_access_message::FB$GET |
+	                1<<dap_access_message::FB$DEL);
+	}
 
 	att.write(conn);
     }
@@ -216,6 +222,10 @@ int dnetfile::dap_send_get_or_put()
     {
 	ctl.set_ctlfunc(dap_control_message::PUT);
     }
+    else
+    {
+	    ctl.set_rop_bit(dap_control_message::RB$RRL);
+    }
     return !ctl.write(conn);
 }
 /*-------------------------------------------------------------------------*/
@@ -337,8 +347,10 @@ int dnetfile::dap_send_attributes()
     if (protection)
     {
 	dap_protect_message prot;
-	prot.set_protection(protection);
-	prot.write(conn);
+	if (prot.set_protection(protection) == -1)
+	    fprintf(stderr, "Error in protection string - not sent\n");
+	else
+	    prot.write(conn);
     }
     return conn.set_blocked(false);
 }

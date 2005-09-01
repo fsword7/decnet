@@ -171,7 +171,7 @@ bool unixfile::isdirectory()
     return S_ISDIR(s.st_mode);
 }
 
-int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
+int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags)
 {
 // Save these for later
     user_rfm = rfm;

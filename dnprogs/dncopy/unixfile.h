@@ -6,7 +6,7 @@ class unixfile: public file
     unixfile();
     ~unixfile();
 
-    virtual int setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode);
+    virtual int setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags);
     
     virtual int   open(char *mode);
     virtual int   open(char *basename, char *mode);

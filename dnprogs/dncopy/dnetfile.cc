@@ -67,7 +67,7 @@ void dnetfile::set_protection(char *vmsprot)
 	protection = vmsprot;
 }
 
-int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
+int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags)
 {
 // If there was a parse error in the file name then fail here
     if (lasterror)
@@ -80,6 +80,7 @@ int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode)
     user_rat = rat;
     transfer_mode = xfer_mode;
     user_bufsize = bufsize;
+    user_flags = flags;
 
     struct accessdata_dn accessdata;
     memset(&accessdata, 0, sizeof(accessdata));

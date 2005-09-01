@@ -48,7 +48,7 @@ case $1 in
    start)
      if [ ! -f /etc/decnet.conf ]
      then
-       echo "DECnet not started as it is not configured."
+       echo $"DECnet not started as it is not configured."
        exit 1
      fi
 
@@ -58,12 +58,12 @@ case $1 in
        modprobe decnet
        if [ ! -f /proc/net/decnet ]
        then
-         echo "DECnet not started as it is not in the kernel."
+         echo $"DECnet not started as it is not in the kernel."
 	 exit 1
        fi
      fi
 
-     echo -n "Starting DECnet: "
+     echo -n $"Starting DECnet: "
 
      NODE=`grep executor /etc/decnet.conf| awk '{print $2}'`
      echo "$NODE" > /proc/sys/net/decnet/node_address
@@ -74,33 +74,33 @@ case $1 in
      for i in $daemons
      do
        $startcmd $prefix/sbin/$i
-       echo -n " `eval echo $startecho`"
+       echo -n $" `eval echo $startecho`"
      done
-     echo "$startendecho"
+     echo $"$startendecho"
      ;;
 
    stop)
-     echo -n "Stopping DECnet... "
+     echo -n $"Stopping DECnet... "
      for i in $daemons
      do
        $stopcmd $prefix/sbin/$i
      done
-     echo "$stopendecho"
+     echo $"$stopendecho"
      ;;
 
    restart|reload|force-reload)
-     echo -n "Restarting DECnet: "
+     echo -n $"Restarting DECnet: "
      for i in $daemons
      do
        $stopcmd $prefix/sbin/$i
        $startcmd $prefix/sbin/$i
-       echo -n "$startecho"
+       echo -n $"$startecho"
      done
-     echo "$stopendecho"
+     echo $"$stopendecho"
      ;;
 
    *)
-     echo "Usage $0 {start|stop|restart|force-reload}"
+     echo $"Usage $0 {start|stop|restart|force-reload}"
      ;;
 esac
 

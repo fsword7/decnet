@@ -68,7 +68,7 @@ rpm:
 	echo "%_topdir `pwd`" > .rpmmacros
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 	make prefix=/usr RELEASE=true -j
-	make DESTDIR=`pwd`/rpmbuild install
+	make DESTDIR=`pwd`/rpmbuild RELEASE=true install
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
 	make dist
 	install -d rpmbuild/etc/rc.d/init.d

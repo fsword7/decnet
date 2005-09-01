@@ -3,7 +3,7 @@ Name: %%PACKAGENAME%%
 Version: %%VERSION%%
 Release: 1
 Vendor: Patrick Caulfield and The Linux DECnet Project team
-Copyright: GPL
+License: GPL
 Group: Networking/Utilities
 Source: http://download.sourceforge.net/linux-decnet/%%PACKAGENAME%%-%%VERSION%%.tar.gz
 %description
@@ -64,6 +64,8 @@ instructions on how to apply it.
 %%PREFIX%%/man/man3/libdnet.3
 %%PREFIX%%/man/man3/setnodeent.3
 %%PREFIX%%/man/man3/dnet_daemon.3
+%%PREFIX%%/man/man3/dnet_accept.3
+%%PREFIX%%/man/man3/dnet_reject.3
 %%PREFIX%%/man/man5/decnet.conf.5
 %%PREFIX%%/man/man5/decnet.proxy.5
 %%PREFIX%%/man/man5/dnetd.conf.5

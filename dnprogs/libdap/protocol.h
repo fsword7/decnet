@@ -225,6 +225,19 @@ class dap_config_message: public dap_message
     static const int OS_OS8     = 11;
     static const int OS_RSX11MP = 12;
     static const int OS_COPOS11 = 13;
+    static const int OS_POS     = 14;
+    static const int OS_VAXLELN = 15;
+    static const int OS_CPM     = 16;
+    static const int OS_MSDOS   = 17;
+    static const int OS_ULTRIX  = 18;
+    static const int OS_ULTRIX11 = 19;
+    static const int OS_DTF_MVS = 21;
+    static const int OS_MACOS   = 22;
+    static const int OS_OS2     = 23;
+    static const int OS_DTF_VM  = 24;
+    static const int OS_OSF1    = 25;
+    static const int OS_WIN_NT  = 26;
+    static const int OS_WIN_95  = 27;
 
  private:
     dap_bytes bufsiz;
@@ -349,6 +362,7 @@ class dap_attrib_message: public dap_message
     static const int FB$PRN = 2;
     static const int FB$BLK = 3;
     static const int FB$LSA = 6;
+    static const int FB$MACY11 = 7;
 
     //FOPs:
     static const int FB$RWO = 0;
@@ -478,6 +492,8 @@ class dap_access_message: public dap_message
     static const int FB$TRN = 4;
     static const int FB$BIO = 5;
     static const int FB$BRO = 6;
+    static const int FB$APP = 7; // FAC (Append)
+    static const int FB$NIL = 7; // SHR (no access by other users)
 
     // bits for DISPLAY
     static const int DISPLAY_MAIN    = 0;
@@ -488,6 +504,10 @@ class dap_access_message: public dap_message
     static const int DISPLAY_PROT    = 5;
     static const int DISPLAY_ACL     = 7;
     static const int DISPLAY_NAME    = 8;
+    static const int DISPLAY_3PTNAME = 9;
+    static const int DISPLAY_COLLTBL = 10;
+    static const int DISPLAY_CDA     = 11;
+    static const int DISPLAY_TCL     = 12;
 
     // masks for DISPLAY
     static const int DISPLAY_MAIN_MASK    =   1;
@@ -498,6 +518,10 @@ class dap_access_message: public dap_message
     static const int DISPLAY_PROT_MASK    =  32;
     static const int DISPLAY_ACL_MASK     = 128;
     static const int DISPLAY_NAME_MASK    = 256;
+    static const int DISPLAY_3PTNAME_MASK = 512;
+    static const int DISPLAY_COLLTBL_MASK = 1024;
+    static const int DISPLAY_CDA_MASK    = 2048;
+    static const int DISPLAY_TCL_MASK    = 4096;
 
  private:
     dap_bytes accfunc;
@@ -521,7 +545,9 @@ class dap_control_message: public dap_message
 	krf(1),
         rop(6),
 	hsh(5),
-        display(4)
+        display(4),
+	blkcnt(1),
+	usz(2)
 	{msg_type = CONTROL;}
 
     virtual bool read(dap_connection&);
@@ -535,6 +561,8 @@ class dap_control_message: public dap_message
     void set_rop_bit(int f);
     void set_rop(int f);
     void set_display(int);
+    void set_blkcnt(int);
+    void set_usz(int);
 
     int   get_ctlfunc();
     int   get_rac();
@@ -543,6 +571,8 @@ class dap_control_message: public dap_message
     bool  get_rop_bit(int f);
     int   get_display();
     unsigned long get_long_key();
+    int   get_blkcnt();
+    int   get_usz();
 
     // ctlfunc - Control functions:
     static const int GET            = 1;
@@ -606,6 +636,8 @@ class dap_control_message: public dap_message
     dap_ex    rop;
     dap_image hsh;
     dap_ex    display;
+    dap_bytes blkcnt;
+    dap_bytes usz;
 };
 
 //CONTRAN (Continue Transfer) message TYPE=5
@@ -623,6 +655,8 @@ class dap_contran_message: public dap_message
     static const int SKIP      = 2;
     static const int ABORT     = 3;
     static const int RESUME    = 4;
+    static const int TERMINATE = 5;
+    static const int RESYNC    = 6;
 
     int get_confunc();
     void set_confunc(int f);
@@ -671,6 +705,9 @@ class dap_accomp_message: public dap_message
     static const int PURGE         = 3;
     static const int END_OF_STREAM = 4;
     static const int SKIP          = 5;
+    static const int CHANGE_BEGIN  = 6;
+    static const int CHANGE_END    = 7;
+    static const int TERMINATE     = 8;
 
  private:
     dap_bytes cmpfunc;

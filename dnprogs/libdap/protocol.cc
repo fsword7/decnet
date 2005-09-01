@@ -933,6 +933,8 @@ bool dap_control_message::write(dap_connection &c)
     if (ctlmenu.get_bit(3))  rop.write(c);
     if (ctlmenu.get_bit(4))  hsh.write(c);
     if (ctlmenu.get_bit(5))  display.write(c);
+    if (ctlmenu.get_bit(6))  blkcnt.write(c);
+    if (ctlmenu.get_bit(7))  usz.write(c);
     return c.write();
 }
 
@@ -946,6 +948,8 @@ bool dap_control_message::read(dap_connection &c)
     if (ctlmenu.get_bit(3) &&  !rop.read(c)) return false;
     if (ctlmenu.get_bit(4) &&  !hsh.read(c)) return false;
     if (ctlmenu.get_bit(5) &&  !display.read(c)) return false;
+    if (ctlmenu.get_bit(6) &&  !blkcnt.read(c)) return false;
+    if (ctlmenu.get_bit(7) &&  !usz.read(c)) return false;
     return true;
 }
 void dap_control_message::set_ctlfunc(int f)
@@ -1048,6 +1052,28 @@ void dap_control_message::set_display(int d)
     display.set_byte(1, second);
 
     ctlmenu.set_bit(5);
+}
+
+void dap_control_message::set_blkcnt(int f)
+{
+    blkcnt.set_byte(0,f);
+    ctlmenu.set_bit(6);
+}
+
+int dap_control_message::get_blkcnt()
+{
+    return blkcnt.get_byte(0);
+}
+
+void dap_control_message::set_usz(int f)
+{
+    usz.set_short(f);
+    ctlmenu.set_bit(7);
+}
+
+int dap_control_message::get_usz()
+{
+    return usz.get_short();
 }
 
 //------------------------ dap_contran_message() ------------------------------

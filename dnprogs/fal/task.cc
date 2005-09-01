@@ -615,6 +615,9 @@ bool fal_task::fake_file_type(unsigned int &blocksize, bool &send_records,
 {
     struct stat st;
 
+    if (stat(name, &st) == 0 && S_ISDIR(st.st_mode))
+	attrib_msg->set_fop_bit(dap_attrib_message::FB$DIR);
+
     // Ignore Directories
     if (stat(name, &st) == 0 && S_ISDIR(st.st_mode)) return false;
 

@@ -16,6 +16,7 @@ class dap_item
  public:
     virtual bool read(dap_connection&) = 0;
     virtual bool write(dap_connection&) = 0;
+    virtual ~dap_item() {}
 };
 
 class dap_bytes : public dap_item // number of bytes
@@ -354,6 +355,7 @@ class dap_attrib_message: public dap_message
     static const int FB$RWC = 1;
     static const int FB$POS = 3;
     static const int FB$DLK = 4;
+    static const int FB$DIR = 5;
     static const int LOCKED = 6;
     static const int FB$CTG = 7;
     static const int FB$SUP = 8;
@@ -587,7 +589,13 @@ class dap_control_message: public dap_message
     static const int RB$NLK  = 11;
     static const int RB$RLK  = 12;
     static const int RB$BIO  = 13;
-    static const int RB$NXR  = 14;
+    static const int RB$LIM  = 14;
+    static const int RB$NXR  = 15;
+    static const int RB$WAT  = 16;
+    static const int RB$RRL  = 17;
+    static const int RB$REA  = 18;
+    static const int RB$KLE  = 19;
+    static const int RB$KLT  = 20;
 
  private:
     dap_bytes ctlfunc;

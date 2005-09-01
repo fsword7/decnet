@@ -672,6 +672,9 @@ void print_long
 	break;
     }
 
+    if (attrib_msg->get_fop_bit(dap_attrib_message::FB$DIR))
+        printf("                    Directory file\n");
+
     printf("Record Format:      ");
     switch (attrib_msg->get_rfm())
     {

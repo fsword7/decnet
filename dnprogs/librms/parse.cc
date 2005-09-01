@@ -404,6 +404,12 @@ static void set_rop(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
 	if (strcmp(p, "rlk") == 0) {*ptr |= RAB$M_RLK; goto ropdone;}
 	if (strcmp(p, "bio") == 0) {*ptr |= RAB$M_BIO; goto ropdone;}
 	if (strcmp(p, "nxr") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+	if (strcmp(p, "wat") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+	if (strcmp(p, "rrl") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+	if (strcmp(p, "rea") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+	if (strcmp(p, "kle") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+	if (strcmp(p, "kgt") == 0) {*ptr |= RAB$M_NXR; goto ropdone;}
+
 
 	fprintf(stderr, "Error: unknown record option: %s\n", p);
 	return;

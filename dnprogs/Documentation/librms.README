@@ -205,7 +205,7 @@ rat=ftn,cr,prn,blk
 >>> int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options);
 
 rac=seq,key,rfa 
-rop=eof,fdl,uif,hsh,loa,ulk,tpt,rah,wbh,kge,kgt,nlk,rlk,bio,nxr
+rop=eof,fdl,uif,hsh,loa,ulk,tpt,rah,wbh,kge,kgt,nlk,rlk,bio,nxr,wat,rrl,rea,kle,kgt
 kbf    Key value
 krf    Key number
 key    is an alias for kbf (to aid readability)

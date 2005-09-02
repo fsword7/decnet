@@ -1,3 +1,17 @@
+dnprogs (2.30) unstable; urgency=low
+
+  * Add -l option to dncopy. (ignore interlocks)
+  * Add more RMS features to librms & libdap
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri,  2 Sep 2005 09:24:41 +0100
+
+dnprogs (2.29.2) unstable; urgency=low
+
+  * Add Czech debconf translation.
+    Closes: #315989
+  
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 30 Jun 2005 14:30:27 +0100
+
 dnprogs (2.29.1) unstable; urgency=low
 
   * Add Japanese debconf translation from Kenshi Muto.

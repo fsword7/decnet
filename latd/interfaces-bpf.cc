@@ -526,12 +526,29 @@ int BPFInterfaces::recv_packet(int sockfd, int &ifn, unsigned char macaddr[], un
   /* NOTREACHED */
 }
 
+/* This is the LAT multicast address */
+static void store_lat_multicast(unsigned char *addr)
+{
+    addr[0]  = 0x09;
+    addr[1]  = 0x00;
+    addr[2]  = 0x2b;
+    addr[3]  = 0x00;
+    addr[4]  = 0x00;
+    addr[5]  = 0x0f;
+}
+
+
 // Open a connection on an interface
 int BPFInterfaces::set_lat_multicast(int ifn)
 {
     struct ifreq interface_ifreq;
     struct bpf_program program;
     int dummy_fd;
+#ifdef HAVE_AF_LINK
+    struct sockaddr_dl *sockdl;
+#endif
+
+    memset(&interface_ifreq, 0, sizeof(interface_ifreq));
 
     /* if we don't have an interface, bail: */
     if (ifn != 0 || _latd_bpf_interface_name == NULL) {
@@ -579,17 +596,20 @@ int BPFInterfaces::set_lat_multicast(int ifn)
       return -1;
     }
 
-    /* This is the LAT multicast address */
+#ifdef HAVE_AF_LINK
+    sockdl = (sockaddr_dl *)&interface_ifreq.ifr_addr;
+    sockdl->sdl_family = AF_LINK;
+    sockdl->sdl_alen = 6;
+    store_lat_multicast((unsigned char *)sockdl->sdl_data);
+#else
     interface_ifreq.ifr_addr.sa_family = AF_UNSPEC;
+    store_lat_multicast((unsigned char *)interface_ifreq.ifr_addr.sa_data);
+#endif
 #ifdef HAVE_SOCKADDR_SA_LEN
     interface_ifreq.ifr_addr.sa_len = sizeof(interface_ifreq.ifr_addr);
 #endif /* HAVE_SOCKADDR_SA_LEN */
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[0]  = 0x09;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[1]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[2]  = 0x2b;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[3]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[4]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[5]  = 0x0f;
+
+
     if (ioctl(dummy_fd, SIOCADDMULTI, &interface_ifreq) < 0) {
       debuglog(("bpf: failed to add to the multicast list for interface for %s: %s\n",
 		interface_ifreq.ifr_name, strerror(errno)));
@@ -609,6 +629,11 @@ int BPFInterfaces::remove_lat_multicast(int ifn)
 {
     struct ifreq interface_ifreq;
     int dummy_fd;
+#ifdef HAVE_AF_LINK
+    struct sockaddr_dl *sockdl;
+#endif
+
+    memset(&interface_ifreq, 0, sizeof(interface_ifreq));
 
     /* if we don't have an interface, bail: */
     if (ifn != 0 || _latd_bpf_interface_name == NULL) {
@@ -625,17 +650,19 @@ int BPFInterfaces::remove_lat_multicast(int ifn)
       return -1;
     }
 
-    /* This is the LAT multicast address */
+#ifdef HAVE_AF_LINK
+    sockdl = (sockaddr_dl *)&interface_ifreq.ifr_addr;
+    sockdl->sdl_family = AF_LINK;
+    sockdl->sdl_alen = 6;
+    store_lat_multicast((unsigned char *)sockdl->sdl_data);
+#else
     interface_ifreq.ifr_addr.sa_family = AF_UNSPEC;
+    store_lat_multicast((unsigned char *)interface_ifreq.ifr_addr.sa_data);
+#endif
 #ifdef HAVE_SOCKADDR_SA_LEN
     interface_ifreq.ifr_addr.sa_len = sizeof(interface_ifreq.ifr_addr);
 #endif /* HAVE_SOCKADDR_SA_LEN */
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[0]  = 0x09;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[1]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[2]  = 0x2b;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[3]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[4]  = 0x00;
-    ((unsigned char *) interface_ifreq.ifr_addr.sa_data)[5]  = 0x0f;
+
     if (ioctl(dummy_fd, SIOCDELMULTI, &interface_ifreq) < 0) {
       debuglog(("bpf: failed to delete from the multicast list for interface for %s: %s\n",
 		interface_ifreq.ifr_name, strerror(errno)));

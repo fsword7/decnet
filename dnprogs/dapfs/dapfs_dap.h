@@ -5,6 +5,10 @@ extern "C" {
 			      off_t offset, struct fuse_file_info *fi);
 
 	int dapfs_getattr_dap(const char *path, struct stat *stbuf);
+
+	int dap_delete_file(const char *path);
+	int dap_rename_file(const char *from, const char *to);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1,8 +1,20 @@
-/* dapfs via FUSE */
-/*
-    FUSE: Filesystem in Userspace
-    Copyright (C) 2001-2005  Miklos Szeredi <miklos@szeredi.hu>
+/******************************************************************************
+    (c) 2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ ******************************************************************************
+ */
+/* dapfs via FUSE */
+
+/*
     This program can be distributed under the terms of the GNU GPL.
     See the file COPYING.
 */
@@ -42,21 +54,24 @@ static int dapfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 static int dapfs_unlink(const char *path)
 {
-	// TODO May need to use libdap directly.
-	return -ENOSYS;
+	char vername[strlen(path)+3];
+
+	sprintf(vername, "%s;1", path);
+	return dap_delete_file(vername);
 }
 
 static int dapfs_rmdir(const char *path)
 {
-	// TODO May need to use libdap directly.
-	return -ENOSYS;
+	char dirname[strlen(path)+7];
+
+	sprintf(dirname, "%s.DIR;1", path);
+	return dap_delete_file(dirname);
 }
 
 
 static int dapfs_rename(const char *from, const char *to)
 {
-	// TODO May need to use libdap directly.
-	return  -ENOSYS;
+	return dap_rename_file(from, to);
 }
 
 

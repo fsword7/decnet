@@ -1,3 +1,18 @@
+/******************************************************************************
+    (c) 2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ ******************************************************************************
+ */
+
 #define _FILE_OFFSET_BITS 64
 #define FUSE_USE_VERSION 22
 
@@ -241,4 +256,99 @@ flush:
 	}
 	conn.close();
 	return 0;
+}
+
+/* Path already has version number appended to it -- this may be a mistake :) */
+int dap_delete_file(const char *path)
+{
+	dap_connection conn(0);
+	char vmsname[1024];
+	char name[80];
+	int ret;
+	int size;
+
+	ret = dap_connect(conn);
+	if (ret)
+		return ret;
+
+	make_vms_filespec(path, vmsname, 0);
+
+	dap_access_message acc;
+	acc.set_accfunc(dap_access_message::ERASE);
+	acc.set_accopt(1);
+	acc.set_filespec(vmsname);
+	acc.set_display(0);
+        acc.write(conn);
+
+	// Wait for ACK or status
+	dap_message *m = dap_message::read_message(conn, true);
+	if (m)
+	{
+		switch (m->get_type())
+		{
+		case dap_message::ACCOMP:
+		case dap_message::ACK:
+			ret = 0;
+
+		case dap_message::STATUS:
+		{
+			dap_status_message *sm = (dap_status_message *)m;
+			ret = -EPERM; // Default error!
+		}
+		}
+	}
+
+	conn.close();
+	return ret;
+}
+
+int dap_rename_file(const char *from, const char *to)
+{
+	dap_connection conn(0);
+	char vmsfrom[1024];
+	char vmsto[1024];
+	int ret;
+	int size;
+
+	ret = dap_connect(conn);
+	if (ret)
+		return ret;
+
+	make_vms_filespec(from, vmsfrom, 0);
+	make_vms_filespec(to, vmsto, 0);
+
+	dap_access_message acc;
+	acc.set_accfunc(dap_access_message::RENAME);
+	acc.set_accopt(1);
+	acc.set_filespec(vmsfrom);
+	acc.set_display(0);
+        acc.write(conn);
+
+// TODO Test this, We may need to split the filespec up into DIR & FILE messages,
+// at least for cross-directory renames.
+	dap_name_message nam;
+	nam.set_nametype(dap_name_message::FILESPEC);
+	nam.set_namespec(vmsto);
+	nam.write(conn);
+
+	// Wait for ACK or status
+	dap_message *m = dap_message::read_message(conn, true);
+	if (m)
+	{
+		switch (m->get_type())
+		{
+		case dap_message::ACCOMP:
+		case dap_message::ACK:
+			ret = 0;
+
+		case dap_message::STATUS:
+		{
+			dap_status_message *sm = (dap_status_message *)m;
+			ret = -EPERM; // Default error!
+		}
+		}
+	}
+
+	conn.close();
+	return ret;
 }

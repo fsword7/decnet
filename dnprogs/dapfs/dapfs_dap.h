@@ -8,6 +8,7 @@ extern "C" {
 
 	int dap_delete_file(const char *path);
 	int dap_rename_file(const char *from, const char *to);
+	int dap_init(void);
 
 #ifdef __cplusplus
 }

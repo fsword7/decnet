@@ -34,18 +34,21 @@ extern "C" {
 #include "filenames.h"
 }
 
-static int dap_connect(dap_connection &conn)
+// Use this for one-shot stuff like getattr & delete
+static dap_connection conn(0);
+
+static int dap_connect(dap_connection &c)
 {
 	char dirname[256] = {'\0'};
-	if (!conn.connect(prefix, dap_connection::FAL_OBJECT, dirname))
+	if (!c.connect(prefix, dap_connection::FAL_OBJECT, dirname))
 	{
 		return -ENOTCONN;
 	}
 
 	// Exchange config messages
-	if (!conn.exchange_config())
+	if (!c.exchange_config())
 	{
-		fprintf(stderr, "Error in config: %s\n", conn.get_error());
+		fprintf(stderr, "Error in config: %s\n", c.get_error());
 		return -ENOTCONN;
 	}
 	return 0;
@@ -63,7 +66,6 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 		if (nm->get_nametype() == dap_name_message::FILENAME) {
 			if (strstr(nm->get_namespec(), ".DIR;1")) {
 				stbuf->st_mode |= S_IFDIR;
-				syslog(1, "%s is a directory\n", nm->get_namespec());
 			}
 			else {
 				stbuf->st_mode &= ~S_IFDIR;
@@ -93,7 +95,6 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 	case dap_message::DATE:
 	{
 		dap_date_message *dm = (dap_date_message *)m;
-		syslog(1, "got date message\n");
 		stbuf->st_atime = dm->get_rdt_time();
 		stbuf->st_ctime = dm->get_cdt_time();
 		stbuf->st_mtime = dm->get_cdt_time();
@@ -104,15 +105,10 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 
 int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 {
-	dap_connection conn(0);
 	char vmsname[1024];
 	char name[80];
-	int ret;
+	int ret = 0;
 	int size;
-
-	ret = dap_connect(conn);
-	if (ret)
-		return ret;
 
 	make_vms_filespec(path, vmsname, 0);
 
@@ -131,21 +127,41 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 	while ( ((m=dap_message::read_message(conn, true) )) )
 	{
 		add_to_stat(m, stbuf);
-		if (m->get_type() == dap_message::ACCOMP)
-		{
+		if (m->get_type() == dap_message::ACCOMP) {
+			delete m;
 			goto finished;
+		}
+
+		if (m->get_type() == dap_message::STATUS)
+		{
+			dap_status_message *sm = (dap_status_message *)m;
+			if (sm->get_code() == 0x4030)
+			{
+				dap_contran_message cm;
+				cm.set_confunc(dap_contran_message::SKIP);
+				cm.write(conn);
+			}
+			else
+			{
+				ret = -ENOENT; // TODO better error
+				// Clean connection status.
+				dap_contran_message cm;
+				cm.set_confunc(dap_contran_message::SKIP);
+				cm.write(conn);
+			}
+			// Wait for ACCOMP
+			break;
 		}
 		delete m;
 	}
 finished:
-	conn.close();
-	return 0;
+	return ret;
 }
 
 int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 		      off_t offset, struct fuse_file_info *fi)
 {
-	dap_connection conn(0);
+	dap_connection c(0);
 	char vmsname[1024];
 	char wildname[strlen(path)+2];
 	char name[80];
@@ -153,19 +169,19 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 	int size;
 	int ret;
 
-	memset(&stbuf, 0, sizeof(stbuf));
-	ret = dap_connect(conn);
+	// Use our own connection for this.
+	ret = dap_connect(c);
 	if (ret)
 		return ret;
 
+	memset(&stbuf, 0, sizeof(stbuf));
+
 	// Add wildcard to path
 	if (path[strlen(path)-1] == '/') {
-		sprintf(wildname, "%s*", path);
+		sprintf(wildname, "%s*.*", path);
 		path = wildname;
 	}
-
 	make_vms_filespec(path, vmsname, 0);
-	syslog(1, "readdir: dir = %s: %s\n", path, vmsname);
 
 	dap_access_message acc;
 	acc.set_accfunc(dap_access_message::DIRECTORY);
@@ -174,14 +190,14 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 	acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |
 			dap_access_message::DISPLAY_DATE_MASK |
 			dap_access_message::DISPLAY_PROT_MASK);
-	acc.write(conn);
+	acc.write(c);
 
 	bool name_pending = false;
 	dap_message *m;
 	char volname[256];
 
 	// Loop through the files we find
-	while ( ((m=dap_message::read_message(conn, true) )) )
+	while ( ((m=dap_message::read_message(c, true) )) )
 	{
 		add_to_stat(m, &stbuf);
 
@@ -189,6 +205,7 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 		{
 		case dap_message::NAME:
 		{
+			// Got a new name, send the old stuff.
 			if (name_pending)
 			{
 				char unixname[1024];
@@ -221,9 +238,10 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 			{
 				dap_contran_message cm;
 				cm.set_confunc(dap_contran_message::SKIP);
-				if (!cm.write(conn))
+				if (!cm.write(c))
 				{
-					fprintf(stderr, "Error sending skip: %s\n", conn.get_error());
+					fprintf(stderr, "Error sending skip: %s\n", c.get_error());
+					delete m;
 					goto finished;
 				}
 			}
@@ -243,33 +261,29 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 
 finished:
 	// An error:
-	fprintf(stderr, "Error: %s\n", conn.get_error());
- 	conn.close();
+	fprintf(stderr, "Error: %s\n", c.get_error());
+	c.close();
 	return 2;
 
 flush:
+	delete m;
 	if (name_pending)
 	{
 		char unixname[1024];
 		make_unix_filespec(unixname, name);
-		filler(buf, name, &stbuf, 0);
+		filler(buf, unixname, &stbuf, 0);
 	}
-	conn.close();
+	c.close();
 	return 0;
 }
 
 /* Path already has version number appended to it -- this may be a mistake :) */
 int dap_delete_file(const char *path)
 {
-	dap_connection conn(0);
 	char vmsname[1024];
 	char name[80];
 	int ret;
 	int size;
-
-	ret = dap_connect(conn);
-	if (ret)
-		return ret;
 
 	make_vms_filespec(path, vmsname, 0);
 
@@ -281,38 +295,37 @@ int dap_delete_file(const char *path)
         acc.write(conn);
 
 	// Wait for ACK or status
-	dap_message *m = dap_message::read_message(conn, true);
-	if (m)
-	{
+	ret = 0;
+	while(1) {
+		dap_message *m = dap_message::read_message(conn, true);
+
 		switch (m->get_type())
 		{
 		case dap_message::ACCOMP:
-		case dap_message::ACK:
-			ret = 0;
+			goto end;
+		break;
 
 		case dap_message::STATUS:
 		{
 			dap_status_message *sm = (dap_status_message *)m;
-			ret = -EPERM; // Default error!
+			if (sm->get_code() & 1 != 1)
+				ret = -EPERM; // Default error!
+			goto end;
 		}
+		break;
 		}
+		delete m;
 	}
-
-	conn.close();
+	end:
 	return ret;
 }
 
 int dap_rename_file(const char *from, const char *to)
 {
-	dap_connection conn(0);
 	char vmsfrom[1024];
 	char vmsto[1024];
 	int ret;
 	int size;
-
-	ret = dap_connect(conn);
-	if (ret)
-		return ret;
 
 	make_vms_filespec(from, vmsfrom, 0);
 	make_vms_filespec(to, vmsto, 0);
@@ -332,14 +345,13 @@ int dap_rename_file(const char *from, const char *to)
 	nam.write(conn);
 
 	// Wait for ACK or status
-	dap_message *m = dap_message::read_message(conn, true);
-	if (m)
-	{
+	ret = 0;
+	while (1) {
+		dap_message *m = dap_message::read_message(conn, true);
 		switch (m->get_type())
 		{
 		case dap_message::ACCOMP:
-		case dap_message::ACK:
-			ret = 0;
+			goto end;
 
 		case dap_message::STATUS:
 		{
@@ -348,7 +360,12 @@ int dap_rename_file(const char *from, const char *to)
 		}
 		}
 	}
-
-	conn.close();
+	end:
 	return ret;
+}
+
+
+int dap_init()
+{
+	return dap_connect(conn);
 }

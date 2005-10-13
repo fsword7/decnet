@@ -135,7 +135,7 @@ void make_vms_filespec(const char *unixname, char *vmsname, int full)
     // expect one as does dapfs.
     if (!strchr(lastslash, '.'))
         strcat(fullname, ".");
-
+#if 0
     // If it's a directory then add .DIR;1
     if (lstat(unixname, &st)==0 && S_ISDIR(st.st_mode))
     {
@@ -150,7 +150,7 @@ void make_vms_filespec(const char *unixname, char *vmsname, int full)
 	if (!strchr(fullname, ';'))
 	    strcat(fullname, ";1");
     }
-
+#endif
     // If we were only asked for the short name then return that bit now
     if (!full)
     {

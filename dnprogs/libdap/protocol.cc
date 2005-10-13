@@ -1960,17 +1960,17 @@ char *dap_date_message::get_bdt()
 
 char *dap_date_message::get_udt()
 {
-    return bdt.get_string();
+    return udt.get_string();
 }
 
 time_t dap_date_message::get_cdt_time()
 {
-    return string_to_time_t(edt.get_string());
+    return string_to_time_t(cdt.get_string());
 }
 
 time_t dap_date_message::get_rdt_time()
 {
-    return string_to_time_t(edt.get_string());
+    return string_to_time_t(rdt.get_string());
 }
 
 time_t dap_date_message::get_edt_time()
@@ -1985,7 +1985,7 @@ time_t dap_date_message::get_bdt_time()
 
 time_t dap_date_message::get_udt_time()
 {
-    return string_to_time_t(bdt.get_string());
+    return string_to_time_t(udt.get_string());
 }
 
 int dap_date_message::get_rvn()
@@ -2043,10 +2043,10 @@ time_t dap_date_message::string_to_time_t(const char *d)
     struct tm tm;
     char month[5];
 
-    sscanf(d, "%d-%3s-%d %d:%d:%d",
+    memset(&tm, 0, sizeof(tm));
+    sscanf(d, "%02d-%3s-%02d %02d:%02d:%02d",
 	   &tm.tm_mday, month,      &tm.tm_year,
 	   &tm.tm_hour, &tm.tm_min, &tm.tm_sec);
-
     tm.tm_isdst = -1;
 
     int i = 0;
@@ -2058,6 +2058,14 @@ time_t dap_date_message::string_to_time_t(const char *d)
 	    break;
 	}
     }
+    // Pivot year
+    if (tm.tm_year >= 70)
+            tm.tm_year += 1900;
+    else
+            tm.tm_year += 2000;
+
+    tm.tm_year -= 1900; // for a valid 'struct tm'
+
     return mktime(&tm);
 }
 
@@ -2312,7 +2320,7 @@ int dap_protect_message::set_protection(char *prot)
     int i = 0;
     int len = strlen(prot);
 
-    if (prot[i] == '(') 
+    if (prot[i] == '(')
 	    i++;
 
     while (i < len)

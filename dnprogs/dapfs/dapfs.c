@@ -250,6 +250,13 @@ static int dapfs_getattr(const char *path, struct stat *stbuf)
 	}
 	else {
 		res = dapfs_getattr_dap(path, stbuf);
+
+		/* If this failed and there's no file type, see if it is a directory */
+		if (res == -ENOENT && strchr(path, '.')==NULL) {
+			char dirname[1024];
+			sprintf(dirname, "%s.dir", path);
+			res = dapfs_getattr_dap(dirname, stbuf);
+		}
 	}
 	return  res;
 }

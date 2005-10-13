@@ -117,15 +117,15 @@ void split_filespec(char *volume, char *directory, char *file)
 
 // Convert a Unix-style filename to a VMS-style name
 // No return code because this routine cannot fail :-)
-void make_vms_filespec(const char *unixname, char *vmsname, int full)
+void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
 {
     char        fullname[PATH_MAX];
     int         i;
     char       *lastslash;
     struct stat st;
 
-    // Resolve all relative bits and symbolic links
-    realpath(unixname, fullname);
+    // Take a copy wwe can muck about with
+    strcpy(fullname, unixname);
 
     // Find the last slash in the name
     lastslash = fullname + strlen(fullname);
@@ -133,43 +133,8 @@ void make_vms_filespec(const char *unixname, char *vmsname, int full)
 
     // If the filename has no extension then add one. VMS seems to
     // expect one as does dapfs.
-    if (!strchr(lastslash, '.'))
+    if (!strchr(lastslash, '.' && !isdir))
         strcat(fullname, ".");
-#if 0
-    // If it's a directory then add .DIR;1
-    if (lstat(unixname, &st)==0 && S_ISDIR(st.st_mode))
-    {
-        // Take care of dots embedded in directory names (/etc/rc.d)
-        if (fullname[strlen(fullname)-1] != '.')
-	    strcat(fullname, ".");
-
-        strcat(fullname, "DIR;1"); // last dot has already been added
-    }
-    else // else just add a version number unless the file already has one
-    {
-	if (!strchr(fullname, ';'))
-	    strcat(fullname, ";1");
-    }
-#endif
-    // If we were only asked for the short name then return that bit now
-    if (!full)
-    {
-	i=strlen(fullname);
-	while (fullname[i--] != '/') ;
-	strcpy(vmsname, &fullname[i+2]);
-
-	// Make it all uppercase
-	makeupper(vmsname);
-	return;
-    }
-
-    // Count the slashes. If there is one slash we emit a filename like:
-    // SYSDISK:[000000]filename
-    // For two we use:
-    // SYSDISK:[DIR]filename
-    // for three or more we use:
-    // DIR:[DIR1]filename
-    // and so on...
 
     int slashes = 0;
 
@@ -183,52 +148,37 @@ void make_vms_filespec(const char *unixname, char *vmsname, int full)
 	}
     }
 
-    // File is in the root directory
     if (slashes == 1)
     {
-	sprintf(vmsname, "%s:[000000]%s", sysdisk_name, fullname+1);
-	return;
+	    sprintf(vmsname, "[]%s", unixname+1);
+	    goto retname;
     }
 
-    // File is in a directory immediately below the root directory
-    if (slashes == 2)
+    int thisslash = 0;
+    int v=0;
+    for (i=0; i<=(int)strlen(fullname); i++)
     {
-	char *second_slash = strchr(fullname+1, '/');
-
-	*second_slash = '\0';
-
-	strcpy(vmsname, sysdisk_name);
-	strcat(vmsname, ":[");
-	strcat(vmsname, fullname+1);
-	strcat(vmsname, "]");
-	strcat(vmsname, second_slash+1);
-
-	return;
+	    if (i==0)
+	    {
+		    vmsname[v++] = '[';
+		    vmsname[v++] = '.';
+		    thisslash++;
+	    }
+	    else
+	    {
+		    if (fullname[i] == '/')
+		    {
+			    thisslash++;
+			    if (thisslash == slashes)
+				    vmsname[v++] = ']';
+			    else
+				    vmsname[v++] = '.';
+		    }
+		    else
+			    vmsname[v++] = fullname[i];
+	    }
     }
-
-    // Most user filenames end up here
-    char *slash2 = strchr(fullname+1, '/');
-
-    *slash2 = '\0';
-    strcpy(vmsname, fullname+1);
-    strcat(vmsname, ":[");
-
-    // Do the directory depth
-    lastslash = slash2;
-
-    for (i=1; i<slashes-1; i++)
-    {
-	char *slash = strchr(lastslash+1, '/');
-	if (slash)
-	{
-	    *slash = '\0';
-	    strcat(vmsname, lastslash+1);
-	    strcat(vmsname, ".");
-	    lastslash = slash;
-	}
-    }
-    vmsname[strlen(vmsname)-1] = ']';
-    strcat(vmsname, lastslash+1);
+retname:
 }
 
 // Split out the volume, directory and file portions of a VMS file spec

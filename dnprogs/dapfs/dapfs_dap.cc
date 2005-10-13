@@ -149,8 +149,6 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 				cm.set_confunc(dap_contran_message::SKIP);
 				cm.write(conn);
 			}
-			// Wait for ACCOMP
-			break;
 		}
 		delete m;
 	}
@@ -181,6 +179,12 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 		sprintf(wildname, "%s*.*", path);
 		path = wildname;
 	}
+	else {
+		strcpy(wildname, path);
+		strcat(wildname, "/*.*");
+		path = wildname;
+	}
+
 	make_vms_filespec(path, vmsname, 0);
 
 	dap_access_message acc;
@@ -209,9 +213,19 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 			if (name_pending)
 			{
 				char unixname[1024];
-				name_pending = false;
+
 				make_unix_filespec(unixname, name);
+				if (strstr(unixname, ".dir") == unixname+strlen(unixname)-4)
+				{
+					char *ext = strstr(unixname, ".dir");
+					if (ext) *ext = '\0';
+				}
+
+				/* Tell Fuse */
 				filler(buf, unixname, &stbuf, 0);
+
+				/* Prepare for next name */
+				name_pending = false;
 				memset(&stbuf, 0, sizeof(stbuf));
 			}
 
@@ -271,6 +285,11 @@ flush:
 	{
 		char unixname[1024];
 		make_unix_filespec(unixname, name);
+		if (strstr(unixname, ".dir") == unixname+strlen(unixname)-4)
+		{
+			char *ext = strstr(unixname, ".dir");
+			if (ext) *ext = '\0';
+		}
 		filler(buf, unixname, &stbuf, 0);
 	}
 	c.close();

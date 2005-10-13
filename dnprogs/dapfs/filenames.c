@@ -151,7 +151,7 @@ void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
     if (slashes == 1)
     {
 	    sprintf(vmsname, "[]%s", unixname+1);
-	    goto retname;
+	    return;
     }
 
     int thisslash = 0;
@@ -178,7 +178,6 @@ void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
 			    vmsname[v++] = fullname[i];
 	    }
     }
-retname:
 }
 
 // Split out the volume, directory and file portions of a VMS file spec

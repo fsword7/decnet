@@ -398,6 +398,15 @@ void fal_task::make_unix_filespec(char *unixname, char *vmsname)
     // Copy the directory
     for (i=0; i< (int)strlen(dir); i++)
     {
+	// Remove '[]' as it's a no-op
+	if (dir[i] == '[' &&
+	    dir[i+1] == ']')
+	{
+	    i++;
+	    ptr = 0;
+	    continue;
+	}
+
 	// If the directory name starts [. then it is relative to the
 	// user's home directory and we lose the starting slash
 	// If there is also a volume name present then it all falls

@@ -274,12 +274,14 @@ class dap_attrib_message: public dap_message
 	hbk(5),
 	ebk(5),
 	ffb(2),
-	sbn(5)
+        sbn(5),
+        jnl(4)
 	{msg_type = ATTRIB;}
 
     virtual bool read(dap_connection&);
     virtual bool write(dap_connection&);
 
+    int get_menu_bit(int);
     int get_datatype();
     int get_org();
     int get_rfm();
@@ -301,6 +303,7 @@ class dap_attrib_message: public dap_message
     int get_ebk();
     int get_ffb();
     int get_sbn();
+    int get_jnl();
 
     void set_datatype(int);
     void set_org(int);
@@ -331,6 +334,30 @@ class dap_attrib_message: public dap_message
     void set_stat(struct stat *st, bool show_dev);
     void set_file(const char *file, bool show_dev);
     unsigned long get_size();
+
+    // Bits in ATTMENU
+    static const int MENU_DATATYPE = 0;
+    static const int MENU_ORG = 1;
+    static const int MENU_RFM = 2;
+    static const int MENU_RAT = 3;
+    static const int MENU_BLS = 4;
+    static const int MENU_MRS = 5;
+    static const int MENU_ALQ = 6;
+    static const int MENU_BKS = 7;
+    static const int MENU_FSZ = 8;
+    static const int MENU_MRN = 9;
+    static const int MENU_RUNSYS = 10;
+    static const int MENU_DEQ = 11;
+    static const int MENU_FOP = 12;
+    static const int MENU_BSZ = 13;
+    static const int MENU_DEV = 14;
+    static const int MENU_SDC = 15;
+    static const int MENU_LRL = 16;
+    static const int MENU_HBK = 17;
+    static const int MENU_EBK = 18;
+    static const int MENU_FFB = 19;
+    static const int MENU_SBN = 20;
+    static const int MENU_JNL = 21;
 
     //DATATYPEs
     static const int ASCII      = 0;
@@ -443,6 +470,7 @@ class dap_attrib_message: public dap_message
     dap_image ebk;
     dap_bytes ffb;
     dap_image sbn;
+    dap_ex    jnl;
 };
 
 //ACCESS message TYPE=3

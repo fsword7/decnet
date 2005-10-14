@@ -704,6 +704,11 @@ bool dap_attrib_message::read(dap_connection &c)
     return true;
 }
 
+int dap_attrib_message::get_menu_bit(int bit)
+{
+	return attmenu.get_bit(bit);
+}
+
 int dap_attrib_message::get_datatype() {return datatype.get_byte(0); }
 int dap_attrib_message::get_org(){return org.get_int(); }
 int dap_attrib_message::get_rfm(){return rfm.get_int(); }
@@ -725,6 +730,7 @@ int dap_attrib_message::get_hbk(){return hbk.get_int(); }
 int dap_attrib_message::get_ebk(){return ebk.get_int(); }
 int dap_attrib_message::get_ffb(){return ffb.get_short(); }
 int dap_attrib_message::get_sbn(){return sbn.get_int(); }
+int dap_attrib_message::get_jnl(){return jnl.get_byte(0); }
 
 // Returns the filesize in bytes
 unsigned long dap_attrib_message::get_size()

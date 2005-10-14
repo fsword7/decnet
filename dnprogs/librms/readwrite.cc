@@ -84,12 +84,12 @@ int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
-  
+
     // Check the reply
     dap_message *m;
-    int r = rms_getreply(h, 0, &m);
+    int r = rms_getreply(h, 0, NULL, &m);
     if (r == -1) return -1;
     if (r == 047) return 0; // EOF
     // if r == -2 then we have a message to process.
@@ -153,24 +153,24 @@ int rms_find(RMSHANDLE h, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::FIND);
 
     if (rab) build_control_message(rc, &ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
-    
+
     dap_message *m;
-    int r = rms_getreply(h, 1, &m);
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
     if (r == 047) return 0; // EOF
-    
+
     return 0;
 }
 
@@ -181,20 +181,20 @@ int rms_write(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::PUT);
 
     if (rab) build_control_message(rc, &ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    dap_message *m;    
-    int r = rms_getreply(h, 1, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 
@@ -206,13 +206,13 @@ int rms_write(RMSHANDLE h, char *buf, int len, struct RAB *rab)
     if (!status)
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    r = rms_getreply(h, 1, &m);
+    r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
-    
+
     return 0;
 }
 
@@ -223,20 +223,20 @@ int rms_update(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::UPDATE);
 
     if (rab) build_control_message(rc, &ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    dap_message *m;    
-    int r = rms_getreply(h, 1, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 
@@ -250,13 +250,13 @@ int rms_update(RMSHANDLE h, char *buf, int len, struct RAB *rab)
     if (!status)
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    r = rms_getreply(h, 1, &m);
+    r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0 ) return -1;
-    
+
     return 0;
 }
 
@@ -266,20 +266,20 @@ int rms_delete(RMSHANDLE h, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::DELETE);
 
     if (rab) build_control_message(rc, &ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    dap_message *m;    
-    int r = rms_getreply(h, 1, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 
@@ -292,20 +292,20 @@ int rms_truncate(RMSHANDLE h, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::TRUNCATE);
 
     if (rab) build_control_message(rc, &ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
 
-    dap_message *m;    
-    int r = rms_getreply(h, 1, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 
@@ -318,20 +318,20 @@ int rms_rewind(RMSHANDLE h, struct RAB *rab)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
     dap_control_message ctl;
     ctl.set_ctlfunc(dap_control_message::REWIND);
 
     if (rab) build_control_message(rc,&ctl, rab);
-    
+
     if (!ctl.write(*conn))
     {
 	rc->lasterror = conn->get_error();
-	return -1; 
+	return -1;
     }
-    
+
     dap_message *m;
-    int r = rms_getreply(h, 1, &m);
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 

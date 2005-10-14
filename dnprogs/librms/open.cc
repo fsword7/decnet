@@ -38,14 +38,14 @@ static char *open_error = NULL;
 
 static void build_access_message(dap_access_message *acc, struct FAB *fab)
 {
-    acc->set_fac(fab->fab$b_fac);
-    acc->set_shr(fab->fab$b_shr);
+    if (fab->fab$b_fac) acc->set_fac(fab->fab$b_fac);
+    if (fab->fab$b_shr) acc->set_shr(fab->fab$b_shr);
 }
 
 static void build_attrib_message(dap_attrib_message *att, struct FAB *fab)
 {
-    att->set_rfm((int)fab->fab$b_rfm);
-    att->set_rat((int)fab->fab$b_rat);
+    if (fab->fab$b_rfm) att->set_rfm((int)fab->fab$b_rfm);
+    if (fab->fab$b_rat) att->set_rat((int)fab->fab$b_rat);
     //att->set_fop((int)fab->fab$l_fop);
 }
 
@@ -117,6 +117,7 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
     // Set up the access method
     dap_access_message acc;
     acc.set_accfunc(dap_access_message::OPEN);
+    acc.set_display(dap_access_message::DISPLAY_MAIN_MASK);
     if (mode & O_CREAT) acc.set_accfunc(dap_access_message::CREATE);
 
     if (mode & O_RDWR || mode & O_CREAT)
@@ -140,7 +141,7 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
 
     // Get reply to OPEN
     dap_message *m;
-    int r = rms_getreply(rc, 1, &m);
+    int r = rms_getreply(rc, 1, fab, &m);
     if (r < 0) 
     {
 	if (r == -2) delete m;
@@ -157,7 +158,7 @@ RMSHANDLE rms_open(char *name, int mode, struct FAB *fab)
     ctl.write(*conn);
 
     // Get reply to CONNECT
-    r = rms_getreply(rc, 1, &m);
+    r = rms_getreply(rc, 1, fab, &m);
     if (r < 0) 
     {
 	if (r == -2) delete m;

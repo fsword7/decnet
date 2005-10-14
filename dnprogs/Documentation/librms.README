@@ -36,11 +36,6 @@ currently unused.
 For full information on the values in RABs and FABs see the VMS manual
 "Record Management Services Reference".
 
-THE FUTURE
-----------
-I *may* make fairly complete sys$* functions available.
-I *may* backfill the FAB with the attributes of the file just opened.
-
 Please let me know what you think of this library and any other functions
 you think you might need. It's not (very) difficult for me to add features
 because all the hard work has already been done in libdap.
@@ -64,6 +59,15 @@ fab$b_shr
 fab$b_rfm
 fab$b_rat
 
+The following fields will be filled in on return:
+fab$b_org
+fab$l_alq
+fab$w_deq
+fab$b_rat
+fab$b_rfm
+fab$l_jnl
+fab$w_mrs
+fab$l_mrn
 
 >>> char *rms_openerror(void);
 
@@ -201,6 +205,8 @@ shr=put,del,get,upd,del
 rfm=udf,fix,var,vfc,stm,stmcr,stmcr
 rat=ftn,cr,prn,blk
 
+You can't retrieve file information from this call as the FAB fields
+filled in by rms_opn() are lost.
 
 >>> int rms_t_read(RMSHANDLE h, char *buf, int maxlen, char *options);
 

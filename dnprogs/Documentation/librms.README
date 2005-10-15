@@ -203,7 +203,7 @@ the non _t functions above.
 Options can be:
 fac=put,del,get,upd,del
 shr=put,del,get,upd,del
-rfm=udf,fix,var,vfc,stm,stmcr,stmcr
+rfm=udf,fix,var,vfc,stm,stmcr,stmlf
 rat=ftn,cr,prn,blk
 
 You can't retrieve file information from this call as the FAB fields

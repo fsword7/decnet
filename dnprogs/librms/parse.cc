@@ -330,8 +330,8 @@ static void set_rfm(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
 	if (strcmp(p, "var") == 0)   {*ptr |= FAB$C_VAR; goto rfmdone;}
 	if (strcmp(p, "vfc") == 0)   {*ptr |= FAB$C_VFC; goto rfmdone;}
 	if (strcmp(p, "stm") == 0)   {*ptr |= FAB$C_STM; goto rfmdone;}
-	if (strcmp(p, "stmlf") == 0) {*ptr |= FAB$C_STMCR; goto rfmdone;}
-	if (strcmp(p, "stmcr") == 0) {*ptr |= FAB$C_STMLF; goto rfmdone;}
+	if (strcmp(p, "stmlf") == 0) {*ptr |= FAB$C_STMLF; goto rfmdone;}
+	if (strcmp(p, "stmcr") == 0) {*ptr |= FAB$C_STMCR; goto rfmdone;}
 
 	fprintf(stderr, "Error: unknown record format type: %s\n", p);
 	return;

@@ -78,6 +78,9 @@ static void fill_fab(dap_attrib_message *am, struct FAB *fab)
 
 	if (am->get_menu_bit(dap_attrib_message::MENU_MRN))
 	    fab->fab$l_mrn = am->get_mrn();
+
+	if (am->get_menu_bit(dap_attrib_message::MENU_FSZ))
+	    fab->fab$b_fsz = am->get_fsz();
 }
 
 

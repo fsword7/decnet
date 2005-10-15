@@ -68,6 +68,7 @@ fab$b_rfm
 fab$l_jnl
 fab$w_mrs
 fab$l_mrn
+fab$b_fsz
 
 >>> char *rms_openerror(void);
 

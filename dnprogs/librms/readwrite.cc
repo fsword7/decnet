@@ -51,7 +51,6 @@ static void build_control_message(rms_conn *rc, dap_control_message *ctl, struct
     }
 }
 
-
 int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
 {
     if (!h) return -1;
@@ -130,6 +129,8 @@ int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
 	    acc.write(*conn);
 	    return -1;
 	}
+	if (status == 047) // EOF
+		status = 0;
 	return status;
     }
 

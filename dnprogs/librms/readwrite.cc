@@ -175,7 +175,6 @@ int rms_find(RMSHANDLE h, struct RAB *rab)
     return 0;
 }
 
-
 int rms_write(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 {
     if (!h) return -1;
@@ -194,29 +193,27 @@ int rms_write(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 	return -1;
     }
 
-    dap_message *m;
-    int r = rms_getreply(h, 1, NULL, &m);
-    if (r == -2) delete m;
-    if (r < 0) return -1;
-
     dap_data_message data;
     data.set_data(buf, len);
     bool status;
 
-    status = data.write_with_len(*conn);
+    if (len >= 256)
+	status = data.write_with_len256(*conn);
+    else
+	status = data.write_with_len(*conn);
     if (!status)
     {
 	rc->lasterror = conn->get_error();
 	return -1;
     }
 
-    r = rms_getreply(h, 1, NULL, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0) return -1;
 
     return 0;
 }
-
 
 int rms_update(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 {
@@ -236,11 +233,6 @@ int rms_update(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 	return -1;
     }
 
-    dap_message *m;
-    int r = rms_getreply(h, 1, NULL, &m);
-    if (r == -2) delete m;
-    if (r < 0) return -1;
-
     dap_data_message data;
     data.set_data(buf, len);
     bool status;
@@ -254,7 +246,8 @@ int rms_update(RMSHANDLE h, char *buf, int len, struct RAB *rab)
 	return -1;
     }
 
-    r = rms_getreply(h, 1, NULL, &m);
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
     if (r == -2) delete m;
     if (r < 0 ) return -1;
 

@@ -35,7 +35,6 @@
 #include <netdnet/dnetdb.h>
 #include "filenames.h"
 
-static int vms_format; // Do we use this ??
 #define true 1
 #define false 0
 
@@ -52,67 +51,6 @@ static void makeupper(char *s)
 {
 	unsigned int i;
 	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
-}
-
-
-// A test to see if the file is a VMS-type filespec or a Unix one
-// Also sets the 'vms_format' flag
-int is_vms_name(char *name)
-{
-    if ( (strchr(name, '[') && strchr(name, ']')) ||
-	  strchr(name, ';') || strchr(name, ':') )
-	return vms_format=true;
-    else
-	return vms_format=false;
-}
-
-// Splits a filename up into volume, directory and file parts.
-// The volume and directory are just for display purposes (they get sent back
-// to the client). file is the (possibly) wildcard filespec to use for
-// searching for files.
-//
-// Unix filenames are just returned as-is.
-//
-// volume and directory are assumed to be long enough for PATH_MAX. file
-// also contains the input filespec.
-//
-void split_filespec(char *volume, char *directory, char *file)
-{
-
-    if (is_vms_name(file))
-    {
-	// This converts the VMS name to a Unix name and back again. This
-	// involves calling parse_vms_filespec twice and ourself once more.
-	// YES THIS IS RIGHT! We need to make sense of the input file name
-	// in our own terms and then send back our re-interpretation of
-	// the input filename. This is what any sensible operating
-	// system would do. (VMS certainly does!)
-
-	// Convert it to a Unix filespec
-	char unixname[PATH_MAX];
-	char vmsname[PATH_MAX];
-
-	make_unix_filespec(unixname, file);
-
-	// Parse that Unix name
-	strcpy(file, unixname);
-	split_filespec(volume, directory, file);
-
-	// Then convert it back to VMS
-	make_vms_filespec(unixname, vmsname, true);
-
-	// Split up the VMS spec for returning in bits
-	parse_vms_filespec(volume, directory, vmsname);
-
-	// Make sure we set this back to true after we called ourself with a
-	// Unix filespec
-	vms_format = true;
-	return;
-    }
-
-    // We don't fill in the volume for unix filespecs
-    volume[0] = '\0';
-    directory[0] = '\0';
 }
 
 // Convert a Unix-style filename to a VMS-style name
@@ -182,7 +120,7 @@ void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
 
 // Split out the volume, directory and file portions of a VMS file spec
 // We assume that the VMS name is (quite) well formed.
-void parse_vms_filespec(char *volume, char *directory, char *file)
+static void parse_vms_filespec(char *volume, char *directory, char *file)
 {
     char *colon = strchr(file, ':');
     char *ptr = file;

@@ -36,7 +36,11 @@ int rms_close(RMSHANDLE h)
 
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
-    
+
+    dap_accomp_message ac;
+    ac.set_cmpfunc(dap_accomp_message::CLOSE);
+    ac.write(*conn);
+
     conn->close();
     
     delete conn;

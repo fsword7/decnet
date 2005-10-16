@@ -41,12 +41,15 @@ int rms_close(RMSHANDLE h)
     ac.set_cmpfunc(dap_accomp_message::CLOSE);
     ac.write(*conn);
 
+    dap_message *m;
+    int r = rms_getreply(h, 1, NULL, &m);
+
     conn->close();
     
     delete conn;
     delete rc;
 
-    return 0;
+    return r;
 }
 
 

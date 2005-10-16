@@ -19,6 +19,7 @@ set -e
 if [ "$1" = "purge" ]
 then
     rm -f /etc/decnet.conf
+    rm -f /etc/decnet.conf.old
     rm -f /etc/decnet.proxy
     rm -f /etc/dnetd.conf
 fi

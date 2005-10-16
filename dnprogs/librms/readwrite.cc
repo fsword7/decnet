@@ -34,21 +34,21 @@
 // Populate the control message from the input parameters...
 static void build_control_message(rms_conn *rc, dap_control_message *ctl, struct RAB *rab)
 {
-    ctl->set_rac(rab->rab$b_rac);
-    ctl->set_rop(rab->rab$l_rop);
-    if (rab->rab$l_kbf)
-    {
+	if (rab->rab$b_rac) ctl->set_rac(rab->rab$b_rac);
+	if (rab->rab$l_rop) ctl->set_rop(rab->rab$l_rop);
+	if (rab->rab$l_kbf)
+	{
 // To be helpful - if the ksz is zero then assume it's a string
-	if (rab->rab$b_ksz)
-	{
-	    ctl->set_key((char*)rab->rab$l_kbf, (int)rab->rab$b_ksz);
+		if (rab->rab$b_ksz)
+		{
+			ctl->set_key((char*)rab->rab$l_kbf, (int)rab->rab$b_ksz);
+		}
+		else
+		{
+			ctl->set_key((char *)rab->rab$l_kbf);
+		}
+		ctl->set_krf(rab->rab$b_krf);
 	}
-	else
-	{
-	    ctl->set_key((char *)rab->rab$l_kbf);
-	}
-	ctl->set_krf(rab->rab$b_krf);
-    }
 }
 
 int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)

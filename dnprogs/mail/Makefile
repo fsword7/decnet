@@ -16,6 +16,7 @@ PROG1OBJS=vmsmaild.o receive.o configfile.o
 PROG2OBJS=sendvmsmail.o configfile.o
 
 CDEFS+=-I$(UUDIR) -DPROTOTYPES
+CFLAGS+=-fdollars-in-identifiers
 
 all: $(UULIB) $(PROG1) $(PROG2)
 

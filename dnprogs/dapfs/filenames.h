@@ -13,8 +13,5 @@
  ******************************************************************************
  */
 /* filenames.c */
-int is_vms_name(char *name);
-void split_filespec(char *volume, char *directory, char *file);
 void make_vms_filespec(const char *unixname, char *vmsname, int full);
-void parse_vms_filespec(char *volume, char *directory, char *file);
 void make_unix_filespec(char *unixname, char *vmsname);

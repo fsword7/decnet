@@ -1,3 +1,23 @@
+dnprogs (2.31) unstable; urgency=low
+
+  * Add more RMS features to libdap.
+  * fix get_date as time_t in libdap.
+  * librms rms_open() now returns file info in the FAB.
+  * librms rms_read() returns EOF correctly
+  * librms rms_write() now works 
+  * build mail with -fdollars-in-identifiers
+    Closes: #334138
+  * Remove /etc/decnet.conf.old at Debian purge time.
+    Closes: #330362
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 17 Oct 2005 08:53:58 +0100
+
+dnprogs (2.30.1) unstable; urgency=low
+
+  * Add alternative dependancy on debconf-2.0
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 27 Sep 2005 08:20:46 +0100
+
 dnprogs (2.30) unstable; urgency=low
 
   * Add -l option to dncopy. (ignore interlocks)

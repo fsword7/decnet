@@ -401,6 +401,9 @@ static struct fuse_operations dapfs_oper = {
 
 int main(int argc, char *argv[])
 {
+	if (argc < 2)
+		return 1;
+
 	// This is the host name ending :: (eg zarqon"patrick password"::)
 	strcpy(prefix, argv[1]);
 

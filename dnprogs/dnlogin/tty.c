@@ -53,12 +53,13 @@ static int  echo = 1;
 static int  reading = 0;
 static int  insert_mode = 0;
 static int  echo_terminator = 0;
+static int  discard = 0;
 
 /* in dnlogin.c */
 extern int  char_timeout;
 
 /* Output processors */
-int (*send_input)(unsigned char *buf, int len, int flags);
+int (*send_input)(unsigned char *buf, int len, int term_pos, int flags);
 int (*send_oob)(char oobchar, int discard);
 
 static void send_input_buffer(int flags)
@@ -67,7 +68,8 @@ static void send_input_buffer(int flags)
 
     memcpy(buf, input_buf, input_len);
 
-    send_input(buf, input_len, flags);
+    // Assumes the terminator (CR) is the last char...
+    send_input(buf, input_len, input_len-1, flags);
     input_len = input_pos = 0;
     reading = 0;
     echo = 1;
@@ -76,21 +78,21 @@ static void send_input_buffer(int flags)
 /* Raw write to terminal */
 int tty_write(unsigned char *buf, int len)
 {
-    int i;
+    if (discard)
+	    return len;
 
-    for (i=0; i<len; i++)
-    {
-	if (buf[i] == '\r')
-	    write(termfd, "\r\n", 2);
-	else
-	    write(termfd, &buf[i], 1);
-    }
+    write(termfd, buf, len);
     return len;
 }
 
 void tty_set_noecho()
 {
     echo = 0;
+}
+
+void tty_set_discard(int onoff)
+{
+	discard = onoff;
 }
 
 void tty_echo_terminator(int a)
@@ -108,17 +110,29 @@ void tty_set_default_terminators()
 
     /* All control chars except ^R ^U ^W, BS & HT */
     /* ie 18, 21, 23, 8, 9 */
+    /* PJC: also remove ^A(1) ^E(5) ^X(29) ^U(21) for line-editting.. CHECK!! */
     memset(terminators, 0, sizeof(terminators));
     terminators[0] = 0x7F;
     terminators[1] = 0xFE;
     terminators[2] = 0xAD;
     terminators[3] = 0xFF;
+
+//    terminators[0] = 0x6A;
+//    terminators[1] = 0xFE;
+//    terminators[2] = 0xAD;
+//    terminators[3] = 0xEF;
 }
 
 void tty_set_terminators(unsigned char *buf, int len)
 {
-    if (debug & 4)
+    if (debug & 4) {
+	int i;
 	fprintf(stderr, "TTY: set terminators... %d bytes\n", len);
+	fprintf(stderr, "TTY: terms: ");
+	for (i=0; i<len; i++)
+		fprintf(stderr, "%02x ", buf[i]);
+	fprintf(stderr, "\n");
+    }
     memset(terminators, 0, sizeof(terminators));
     memcpy(terminators, buf, len);
 }
@@ -136,9 +150,12 @@ void tty_start_read(char *prompt, int len, int promptlen)
     memcpy(prompt_buf, prompt, promptlen);
     prompt_len = promptlen;
 
-    memcpy(input_buf, prompt+promptlen, len);
-    input_len = 0;
+    /* Prefilled data (eg a recalled command) */
+    memcpy(input_buf, prompt+promptlen, len-promptlen);
+    input_len = len-promptlen;
     input_pos = input_len;
+    write(termfd, input_buf, input_len);
+
     max_read_len = len;
 
     /* Now add in any typeahead */
@@ -211,8 +228,12 @@ static short is_terminator(char c)
     short termind, msk, aux;
 
     termind = c / 8;
-    aux = c - (termind * 8);
+    aux = c % 8;
     msk = (1 << aux);
+
+    if (debug > 4)
+	fprintf(stderr, "is_terminator: %d: %s\n", c,
+		(terminators[termind] && msk)?"Yes":"No");
 
     if (terminators[termind] && msk)
     {
@@ -267,6 +288,20 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    continue;
 	}
 
+	/* Check for OOB - these discard input */
+	if (buf[i] == CTRL_C || buf[i] == CTRL_Y)
+	{
+	    send_oob(buf[i], 1);
+	    continue;
+	}
+
+	/* Check for OOB  - these don't */
+	if (buf[i] == CTRL_T)
+	{
+	    send_oob(buf[i], 0);
+	    continue;
+	}
+
 	/* Terminators */
 	if (!esc_len && is_terminator(buf[i]))
 	{
@@ -278,20 +313,6 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    send_input_buffer(1);
 	    reading = 0;
 	    return 0;
-	}
-
-	/* Check for OOB - these discard input */
-	if (buf[i] == CTRL_C || buf[i] == CTRL_Y)
-	{
-	    send_oob(buf[i], 1);
-	    continue;
-	}
-
-	/* Check for OOB  - these don't */
-	if (buf[i] == CTRL_Z || buf[i] == CTRL_T)
-	{
-	    send_oob(buf[i], 0);
-	    continue;
 	}
 
 	/* Still processing escape sequence */
@@ -325,7 +346,7 @@ int tty_process_terminal(unsigned char *buf, int len)
 		   the host */
 		if (!esc_done)
 		{
-		    send_input(esc_buf, esc_len, 2);
+		    send_input(esc_buf, esc_len, 0, 3); //woz2
 		}
 		esc_len = 0;
 	    }
@@ -348,6 +369,10 @@ int tty_process_terminal(unsigned char *buf, int len)
 	    case CTRL_H: // back to start of line
 		if (echo) move_cursor_abs(prompt_len);
 		input_pos = 0;
+		break;
+	    case CTRL_E: // Move to end of line
+		if (echo) move_cursor_abs(input_len);
+		input_pos = input_len;
 		break;
 	    case CTRL_A: /* switch overstrike/insert mode */
 		insert_mode = 1-insert_mode;

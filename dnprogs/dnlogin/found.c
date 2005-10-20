@@ -204,7 +204,7 @@ int found_read()
         {
 	    char nomode_msg[] = {0x8};
 	    if (debug)
-		fprintf(stderr, "FOUND: Request to enter node = %d\n", inbuf[1]);
+		fprintf(stderr, "FOUND: Request to enter mode = %d\n", inbuf[1]);
 	    write(sockfd, nomode_msg, sizeof(nomode_msg));
 	    return 0;
 	}

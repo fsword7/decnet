@@ -23,7 +23,7 @@ extern int found_setup_link(char *node, int object, int (*processor)(unsigned ch
 extern int found_common_write(unsigned char *buf, int len);
 
 /* cterm/dterm routines */
-extern int cterm_send_input(unsigned char *buf, int len, int flags);
+extern int cterm_send_input(unsigned char *buf, int len, int term_pos, int flags);
 extern int cterm_send_oob(char, int);
 extern int cterm_process_network(unsigned char *buf, int len);
 
@@ -40,8 +40,9 @@ extern int  tty_setup(char *name, int setup);
 extern void tty_clear_typeahead(void);
 extern void tty_set_noecho(void);
 extern void tty_echo_terminator(int a);
+extern void tty_set_discard(int onoff);
 
-extern int (*send_input)(unsigned char *buf, int len, int flags);
+extern int (*send_input)(unsigned char *buf, int len, int term_pos, int flags);
 extern int (*send_oob)(char, int);
 
 /* Global variables */

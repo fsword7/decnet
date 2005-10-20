@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2003      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2005      P.J. Caulfield          patrick@debian.org
 
     Portions based on code (c) 2000 Eduardo M Serrat
 
@@ -32,6 +32,7 @@
 #include <netdnet/dnetdb.h>
 #include "dn_endian.h"
 #include "dnlogin.h"
+#include "tty.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -125,7 +126,7 @@ static struct handler_maintained_characteristics
 unsigned char char_attr[256];
 
 /* Process incoming CTERM messages */
-static int cterm_process_initiate(unsigned char *buf, int len)
+static int cterm_process_initiate(char *buf, int len)
 {
     unsigned char initsq[] =
 	{ 0x01, 0x00, 0x01, 0x04, 0x00,
@@ -140,7 +141,7 @@ static int cterm_process_initiate(unsigned char *buf, int len)
     return len;
 }
 
-static int cterm_process_start_read(unsigned char *buf, int len)
+static int cterm_process_start_read(char *buf, int len)
 {
     unsigned int   flags;
     unsigned short maxlength;
@@ -166,8 +167,27 @@ static int cterm_process_start_read(unsigned char *buf, int len)
 
     ZZ = (flags>>14)&3;
 
-// TODO more flags
-    if (debug & 2) fprintf(stderr, "CTERM: flags = %x (ZZ=%d)\n",flags, ZZ);
+// TODO more flags (Page 59)
+//           EE ZZQT NDDD IIKV FCUU
+//           UU 1=write BEL on underflow, 2=terminate on underflow
+//           C  1=clear typeahead
+//           F  1=if last char was CR, end LF, discard LF if first char of
+//                preloaded input (whatever that is)
+//           V  1=Terminate if vertical pos changes while echoing input char.
+//           K  1=This is a continuation of previous read - see doc
+//           II 2=Convert lower to uppercase
+//           DDD 1=Disable  ^U & ^R only, 2=Disable all editing control chars
+//               3=Disable all editting chars EXCEPT XON/XOFF
+//           N   1=Do not echo chars from this read
+//           T   1=echo terminator, 0=no not echo terminator
+//           Q   1=Timeout field is present
+//           ZZ  1=Use this terminator set, 2=use universal terminator set.
+//           EE  1=Do NOT perform esc-seq recognition (this read only)
+//               2=DO perform esc-seq recognition (this read only)
+
+//
+
+    if (debug & 2) fprintf(stderr, "CTERM: process_start_read. flags = %x (ZZ=%d)\n",flags, ZZ);
     if (debug & 2) fprintf(stderr, "CTERM: len=%d, term_len=%d, ptr=%d\n",
 			   len, term_len, ptr);
     if (debug & 2) fprintf(stderr, "CTERM: timeout = %d\n", timeout);
@@ -179,6 +199,7 @@ static int cterm_process_start_read(unsigned char *buf, int len)
     if (ZZ==2) tty_set_default_terminators();
 
     tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
+
     tty_set_timeout(timeout);
     tty_set_maxlen(maxlength);
     tty_echo_terminator((flags>>12)&1);
@@ -201,14 +222,58 @@ static int cterm_process_unread(unsigned char *buf, int len)
 static int cterm_process_clear_input(unsigned char *buf, int len)
 {return len;}
 
+static void send_prepostfix(int flag, unsigned char data)
+{
+	int i;
+	unsigned char feed;
+
+	if (debug & 2)fprintf(stderr, "CTERM: send_prepostfix: flag =%d, data=%d\n", flag, data);
+	if (flag == 0)
+		return;
+
+	if (flag == 1)
+	{
+	    int i;
+
+	    feed = '\r';
+	    tty_write(&feed, 1);
+	    feed = '\n';
+	    for (i=0; i<data; i++)
+		    tty_write(&feed, 1);
+	}
+	if (flag == 2)
+		tty_write(&data, 1);
+}
+
 static int cterm_process_write(unsigned char *buf, int len)
 {
     unsigned short flags = buf[1] | buf[2]<<8;
     unsigned char  prefixdata  = buf[3];
     unsigned char  postfixdata = buf[4];
+    unsigned char  feed;
 
     // TODO: flags...
+    //       TSQQ PPEB DLUU
+    //       UU  lock handling "Page 65"
+    //       L   1=Output LF at end and set a flag to skip next LF i nnext write
+    //       D   1=Set output discard state to "do not discard"
+    //       B   1=This is the beginning of a host data message
+    //       E   1=This is the end of a host data message
+    //       PP  1=prefixdata is a newline count, 2=prefixdata=character
+    //       QQ  1=postfix is a newline  count, 2=postfix=character
+    //       S   1=Send write completion when this wrote completes
+    //       T   1=This data is written to foundation servics transparently
+
+    if (debug & 2) fprintf(stderr, "CTERM: process_write flags = %x (prefix=%d,postfix=%d)\n",flags, prefixdata, postfixdata);
+
+    if (flags >> 3)
+	    tty_set_discard(!(flags>>3));
+
+    send_prepostfix(((flags >> 6) & 3), prefixdata); //PP
+
     tty_write(buf+4, len-4);
+
+    send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
     return len;
 }
 
@@ -414,7 +479,7 @@ static int cterm_process_read_characteristics(unsigned char *buf, int len)
 		break;
 
 	    case 0x06:	/* Input Escape Seq Recognition */
-		outbuf[outptr++]=han_char.input_escseq_recognition;
+		outbuf[outptr++]= han_char.input_escseq_recognition;
 		break;
 
 	    case 0x07:	/* Output Esc Seq Recognition	*/
@@ -446,7 +511,79 @@ static int cterm_process_read_characteristics(unsigned char *buf, int len)
 }
 
 static int cterm_process_characteristics(unsigned char *buf, int len)
-{return len;}
+{
+    int bufptr = 2; /* skip past flags */
+    int selector;
+    unsigned char c;
+    unsigned char mask, val;
+
+    while (bufptr < len)
+    {
+	    selector = buf[bufptr] | (buf[bufptr+1]<<8);
+	    if ((selector & 0x300) != 0x200)
+	    {
+		    // TODO other characteristics ?
+		    return len;
+	    }
+	    selector &= 0xFF;
+	    bufptr += 2;                    /* Point to selector value */
+	    switch(selector)
+	    {
+	    case 0x01:
+		    han_char.ignore_input = buf[bufptr];
+		    bufptr += 1;
+		    break;
+	    case 0x02: /* Character attributes */
+		    c = buf[bufptr];
+		    mask = buf[bufptr+1];
+		    val = buf[bufptr+2];
+		    char_attr[c] &= ~mask; // clear those in the mask
+		    char_attr[c] |= (val & mask); // set the new ones.
+		    bufptr += 3;
+		    break;
+
+	    case 0x03:	/* Control-o pass through 	*/
+		    han_char.control_o_pass_through = buf[bufptr];
+		    bufptr += 1;
+		    break;
+	    case 0x04:	/* Raise Input			*/
+		    han_char.raise_input = buf[bufptr];
+		    bufptr += 1;
+		    break;
+	    case 0x05:	/* Normal Echo			*/
+		    han_char.normal_echo = buf[bufptr];
+		    bufptr += 1;
+		    break;
+
+	    case 0x06:	/* Input Escape Seq Recognition */
+		    han_char.input_escseq_recognition = buf[bufptr];
+		    bufptr += 1;
+		    break;
+
+	    case 0x07:	/* Output Esc Seq Recognition	*/
+		    han_char.output_escseq_recognition=buf[bufptr];
+		    bufptr += 1;
+		    break;
+
+	    case 0x08:	/* Input count state		*/
+		    han_char.input_count_state = buf[bufptr] |  buf[bufptr+1]<<8;
+		    bufptr += 2;
+		    break;
+
+	    case 0x09:	/* Auto Prompt			*/
+		    han_char.auto_prompt = buf[bufptr];
+		    bufptr += 1;
+		    break;
+
+	    case 0x0A:	/* Error processing option	*/
+		    han_char.error_processing = buf[bufptr];
+		    bufptr += 1;
+		    break;
+	    }
+    }
+
+    return len;
+}
 
 static int cterm_process_check_input(unsigned char *buf, int len)
 {return len;}
@@ -525,17 +662,28 @@ int cterm_process_network(unsigned char *buf, int len)
 int cterm_send_oob(char oobchar, int discard)
 {
     char newbuf[3];
+    int ret;
     if (debug & 2) fprintf(stderr, "CTERM: sending OOB char %d\n", oobchar);
 
     newbuf[0] = CTERM_MSG_OOB;
     newbuf[1] = discard;
     newbuf[2] = oobchar;
 
-    return found_common_write(newbuf, 3);
+    ret = found_common_write(newbuf, 3);
+
+    /* Echo needed ? */
+    if (char_attr[oobchar] & 0x30) //TODO NAME!
+    {
+        if (oobchar == CTRL_C || oobchar == CTRL_Y)
+           tty_write("\n*Interrupt*\n", 13);
+        if (oobchar == CTRL_O)
+           tty_write("\n*Output On/Off*\n", 16);
+    }
+    return ret;
 
 }
 
-int cterm_send_input(unsigned char *buf, int len, int flags)
+int cterm_send_input(unsigned char *buf, int len, int term_pos, int flags)
 {
     char newbuf[len+9];
     if (debug & 2) fprintf(stderr, "CTERM: sending input data: len=%d\n",
@@ -547,8 +695,8 @@ int cterm_send_input(unsigned char *buf, int len, int flags)
     newbuf[3] = 0; // low-water 2
     newbuf[4] = 0; // vert pos
     newbuf[5] = 0; // horiz pos
-    newbuf[6] = len-1; // term pos 1
-    newbuf[7] = (len-1) << 8; // term pos 2
+    newbuf[6] = term_pos;
+    newbuf[7] = term_pos << 8;
 
     memcpy(newbuf+8, buf, len);
 

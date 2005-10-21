@@ -166,12 +166,12 @@ int found_read()
     int ptr = 0;
 
     if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT)) <= 0)
-
     {
 	if (len == -1 && errno == EAGAIN)
 	    return 0;
 
-	fprintf(stderr, "%s\n", found_connerror());
+	if (len < 0 && errno != EINVAL)/* Shurely shome mishtake */
+		fprintf(stderr, "%s\n", strerror(errno));
 	return -1;
     }
 
@@ -267,8 +267,8 @@ int found_setup_link(char *node, int object, int (*processor)(char *, int))
 
     if (connect(sockfd, (struct sockaddr *) &sockaddr, sizeof(sockaddr)) < 0)
     {
-	perror("socket");
-	return -1;
+	    fprintf(stderr, "Cannot connect to %s: %s\n", node, found_connerror());
+	    return -1;
     }
 
     terminal_processor = processor;
@@ -285,7 +285,7 @@ char *found_connerror()
     unsigned int len = sizeof(optdata);
     char *msg;
 
-    if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
+    if (getsockopt(sockfd, DNPROTO_NSP, DSO_CONDATA,
 		   &optdata, &len) == -1)
     {
 	return strerror(saved_errno);

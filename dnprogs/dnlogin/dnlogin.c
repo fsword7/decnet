@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2005      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -61,11 +61,11 @@ static int mainloop(void)
 	    break;
 	}
 
-	if (res == 0) /* Timeout */
+	if (res == 0 && timeout_valid && tv.tv_sec == 0 && tv.tv_usec == 0)
 	{
 		tty_timeout();
-		timeout_valid = 0;
 	}
+	timeout_valid = 0;
 
 	/* Read from keyboard */
 	if (FD_ISSET(termfd, &in_set))

@@ -269,12 +269,11 @@ static int cterm_process_write(char *buf, int len)
     //       PP  1=prefixdata is a newline count, 2=prefixdata=character
     //       QQ  1=postfix is a newline  count, 2=postfix=character
     //       S   1=Send write completion when this wrote completes
-    //       T   1=This data is written to foundation servics transparently
+    //       T   1=This data is written to foundation services transparently
 
     if (debug & 2) fprintf(stderr, "CTERM: process_write flags = %x (prefix=%d,postfix=%d)\n",flags, prefixdata, postfixdata);
 
-    if (flags >> 3)
-	    tty_set_discard(!(flags>>3));
+    tty_set_discard(!(flags>>3));
 
     send_prepostfix(((flags >> 6) & 3), prefixdata); //PP
 
@@ -530,6 +529,8 @@ static int cterm_process_characteristics(char *buf, int len)
 	    if ((selector & 0x300) != 0x200)
 	    {
 		    // TODO other characteristics ?
+		    if (debug & 2)
+			    fprintf(stderr, "Discarding rest of attrs, ptr=%d, len=%d\n",bufptr, len);
 		    return len;
 	    }
 	    selector &= 0xFF;
@@ -547,6 +548,9 @@ static int cterm_process_characteristics(char *buf, int len)
 		    char_attr[(int)c] &= ~mask; // clear those in the mask
 		    char_attr[(int)c] |= (val & mask); // set the new ones.
 		    bufptr += 3;
+		    if (debug & 2)
+			    fprintf(stderr, "CTERM: Setting characteristics for char %d to 0x%x\n",
+				    c, char_attr[(int)c]);
 		    break;
 
 	    case 0x03:	/* Control-o pass through 	*/

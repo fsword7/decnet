@@ -36,6 +36,7 @@
 extern int termfd;
 extern int exit_char;
 extern int finished;
+extern unsigned char char_attr[];
 
 /* Input state buffers & variables */
 static char terminators[32];
@@ -142,13 +143,13 @@ void tty_set_default_terminators()
 
     /* All control chars except ^R ^U ^W, BS & HT */
     /* ie 18, 21, 23, 8, 9 */
-    /* PJC: also remove ^A(1) ^E(5) ^X(29) ESC(27) for line-editting.. CHECK!! */
+    /* PJC: also remove ^A(1) ^E(5) ^X(29) for line-editting.. CHECK!! */
     memset(terminators, 0, sizeof(terminators));
 
     terminators[0] = 0xDD;
     terminators[1] = 0xFC;
     terminators[2] = 0x5B;
-    terminators[3] = 0xD7;
+    terminators[3] = 0xDF;
 }
 
 void tty_set_terminators(char *buf, int len)
@@ -328,18 +329,17 @@ int tty_process_terminal(char *buf, int len)
 	if (buf[i] == '\n')
 	    buf[i] = '\r';
 
-	/* Check for OOB - these discard input */
-	if (buf[i] == CTRL_C || buf[i] == CTRL_Y)
+	/* Check for OOB */
+	if (char_attr[(int)buf[i]] & 3)
 	{
-	    send_oob(buf[i], 1);
-	    continue;
-	}
+		int oob_discard = (char_attr[(int)buf[i]]>>2)&1;
 
-	/* Check for OOB  - these don't */
-	if (buf[i] == CTRL_T)
-	{
-	    send_oob(buf[i], 0);
-	    continue;
+		send_oob(buf[i], oob_discard);
+		if (oob_discard)
+		{
+			input_len = input_pos = 0;
+		}
+		continue;
 	}
 
 	/* Is it ESCAPE ? */
@@ -398,8 +398,8 @@ int tty_process_terminal(char *buf, int len)
 		if (!esc_done)
 		{
 		    memcpy(input_buf+input_len, esc_buf, esc_len);
-		    send_input(input_buf, input_len+esc_len, input_len, 3);
-		    interpret_escape = 0;
+		    send_input(input_buf, input_len+esc_len, input_len, 1);
+		    echo = 1;
 		}
 		esc_len = 0;
 	    }
@@ -428,7 +428,7 @@ int tty_process_terminal(char *buf, int len)
 		input_pos = input_len;
 		break;
 	    case CTRL_A: /* switch overstrike/insert mode */
-		insert_mode = 1-insert_mode;
+		insert_mode = ~insert_mode;
 		break;
 	    case CTRL_W: /* redraw */
 		    redraw_input_line();
@@ -438,6 +438,9 @@ int tty_process_terminal(char *buf, int len)
 		send_input_buffer(1);
 		input_len = input_pos = 0;
 		reading = 0;
+	    case CTRL_O:
+		    // TODO echo "output on/off"
+		    discard = ~discard;
 		break;
 	    case DEL:
 		if (input_pos > 0)

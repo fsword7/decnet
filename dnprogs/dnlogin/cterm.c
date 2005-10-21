@@ -198,6 +198,8 @@ static int cterm_process_start_read(char *buf, int len)
 
     if (flags & 4) tty_clear_typeahead();
     if (flags & 0x800) tty_set_noecho();
+    if (flags & 0x8 && buf[ptr+1] != '\n')
+	tty_format_cr();
 
     if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
     if (ZZ==2) tty_set_default_terminators();

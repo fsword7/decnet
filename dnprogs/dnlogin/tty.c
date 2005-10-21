@@ -59,6 +59,7 @@ static int  discard = 0;
 static int  interpret_escape = 0;
 static int  allow_edit = 0;
 static int  convert_uppercase = 0;
+static char last_char;
 
 /* in dnlogin.c */
 extern int  char_timeout;
@@ -95,9 +96,20 @@ int tty_write(char *buf, int len)
 {
     if (discard)
 	    return len;
-    
+
+    if (len == 1 && *buf == 0)
+	    return len;
     write(termfd, buf, len);
+    last_char = buf[len-1];
     return len;
+}
+
+void tty_format_cr()
+{
+	char lf = '\n';
+
+	if (last_char == '\r')
+		write(termfd, &lf, 1);
 }
 
 void tty_set_noecho()
@@ -355,7 +367,7 @@ int tty_process_terminal(char *buf, int len)
 	{
 	    if (echo_terminator)
 	    {
-		write(termfd, &buf[i], 1);
+		tty_write(&buf[i], 1);
 	    }
 	    input_buf[input_len++] = buf[i];
 	    send_input_buffer(1);
@@ -379,7 +391,7 @@ int tty_process_terminal(char *buf, int len)
 				if (input_pos < input_len)
 				{
 					input_pos++;
-					if (echo) write(termfd, esc_buf, esc_len);
+					if (echo) tty_write(esc_buf, esc_len);
 				}
 				esc_done = 1;
 			}
@@ -388,7 +400,7 @@ int tty_process_terminal(char *buf, int len)
 				if (input_pos > 0)
 				{
 					input_pos--;
-					if (echo) write(termfd, esc_buf, esc_len);
+					if (echo) tty_write(esc_buf, esc_len);
 				}
 				esc_done = 1;
 			}
@@ -473,7 +485,7 @@ int tty_process_terminal(char *buf, int len)
 
 	/* echo if req'd, insert will redraw the whole line */
 	if (echo && !insert_mode)
-	    write(termfd, &buf[i], 1);
+	    tty_write(&buf[i], 1);
 
 	if (insert_mode && input_len > input_pos)
 	{

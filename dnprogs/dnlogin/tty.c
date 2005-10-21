@@ -95,7 +95,7 @@ int tty_write(char *buf, int len)
 {
     if (discard)
 	    return len;
-
+    
     write(termfd, buf, len);
     return len;
 }
@@ -245,6 +245,7 @@ int tty_setup(char *name, int setup)
 	new_term.c_iflag &= ~BRKINT;
 	new_term.c_iflag |= IGNBRK;
 	new_term.c_lflag &= ~ISIG;
+	new_term.c_oflag &= ~ONLCR;
 	new_term.c_cc[VMIN] = 1;
 	new_term.c_cc[VTIME] = 0;
 	new_term.c_lflag &= ~ICANON;

@@ -14,6 +14,7 @@
 ./usr/bin/dntype
 ./usr/bin/sethost
 ./usr/bin/dnping
+./usr/bin/dnlogin
 ./usr/bin/dntask
 ./usr/bin/phone
 ./usr/share/doc/dnet-progs/dnetd.README
@@ -34,6 +35,7 @@
 ./usr/share/man/man1/dndir.1
 ./usr/share/man/man1/sethost.1
 ./usr/share/man/man1/dnping.1
+./usr/share/man/man1/dnlogin.1
 ./usr/share/man/man1/dntype.1
 ./usr/share/man/man1/dnprint.1
 ./usr/share/man/man1/dntask.1

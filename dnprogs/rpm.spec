@@ -28,6 +28,7 @@ instructions on how to apply it.
 %%PREFIX%%/bin/dnsubmit
 %%PREFIX%%/bin/sethost
 %%PREFIX%%/bin/dnping
+%%PREFIX%%/bin/dnlogin
 %%PREFIX%%/bin/phone
 %%PREFIX%%/sbin/ctermd
 %%PREFIX%%/sbin/rmtermd
@@ -50,6 +51,7 @@ instructions on how to apply it.
 %%PREFIX%%/man/man1/dnsubmit.1
 %%PREFIX%%/man/man1/sethost.1
 %%PREFIX%%/man/man1/dnping.1
+%%PREFIX%%/man/man1/dnlogin.1
 %%PREFIX%%/man/man3/dnet_addr.3
 %%PREFIX%%/man/man3/dnet_conn.3
 %%PREFIX%%/man/man3/dnet_htoa.3

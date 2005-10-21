@@ -8,9 +8,14 @@ MANPAGES=dnlogin.1
 
 PROG1OBJS=dnlogin.o found.o cterm.o tty.o
 
+CFLAGS+=-funsigned-char
+
+CFLAGS+=-g
+#CFLAGS+=-O2
+
 all: $(PROG1)
 
-$(PROG1): $(PROG1OBJS) $(DEPLIBDNET)
+$(PROG1): $(PROG1OBJS) tty.h dnlogin.h $(DEPLIBDNET)
 	$(CC) -o $@ $(PROG1OBJS) $(LIBDNET)
 
 install:

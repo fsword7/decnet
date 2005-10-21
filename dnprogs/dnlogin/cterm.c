@@ -123,12 +123,12 @@ static struct handler_maintained_characteristics
               han_char = {FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,
 			  1,FALSE,FALSE};
 
-unsigned char char_attr[256];
+char char_attr[256];
 
 /* Process incoming CTERM messages */
 static int cterm_process_initiate(char *buf, int len)
 {
-    unsigned char initsq[] =
+    char initsq[] =
 	{ 0x01, 0x00, 0x01, 0x04, 0x00,
 	  'd', 'n', 'l', 'o', 'g', 'i', 'n', ' ',
 	  0x01, 0x02, 0x00, 0x02,	/* Max msg size */
@@ -150,9 +150,10 @@ static int cterm_process_start_read(char *buf, int len)
     unsigned short eoprompt;
     unsigned short sodisplay;
     unsigned short lowwater;
-    unsigned char  term_len;
-    int ptr = 0;
-    unsigned char ZZ;
+    char term_len;
+    int  ptr = 0;
+    unsigned char ZZ, EE, DDD, Q, II;
+    int  old_esc_state;
 
     flags = buf[1] | (buf[2] << 8) | (buf[3] << 16);
     ptr = 4;
@@ -165,7 +166,11 @@ static int cterm_process_start_read(char *buf, int len)
     lowwater  = buf[ptr] | (buf[ptr+1]<<8); ptr += 2;
     term_len  = buf[ptr++];
 
-    ZZ = (flags>>14)&3;
+    ZZ  = (flags>>14)&3;
+    EE  = (flags>>16)&3;
+    DDD = (flags>>8)&7;
+    Q   = (flags>>13)&1;
+    II  = (flags>>6)&3;
 
 // TODO more flags (Page 59)
 //           EE ZZQT NDDD IIKV FCUU
@@ -184,48 +189,50 @@ static int cterm_process_start_read(char *buf, int len)
 //           ZZ  1=Use this terminator set, 2=use universal terminator set.
 //           EE  1=Do NOT perform esc-seq recognition (this read only)
 //               2=DO perform esc-seq recognition (this read only)
-
 //
 
     if (debug & 2) fprintf(stderr, "CTERM: process_start_read. flags = %x (ZZ=%d)\n",flags, ZZ);
     if (debug & 2) fprintf(stderr, "CTERM: len=%d, term_len=%d, ptr=%d\n",
 			   len, term_len, ptr);
-    if (debug & 2) fprintf(stderr, "CTERM: timeout = %d\n", timeout);
+    if (debug & 2) fprintf(stderr, "CTERM: Q=%d timeout = %d, EE=%d\n", Q, timeout, EE);
 
     if (flags & 4) tty_clear_typeahead();
     if (flags & 0x800) tty_set_noecho();
 
     if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
     if (ZZ==2) tty_set_default_terminators();
+    if (EE)    old_esc_state = tty_set_escape_proc(EE-1);
+    tty_allow_edit(!(DDD==2));
+    tty_set_uppercase(II==2);
 
     tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
 
-    tty_set_timeout(timeout);
+    if (Q) tty_set_timeout(timeout);
     tty_set_maxlen(maxlength);
     tty_echo_terminator((flags>>12)&1);
 
     return len;
 }
 
-static int cterm_process_read_data(unsigned char *buf, int len)
+static int cterm_process_read_data(char *buf, int len)
 {return len;}
 
-static int cterm_process_oob(unsigned char *buf, int len)
+static int cterm_process_oob(char *buf, int len)
 {return len;}
 
-static int cterm_process_unread(unsigned char *buf, int len)
+static int cterm_process_unread(char *buf, int len)
 {
     tty_send_unread();
     return len;
 }
 
-static int cterm_process_clear_input(unsigned char *buf, int len)
+static int cterm_process_clear_input(char *buf, int len)
 {return len;}
 
-static void send_prepostfix(int flag, unsigned char data)
+static void send_prepostfix(int flag, char data)
 {
 	int i;
-	unsigned char feed;
+	char feed;
 
 	if (debug & 2)fprintf(stderr, "CTERM: send_prepostfix: flag =%d, data=%d\n", flag, data);
 	if (flag == 0)
@@ -245,12 +252,12 @@ static void send_prepostfix(int flag, unsigned char data)
 		tty_write(&data, 1);
 }
 
-static int cterm_process_write(unsigned char *buf, int len)
+static int cterm_process_write(char *buf, int len)
 {
     unsigned short flags = buf[1] | buf[2]<<8;
-    unsigned char  prefixdata  = buf[3];
-    unsigned char  postfixdata = buf[4];
-    unsigned char  feed;
+    char  prefixdata  = buf[3];
+    char  postfixdata = buf[4];
+    char  feed;
 
     // TODO: flags...
     //       TSQQ PPEB DLUU
@@ -277,13 +284,13 @@ static int cterm_process_write(unsigned char *buf, int len)
     return len;
 }
 
-static int cterm_process_write_complete(unsigned char *buf, int len)
+static int cterm_process_write_complete(char *buf, int len)
 {return len;}
 
-static int cterm_process_discard_state(unsigned char *buf, int len)
+static int cterm_process_discard_state(char *buf, int len)
 {return len;}
 
-static int cterm_process_read_characteristics(unsigned char *buf, int len)
+static int cterm_process_read_characteristics(char *buf, int len)
 {
     int  bufptr = 2;/* skip past flags */
     char outbuf[256];
@@ -448,7 +455,7 @@ static int cterm_process_read_characteristics(unsigned char *buf, int len)
 	}
 	if ((selector & 0x300) == 0x200) /* Handler Charact	*/
 	{
-	    unsigned char c;
+	    char c;
 
 	    outbuf[outptr++] = selector & 0xFF;
 	    outbuf[outptr++] = 2;
@@ -510,12 +517,12 @@ static int cterm_process_read_characteristics(unsigned char *buf, int len)
     return len;
 }
 
-static int cterm_process_characteristics(unsigned char *buf, int len)
+static int cterm_process_characteristics(char *buf, int len)
 {
     int bufptr = 2; /* skip past flags */
     int selector;
-    unsigned char c;
-    unsigned char mask, val;
+    char c;
+    char mask, val;
 
     while (bufptr < len)
     {
@@ -537,8 +544,8 @@ static int cterm_process_characteristics(unsigned char *buf, int len)
 		    c = buf[bufptr];
 		    mask = buf[bufptr+1];
 		    val = buf[bufptr+2];
-		    char_attr[c] &= ~mask; // clear those in the mask
-		    char_attr[c] |= (val & mask); // set the new ones.
+		    char_attr[(int)c] &= ~mask; // clear those in the mask
+		    char_attr[(int)c] |= (val & mask); // set the new ones.
 		    bufptr += 3;
 		    break;
 
@@ -558,6 +565,7 @@ static int cterm_process_characteristics(unsigned char *buf, int len)
 	    case 0x06:	/* Input Escape Seq Recognition */
 		    han_char.input_escseq_recognition = buf[bufptr];
 		    bufptr += 1;
+		    tty_set_escape_proc(han_char.input_escseq_recognition);
 		    break;
 
 	    case 0x07:	/* Output Esc Seq Recognition	*/
@@ -585,17 +593,17 @@ static int cterm_process_characteristics(unsigned char *buf, int len)
     return len;
 }
 
-static int cterm_process_check_input(unsigned char *buf, int len)
+static int cterm_process_check_input(char *buf, int len)
 {return len;}
 
-static int cterm_process_input_count(unsigned char *buf, int len)
+static int cterm_process_input_count(char *buf, int len)
 {return len;}
 
-static int cterm_process_input_state(unsigned char *buf, int len)
+static int cterm_process_input_state(char *buf, int len)
 {return len;}
 
 /* Process buffer from cterm host */
-int cterm_process_network(unsigned char *buf, int len)
+int cterm_process_network(char *buf, int len)
 {
     int offset = 0;
 
@@ -651,7 +659,7 @@ int cterm_process_network(unsigned char *buf, int len)
 
 	default:
 	    fprintf(stderr, "Unknown cterm message %d received, offset=%d\n",
-		    (unsigned char)buf[offset], offset);
+		    (char)buf[offset], offset);
 	    return -1;
 	}
     }
@@ -672,7 +680,7 @@ int cterm_send_oob(char oobchar, int discard)
     ret = found_common_write(newbuf, 3);
 
     /* Echo needed ? */
-    if (char_attr[oobchar] & 0x30) //TODO NAME!
+    if (char_attr[(int)oobchar] & 0x30) //TODO NAME!
     {
         if (oobchar == CTRL_C || oobchar == CTRL_Y)
            tty_write("\n*Interrupt*\n", 13);
@@ -683,7 +691,7 @@ int cterm_send_oob(char oobchar, int discard)
 
 }
 
-int cterm_send_input(unsigned char *buf, int len, int term_pos, int flags)
+int cterm_send_input(char *buf, int len, int term_pos, int flags)
 {
     char newbuf[len+9];
     if (debug & 2) fprintf(stderr, "CTERM: sending input data: len=%d\n",

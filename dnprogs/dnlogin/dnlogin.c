@@ -38,6 +38,7 @@ int finished = 0;    /* terminate mainloop */
 
 int debug = 0;
 int char_timeout = 0;
+int timeout_valid = 0;
 
 static int mainloop(void)
 {
@@ -45,15 +46,25 @@ static int mainloop(void)
     {
 	char inbuf[1024];
 	struct timeval tv;
+	int res;
+
+	tv.tv_usec = 0;
+	tv.tv_sec = char_timeout;
 
 	fd_set in_set;
 	FD_ZERO(&in_set);
 	FD_SET(termfd, &in_set);
 	FD_SET(found_getsockfd(), &in_set);
 
-	if (select(FD_SETSIZE, &in_set, NULL, NULL, NULL) < 0)
+	if ( (res=select(FD_SETSIZE, &in_set, NULL, NULL, timeout_valid?&tv:NULL)) < 0)
 	{
 	    break;
+	}
+
+	if (res == 0) /* Timeout */
+	{
+		tty_timeout();
+		timeout_valid = 0;
 	}
 
 	/* Read from keyboard */
@@ -154,7 +165,7 @@ int main(int argc, char *argv[])
     send_oob = cterm_send_oob;
     if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
     {
-	tty_setup("/dev/tty", 1);
+	tty_setup("/dev/fd/0", 1);
 	mainloop();
 	tty_setup(NULL, 0);
     }

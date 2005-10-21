@@ -36,10 +36,9 @@
 #define CTRL_R	0x12
 #define CTRL_S	0x13
 #define	CTRL_T	0x14
-//efine CTRL_U	0x15
+#define CTRL_U	0x15
 #define CTRL_V	0x16
 #define CTRL_W	0x17
-#define CTRL_U	0x17
 #define	CTRL_X	0x18
 #define CTRL_Y	0x19
 #define CTRL_Z	0x1A

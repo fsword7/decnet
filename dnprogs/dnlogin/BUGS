@@ -1,0 +1,5 @@
+This is a list of visible problems when using dnlogin. Most should
+be fixed when allthe features are in place but some may need some
+reverse engineering.
+
+- show cluster/conf doesn't allow keyboard input (except ^Y)

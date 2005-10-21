@@ -140,6 +140,11 @@ int tty_set_escape_proc(int onoff)
 	return interpret_escape;
 }
 
+int  tty_get_input_count(void)
+{
+	return input_len+rahead_len;
+}
+
 void tty_echo_terminator(int a)
 {
     if (debug & 4)
@@ -219,6 +224,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	    copylen = sizeof(input_buf)-input_len;
 
 	memcpy(input_buf+input_len, rahead_buf, copylen);
+	tty_write(rahead_buf, rahead_len);
 	input_len += copylen;
 	rahead_len = 0;
     }

@@ -600,7 +600,19 @@ static int cterm_process_characteristics(char *buf, int len)
 }
 
 static int cterm_process_check_input(char *buf, int len)
-{return len;}
+{
+	unsigned short count = tty_get_input_count();
+	char newbuf[4];
+
+	newbuf[0] = CTERM_MSG_INPUT_COUNT;
+	newbuf[1] = 0;
+	newbuf[2] = count & 0xFF;
+	newbuf[3] = (count >> 8) & 0xFF;
+
+	found_common_write(newbuf, 4);
+
+	return len;
+}
 
 static int cterm_process_input_count(char *buf, int len)
 {return len;}

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2005      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -46,6 +46,7 @@ extern int  tty_set_escape_proc(int onoff);
 extern void tty_set_uppercase(int onoff);
 extern void tty_allow_edit(int onoff);
 extern void tty_format_cr(void);
+extern int  tty_get_input_count(void);
 
 extern int (*send_input)(char *buf, int len, int term_pos, int flags);
 extern int (*send_oob)(char, int);

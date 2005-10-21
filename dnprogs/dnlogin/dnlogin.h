@@ -26,6 +26,7 @@ extern int found_common_write(char *buf, int len);
 extern int cterm_send_input(char *buf, int len, int term_pos, int flags);
 extern int cterm_send_oob(char, int);
 extern int cterm_process_network(char *buf, int len);
+extern void cterm_rahead_change(int count);
 
 /* TTY routines */
 extern int  tty_write(char *buf, int len);

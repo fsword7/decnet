@@ -66,8 +66,9 @@ extern int  char_timeout;
 extern int  timeout_valid;
 
 /* Output processors */
-int (*send_input)(char *buf, int len, int term_pos, int flags);
-int (*send_oob)(char oobchar, int discard);
+int  (*send_input)(char *buf, int len, int term_pos, int flags);
+int  (*send_oob)(char oobchar, int discard);
+void (*rahead_change)(int count);
 
 static void send_input_buffer(int flags)
 {
@@ -224,8 +225,9 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	    copylen = sizeof(input_buf)-input_len;
 
 	memcpy(input_buf+input_len, rahead_buf, copylen);
-	tty_write(rahead_buf, rahead_len);
+	tty_write(rahead_buf, copylen);
 	input_len += copylen;
+	input_pos += copylen;
 	rahead_len = 0;
     }
     reading = 1;
@@ -478,16 +480,19 @@ int tty_process_terminal(char *buf, int len)
 	    continue;
 	}
 
-	if (convert_uppercase)
-		buf[i] &= 0x5F;
-
 	/* Read not active, store in the read ahead buffer */
 	if (!reading)
 	{
-	    if (rahead_len < sizeof(rahead_buf))
-		rahead_buf[rahead_len++] = buf[i];
+		if (rahead_len == 0)
+			rahead_change(1); /* tell CTERM */
+
+		if (rahead_len < sizeof(rahead_buf))
+			rahead_buf[rahead_len++] = buf[i];
 	    continue;
 	}
+
+	if (convert_uppercase)
+		buf[i] &= 0x5F;
 
 	/* echo if req'd, insert will redraw the whole line */
 	if (echo && !insert_mode)

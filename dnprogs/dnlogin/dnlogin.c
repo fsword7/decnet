@@ -163,6 +163,7 @@ int main(int argc, char *argv[])
 
     send_input = cterm_send_input;
     send_oob = cterm_send_oob;
+    rahead_change = cterm_rahead_change;
     if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
     {
 	tty_setup("/dev/fd/0", 1);

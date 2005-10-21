@@ -728,3 +728,16 @@ int cterm_send_input(char *buf, int len, int term_pos, int flags)
 
     return found_common_write(newbuf, len+8);
 }
+
+void cterm_rahead_change(int count)
+{
+	char newbuf[2];
+
+	if (han_char.input_count_state)
+	{
+		newbuf[0] = CTERM_MSG_INPUT_STATE;
+		newbuf[1] = count;
+
+		found_common_write(newbuf, 2);
+	}
+}

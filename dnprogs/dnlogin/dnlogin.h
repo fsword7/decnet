@@ -51,7 +51,26 @@ extern int  tty_get_input_count(void);
 
 extern int (*send_input)(char *buf, int len, int term_pos, int flags);
 extern int (*send_oob)(char, int);
+extern void (*rahead_change)(int count);
 
 /* Global variables */
 extern int debug;
 
+
+/* Send flags:
+ * These are actuall CTERM Read-Data flags (p62)
+ */
+#define SEND_FLAG_TERMINATOR     0
+#define SEND_FLAG_VALID_ESCAPE   1
+#define SEND_FLAG_INVALID_ESCAPE 2
+#define SEND_FLAG_OUT_OF_BAND    3
+#define SEND_FLAG_BUFFER_FULL    4
+#define SEND_FLAG_TIMEOUT        5
+#define SEND_FLAG_UNREAD         6
+#define SEND_FLAG_UNDERFLOW      7
+#define SEND_FLAG_ABSENTEE_TOKEN 8
+#define SEND_FLAG_VPOS_CHANGE    9
+#define SEND_FLAG_LINE_BREAK    10
+#define SEND_FLAG_FRAMING_ERROR 11
+#define SEND_FLAG_PARITY_ERROR  12
+#define SEND_FLAG_OVERRUN       13

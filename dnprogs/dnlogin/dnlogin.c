@@ -10,8 +10,8 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
- ******************************************************************************
- */
+    ******************************************************************************
+    */
 
 #include <stdio.h>
 #include <string.h>
@@ -42,138 +42,138 @@ int timeout_valid = 0;
 
 static int mainloop(void)
 {
-    while (!finished)
-    {
-	char inbuf[1024];
-	struct timeval tv;
-	int res;
-
-	tv.tv_usec = 0;
-	tv.tv_sec = char_timeout;
-
-	fd_set in_set;
-	FD_ZERO(&in_set);
-	FD_SET(termfd, &in_set);
-	FD_SET(found_getsockfd(), &in_set);
-
-	if ( (res=select(FD_SETSIZE, &in_set, NULL, NULL, timeout_valid?&tv:NULL)) < 0)
+	while (!finished)
 	{
-	    break;
+		char inbuf[1024];
+		struct timeval tv;
+		int res;
+
+		tv.tv_usec = 0;
+		tv.tv_sec = char_timeout;
+
+		fd_set in_set;
+		FD_ZERO(&in_set);
+		FD_SET(termfd, &in_set);
+		FD_SET(found_getsockfd(), &in_set);
+
+		if ( (res=select(FD_SETSIZE, &in_set, NULL, NULL, timeout_valid?&tv:NULL)) < 0)
+		{
+			break;
+		}
+
+		if (res == 0 && timeout_valid && tv.tv_sec == 0 && tv.tv_usec == 0)
+		{
+			tty_timeout();
+		}
+		timeout_valid = 0;
+
+		/* Read from keyboard */
+		if (FD_ISSET(termfd, &in_set))
+		{
+			int len;
+
+			if ( (len=read(termfd, inbuf, sizeof(inbuf))) <= 0)
+			{
+				perror("read tty");
+				break;
+			}
+			tty_process_terminal(inbuf, len);
+		}
+
+		if (found_read() == -1)
+			break;
 	}
-
-	if (res == 0 && timeout_valid && tv.tv_sec == 0 && tv.tv_usec == 0)
-	{
-		tty_timeout();
-	}
-	timeout_valid = 0;
-
-	/* Read from keyboard */
-	if (FD_ISSET(termfd, &in_set))
-	{
-	    int len;
-
-	    if ( (len=read(termfd, inbuf, sizeof(inbuf))) <= 0)
-	    {
-		perror("read tty");
-		break;
-	    }
-	    tty_process_terminal(inbuf, len);
-	}
-
-	if (found_read() == -1)
-	    break;
-    }
-    write(termfd, "\n", 1);
-    return 0;
+	write(termfd, "\n", 1);
+	return 0;
 }
 
 static void set_exit_char(char *string)
 {
-    int newchar = 0;
+	int newchar = 0;
 
-    if (string[0] == '^')
-    {
-	newchar = toupper(string[1]) - '@';
-    }
-    else
-	newchar = strtol(string, NULL, 0);	// Just a number
+	if (string[0] == '^')
+	{
+		newchar = toupper(string[1]) - '@';
+	}
+	else
+		newchar = strtol(string, NULL, 0);	// Just a number
 
-    // Make sure it's resaonable
-    if (newchar > 0 && newchar < 256)
-	exit_char = newchar;
+	// Make sure it's resaonable
+	if (newchar > 0 && newchar < 256)
+		exit_char = newchar;
 
 }
 
 static void usage(char *prog, FILE * f)
 {
-    fprintf(f, "\nUsage: %s [OPTIONS] node\n\n", prog);
+	fprintf(f, "\nUsage: %s [OPTIONS] node\n\n", prog);
 
-    fprintf(f, "\nOptions:\n");
-    fprintf(f, "  -? -h        display this help message\n");
-    fprintf(f, "  -V           show version number\n");
-    fprintf(f, "  -e <char>    set exit char\n");
-    fprintf(f, "  -d <mask>    debug information\n");
+	fprintf(f, "\nOptions:\n");
+	fprintf(f, "  -? -h        display this help message\n");
+	fprintf(f, "  -V           show version number\n");
+	fprintf(f, "  -e <char>    set exit char\n");
+	fprintf(f, "  -d <mask>    debug information\n");
 
-    fprintf(f, "\n");
+	fprintf(f, "\n");
 }
 
 
 int main(int argc, char *argv[])
 {
-    struct sigaction sa;
-    sigset_t ss;
-    int opt;
-    char *nodename;
+	struct sigaction sa;
+	sigset_t ss;
+	int opt;
+	char *nodename;
 
-    // Deal with command-line arguments.
-    opterr = 0;
-    optind = 0;
-    while ((opt = getopt(argc, argv, "?Vhd:te:")) != EOF)
-    {
-	switch (opt)
+	// Deal with command-line arguments.
+	opterr = 0;
+	optind = 0;
+	while ((opt = getopt(argc, argv, "?Vhd:te:")) != EOF)
 	{
-	case 'h':
-	    usage(argv[0], stdout);
-	    exit(0);
+		switch (opt)
+		{
+		case 'h':
+			usage(argv[0], stdout);
+			exit(0);
 
-	case '?':
-	    usage(argv[0], stderr);
-	    exit(0);
+		case '?':
+			usage(argv[0], stderr);
+			exit(0);
 
-	case 'V':
-	    printf("\ndnlogin from dnprogs version %s\n\n", VERSION);
-	    exit(1);
-	    break;
+		case 'V':
+			printf("\ndnlogin from dnprogs version %s\n\n", VERSION);
+			exit(1);
+			break;
 
-	case 'e':
-	    set_exit_char(optarg);
-	    break;
+		case 'e':
+			set_exit_char(optarg);
+			break;
 
-	case 'd':
-	    debug = atoi(optarg);
-	    break;
+		case 'd':
+			debug = atoi(optarg);
+			break;
+		}
 	}
-    }
 
-    if (optind >= argc)
-    {
-	usage(argv[0], stderr);
-	exit(2);
-    }
+	if (optind >= argc)
+	{
+		usage(argv[0], stderr);
+		exit(2);
+	}
 
-    send_input = cterm_send_input;
-    send_oob = cterm_send_oob;
-    rahead_change = cterm_rahead_change;
-    if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
-    {
-	tty_setup("/dev/fd/0", 1);
-	mainloop();
-	tty_setup(NULL, 0);
-    }
-    else
-    {
-	return 2;
-    }
+	send_input = cterm_send_input;
+	send_oob = cterm_send_oob;
+	rahead_change = cterm_rahead_change;
+	if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
+	{
+		tty_setup("/dev/fd/0", 1);
+		mainloop();
+		tty_setup(NULL, 0);
+	}
+	else
+	{
+		return 2;
+	}
 
-    return 0;
+	return 0;
 }

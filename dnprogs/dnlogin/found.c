@@ -165,10 +165,13 @@ int found_read()
 	char inbuf[1024];
 	int ptr = 0;
 
-	if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT)) <= 0)
+	if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT|MSG_NOSIGNAL)) <= 0)
 	{
 		if (len == -1 && errno == EAGAIN)
 			return 0;
+		/* Remote end shut down */
+		if (len == -1 && errno == EPIPE)
+			return -1;
 
 		if (len < 0 && errno != EINVAL)/* Shurely shome mishtake */
 			fprintf(stderr, "%s\n", strerror(errno));

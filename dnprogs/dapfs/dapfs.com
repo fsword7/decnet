@@ -10,34 +10,38 @@ $!
 $!     Installation on VAX/OpenVMS DECnet PHASE IV:
 $!      -------------------------------------------
 $!     1) copy dapfs.com to SYS$SYSTEM:
+$!     2) set prot=w:re SYS$SYSTEM:DAPFS.COM
 $!
-$!     2) define the dapfs object in the DECnet database
+$!     3) define the dapfs object in the DECnet database
 $!
-$!     $ MCR NCP DEFINE OBJECT DAPFS NUMBER 0 FILE SYS$SYSTEM:LINUXDIR.COM
+$!     $ MCR NCP DEFINE OBJECT DAPFS NUMBER 0 FILE SYS$SYSTEM:DAPFS.COM
 $!     $ MCR NCP SET OBJECT DAPFS ALL
 $!
 $!      Installation on Alpha/OpenVMS DECnet-Plus or VAX/DECnet OSI
 $!
 $!     1) copy dapfs.com to SYS$SYSTEM
+$!     2) set prot=w:re SYS$SYSTEM:DAPFS.COM
 $!
-$!     2) define the dapfs object in the DECnet database
+$!     3) define the dapfs object in the DECnet database
 $!
 $!     $ mcr ncl create node 0 session control application dapfs
 $!     $ mcr ncl set node 0 session control application dapfs -
 $!        addresses = {name=dapfs}, image name = sys$system:dapfs.com
 $!
-$!     3) edit and include preceding commands into:
+$!     4) edit and include preceding commands into:
 $!             SYS$MANAGER:NET$STARTUP_APPLICATIONS.NCL 
 $!
 $!----------------------------------------------------------------------------
 $ if f$mode() .nes. "NETWORK" then exit
 $!
-$ open/read/write dapfs        sys$net
-$ read/prompt=""/time_out=5/error=out dapfs operation
-$ read/prompt=""/time_out=5/error=out dapfs dirname
+$ open/read/write dapfs        sys$net             
+$ read/prompt=""/time_out=5/error=out dapfs command
+$ operation=f$edit(f$element(0, " ", command),"UPCASE")
+$ dirname=f$element(1, " ", command)
 $!
 $ if operation .eqs. "CREATE" then $goto create_op
 $ if operation .eqs. "STATFS" then $goto statfs_op
+$ if operation .nes. "REMOVE" then $goto dir_error
 $ set file/prot=(o:rwed) 'dirname'
 $ delete/nolog 'dirname'
 $ if $severity .ne. 1 then $goto del_error
@@ -54,7 +58,12 @@ $ write dapfs "OK"
 $ goto out
 $!
 $statfs_op:
-$! TODO PJC
+$!
+$ freeK=f$getdvi("sys$disk", "FREEBLOCKS")/2
+$ maxK=f$getdvi("sys$disk", "MAXBLOCK")/2
+$ write dapfs "''freeK', ''maxk'"
+$ goto out
+$!
 $dir_error:
 $ write dapfs "ERROR"
 $!

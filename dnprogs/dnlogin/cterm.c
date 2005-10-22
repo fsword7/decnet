@@ -203,7 +203,8 @@ static int cterm_process_start_read(char *buf, int len)
 
 	if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
 	if (ZZ==2) tty_set_default_terminators();
-	if (EE)    old_esc_state = tty_set_escape_proc(EE-1);
+	if (EE)    tty_set_escape_proc(EE-1);
+	else       tty_set_escape_proc(han_char.input_escseq_recognition);
 	tty_allow_edit(!(DDD==2));
 	tty_set_uppercase(II==2);
 

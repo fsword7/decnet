@@ -380,7 +380,7 @@ int tty_process_terminal(char *buf, int len)
 			input_buf[input_len++] = buf[i];
 			send_input_buffer(SEND_FLAG_VALID_ESCAPE);
 			reading = 0;
-			return 0;
+			continue;
 		}
 
 		/* Still processing escape sequence */

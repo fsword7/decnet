@@ -9,7 +9,7 @@ PKGNAME=dnprogs
 DATE="$(shell date +'%Y%m%d')"
 
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
-	dncopy apps dntask mail phone dnetd dnroute scripts
+	dncopy apps dntask dnlogin mail phone dnetd dnroute scripts
 
 all: 	
 	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi

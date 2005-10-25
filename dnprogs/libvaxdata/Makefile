@@ -1,0 +1,15 @@
+include ../Makefile.common
+
+ARCH=$(shell uname -m)
+
+ALL:
+	cd linux; make -f makefile.gcc
+
+clean:
+	cd linux; make -f makefile.gcc clean
+
+install:
+	install -d $(prefix)/include
+	install -m 0644 src/convert_vax_data.h $(prefix)/include
+	install -d $(prefix)/lib
+	install -m0644 linux/$(ARCH)/libvaxdata.a $(libprefix)/lib

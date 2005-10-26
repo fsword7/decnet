@@ -66,7 +66,7 @@ int dnet_recv(int s, void *buf, int len, unsigned int flags)
 	    offset += status;
 	    iov.iov_base += status;
 	} 
-	while (status >= 0 && !(msg.msg_flags & MSG_EOR));
+	while (status > 0 && !(msg.msg_flags & MSG_EOR));
 
 	if (status > 0) status = offset; /* Return size read */
 

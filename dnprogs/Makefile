@@ -9,7 +9,7 @@ PKGNAME=dnprogs
 DATE="$(shell date +'%Y%m%d')"
 
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
-	dncopy apps dntask dnlogin mail phone dnetd dnroute scripts
+	dncopy apps dntask dnlogin mail phone dnetd libvaxdata dnroute scripts
 
 all: 	
 	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
@@ -83,6 +83,7 @@ rpm:
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
+	cp libvaxdata/libvaxdata.pdf BUILD
 	rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 

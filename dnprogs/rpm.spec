@@ -14,9 +14,7 @@ These tools are the application layer interface for DECnet on Linux systems.
 They provide file/terminal access facilities between OpenVMS and Linux and 
 remote execution of commands.
 
-To use them you will need to have DECnet built into your kernel.
-See http://linux-decnet.sourceforge.net to get the kernel patch and
-instructions on how to apply it.
+To use them you will need to have DECnet built into your kernel or as a module.
 
 %files
 %%PREFIX%%/bin/dncopy
@@ -102,18 +100,20 @@ instructions on how to apply it.
 %%LIBPREFIX%%/lib/librms.so
 %%LIBPREFIX%%/lib/librms.so.%%MAJOR_VERSION%%
 %%LIBPREFIX%%/lib/librms.so.%%VERSION%%
+%%LIBPREFIX%%/lib/libvaxdata.a
 /usr/include/netdnet/dnetdb.h
 /usr/include/netdnet/dn.h
 /usr/include/rms.h
 /usr/include/rabdef.h
 /usr/include/fabdef.h
+/usr/include/convert_vax_data.h
 
 %config %%CONFPREFIX%%/etc/decnet.conf.sample
 %%CONFPREFIX%%/etc/dnetd.conf
 
 %dir /usr/include/netdnet
 
-%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README
+%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README libvaxdata.pdf
 
 %post 
 chkconfig --level 345 decnet on

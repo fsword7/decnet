@@ -84,6 +84,10 @@ void be_interactive(void)
 		fprintf(stderr, "Read failed: %s\n", connerror(sockfd));
 		return;
 	    }
+	    if (len == 0) /* EOF */
+	    {
+		return;
+	    }
 
             if (binary_mode)
 	    {

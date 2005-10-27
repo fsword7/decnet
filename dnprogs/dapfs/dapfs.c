@@ -30,6 +30,7 @@
 #include <sys/statfs.h>
 #include <netdnet/dn.h>
 #include "rms.h"
+#include "dapfs.h"
 #include "dapfs_dap.h"
 #include "filenames.h"
 
@@ -48,7 +49,7 @@ struct dapfs_handle
 	off_t offset;
 };
 
-char prefix[1024];
+char prefix[BUFLEN];
 
 static const int RAT_DEFAULT = -1; // Use RMS defaults
 static const int RAT_FTN  = 1; // RMS RAT values from fab.h
@@ -64,7 +65,6 @@ static const int RFM_VFC = 3;
 static const int RFM_STM = 4;
 static const int RFM_STMLF = 5;
 static const int RFM_STMCR = 6;
-
 
 /* Convert RMS record carriage control into something more unixy */
 static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
@@ -168,8 +168,8 @@ static int dapfs_truncate(const char *path, off_t size)
 	int offset;
 	int res;
 	struct RAB rab;
-	char fullname[2048];
-	char vmsname[2048];
+	char fullname[VMSNAME_LEN];
+	char vmsname[VMSNAME_LEN];
 
 	make_vms_filespec(path, vmsname, 0);
 	sprintf(fullname, "%s%s", prefix, vmsname);
@@ -196,16 +196,42 @@ finish:
 
 static int dapfs_mkdir(const char *path, mode_t mode)
 {
-	syslog(LOG_DEBUG, "PJC: dapfs_mkdir called for %s\n", path);
-	// TODO Use remote object
-	return -ENOSYS;
+	char fullname[VMSNAME_LEN];
+	char vmsname[VMSNAME_LEN];
+	char reply[BUFLEN];
+	int len;
+
+	make_vms_filespec(path, vmsname, 0);
+	sprintf(fullname, "MKDIR %s", vmsname);
+
+	len = get_object_info("STATFS", reply);
+	if (len != 2) // "OK"
+		return -errno;
+	else
+		return 0;
 }
 
 static int dapfs_statfs(const char *path, struct statfs *stbuf)
 {
-	syslog(LOG_DEBUG, "PJC: dapfs_statfs called for %s\n", path);
-	// TODO Use remote object
-	return -ENOSYS;
+	int len;
+	char reply[BUFLEN];
+	long size, free;
+
+	len = get_object_info("STATFS", reply);
+	if (len <= 0)
+		return -errno;
+
+	memset(stbuf, 0, sizeof(*stbuf));
+
+	if (sscanf(reply, "%ld, %ld", &free, &size) != 2)
+		return -EINVAL;
+
+	stbuf->f_bsize = 512;
+	stbuf->f_blocks = size;
+	stbuf->f_bfree = free;
+	stbuf->f_bavail = free;
+
+	return 0;
 }
 
 
@@ -214,8 +240,8 @@ static int dapfs_statfs(const char *path, struct statfs *stbuf)
 static int dapfs_mknod(const char *path, mode_t mode, dev_t dev)
 {
 	RMSHANDLE rmsh;
-	char fullname[2048];
-	char vmsname[2048];
+	char fullname[VMSNAME_LEN];
+	char vmsname[VMSNAME_LEN];
 
 	if (!S_ISREG(mode))
 		return -ENOSYS;
@@ -234,8 +260,8 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 {
 	struct dapfs_handle *h;
 	struct FAB fab;
-	char fullname[2048];
-	char vmsname[2048];
+	char fullname[VMSNAME_LEN];
+	char vmsname[VMSNAME_LEN];
 
 	syslog(LOG_DEBUG, "open %s, flags=%x\n", path, fi->flags);
 	h = malloc(sizeof(struct dapfs_handle));
@@ -372,7 +398,7 @@ static int dapfs_getattr(const char *path, struct stat *stbuf)
 
 		/* If this failed and there's no file type, see if it is a directory */
 		if (res == -ENOENT && strchr(path, '.')==NULL) {
-			char dirname[1024];
+			char dirname[BUFLEN];
 			sprintf(dirname, "%s.dir", path);
 			res = dapfs_getattr_dap(dirname, stbuf);
 		}

@@ -26,12 +26,17 @@
 #include <dirent.h>
 #include <errno.h>
 #include <sys/statfs.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+#include "dn_endian.h"
 #include "connection.h"
 #include "protocol.h"
 #include "dapfs_dap.h"
 extern "C" {
 #include "filenames.h"
+#include "dapfs.h"
 }
 
 // Use this for one-shot stuff like getattr & delete
@@ -52,6 +57,86 @@ static int dap_connect(dap_connection &c)
 		return -ENOTCONN;
 	}
 	return 0;
+}
+
+static void restart_dap()
+{
+	syslog(LOG_INFO, "Restarting dapfs connection\n");
+	conn.close();
+	dap_connect(conn);
+}
+
+int get_object_info(char *command, char *reply)
+{
+	dap_connection dummy(0); // So we can use parse()
+	struct accessdata_dn accessdata;
+	char node[BUFLEN], filespec[VMSNAME_LEN];
+	int sockfd;
+	int status;
+	struct nodeent	*np;
+	struct sockaddr_dn sockaddr;
+	fd_set fds;
+	struct timeval tv;
+
+	memset(&accessdata, 0, sizeof(accessdata));
+
+	/* This should always succeed, otherwise we would never get here */
+	if (!dummy.parse(prefix, accessdata, node, filespec))
+		return -1;
+
+	memcpy(accessdata.acc_acc, accessdata.acc_user, accessdata.acc_userl);
+	accessdata.acc_accl =accessdata.acc_userl;
+
+	np = getnodebyname(node);
+
+	if ((sockfd=socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP)) == -1)
+	{
+		return -1;
+	}
+
+	// Provide access control and proxy information
+	if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
+		       sizeof(accessdata)) < 0)
+	{
+		return -1;
+	}
+
+	/* Open up object number 0 with the name of the task */
+	sockaddr.sdn_family   = AF_DECnet;
+	sockaddr.sdn_flags	  = 0x00;
+	sockaddr.sdn_objnum	  = 0x00;
+	memcpy(sockaddr.sdn_objname, "dapfs", 5);
+	sockaddr.sdn_objnamel = dn_htons(5);
+	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
+	sockaddr.sdn_add.a_len = 2;
+
+	if (connect(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
+	{
+		close(sockfd);
+		return -1;
+	}
+
+// Now run the command
+	if (write(sockfd, command, strlen(command)) < (int)strlen(command))
+	{
+		close(sockfd);
+		return -1;
+	}
+
+// Wait for completion (not for ever!!)
+	FD_ZERO(&fds);
+	FD_SET(sockfd, &fds);
+	tv.tv_usec = 0;
+	tv.tv_sec = 3;
+	status = select(sockfd+1, &fds, NULL, NULL, &tv);
+	if (status <= 0)
+	{
+		close(sockfd);
+		return -1;
+	}
+	status = read(sockfd, reply, BUFLEN);
+	close (sockfd);
+	return status;
 }
 
 static void add_to_stat(dap_message *m, struct stat *stbuf)
@@ -105,7 +190,7 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 
 int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 {
-	char vmsname[1024];
+	char vmsname[VMSNAME_LEN];
 	char name[80];
 	int ret = 0;
 	int size;
@@ -119,7 +204,10 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 	acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |
 			dap_access_message::DISPLAY_DATE_MASK |
 			dap_access_message::DISPLAY_PROT_MASK);
-	acc.write(conn);
+	if (!acc.write(conn)) {
+		restart_dap();
+		return -EIO;
+	}
 
 	dap_message *m;
 
@@ -139,7 +227,11 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 			{
 				dap_contran_message cm;
 				cm.set_confunc(dap_contran_message::SKIP);
-				cm.write(conn);
+				if (!cm.write(conn)) {
+					restart_dap();
+					delete m;
+					return -EIO;
+				}
 			}
 			else
 			{
@@ -147,7 +239,11 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 				// Clean connection status.
 				dap_contran_message cm;
 				cm.set_confunc(dap_contran_message::SKIP);
-				cm.write(conn);
+				if (!cm.write(conn)) {
+					restart_dap();
+					delete m;
+					return -EIO;
+				}
 			}
 		}
 		delete m;
@@ -160,7 +256,7 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 		      off_t offset, struct fuse_file_info *fi)
 {
 	dap_connection c(0);
-	char vmsname[1024];
+	char vmsname[VMSNAME_LEN];
 	char wildname[strlen(path)+2];
 	char name[80];
 	struct stat stbuf;
@@ -194,7 +290,10 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 	acc.set_display(dap_access_message::DISPLAY_MAIN_MASK |
 			dap_access_message::DISPLAY_DATE_MASK |
 			dap_access_message::DISPLAY_PROT_MASK);
-	acc.write(c);
+	if (!acc.write(c)) {
+		c.close();
+		return -EIO;
+	}
 
 	bool name_pending = false;
 	dap_message *m;
@@ -212,7 +311,7 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 			// Got a new name, send the old stuff.
 			if (name_pending)
 			{
-				char unixname[1024];
+				char unixname[BUFLEN];
 
 				make_unix_filespec(unixname, name);
 				if (strstr(unixname, ".dir") == unixname+strlen(unixname)-4)
@@ -283,7 +382,7 @@ flush:
 	delete m;
 	if (name_pending)
 	{
-		char unixname[1024];
+		char unixname[BUFLEN];
 		make_unix_filespec(unixname, name);
 		if (strstr(unixname, ".dir") == unixname+strlen(unixname)-4)
 		{
@@ -299,7 +398,7 @@ flush:
 /* Path already has version number appended to it -- this may be a mistake :) */
 int dap_delete_file(const char *path)
 {
-	char vmsname[1024];
+	char vmsname[VMSNAME_LEN];
 	char name[80];
 	int ret;
 	int size;
@@ -311,7 +410,10 @@ int dap_delete_file(const char *path)
 	acc.set_accopt(1);
 	acc.set_filespec(vmsname);
 	acc.set_display(0);
-        acc.write(conn);
+        if (!acc.write(conn)) {
+		restart_dap();
+		return -EIO;
+	}
 
 	// Wait for ACK or status
 	ret = 0;
@@ -341,8 +443,8 @@ int dap_delete_file(const char *path)
 
 int dap_rename_file(const char *from, const char *to)
 {
-	char vmsfrom[1024];
-	char vmsto[1024];
+	char vmsfrom[VMSNAME_LEN];
+	char vmsto[VMSNAME_LEN];
 	int ret;
 	int size;
 
@@ -354,14 +456,21 @@ int dap_rename_file(const char *from, const char *to)
 	acc.set_accopt(1);
 	acc.set_filespec(vmsfrom);
 	acc.set_display(0);
-        acc.write(conn);
+        if (!acc.write(conn)) {
+		restart_dap();
+		return -EIO;
+	}
+
 
 // TODO Test this, We may need to split the filespec up into DIR & FILE messages,
 // at least for cross-directory renames.
 	dap_name_message nam;
 	nam.set_nametype(dap_name_message::FILESPEC);
 	nam.set_namespec(vmsto);
-	nam.write(conn);
+	if (!nam.write(conn)) {
+		restart_dap();
+		return -EIO;
+	}
 
 	// Wait for ACK or status
 	ret = 0;

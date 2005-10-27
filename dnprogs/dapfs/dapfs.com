@@ -59,9 +59,9 @@ $ goto out
 $!
 $statfs_op:
 $!
-$ freeK=f$getdvi("sys$disk", "FREEBLOCKS")/2
-$ maxK=f$getdvi("sys$disk", "MAXBLOCK")/2
-$ write dapfs "''freeK', ''maxk'"
+$ free=f$getdvi("sys$disk", "FREEBLOCKS")
+$ max=f$getdvi("sys$disk", "MAXBLOCK")
+$ write dapfs "''free', ''max'"
 $ goto out
 $!
 $dir_error:

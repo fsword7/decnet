@@ -170,7 +170,9 @@ int found_read()
 		if (len == -1 && errno == EAGAIN)
 			return 0;
 		/* Remote end shut down */
-		if (len == -1 && errno == EPIPE)
+		if (len == 0)
+			return -1;
+		if (len == -1 && errno == EPIPE) /* Old kernel bug */
 			return -1;
 
 		if (len < 0 && errno != EINVAL)/* Shurely shome mishtake */

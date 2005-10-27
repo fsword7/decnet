@@ -48,6 +48,7 @@ extern void tty_set_uppercase(int onoff);
 extern void tty_allow_edit(int onoff);
 extern void tty_format_cr(void);
 extern int  tty_get_input_count(void);
+extern int  tty_discard(void);
 
 extern int (*send_input)(char *buf, int len, int term_pos, int flags);
 extern int (*send_oob)(char, int);

@@ -1,6 +1,6 @@
 This is a replacement for the rather unwieldy sethost program. It is pretty much
 in a usable state now (though only tested to VMS), any additions/fixes/bug 
-reports are welcom.
+reports are welcome.
 
 The principle is that found.c implements the foundation protocol in found.txt
 and cterm.c implements the cterm protocol on top of that, and the tty handling

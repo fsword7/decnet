@@ -702,9 +702,14 @@ int cterm_send_oob(char oobchar, int discard)
 	if (char_attr[(int)oobchar] & 0x30) //TODO NAME!
 	{
 		if (oobchar == CTRL_C || oobchar == CTRL_Y)
-			tty_write("\n*Interrupt*\n", 13);
-		if (oobchar == CTRL_O)
-			tty_write("\n*Output On/Off*\n", 16);
+			tty_write("\033[7mInterrupt\033[0m\n", 18);
+		if (oobchar == CTRL_O) 
+		{
+			if (tty_discard())
+				tty_write("\n\033[7mOutput Off\033[0m\n", 20);
+			else
+				tty_write("\n\033[7mOutput On\033[0m\n", 19);
+		}
 	}
 	return ret;
 

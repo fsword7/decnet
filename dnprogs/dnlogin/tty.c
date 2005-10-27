@@ -105,6 +105,11 @@ int tty_write(char *buf, int len)
 	return len;
 }
 
+int tty_discard()
+{
+	return discard;
+}
+
 void tty_format_cr()
 {
 	char lf = '\n';
@@ -460,7 +465,6 @@ int tty_process_terminal(char *buf, int len)
 				input_len = input_pos = 0;
 				reading = 0;
 			case CTRL_O:
-				// TODO echo "output on/off"
 				discard = ~discard;
 				break;
 			case DEL:

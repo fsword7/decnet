@@ -200,11 +200,27 @@ static int dapfs_mkdir(const char *path, mode_t mode)
 	char vmsname[VMSNAME_LEN];
 	char reply[BUFLEN];
 	int len;
+	char *lastbracket;
 
 	make_vms_filespec(path, vmsname, 0);
-	sprintf(fullname, "MKDIR %s", vmsname);
+	// Ths gives is a name like '[]pjc' which we
+	// need to turn into [.pjc]
+	lastbracket = strchr(vmsname, ']');
+	if (!lastbracket)
+		return -EINVAL;
 
-	len = get_object_info("STATFS", reply);
+	syslog(1, "dir = %s, vmsname: %s\n", path, vmsname);
+
+	*lastbracket = '.';
+	if (vmsname[strlen(vmsname)-1] == '.')
+		vmsname[strlen(vmsname)-1] = '\0';
+	strcat(vmsname, "]");
+
+
+	sprintf(fullname, "CREATE %s", vmsname);
+
+
+	len = get_object_info(fullname, reply);
 	if (len != 2) // "OK"
 		return -errno;
 	else

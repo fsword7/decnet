@@ -114,6 +114,8 @@ void tty_format_cr()
 {
 	char lf = '\n';
 
+	if (debug & 4)
+		fprintf(stderr, "TTY: format_cr, last char was %x\n", last_char);
 	if (last_char == '\r')
 		write(termfd, &lf, 1);
 }
@@ -268,6 +270,7 @@ int tty_setup(char *name, int setup)
 		new_term = old_term;
 
 		new_term.c_iflag &= ~BRKINT;
+		new_term.c_iflag &= ~INLCR;
 		new_term.c_iflag |= IGNBRK;
 		new_term.c_oflag &= ~ONLCR;
 		new_term.c_cc[VMIN] = 1;

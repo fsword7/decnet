@@ -198,7 +198,9 @@ static int cterm_process_start_read(char *buf, int len)
 
 	if (flags & 4) tty_clear_typeahead();
 	if (flags & 0x800) tty_set_noecho();
-	if (flags & 0x8 && buf[ptr+1] != '\n')
+
+	// PJC: The inclusion of the prompt len in here fixes TPU but is is right???
+	if (flags & 0x8 && buf[ptr+1] != '\n' && eoprompt > 0)
 		tty_format_cr();
 
 	if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
@@ -260,12 +262,12 @@ static int cterm_process_write(char *buf, int len)
 	unsigned short flags = buf[1] | buf[2]<<8;
 	char  prefixdata  = buf[3];
 	char  postfixdata = buf[4];
-	char  feed;
+	char  feed = '\n';
 
 	// TODO: flags...
 	//       TSQQ PPEB DLUU
 	//       UU  lock handling "Page 65"
-	//       L   1=Output LF at end and set a flag to skip next LF i nnext write
+	//       L   1=Output LF at end and set a flag to skip next LF in next write
 	//       D   1=Set output discard state to "do not discard"
 	//       B   1=This is the beginning of a host data message
 	//       E   1=This is the end of a host data message
@@ -281,6 +283,9 @@ static int cterm_process_write(char *buf, int len)
 	send_prepostfix(((flags >> 6) & 3), prefixdata); //PP
 
 	tty_write(buf+4, len-4);
+
+	if ((flags >>2)&1)
+		tty_write(&feed, 1);
 
 	send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
 	return len;

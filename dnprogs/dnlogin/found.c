@@ -126,7 +126,7 @@ int found_common_write(char *buf, int len)
 	struct msghdr msg;
 	struct common_header header;
 
-	if (debug) fprintf(stderr, "FOUND: sending %d bytes\n", len);
+	if (debug & 1) fprintf(stderr, "FOUND: sending %d bytes\n", len);
 	if (debug & 8)
 	{
 		int i;
@@ -196,13 +196,13 @@ int found_read()
 	switch (inbuf[0])
 	{
 	case FOUND_MSG_BIND:
-		if (debug)
-			printf("connected to %s host\n", hosttype[inbuf[4]-1]);
+		if (debug & 1)
+			fprintf(stderr, "FOUND: connected to %s host\n", hosttype[inbuf[4]-1]);
 		return send_bindaccept();
 
 	case FOUND_MSG_UNBIND:
-		if (debug)
-			printf("Unbind from host. reason = %d\n", inbuf[1]);
+		if (debug & 1)
+			fprintf(stderr, "FOUND: Unbind from host. reason = %d\n", inbuf[1]);
 		return -1;
 
 	case FOUND_MSG_ENTERMODE:
@@ -222,7 +222,7 @@ int found_read()
 		{
 			int msglen = inbuf[ptr] | inbuf[ptr+1]<<8;
 
-			if (debug)
+			if (debug&1)
 				fprintf(stderr, "FOUND: commondata: %d bytes\n",msglen);
 
 			ptr += 2;

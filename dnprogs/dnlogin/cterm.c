@@ -308,7 +308,7 @@ static int cterm_process_read_characteristics(char *buf, int len)
 		bufptr += 2;
 
 		if (debug & 2)
-			fprintf(stderr, "CTERM: selector = %d\n", selector);
+			fprintf(stderr, "CTERM: selector = 0x%x\n", selector);
 
 		if ((selector & 0x200) == 0) /* Physical characteristics */
 		{

@@ -2,7 +2,7 @@ include ../Makefile.common
 
 ARCH=$(shell uname -m)
 
-ALL:
+all:
 	cd linux; make -f makefile.gcc
 
 clean:

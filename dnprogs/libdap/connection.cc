@@ -107,12 +107,15 @@ dap_connection::~dap_connection()
 
 void dap_connection::close()
 {
-    if (outbufptr && blocked) set_blocked(false);
-    if (sockfd) ::close(sockfd);
+    if (!closed)
+    {
+        if (outbufptr && blocked) set_blocked(false);
+        if (sockfd) ::close(sockfd);
     
-    delete[] buf;
-    delete[] outbuf;
-    closed = true;
+        delete[] buf;
+        delete[] outbuf;
+        closed = true;
+    }
 }
 
 // Create a DECnet socket

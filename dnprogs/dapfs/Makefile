@@ -10,6 +10,8 @@ PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
 
 all: $(PROG1)
 
+CFLAGS=-g
+
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(PROG1OBJS) -lrms -lfuse
 

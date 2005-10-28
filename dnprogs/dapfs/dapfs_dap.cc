@@ -39,7 +39,6 @@ extern "C" {
 #include "dapfs.h"
 }
 
-// Use this for one-shot stuff like getattr & delete
 static dap_connection conn(0);
 
 static int dap_connect(dap_connection &c)
@@ -223,7 +222,7 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 		if (m->get_type() == dap_message::STATUS)
 		{
 			dap_status_message *sm = (dap_status_message *)m;
-			if (sm->get_code() == 0x4030)
+			if (sm->get_code() == 0x4030) // Locked
 			{
 				dap_contran_message cm;
 				cm.set_confunc(dap_contran_message::SKIP);
@@ -235,14 +234,14 @@ int dapfs_getattr_dap(const char *path, struct stat *stbuf)
 			}
 			else
 			{
-				ret = -ENOENT; // TODO better error
+				ret = -ENOENT; // TODO better error ??
+
 				// Clean connection status.
 				dap_contran_message cm;
 				cm.set_confunc(dap_contran_message::SKIP);
 				if (!cm.write(conn)) {
 					restart_dap();
-					delete m;
-					return -EIO;
+					ret = -EIO;
 				}
 			}
 		}
@@ -263,7 +262,6 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 	int size;
 	int ret;
 
-	// Use our own connection for this.
 	ret = dap_connect(c);
 	if (ret)
 		return ret;
@@ -423,20 +421,22 @@ int dap_delete_file(const char *path)
 		switch (m->get_type())
 		{
 		case dap_message::ACCOMP:
+			delete m;
 			goto end;
 		break;
 
 		case dap_message::STATUS:
 		{
 			dap_status_message *sm = (dap_status_message *)m;
-			if (sm->get_code() & 1 != 1)
-				ret = -EPERM; // Default error!
+			ret = -EPERM; // Default error!
+			delete m;
 			goto end;
 		}
 		break;
 		}
 		delete m;
 	}
+
 	end:
 	return ret;
 }
@@ -495,5 +495,11 @@ int dap_rename_file(const char *from, const char *to)
 
 int dap_init()
 {
-	return dap_connect(conn);
+	struct accessdata_dn accessdata;
+	char node[BUFLEN], filespec[VMSNAME_LEN];
+
+	if (dap_connect(conn))
+		return -ENOTCONN;
+
+	return 0;
 }

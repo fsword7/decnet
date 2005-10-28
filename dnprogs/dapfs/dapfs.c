@@ -34,8 +34,6 @@
 #include "dapfs_dap.h"
 #include "filenames.h"
 
-/* Copied from dncopy */
-
 struct dapfs_handle
 {
 	RMSHANDLE rmsh;
@@ -130,36 +128,46 @@ static int dapfs_unlink(const char *path)
 	return dap_delete_file(vername);
 }
 
+/* We can't do chown/chmod/utime but don't error as the user gets annoyed */
+static int dapfs_chown(const char *path, uid_t u, gid_t g)
+{
+	return 0;
+}
+
+static int dapfs_chmod(const char *path, mode_t m)
+{
+	return 0;
+}
+static int dapfs_utime(const char *path, struct utimbuf *u)
+{
+	return 0;
+}
+
 static int dapfs_rmdir(const char *path)
 {
 	char dirname[strlen(path)+7];
+	char fullname[VMSNAME_LEN];
+	char vmsname[VMSNAME_LEN];
+	char reply[BUFLEN];
+	int len;
+
+	/* Try the object first. if that fails then
+	   use DAP. This is because the VMS protection on
+	   directories can be problematic */
+	make_vms_filespec(path, vmsname, 0);
+
+	sprintf(fullname, "REMOVE %s.DIR;1", vmsname);
+	len = get_object_info(fullname, reply);
+	if (len == 2) // "OK"
+		return 0;
 
 	sprintf(dirname, "%s.DIR;1", path);
 	return dap_delete_file(dirname);
 }
 
-
 static int dapfs_rename(const char *from, const char *to)
 {
 	return dap_rename_file(from, to);
-}
-
-int dapfs_chmod(const char *path, mode_t mode)
-{
-	// Can we do this ??
-	return 0;
-}
-
-int dapfs_chown(const char *path, uid_t u, gid_t g)
-{
-	// Can we do this ??
-	return 0;
-}
-
-static int dapfs_flush(const char *path, struct fuse_file_info *fi)
-{
-	// NO-OP
-	return 0;
 }
 
 static int dapfs_truncate(const char *path, off_t size)
@@ -209,16 +217,14 @@ static int dapfs_mkdir(const char *path, mode_t mode)
 	if (!lastbracket)
 		return -EINVAL;
 
-	syslog(1, "dir = %s, vmsname: %s\n", path, vmsname);
-
 	*lastbracket = '.';
+
+	/* make_vms_filespec() often leaves a trailing dot */
 	if (vmsname[strlen(vmsname)-1] == '.')
 		vmsname[strlen(vmsname)-1] = '\0';
 	strcat(vmsname, "]");
 
-
 	sprintf(fullname, "CREATE %s", vmsname);
-
 
 	len = get_object_info(fullname, reply);
 	if (len != 2) // "OK"
@@ -252,7 +258,7 @@ static int dapfs_statfs(const char *path, struct statfs *stbuf)
 
 
 /* This gets called for normal files too... */
-// TODO mode is ignored.
+/* Note, mode is ignored */
 static int dapfs_mknod(const char *path, mode_t mode, dev_t dev)
 {
 	RMSHANDLE rmsh;
@@ -330,7 +336,8 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	}
 
 	/* This can be quite slow, because it reads records.
-	   However, it's safer this way as we can make sense of sequential files. */
+	   However, it's safer this way as we can make sense of sequential files
+	*/
 	do {
 		res = rms_read(h->rmsh, buf+got, size-got, &rab);
 		if (res > 0) {
@@ -433,10 +440,10 @@ static struct fuse_operations dapfs_oper = {
 	.rmdir    = dapfs_rmdir,
 	.rename   = dapfs_rename,
 	.mknod    = dapfs_mknod,
-	.chmod    = dapfs_chmod,
-	.chown    = dapfs_chown,
 	.mkdir    = dapfs_mkdir,
-	.flush    = dapfs_flush,
+	.chown    = dapfs_chown,
+	.chmod    = dapfs_chmod,
+	.utime    = dapfs_utime,
 	.statfs   = dapfs_statfs,
 	.release  = dapfs_release,
 };

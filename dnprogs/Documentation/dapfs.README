@@ -19,7 +19,8 @@ Other things that do not work are chmod and chown as these do not map neatly
 onto Unix principles.
 
 dapfs requires libdnet, librms & libdap from the dnprogs package as well as,
-obviously, a DECnet-enabled and configured kernel.
+obviously, a DECnet-enabled and configured kernel. Don't try to use dapfs 
+to talk to another Linux box (though why would you want to?) as it won't work!
 
 To mount a dapfs filesystem, make sure the fuse module is loaded into the kernel
 and use the followng syntax:

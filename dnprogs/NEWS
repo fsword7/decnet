@@ -1,3 +1,86 @@
+dnprogs (2.32) unstable; urgency=low
+
+  * fal removes [] from names as they could cause confusion.
+  * Fixed crash in libdap if a connection gets closed more than once.
+  * Fix libdnet's dnet_recv to cope with 0 being returned from recvmsg.
+  * Some minor manpage & packaging bugs fixed.
+  * Include dnlogin, a replacement for sethost.
+  * Include libvaxdata - a library of routines for converting between VAX.
+    data formats and Unix ones. Contributed by Larry Baker of the 
+    US Geological Survey.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 30 Oct 2005 15:09:21 +0000
+
+dnprogs (2.31) unstable; urgency=low
+
+  * Add more RMS features to libdap.
+  * fix get_date as time_t in libdap.
+  * librms rms_open() now returns file info in the FAB.
+  * librms rms_read() returns EOF correctly
+  * librms rms_write() now works 
+  * build mail with -fdollars-in-identifiers
+    Closes: #334138
+  * Remove /etc/decnet.conf.old at Debian purge time.
+    Closes: #330362
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 17 Oct 2005 08:53:58 +0100
+
+dnprogs (2.30.1) unstable; urgency=low
+
+  * Add alternative dependancy on debconf-2.0
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 27 Sep 2005 08:20:46 +0100
+
+dnprogs (2.30) unstable; urgency=low
+
+  * Add -l option to dncopy. (ignore interlocks)
+  * Add more RMS features to librms & libdap
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri,  2 Sep 2005 09:24:41 +0100
+
+dnprogs (2.29.2) unstable; urgency=low
+
+  * Add Czech debconf translation.
+    Closes: #315989
+  
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 30 Jun 2005 14:30:27 +0100
+
+dnprogs (2.29.1) unstable; urgency=low
+
+  * Add Japanese debconf translation from Kenshi Muto.
+  Closes: #307049
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  2 May 2005 11:07:22 +0100
+
+dnprogs (2.29) unstable; urgency=low
+
+  * Add -p switch to dncopy, sets the protection of a file
+    uploaded to VMS.
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 28 Jan 2005 15:32:03 +0000
+
+dnprogs (2.28) unstable; urgency=low
+
+  * Makefile fixups from Maciej W. Rozycki
+  * FAL now accepts VMS directories with "][" in them, eg those
+    produced by concatenated logicals.
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed, 15 Dec 2004 10:50:44 +0000
+
+dnprogs (2.27.1) unstable; urgency=low
+
+  * Add Dutch debconf translation. Closes: #254842
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri,  9 Jul 2004 13:24:49 +0100
+
+dnprogs (2.27) unstable; urgency=low
+
+  * Fix signal handling in sethost so it doesn't die with an embarrassing
+    "Alarm clock" message.
+  * Add dependancy on modutils. Closes: #251508
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 30 May 2004 10:13:57 +0100
+
 dnprogs (2.26) unstable; urgency=low
 
   * dnetd: Fix log function that could cause daemons to segfault if 

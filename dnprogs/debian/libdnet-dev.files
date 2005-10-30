@@ -3,6 +3,7 @@
 ./usr/include/rms.h
 ./usr/include/fabdef.h
 ./usr/include/rabdef.h
+./usr/include/convert_vax_data.h
 ./usr/lib/libdnet.a
 ./usr/lib/libdnet.so
 ./usr/lib/libdnet_daemon.a
@@ -11,7 +12,9 @@
 ./usr/lib/libdap.so
 ./usr/lib/librms.a
 ./usr/lib/librms.so
+./usr/lib/libvaxdata.a
 ./usr/share/doc/libdnet-dev/librms.README
+./usr/share/doc/libdnet-dev/libvaxdata.pdf
 ./usr/share/man/man3/dnet_conn.3
 ./usr/share/man/man3/dnet_htoa.3
 ./usr/share/man/man3/dnet_ntoa.3

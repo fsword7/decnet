@@ -73,6 +73,7 @@ binary-arch: checkroot build
 	cp Documentation/*README debian/tmp/usr/share/doc/libdnet
 	cp Documentation/*README debian/tmp/usr/share/doc/dnet-progs
 	cp Documentation/*README debian/tmp/usr/share/doc/libdnet-dev
+	cp libvaxdata/*pdf debian/tmp/usr/share/doc/libdnet-dev
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
 	mv debian/tmp/usr/sbin/startnet debian/tmp/sbin

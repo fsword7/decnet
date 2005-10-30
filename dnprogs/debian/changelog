@@ -1,3 +1,16 @@
+dnprogs (2.32) unstable; urgency=low
+
+  * fal removes [] from names as they could cause confusion.
+  * Fixed crash in libdap if a connection gets closed more than once.
+  * Fix libdnet's dnet_recv to cope with 0 being returned from recvmsg.
+  * Some minor manpage & packaging bugs fixed.
+  * Include dnlogin, a replacement for sethost.
+  * Include libvaxdata - a library of routines for converting between VAX.
+    data formats and Unix ones. Contributed by Larry Baker of the 
+    US Geological Survey.
+
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 30 Oct 2005 15:09:21 +0000
+
 dnprogs (2.31) unstable; urgency=low
 
   * Add more RMS features to libdap.

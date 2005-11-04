@@ -359,9 +359,6 @@ static void draw_window_decorations(int win)
 {
     char title[255];
 
-    fprintf(stderr, "draw_window_dec: win:%d, held:%d\n",
-	    win, userinfo[win].held);
-    
     strcpy(title, userinfo[win].name);
     if (userinfo[win].held)
     {

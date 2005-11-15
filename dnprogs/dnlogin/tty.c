@@ -381,7 +381,7 @@ int tty_process_terminal(char *buf, int len)
 		/* Terminators */
 		if (!esc_len && is_terminator(buf[i]))
 		{
-			if (echo_terminator)
+			if (echo && echo_terminator)
 			{
 				tty_write(&buf[i], 1);
 			}

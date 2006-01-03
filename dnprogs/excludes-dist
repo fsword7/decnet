@@ -14,8 +14,8 @@
 */sedt.rem
 */debian-changelog
 */LOG*
-*lib*so*
-*lib*a
+*lib*.so*
+*lib*.a
 */fal/fal
 */fal/*auto_types*
 */dndir/dndir

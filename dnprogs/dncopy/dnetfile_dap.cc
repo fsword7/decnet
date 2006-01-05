@@ -348,7 +348,7 @@ int dnetfile::dap_send_attributes()
     {
 	dap_protect_message prot;
 	if (prot.set_protection(protection) == -1)
-	    fprintf(stderr, "Error in protection string - not sent\n");
+	    fprintf(stderr, "Error in protection string '%s' - not sent\n", protection);
 	else
 	    prot.write(conn);
     }

@@ -45,6 +45,7 @@ dnetfile::dnetfile(char *n, int verbosity):
     isOpen = FALSE;
     verbose = verbosity;
     lasterror = NULL;
+    protection = NULL;
     strcpy(fname, n);
     strcpy(name, n);
 

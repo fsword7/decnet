@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     int   show_stats = 0;
     int   rrl = 0;
     char  opt;
-    char  protection[255];
+    char  protection[255]={'\0'};
     struct timeval start_tv;
     unsigned long long bytes_copied = 0;
 

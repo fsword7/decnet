@@ -222,9 +222,9 @@ int dnetfile::dap_send_get_or_put()
     {
 	ctl.set_ctlfunc(dap_control_message::PUT);
     }
-    else
+    if (user_flags)
     {
-	    ctl.set_rop_bit(dap_control_message::RB$RRL);
+    	ctl.set_rop_bit(dap_control_message::RB$RRL);
     }
     return !ctl.write(conn);
 }

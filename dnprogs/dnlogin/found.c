@@ -247,6 +247,8 @@ int found_setup_link(char *node, int object, int (*processor)(char *, int))
 {
 	struct nodeent *np;
 	struct sockaddr_dn sockaddr;
+	struct accessdata_dn accessdata;
+	char *local_user;
 
 	if ( (np=getnodebyname(node)) == NULL)
 	{
@@ -259,6 +261,21 @@ int found_setup_link(char *node, int object, int (*processor)(char *, int))
 	{
 		perror("socket");
 		return -1;
+	}
+
+        /* Send the logged in userID for niceness sake */
+	memset(&accessdata, 0, sizeof(accessdata));
+	local_user = cuserid(NULL);
+	if (!local_user || local_user == (char *)0xffffffff)
+		local_user = getenv("LOGNAME");
+
+	if (!local_user) local_user = getenv("USER");
+	if (local_user)
+	{
+		strcpy((char *)accessdata.acc_acc, local_user);
+		accessdata.acc_accl = strlen((char *)accessdata.acc_acc);
+		setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
+			   sizeof(accessdata));
 	}
 
 	sockaddr.sdn_family = AF_DECnet;

@@ -386,7 +386,7 @@ int tty_process_terminal(char *buf, int len)
 				tty_write(&buf[i], 1);
 			}
 			input_buf[input_len++] = buf[i];
-			send_input_buffer(SEND_FLAG_VALID_ESCAPE);
+			send_input_buffer(SEND_FLAG_TERMINATOR);
 			reading = 0;
 			continue;
 		}

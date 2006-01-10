@@ -80,6 +80,8 @@ static void send_input_buffer(int flags)
 	send_input(buf, input_len, input_len-1, flags);
 	input_len = input_pos = 0;
 	reading = 0;
+	if (debug & 4)
+		fprintf(stderr, "TTY: clearing 'reading' flag\n");
 	echo = 1;
 	interpret_escape = 0;
 }
@@ -216,8 +218,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	input_len = len-promptlen;
 	input_pos = input_len;
 	write(termfd, input_buf, input_len);
-
-	max_read_len = len;
+	reading = 1;
 
 	/* Now add in any typeahead */
 	if (rahead_len)
@@ -230,14 +231,11 @@ void tty_start_read(char *prompt, int len, int promptlen)
 		/* Don't overflow the input buffer */
 		if (input_len + copylen > sizeof(input_buf))
 			copylen = sizeof(input_buf)-input_len;
-
-		memcpy(input_buf+input_len, rahead_buf, copylen);
-		tty_write(rahead_buf, copylen);
-		input_len += copylen;
-		input_pos += copylen;
-		rahead_len = 0;
+		rahead_len -= copylen;
+		tty_process_terminal(rahead_buf, copylen);
+		if (debug & 4)
+			fprintf(stderr, "TTY: readahead now = %d bytes\n", rahead_len);
 	}
-	reading = 1;
 }
 
 void tty_set_timeout(unsigned short to)
@@ -254,6 +252,9 @@ void tty_clear_typeahead()
 void tty_set_maxlen(unsigned short len)
 {
 	max_read_len = len;
+	if (debug & 4)
+		fprintf(stderr, "TTY: max_read_len now = %d \n", len);
+
 }
 
 /* Set/Reset the local TTY mode */
@@ -371,6 +372,17 @@ int tty_process_terminal(char *buf, int len)
 			continue;
 		}
 
+		/* Read not active, store in the read ahead buffer */
+		if (!reading)
+		{
+			if (rahead_len == 0)
+				rahead_change(1); /* tell CTERM */
+
+			if (rahead_len < sizeof(rahead_buf))
+				rahead_buf[rahead_len++] = buf[i];
+			continue;
+		}
+
 		/* Is it ESCAPE ? */
 		if (buf[i] == ESC && esc_len == 0 && interpret_escape)
 		{
@@ -387,7 +399,6 @@ int tty_process_terminal(char *buf, int len)
 			}
 			input_buf[input_len++] = buf[i];
 			send_input_buffer(SEND_FLAG_TERMINATOR);
-			reading = 0;
 			continue;
 		}
 
@@ -466,7 +477,7 @@ int tty_process_terminal(char *buf, int len)
 				input_buf[input_len++] = buf[i];
 				send_input_buffer(SEND_FLAG_TERMINATOR);
 				input_len = input_pos = 0;
-				reading = 0;
+				break;
 			case CTRL_O:
 				discard = ~discard;
 				break;
@@ -484,17 +495,6 @@ int tty_process_terminal(char *buf, int len)
 					break;
 				}
 			}
-			continue;
-		}
-
-		/* Read not active, store in the read ahead buffer */
-		if (!reading)
-		{
-			if (rahead_len == 0)
-				rahead_change(1); /* tell CTERM */
-
-			if (rahead_len < sizeof(rahead_buf))
-				rahead_buf[rahead_len++] = buf[i];
 			continue;
 		}
 

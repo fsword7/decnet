@@ -209,12 +209,12 @@ static int cterm_process_start_read(char *buf, int len)
 	else       tty_set_escape_proc(han_char.input_escseq_recognition);
 	tty_allow_edit(!(DDD==2));
 	tty_set_uppercase(II==2);
-
-	tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
-
-	if (Q) tty_set_timeout(timeout);
 	tty_set_maxlen(maxlength);
+	if (Q) tty_set_timeout(timeout);
 	tty_echo_terminator((flags>>12)&1);
+
+	/* do the biz */
+	tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
 
 	return len;
 }
@@ -708,7 +708,7 @@ int cterm_send_oob(char oobchar, int discard)
 	{
 		if (oobchar == CTRL_C || oobchar == CTRL_Y)
 			tty_write("\033[7m Interrupt \033[0m\n", 20);
-		if (oobchar == CTRL_O) 
+		if (oobchar == CTRL_O)
 		{
 			if (tty_discard())
 				tty_write("\n\033[7mOutput Off\033[0m\n", 20);

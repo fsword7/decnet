@@ -34,7 +34,7 @@
 
 /* Foundation services messages */
 #define FOUND_MSG_BIND        1
-#define FOUND_MSG_UNBIND      3
+#define FOUND_MSG_UNBIND      2
 #define FOUND_MSG_BINDACCEPT  4
 #define FOUND_MSG_ENTERMODE   5
 #define FOUND_MSG_EXITMODE    6
@@ -232,7 +232,7 @@ int found_read()
 	}
 	break;
 
-	case 2: /* Reserved */
+	case 3: /* Reserved */
 		break;
 
 	default:

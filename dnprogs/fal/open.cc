@@ -189,7 +189,7 @@ bool fal_open::process_message(dap_message *m)
 		    return false;
 		}
 	    }
-	    return send_ack_and_unblock();
+	    return send_ack_and_unblock(); 
 	}
 	break;
 
@@ -429,6 +429,9 @@ bool fal_open::send_file(int rac, long vbn)
 		    }
 		} while (newchar != EOF && newchar != '\n' && buflen < conn.get_blocksize()-10);
 		ateof = feof(stream);
+		/* Remove the trailing LF for non STMLF capable OSs */
+		if (newchar == '\n')
+			buflen--;
 	    }
 	}
 	else // Block read

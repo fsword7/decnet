@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2006 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,8 +84,20 @@ bool fal_task::is_vms_name(char *name)
     if ( (strchr(name, '[') && strchr(name, ']')) ||
 	  strchr(name, ';') || strchr(name, ':') )
 	return vms_format=true;
+
+    // If the filename is all upper case then
+    // we also assume it's 'VMS' format. Though in this
+    // case it's more likely to have come from RSX...
+    unsigned int i;
+    bool allupper = true;
+    for (i=0; i<strlen(name); i++)
+	    if (!isupper(name[i]))
+		    allupper = false;
+
+    if (allupper && strlen(name))
+	    return vms_format=true;
     else
-	return vms_format=false;
+	    return vms_format=false;
 }
 
 /* Add the virtual "root" directory to the filename */
@@ -141,7 +153,8 @@ void fal_task::remove_vroot(char *name)
 void fal_task::split_filespec(char *volume, char *directory, char *file)
 {
     // If the remote client is RSX then lower-case the filename
-    if (params.remote_os == 4)
+    if (params.remote_os == dap_config_message::OS_RSX11M ||
+        params.remote_os == dap_config_message::OS_RSX11MP)
     {
 	dap_connection::makelower(file);
     }
@@ -527,6 +540,8 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	    dap_attrib_message attrib_msg;
 
 	    attrib_msg.set_stat(&st, send_dev);
+	    if (!params.can_do_stmlf)
+		attrib_msg.set_rfm(dap_attrib_message::FB$VAR);
 	    fake_file_type(block_size, use_records, filename, &attrib_msg);
 
 	    if (show_dev == DEV_DEPENDS_ON_TYPE)
@@ -576,7 +591,9 @@ bool fal_task::send_file_attributes(unsigned int &block_size,
 	{
 	    dap_name_message name_msg;
 
-	    if (vms_format || params.remote_os == 4)
+	    if (vms_format || 
+		params.remote_os == dap_config_message::OS_RSX11M ||
+	        params.remote_os == dap_config_message::OS_RSX11MP)
 	    {
 		char vmsname[PATH_MAX];
 

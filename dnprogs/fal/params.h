@@ -12,6 +12,7 @@ class fal_params
     bool  use_file;
     bool  use_metafiles;
     bool  use_adf;
+    bool  can_do_stmlf;
     int   remote_os;
 
     char *type_name()

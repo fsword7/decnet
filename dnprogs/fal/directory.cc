@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2002 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2006 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -12,8 +12,8 @@
     GNU General Public License for more details.
  ******************************************************************************
  */
-// task.cc
-// Code for a task within a FAL server process.
+// directory.cc
+// Code for a directory task within a FAL server process.
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <assert.h>
@@ -84,13 +84,18 @@ bool fal_directory::process_message(dap_message *m)
 	    bool   double_wildcard = false;
 
 	    dap_access_message *am = (dap_access_message *)m;
-	    strcpy(filespec, am->get_filespec());
+	    if (am->get_filespec())
+		strcpy(filespec, am->get_filespec());
+	    else
+		filespec[0] = '\0';
 
 	    // If we are talking to RSX and it did not send a filespec
 	    // then default to *.*
-	    if (params.remote_os == 4 && filespec[0] == '\0')
+	    if ((params.remote_os == dap_config_message::OS_RSX11M ||
+	    	 params.remote_os == dap_config_message::OS_RSX11MP) &&
+		filespec[0] == '\0')
 	    {
-		strcpy(filespec, "*.*");
+		strcpy(filespec, "[]*.*");
 	    }
 
 	    split_filespec(volume, directory, filespec);
@@ -302,6 +307,9 @@ bool fal_directory::send_dir_entry(char *path, int display)
 	if (display & dap_access_message::DISPLAY_MAIN_MASK)
 	{
 	    attrib_msg->set_stat(&st, true);
+	    if (!params.can_do_stmlf)
+                attrib_msg->set_rfm(dap_attrib_message::FB$VAR);
+
 	    fake_file_type(path, attrib_msg);
 	    if (!attrib_msg->write(conn)) return false;
 	}

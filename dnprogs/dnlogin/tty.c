@@ -103,18 +103,26 @@ int tty_write(char *buf, int len)
 	/* Ignore NULs */
 	if (len == 1 && *buf == 0)
 		return len;
+
+	/* FF is a special case (perhaps!) */
 	if (len == 1 && buf[0] == '\f')
 		return write(termfd, "\033[H\033[2J", 7);
+
 	if (debug & 16) 
 	{
 		int i;
-		fprintf(stderr, "TTY: Printing ");
+		fprintf(stderr, "TTY: Printing %d: ", len);
 		for (i=0; i<len; i++)
 			fprintf(stderr, "%02x ", (unsigned char)buf[i]);
 		fprintf(stderr, "\n");
 	}
 	write(termfd, buf, len);
-	last_char = buf[len-1];
+	if (len)
+	{
+		last_char = buf[len-1];
+		if (debug & 4)
+			fprintf(stderr, "TTY: Setting last_char to %02x\n", last_char);
+	}
 	return len;
 }
 

@@ -100,8 +100,19 @@ int tty_write(char *buf, int len)
 	if (discard)
 		return len;
 
+	/* Ignore NULs */
 	if (len == 1 && *buf == 0)
 		return len;
+	if (len == 1 && buf[0] == '\f')
+		return write(termfd, "\033[H\033[2J", 7);
+	if (debug & 16) 
+	{
+		int i;
+		fprintf(stderr, "TTY: Printing ");
+		for (i=0; i<len; i++)
+			fprintf(stderr, "%02x ", (unsigned char)buf[i]);
+		fprintf(stderr, "\n");
+	}
 	write(termfd, buf, len);
 	last_char = buf[len-1];
 	return len;
@@ -119,7 +130,7 @@ void tty_format_cr()
 	if (debug & 4)
 		fprintf(stderr, "TTY: format_cr, last char was %x\n", last_char);
 	if (last_char == '\r')
-		write(termfd, &lf, 1);
+		tty_write(&lf, 1);
 }
 
 void tty_set_noecho()
@@ -199,7 +210,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	if (debug & 4)
 		fprintf(stderr, "TTY: start_read promptlen = %d, maxlen=%d\n",
 			promptlen, len);
-	if (promptlen) write(termfd, prompt, promptlen);
+	if (promptlen) tty_write(prompt, promptlen);
 	if (len < 0) len = sizeof(input_buf);
 
 	/* Save the actual prompt in one buffer and the prefilled
@@ -217,7 +228,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	memcpy(input_buf, prompt+promptlen, len-promptlen);
 	input_len = len-promptlen;
 	input_pos = input_len;
-	write(termfd, input_buf, input_len);
+	tty_write(input_buf, input_len);
 	reading = 1;
 
 	/* Now add in any typeahead */
@@ -312,7 +323,7 @@ static short is_terminator(char c)
 /* Erase to end of line */
 static void erase_eol(void)
 {
-	write(termfd, "\033[0K", 4);
+	tty_write("\033[0K", 4);
 }
 
 /* Move to column "hpos", where hpos starts at 0 */
@@ -321,7 +332,7 @@ static void move_cursor_abs(int hpos)
 	char buf[32];
 
 	sprintf(buf, "\r\033[%dC", hpos);
-	write(termfd, buf, strlen(buf));
+	tty_write(buf, strlen(buf));
 }
 
 
@@ -337,7 +348,8 @@ static void redraw_input_line(void)
 		return;
 	move_cursor_abs(line_start_pos);
 	erase_eol();
-	write(termfd, input_buf, input_len);
+	tty_write(input_buf, input_len);
+
 	move_cursor_abs(line_start_pos + input_pos);
 }
 
@@ -486,7 +498,7 @@ int tty_process_terminal(char *buf, int len)
 				{
 					input_pos--;
 					input_len--;
-					if (echo) write(termfd, "\033[D \033[D", 7);
+					if (echo) tty_write("\033[D \033[D", 7);
 					if (input_pos != input_len)
 					{
 						memmove(input_buf+input_pos, input_buf+input_pos+1, input_len-input_pos);

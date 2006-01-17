@@ -209,6 +209,10 @@ class dap_config_message: public dap_message
 	{
 	    return ostype.get_byte(0);
 	}
+    bool get_syscap_bit(int bit)
+	{
+		return syscap.get_bit(bit);
+	}
 
     // OSs
     static const int OS_ILLEGAL =  0;

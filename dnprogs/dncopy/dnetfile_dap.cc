@@ -259,6 +259,9 @@ int dnetfile::dap_get_record(char *rec, int reclen)
 		ateof = TRUE;
 		return -1;
 	    }
+	    // good STATUS here means we need to request the next record
+	    if (dap_check_status(m, 0) == 0)
+		dap_send_get_or_put(); 
 	    return dap_check_status(m,0);
 	}
 

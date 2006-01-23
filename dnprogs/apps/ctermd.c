@@ -119,7 +119,7 @@ void cterm_bind(void)
 /*-----------------------------------------------------------------------*/
 void cterm_unbind (void)
 {
-	char	cterm_unbind_msg[] = {0x02,0x03,0x00};
+	char	cterm_unbind_msg[3] = {0x02,0x03,0x00};
 	write(net,cterm_unbind_msg,3);
 }
 /*-----------------------------------------------------------------------*/
@@ -130,6 +130,7 @@ void cterm_reset(int s)
 	char	*p;
 
 	cterm_unbind();
+	sleep(1); /* ugh!. Wait for data-ack to arrive */
 	p=line+sizeof("/dev/")-1;
 
 	setutent();
@@ -239,7 +240,7 @@ void cterm (void)
 	signal(SIGTSTP, SIG_IGN);
 	signal(SIGTTOU, SIG_IGN);
 
-	cterm_write("CTERM Version 1.0.5\r\nDECnet for Linux\r\n\n");
+	cterm_write("CTERM Version 1.0.6\r\nDECnet for Linux\r\n\n");
 	cterm_read();
 
 	for (;;)

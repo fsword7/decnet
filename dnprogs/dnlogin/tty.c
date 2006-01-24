@@ -285,6 +285,8 @@ int tty_setup(char *name, int setup)
 	if (setup)
 	{
 		termfd = open(name, O_RDWR);
+		if (termfd == -1)
+			return -1;
 
 		tcgetattr(termfd, &old_term);
 		new_term = old_term;

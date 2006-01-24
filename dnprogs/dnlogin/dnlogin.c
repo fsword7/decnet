@@ -166,7 +166,10 @@ int main(int argc, char *argv[])
 	rahead_change = cterm_rahead_change;
 	if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
 	{
-		tty_setup("/dev/fd/0", 1);
+		if (tty_setup("/dev/fd/0", 1) == -1)
+			if (tty_setup("/proc/self/fd/0", 1)) {
+				perror("cannot connect to stdin\n");
+			}
 		mainloop();
 		tty_setup(NULL, 0);
 	}

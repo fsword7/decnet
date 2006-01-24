@@ -166,8 +166,9 @@ int found_read()
 	int ptr = 0;
 
 	if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT|MSG_NOSIGNAL)) <= 0)
+	
 	{
-		if (len == -1 && errno == EAGAIN)
+		if (len == -1 && (errno == EAGAIN || errno == ESPIPE))
 			return 0;
 		/* Remote end shut down */
 		if (len == 0)

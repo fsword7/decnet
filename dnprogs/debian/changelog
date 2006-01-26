@@ -1,3 +1,17 @@
+dnprogs (2.33) unstable; urgency=low
+  
+  * Fix dncopy fetching from RSX (don't set RRL unless the user asks for it)
+  * Get rid of spurious protection error from dncopy
+  * dnlogin sets local username so (eg) VMSs SHOW TERM displays it
+  * Numerous fixes dnlogin so it now works to RSX
+  * Several fixes to fal so it works with RSX
+  * dnlogin now disconnects correctly when it gets a unbind
+  * ctermd: Fix "-bash: no job control in this shell" message on some platforms
+  * dndir displays more consistently (and once!) when a remote file is locked
+  * phone_ncurses now resizes the display if its xterm is resized
+
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 26 Jan 2006 16:19:42 +0000
+  
 dnprogs (2.32) unstable; urgency=low
 
   * fal removes [] from names as they could cause confusion.

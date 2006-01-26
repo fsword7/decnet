@@ -376,7 +376,7 @@ int main(int argc, char *argv[])
 		    dap_status_message *sm = (dap_status_message *)m;
 		    if (sm->get_code() == 0x4030)
 		    {
-			printf("%-*s  ", filename_width, name);
+			printf("%-*s", filename_width, name);
 			if (single_column)
 			{
 			    printf("File is currently locked by another user\n");
@@ -389,6 +389,7 @@ int main(int argc, char *argv[])
 				printed = 0;
 			    }
 			}
+			name_pending = false;
 
 			dap_contran_message cm;
 			cm.set_confunc(dap_contran_message::SKIP);
@@ -519,7 +520,7 @@ bool show_full_details(char *dirname, dap_connection &conn)
 		dap_status_message *sm = (dap_status_message *)m;
 		if (sm->get_code() == 0x4030)
 		{
-		    printf("%s  File current locked by another user\n",
+		    printf("%s  File current locked by another user\n\n",
 			   name_msg->get_namespec());
 
 		    dap_contran_message cm;
@@ -536,6 +537,7 @@ bool show_full_details(char *dirname, dap_connection &conn)
 			   sm->get_message());
 		    return false;
 		}
+		name_pending = false;
 	    }
 	    break;
 

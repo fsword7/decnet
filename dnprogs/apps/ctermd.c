@@ -365,6 +365,9 @@ void doit  (void)
 
 	if (t > 2) close(t);
 
+	ioctl(0, TIOCSCTTY, (char *)NULL);
+
+
 	putenv("TERM=vt100");
 	execlp("/bin/login", "login", (char *)0);
 	cterm_write("Error executing login command");

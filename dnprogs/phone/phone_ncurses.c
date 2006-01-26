@@ -6,6 +6,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/signal.h>
+#include <sys/ioctl.h>
 #include <ctype.h>
 #include <string.h>
 #include <fcntl.h>
@@ -40,7 +42,9 @@ static void lost_server(void);
 static void open_display_window(char *);
 static void display_line(char *text);
 static void rearrange_windows(int num);
-    
+
+static void draw_title(WINDOW *window);
+
 static int     Finished = FALSE;
 static int     Switch_Hook_Char = '%';
 static WINDOW *Main_Window;
@@ -50,6 +54,7 @@ static int     local_sock;
 static char   *end_message=NULL;
 static WINDOW *display_window = NULL;
 static PANEL  *display_panel  = NULL;
+static int     sigwinch_happened = 0;
 
 /* Cursor position in command mode */
 static int  cmd_x=1,  cmd_y=1;
@@ -74,13 +79,13 @@ static int num_connected_users=1;
 static int getch_callback(int fd)
 {
     int key;
-    
+
     key = getch();
     if (key == ERR) return 0;
 
 // If we are dialling then any key will cancel.
     cancel_dial();
-    
+
     // Display window is open - close it.
     if (display_window)
     {
@@ -91,33 +96,33 @@ static int getch_callback(int fd)
 	doupdate();
 	display_window = NULL;
     }
-    
+
 // Deal with global key assignments first
     if (key == 4) // Ctrl-D
     {
 	Finished = TRUE;
 	return 0 ;
     }
-    
+
     if (key == 23) // Ctrl-W refreshes the screen
     {
 	wrefresh(curscr);
 	return 0;
     }
-    
+
     if (key == 26) // Ctrl-Z is hangup
     {
 	do_command("hangup");
 	return 0;
     }
-    
+
     // Switch-hook char - change mode to command
     if (state == STATE_TALK && key == Switch_Hook_Char)
     {
 	state = STATE_COMMAND;
 	cmd_x=1;
 	cmd_y=1;
-	
+
 	// Clear the last command
 	wmove(Main_Window, cmd_y, cmd_x);
 	wclrtoeol(Main_Window);
@@ -136,7 +141,7 @@ static int getch_callback(int fd)
 	/* Draw char - interpret CR */
 	if (isprint(key))
 	    wechochar(userinfo[0].window, key);
-	
+
 	// CR may need to scroll the window.
 	if (key == '\r')
 	{
@@ -158,7 +163,7 @@ static int getch_callback(int fd)
 	    draw_window_decorations(0);
 	    wmove(userinfo[0].window, 1, 0);
 	}
-	
+
 	if (key == KEY_BACKSPACE && x > 0)
 	{
 	    wmove(userinfo[0].window, y, x-1);
@@ -167,7 +172,7 @@ static int getch_callback(int fd)
 	    key = 127; // convert to VMS Backspace
 	}
 	wrefresh(userinfo[0].window);
-	
+
 	// Send char to remote system(s)
 	for (i=1; i<num_users; i++)
 	{
@@ -175,7 +180,7 @@ static int getch_callback(int fd)
 	}
 	return 0;
     }
-	
+
     if (state == STATE_COMMAND)
     {
 	/* Draw char - collect chars and interpret LF */
@@ -193,7 +198,7 @@ static int getch_callback(int fd)
 	    wmove(Main_Window, cmd_y, cmd_x);
 	}
 
-	
+
 	if (key == '\r')    // Action command
 	{
 	    command[cmd_x-1] = '\0';
@@ -201,11 +206,11 @@ static int getch_callback(int fd)
 	    do_command(command);
 	    cmd_x=1;
 	    cmd_y=1;
-	    
+
 	    // Clear the last command
 	    wmove(Main_Window, cmd_y, cmd_x);
 	    wclrtoeol(Main_Window);
-	    
+
 	    if (num_connected_users > 1 && !userinfo[0].held)
 	    {
 		state = STATE_TALK;
@@ -243,6 +248,21 @@ int ncurses_init(char s)
     return 0;
 }
 
+static void resize_screen(int rows, int cols)
+{
+	resize_term(rows, cols);
+	Screen_Width = cols;
+	Screen_Height = rows;
+	wresize(stdscr, rows, cols);
+
+	werase(Main_Window);
+	draw_title(Main_Window);
+	wrefresh(stdscr);
+
+	/* Resize all sub-windows with conversations in */
+	rearrange_windows(num_users);
+	wrefresh(curscr);
+}
 
 // Main loop for ncurses display
 int ncurses_run(char *init_cmd)
@@ -267,15 +287,25 @@ int ncurses_run(char *init_cmd)
     {
 	fd_set fds;
 	int    i;
-	    
+
 	FD_ZERO(&fds);
 	if (local_sock != -1) FD_SET(local_sock, &fds);
 	for (i=0; i<num_users; i++)
 	    FD_SET(userinfo[i].fd, &fds);
-	
+
 	status = select(FD_SETSIZE, &fds, NULL, NULL, init_cmd?&tv:NULL);
 	if (status < 0)
 	{
+	    if (sigwinch_happened)
+	    {
+		    struct winsize size;
+
+		    if (ioctl(fileno(stdout), TIOCGWINSZ, &size) == 0) {
+			    resize_screen(size.ws_row, size.ws_col);
+		    }
+		    sigwinch_happened = 0;
+	    }
+
 	    if (errno != EINTR && errno != ERESTART)
 	    {
 	        perror("Error in select");
@@ -287,7 +317,7 @@ int ncurses_run(char *init_cmd)
 	{
 	    if (local_sock != -1 && FD_ISSET(local_sock, &fds))
 	        localsock_callback(local_sock);
-	    
+
 	    for (i=0; i<num_users; i++)
 	    {
 	        if (FD_ISSET(userinfo[i].fd, &fds))
@@ -314,62 +344,35 @@ int ncurses_run(char *init_cmd)
 	close(userinfo[i].fd);
 	close(userinfo[i].out_fd);
     }
-    
-/* 
- * Clear up after ncurses 
+
+/*
+ * Clear up after ncurses
  */
     clear();
     refresh();
     endwin();
 
     if (end_message)
-      printf("%s\n", end_message);
-    
+	    printf("%s\n", end_message);
+
     return 0;
 }
 
-/*
- * Initialise ncurses and return the top-level window ID
- */
-static WINDOW* setup_ncurses()
+static void window_size_change(int sig)
 {
-    WINDOW* window = NULL;
+	sigwinch_happened = 1;
+}
+
+static void draw_title(WINDOW *window)
+{
     char date[32];
     time_t the_time;
     struct tm the_tm;
-    
-    window = initscr();
-    if (window == NULL)
-    {
-	perror("Cannot init ncurses");
-	return NULL;
-    }
 
-    // Format the day
+    /* Format the day */
     the_time = time(NULL);
     the_tm = *localtime(&the_time);
     strftime(date, sizeof(date), "%d-%b-%Y", &the_tm);
-    
-/* Setup terminal attributes */
-    
-    start_color();        /* Enable colour processing */
-    noecho();             /* Don't echo input chars */
-    nonl();               /* no newline at end of strings */
-    keypad(stdscr, TRUE); /* Enable F-keys */
-    cbreak();             /* No processing of control characters */
-    raw();                /* Disable ^C, ^Z */
-    meta(stdscr, TRUE);   /* Enable meta-keys */
-    getmaxyx(stdscr, Screen_Height, Screen_Width);    /* Get the screen size */
-
-/* Set up colour pairs that match the foreground colours */
-    init_pair(COLOR_BLACK,   COLOR_BLACK,   COLOR_BLACK);
-    init_pair(COLOR_RED,     COLOR_RED,     COLOR_BLACK);
-    init_pair(COLOR_GREEN,   COLOR_GREEN,   COLOR_BLACK);
-    init_pair(COLOR_YELLOW,  COLOR_YELLOW,  COLOR_BLACK);
-    init_pair(COLOR_BLUE,    COLOR_BLUE,    COLOR_BLACK);
-    init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
-    init_pair(COLOR_CYAN,    COLOR_CYAN,    COLOR_BLACK);
-    init_pair(COLOR_WHITE,   COLOR_WHITE,   COLOR_BLACK);
 
 /* Draw the main title */
     wattrset(window, A_BOLD | COLOR_PAIR(COLOR_YELLOW));
@@ -389,10 +392,49 @@ static WINDOW* setup_ncurses()
     wattrset(window, A_BOLD | COLOR_PAIR(COLOR_WHITE));
     whline(window, ACS_HLINE, Screen_Width);
     wmove(window, 1, 1);
-    
+}
+
+/*
+ * Initialise ncurses and return the top-level window ID
+ */
+static WINDOW* setup_ncurses()
+{
+    WINDOW* window = NULL;
+
+    window = initscr();
+    if (window == NULL)
+    {
+	perror("Cannot init ncurses");
+	return NULL;
+    }
+
+/* Setup terminal attributes */
+
+    start_color();        /* Enable colour processing */
+    noecho();             /* Don't echo input chars */
+    nonl();               /* no newline at end of strings */
+    keypad(stdscr, TRUE); /* Enable F-keys */
+    cbreak();             /* No processing of control characters */
+    raw();                /* Disable ^C, ^Z */
+    meta(stdscr, TRUE);   /* Enable meta-keys */
+    getmaxyx(stdscr, Screen_Height, Screen_Width);    /* Get the screen size */
+
+    signal(SIGWINCH, window_size_change);
+
+/* Set up colour pairs that match the foreground colours */
+    init_pair(COLOR_BLACK,   COLOR_BLACK,   COLOR_BLACK);
+    init_pair(COLOR_RED,     COLOR_RED,     COLOR_BLACK);
+    init_pair(COLOR_GREEN,   COLOR_GREEN,   COLOR_BLACK);
+    init_pair(COLOR_YELLOW,  COLOR_YELLOW,  COLOR_BLACK);
+    init_pair(COLOR_BLUE,    COLOR_BLUE,    COLOR_BLACK);
+    init_pair(COLOR_MAGENTA, COLOR_MAGENTA, COLOR_BLACK);
+    init_pair(COLOR_CYAN,    COLOR_CYAN,    COLOR_BLACK);
+    init_pair(COLOR_WHITE,   COLOR_WHITE,   COLOR_BLACK);
+
+    draw_title(window);
+
 /* Update the whole screen now we have created all the windows. From now
    on all updates will be optimised */
-    
     wrefresh(stdscr);
     Main_Window = window;
     return window;
@@ -425,11 +467,11 @@ static void rearrange_windows(int num)
     int i;
 
     win_height = (Screen_Height-4) / (num);
-    
+
     // Impose a maximum height of half the display area.
     if (win_height > (Screen_Height-4)/2)
 	win_height = (Screen_Height-4)/2;
-    
+
     for (i=0; i<num; i++)
     {
 	int x,y;
@@ -442,7 +484,7 @@ static void rearrange_windows(int num)
 	// Remove the bottom rule when growing windows
 	wmove(userinfo[i].window, userinfo[i].window_bottom+1, 0);
 	wclrtoeol(userinfo[i].window);
-	
+
 	wresize(userinfo[i].window, win_height, Screen_Width);
 	wsetscrreg(userinfo[i].window, 1, win_height-2);
 
@@ -467,9 +509,9 @@ static void add_new_caller(int in_fd, int out_fd, char *name, fd_callback fdc)
     userinfo[num_users].out_fd      = out_fd;
     userinfo[num_users].fd_callback = fdc;
     strcpy(userinfo[num_users].name, name);
-    
+
     // Only create the window if the user has been answered.
-    if (out_fd != -1) 
+    if (out_fd != -1)
     {
 	new_talk_window(num_users, name);
     }
@@ -501,20 +543,20 @@ static void show_error(int level, char *msg)
 static void write_text(char *name, char *msg)
 {
     int i,j;
-    
+
     for (i=0; i<num_users; i++)
     {
 	if (strcmp(name, userinfo[i].name) == 0)
 	{
 	    int x,y;
-	   
+
 	    wattrset(userinfo[i].window, A_NORMAL | COLOR_PAIR(COLOR_WHITE));
-	    
+
 	    for (j=0; j<strlen(msg); j++)
 	    {
 		if (isprint(msg[j]))
 		    wechochar(userinfo[i].window, msg[j]);
-		
+
 		if (msg[j] == '\r')
 		{
 		    getyx(userinfo[i].window, y, x);
@@ -535,7 +577,7 @@ static void write_text(char *name, char *msg)
 		    draw_window_decorations(i);
 		    wmove(userinfo[i].window, 1, 0);
 		}
-		
+
 		if (msg[j] == 127) // Backspace
 		{
 		    getyx(userinfo[i].window, y, x);
@@ -582,7 +624,7 @@ static void delete_caller(int fd)
 		delwin(userinfo[i].window);
 		update_panels();
 	    }
-	    
+
 	    // Remove it from the list
 	    if (i != num_users)
 	    {
@@ -627,12 +669,12 @@ static void draw_window_decorations(int win)
     {
 	wattrset(userinfo[win].window, A_NORMAL | COLOR_PAIR(COLOR_WHITE));
 	if (userinfo[win].held == 2)
-	    mvwprintw(userinfo[win].window, 0, 0, "%s", "(YOU HAVE HELD)");	
+	    mvwprintw(userinfo[win].window, 0, 0, "%s", "(YOU HAVE HELD)");
 	else
 	    mvwprintw(userinfo[win].window, 0, Screen_Width-14, "%s", "(HAS YOU HELD)");
 
     }
-    
+
     wattrset(userinfo[win].window, A_BOLD | COLOR_PAIR(COLOR_WHITE));
     wmove(userinfo[win].window, userinfo[win].window_bottom+1, 0);
     whline(userinfo[win].window, ACS_HLINE, Screen_Width);
@@ -648,13 +690,13 @@ static void hold_window(int held, char *name)
 	state = STATE_COMMAND; // and force command mode
     else
 	state = STATE_TALK;    // back to command mode
-    
+
     for (i=0; i<num_users; i++)
     {
 	if (strcmp(name, userinfo[i].name) == 0)
 	{
 	    getyx(userinfo[i].window, y, x);
-	    
+
 	    userinfo[i].held = held;
 	    draw_window_decorations(i);
 	    wmove(userinfo[i].window, y,x);

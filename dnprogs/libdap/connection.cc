@@ -51,7 +51,7 @@
 
 #define min(a,b) (a)<(b)?(a):(b)
 
-// Construct an un-connected object 
+// Construct an un-connected object
 dap_connection::dap_connection(int verbosity)
 {
     blocksize = MAX_READ_SIZE;
@@ -111,7 +111,7 @@ void dap_connection::close()
     {
         if (outbufptr && blocked) set_blocked(false);
         if (sockfd) ::close(sockfd);
-    
+
         delete[] buf;
         delete[] outbuf;
         closed = true;
@@ -121,7 +121,7 @@ void dap_connection::close()
 // Create a DECnet socket
 void dap_connection::create_socket()
 {
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
         sprintf(errstring, "socket failed: %s", strerror(errno));
 	lasterror = errstring;
@@ -130,15 +130,15 @@ void dap_connection::create_socket()
 }
 
 // Connect to a named object
-bool dap_connection::connect(char *node, char *user, char *password, 
+bool dap_connection::connect(char *node, char *user, char *password,
 			     char *object)
 {
     struct sockaddr_dn	 sockaddr;
-    
+
     sockaddr.sdn_family   = AF_DECnet;
     sockaddr.sdn_flags	  = 0x00;
     sockaddr.sdn_objnum	  = 0x00;
-    
+
     if (strlen(object) > 16)
     {
 	strcpy(errstring, "connect: object name too long");
@@ -152,16 +152,16 @@ bool dap_connection::connect(char *node, char *user, char *password,
 }
 
 // Connect to an object number
-bool dap_connection::connect(char *node, char *user, char *password, 
+bool dap_connection::connect(char *node, char *user, char *password,
 			     int object)
 {
     struct sockaddr_dn	 sockaddr;
-    
+
     sockaddr.sdn_family   = AF_DECnet;
     sockaddr.sdn_flags	  = 0x00;
     sockaddr.sdn_objnum	  = object;
     sockaddr.sdn_objnamel = 0x00;
-    
+
     return do_connect(node, user, password, sockaddr);
 }
 
@@ -175,14 +175,14 @@ bool dap_connection::connect(char *fspec, int object, char *tailspec)
     char   node[MAX_NODE+1];
 
     if (!parse(fspec, accessdata, node, tailspec)) return false;
-    
+
     sockaddr.sdn_family   = AF_DECnet;
     sockaddr.sdn_flags	  = 0x00;
     sockaddr.sdn_objnum	  = object;
     sockaddr.sdn_objnamel = 0x00;
-    
-    return do_connect(node, 
-		      (char *)accessdata.acc_user, 
+
+    return do_connect(node,
+		      (char *)accessdata.acc_user,
 		      (char *)accessdata.acc_pass, sockaddr);
 }
 
@@ -195,12 +195,12 @@ bool dap_connection::connect(char *fspec, char *object, char *tailspec)
     char node[MAX_NODE+1];
 
     if (!parse(fspec, accessdata, node, tailspec)) return false;
-    
-    
+
+
     sockaddr.sdn_family   = AF_DECnet;
     sockaddr.sdn_flags	  = 0x00;
     sockaddr.sdn_objnum	  = 0x00;
-    
+
     if (strlen(object) > 16)
     {
 	strcpy(errstring, "connect: object name too long");
@@ -209,17 +209,17 @@ bool dap_connection::connect(char *fspec, char *object, char *tailspec)
     }
     memcpy(sockaddr.sdn_objname, object, strlen(object));
     sockaddr.sdn_objnamel = dn_htons(strlen(object));
-    
-    return do_connect(node, 
-		      (char *)accessdata.acc_user, 
+
+    return do_connect(node,
+		      (char *)accessdata.acc_user,
 		      (char *)accessdata.acc_pass, sockaddr);
 }
 
 
 
 // Private connect method
-bool dap_connection::do_connect(const char *node, const char *user, 
-				const char *password, 
+bool dap_connection::do_connect(const char *node, const char *user,
+				const char *password,
 				struct sockaddr_dn &sockaddr)
 {
     struct accessdata_dn accessdata;
@@ -233,7 +233,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
 	return false;
     }
 
-    /* If the password is "-" and fd 0 is a tty then 
+    /* If the password is "-" and fd 0 is a tty then
        prompt for a password */
     if (password[0] == '-' && password[1] == '\0' && isatty(0))
     {
@@ -244,7 +244,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
 	    lasterror = errstring;
 	    return false;
 	}
-	
+
     }
 
     memcpy(accessdata.acc_user, user, strlen(user));
@@ -269,17 +269,17 @@ bool dap_connection::do_connect(const char *node, const char *user,
 
     accessdata.acc_userl = strlen(user);
     accessdata.acc_passl = strlen(password);
-    
+
     if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
-		   sizeof(accessdata)) < 0) 
+		   sizeof(accessdata)) < 0)
     {
         sprintf(errstring, "setsockopt failed: %s", strerror(errno));
 	lasterror = errstring;
 	return false;
     }
-    
+
     if (::connect(sockfd, (struct sockaddr *)&s,
-		  sizeof(sockaddr)) < 0) 
+		  sizeof(sockaddr)) < 0)
     {
 	if (errno == ECONNREFUSED)
 	{
@@ -292,7 +292,7 @@ bool dap_connection::do_connect(const char *node, const char *user,
 	lasterror = errstring;
 	return false;
     }
-    
+
 // Make sure we get a blocking socket to start with
     int flags = fcntl(sockfd, F_GETFL, 0);
     fcntl(sockfd, F_SETFL, flags & ~O_NONBLOCK);
@@ -327,7 +327,7 @@ int dap_connection::read(bool block)
     // No data and we were told not to block
     if (buflen < 0 && saved_errno == EAGAIN) return false; // No data
 
-    if (buflen < 0) 
+    if (buflen < 0)
     {
 	if (saved_errno == ENOTCONN)
 	{
@@ -340,7 +340,7 @@ int dap_connection::read(bool block)
 	lasterror = errstring;
 	return false;
     }
-    if (buflen == 0) 
+    if (buflen == 0)
     {
 	lasterror = "Remote end closed connection";
 	return false;
@@ -366,11 +366,12 @@ int dap_connection::write()
     int er;
 
     if (outbuf[last_msg_start+1] & 0x02)
-    { 
+    {
         // Add in length
 	if (outbuf[last_msg_start+1] & 0x04) // LEN256 header
         {
-	    *(unsigned short *)&outbuf[last_msg_start+2] = dn_htons(outbufptr - last_msg_start - 4);
+		unsigned short len = dn_htons(outbufptr - last_msg_start - 4);
+		memcpy(&outbuf[last_msg_start+2], &len, sizeof(unsigned short));
 	}
 	else
         {
@@ -390,12 +391,12 @@ int dap_connection::write()
 // and hang onto the rest.
     if (blocked && (outbufptr >= blocksize))
     {
-	if (verbose > 2) 
+	if (verbose > 2)
   	    DAPLOG((LOG_INFO, "block is over-full(%d), Sending %d bytes\n",
 		    outbufptr, last_msg_start));
 
 	er=::write(sockfd,outbuf,last_msg_start);
-	if (er < 0) 
+	if (er < 0)
 	{
 	    if (errno == ENOTCONN)
 		sprintf(errstring, "write failed: %s", connerror(strerror(errno)));
@@ -410,7 +411,7 @@ int dap_connection::write()
 	outbufptr -= last_msg_start;
 	last_msg_start = outbufptr;
 
-	if (verbose > 2) 
+	if (verbose > 2)
 	    DAPLOG((LOG_INFO, "Wrote %d bytes, buffer size is now %d bytes\n",
 		    er, outbufptr));
 	return true;
@@ -418,7 +419,7 @@ int dap_connection::write()
 
 // Normal send for unblocked output.
     er=::write(sockfd,outbuf,outbufptr);
-    if (er < 0) 
+    if (er < 0)
     {
 	if (errno == ENOTCONN)
 	    sprintf(errstring, "write failed: %s", connerror(strerror(errno)));
@@ -450,13 +451,13 @@ char *dap_connection::getbytes(int num)
     }
 
     ptr = &buf[bufptr];
-    
+
     bufptr += num;
 
     return ptr;
 }
 
-// Returns a pointer to a specific number of bytes in the buffer 
+// Returns a pointer to a specific number of bytes in the buffer
 // if there are that many.
 // Return NULL if there are not enough available.
 char *dap_connection::peekbytes(int num)
@@ -497,7 +498,7 @@ int  dap_connection::check_length(int needed)
 
     if (buflen < bufptr+needed)
     {
-	// The required buffer size 
+	// The required buffer size
 	int reqd_length = needed;
 	int left = buflen - bufptr; /* what's left unread */
 
@@ -507,13 +508,13 @@ int  dap_connection::check_length(int needed)
 	buflen = left;
 	while (buflen < reqd_length)
         {
-	  if (verbose > 2) 
+	  if (verbose > 2)
 	    DAPLOG((LOG_DEBUG, "check_length(): reading up to %d bytes to fill record. bufptr=%d, buflen=%d\n",
 		    reqd_length - buflen, bufptr, buflen));
 
 	  /* read enough to satisfy what's needed */
 	   int readlen = ::dnet_recv(sockfd, buf+buflen, reqd_length-buflen, MSG_EOR);
-	   if (readlen < 0) 
+	   if (readlen < 0)
 	   {
 	       sprintf(errstring, "read failed: %s", strerror(errno));
 	       lasterror = errstring;
@@ -544,7 +545,7 @@ int dap_connection::get_blocksize()
     return blocksize;
 }
 
-// 
+//
 // Wait for an incoming connection
 // Returns a constructed new dap_connection object
 // Clients may call either this or connect() BUT NOT BOTH
@@ -595,7 +596,7 @@ bool dap_connection::bind(int object)
     bind_sockaddr.sdn_objnum	= object;
     bind_sockaddr.sdn_objnamel	= 0x00;
 
-    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));
     if (status)
     {
@@ -625,7 +626,7 @@ bool dap_connection::bind(char *object)
     memcpy(bind_sockaddr.sdn_objname, object, strlen(object));
     bind_sockaddr.sdn_objnamel	= dn_htons(strlen(object));
 
-    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));
     if (status)
     {
@@ -649,7 +650,7 @@ bool dap_connection::bind_wild()
     bind_sockaddr.sdn_objnum	= 0;
     bind_sockaddr.sdn_objnamel	= 0;
 
-    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr, 
+    int status = ::bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));
     if (status)
     {
@@ -705,12 +706,12 @@ int dap_connection::set_blocked(bool onoff)
     blocked = false;
     if (outbufptr == 0) return true; // Nothing to send;
 
-    if (verbose > 2) 
+    if (verbose > 2)
 	DAPLOG((LOG_INFO, "Blocked output is OFF, sending %d bytes\n", outbufptr));
 
     // Send what we have saved up.
     int er=::write(sockfd,outbuf,outbufptr);
-    if (er < 0) 
+    if (er < 0)
     {
 	if (errno == ENOTCONN)
 	    sprintf(errstring, "write failed: %s", connerror(strerror(errno)));
@@ -730,7 +731,7 @@ int dap_connection::set_blocked(bool onoff)
 // Input is a transparent DECnet filespec in 'fname'
 // Output is a completed accessdata structure
 // and filespec
-bool dap_connection::parse(const char *fname, 
+bool dap_connection::parse(const char *fname,
 			   struct accessdata_dn &accessdata,
 			   char *node, char *filespec)
 {
@@ -741,7 +742,7 @@ bool dap_connection::parse(const char *fname,
     if (!fname) return false;
 
     memset(&accessdata, 0, sizeof(struct accessdata_dn));
-    
+
     state = NODE; /* Node is mandatory */
 
     while (state != FINISHED)
@@ -751,7 +752,7 @@ bool dap_connection::parse(const char *fname,
 	case NODE:
 	    if (fname[n0] != ':' && fname[n0] != '\"' && fname[n0] != '\'')
 	    {
-		if (n1 >= MAX_NODE || 
+		if (n1 >= MAX_NODE ||
 		    fname[n0] == ' ' || fname[n0] == '\n')
 		{
 		    lasterror = "File name parse error";
@@ -919,7 +920,7 @@ bool dap_connection::exchange_config()
     dap_config_message *newcm = new dap_config_message(MAX_READ_SIZE);
     if (!newcm->write(*this)) return false;
     delete newcm;
-  
+
 // Read the other end's config message
     dap_message *m=dap_message::read_message(*this, true);
     if (!m) // Comms error

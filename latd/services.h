@@ -75,7 +75,7 @@ class LATServices
       const std::string get_ident() { return ident; }
       bool  is_available();
       bool  remove_node(const std::string &node);
-      void  serviceinfo::list_service(std::ostrstream &output);
+      void  list_service(std::ostrstream &output);
       void  expire_nodes(time_t);
       void  list_nodes(std::ostrstream &output);
       bool  touch_dummy_node_respond_counter(const std::string &str_name);

@@ -36,7 +36,7 @@ class file
     virtual bool  iswildcard() = 0;
     virtual int   max_buffersize(int biggest) = 0;
     virtual void  set_protection(char *vmsprot) {};
-    
+
 // Some constants
 
     static const int MODE_DEFAULT = -1;
@@ -57,7 +57,12 @@ class file
     static const int RFM_STM = 4;
     static const int RFM_STMLF = 5;
     static const int RFM_STMCR = 6;
-    
+
+    // user_flags passed to setup_link.
+    static const int FILE_FLAGS_RRL = 1;
+    static const int FILE_FLAGS_SPOOL = 2;
+    static const int FILE_FLAGS_DELETE = 4;
+
  private:
     // Disable copy constructor
     file(const file &);

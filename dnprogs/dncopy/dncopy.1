@@ -152,6 +152,14 @@ quotes to protect it from the shell (see example).
 .br
 This option is ignored when copying from VMS.
 .TP
+.I "\-P"
+Queue the file for printing to SYS$PRINT when it arrives at the VMS end.
+.TP
+.I "\-D"
+Delete the file when it is closed. This is only really useful in conjunction
+with 
+.I -P.
+.TP
 .I \-h \-?
 Displays help for using the command.
 .TP

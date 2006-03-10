@@ -37,7 +37,8 @@ static void get_env_as_args(char **argv[], int &argc, char *env);
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose, int &rrl, char *protection);
+		       int &remove_cr, int &show_stats, int &verbose, 
+		       int &flags, char *protection);
 
 // Start here:
 int main(int argc, char *argv[])
@@ -58,7 +59,8 @@ int main(int argc, char *argv[])
     int   last_infile;
     int   remove_cr = 0;
     int   show_stats = 0;
-    int   rrl = 0;
+    int   printfile = 0;
+    int   flags = 0;
     char  opt;
     char  protection[255]={'\0'};
     struct timeval start_tv;
@@ -84,14 +86,14 @@ int main(int argc, char *argv[])
 	do_options(env_argc, env_argv,
 		   rfm, rat,org,
 		   interactive, keep_version, user_bufsize,
-		   remove_cr, show_stats, verbose, rrl, protection);
+		   remove_cr, show_stats, verbose, flags, protection);
 
 
 // Parse the command-line options
     do_options(argc, argv,
 	       rfm, rat,org,
 	       interactive, keep_version, user_bufsize,
-	       remove_cr, show_stats, verbose, rrl, protection);
+	       remove_cr, show_stats, verbose, flags, protection);
 
     // Work out the buffer size. The default for block transfers is 512
     // bytes unless the user specified otherwise.
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
     }
 
     // Set up the network links if necessary
-    if (out->setup_link(bufsize, rfm, rat, org, 0))
+    if (out->setup_link(bufsize, rfm, rat, org, flags))
     {
 	out->perror("Error setting up output link");
 	return 1;
@@ -177,7 +179,7 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	if (in->setup_link(bufsize, rfm, rat, org, rrl))
+	if (in->setup_link(bufsize, rfm, rat, org, flags))
 	{
 	    in->perror("Error setting up input link");
 	    return 1;
@@ -355,7 +357,9 @@ static void usage(char *name, int dntype, FILE *f)
         fprintf(f, "  -r <fmt>  (s)record format (fix, var, vfc, stm)\n");
         fprintf(f, "  -b <n>       use a block size of <n> bytes\n");
         fprintf(f, "  -d        (s)remove trailing CR on record (DOS file transfer)\n");
-        fprintf(f, "  -l        (r)Ignore interlocks on remote file\n");
+        fprintf(f, "  -l        (r)ignore interlocks on remote file\n");
+	fprintf(f, "  -P        (s)print file to SYS$PRINT\n");
+	fprintf(f, "  -D        (s)delete file on close. Only really useful with -P\n");
         fprintf(f, "  -V           show version number\n");
         fprintf(f, "\n");
         fprintf(f, " (s) - only useful when sending files to VMS\n");
@@ -436,12 +440,13 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose, int &rrl, char *protection)
+		       int &remove_cr, int &show_stats, int &verbose, 
+		       int &flags, char *protection)
 {
     int opt;
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:PD")) != EOF)
     {
 	switch(opt) {
 	case 'h':
@@ -457,7 +462,7 @@ static void do_options(int argc, char *argv[],
 	    break;
 
 	case 'l':
-	    rrl = 1;
+	    flags = file::FILE_FLAGS_RRL;
 	    break;
 
 	case 'r':
@@ -508,6 +513,14 @@ static void do_options(int argc, char *argv[],
 
 	case 'k':
 	    keep_version = TRUE;
+	    break;
+
+	case 'P':
+	    flags = file::FILE_FLAGS_SPOOL;
+	    break;
+
+	case 'D':
+	    flags = file::FILE_FLAGS_DELETE;
 	    break;
 
 	case 'b':

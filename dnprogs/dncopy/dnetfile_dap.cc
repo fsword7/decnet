@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2006 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ int dnetfile::dap_send_access()
 	att.set_rfm(dap_attrib_message::FB$VAR);
 	att.set_mrs(0);
 	att.set_datatype(dap_attrib_message::IMAGE);
-	if (user_flags) {
+	if (user_flags & FILE_FLAGS_RRL) {
 	    acc.set_shr(1<<dap_access_message::FB$PUT |
 	                1<<dap_access_message::FB$UPD |
 	                1<<dap_access_message::FB$GET |
@@ -222,7 +222,7 @@ int dnetfile::dap_send_get_or_put()
     {
 	ctl.set_ctlfunc(dap_control_message::PUT);
     }
-    if (user_flags)
+    if (user_flags & file::FILE_FLAGS_RRL)
     {
     	ctl.set_rop_bit(dap_control_message::RB$RRL);
     }
@@ -235,6 +235,12 @@ int dnetfile::dap_send_accomp()
 {
     dap_accomp_message accomp;
     accomp.set_cmpfunc(dap_accomp_message::CLOSE);
+
+    /* Remote printing support */
+    if (user_flags & FILE_FLAGS_SPOOL)
+	    accomp.set_fop_bit(dap_attrib_message::FB$SPL);
+    if (user_flags & FILE_FLAGS_DELETE)
+	    accomp.set_fop_bit(dap_attrib_message::FB$DLT);
     if (!accomp.write(conn)) return -1;
     conn.set_blocked(false);
 

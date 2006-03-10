@@ -49,7 +49,6 @@ public:
     char  errstring[80];
     int   verbose;
 
-
 /* File attributes, requested and actual */
     int          file_rat, file_rfm;
     int          user_rat, user_rfm;

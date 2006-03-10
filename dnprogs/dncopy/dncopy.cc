@@ -462,7 +462,7 @@ static void do_options(int argc, char *argv[],
 	    break;
 
 	case 'l':
-	    flags = file::FILE_FLAGS_RRL;
+	    flags |= file::FILE_FLAGS_RRL;
 	    break;
 
 	case 'r':
@@ -516,11 +516,11 @@ static void do_options(int argc, char *argv[],
 	    break;
 
 	case 'P':
-	    flags = file::FILE_FLAGS_SPOOL;
+	    flags |= file::FILE_FLAGS_SPOOL;
 	    break;
 
 	case 'D':
-	    flags = file::FILE_FLAGS_DELETE;
+	    flags |= file::FILE_FLAGS_DELETE;
 	    break;
 
 	case 'b':

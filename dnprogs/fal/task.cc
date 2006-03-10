@@ -1183,6 +1183,7 @@ const char *fal_task::default_types_file  = "#\n\
 .bck  b 32256\n\
 .save b 8192\n\
 .exe  b 512\n\
+.zip  b 512\n\
 #Linux types\n\
 .tar  b 10240\n\
 .gz   b 512\n\

@@ -520,7 +520,7 @@ int tty_process_terminal(char *buf, int len)
 			continue;
 		}
 
-		if (convert_uppercase)
+		if (convert_uppercase && isalpha(buf[i]))
 			buf[i] &= 0x5F;
 
 		/* echo if req'd, insert will redraw the whole line */

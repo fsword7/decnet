@@ -15,11 +15,11 @@ Options:
 is a daemon that manages the DECnet routing tables to provide a simple
 routing policy.
 .br
-.B dnetd
+.B dnroute
 reads polls the DECnet neighbour table and copies those entries into
 the internal routing tables, thus providing a simple (I can see that node,
 therefore I can route to it) routing system. For many sites this will be
-simple enough. it is still possible to add routes using the ip(8) command.
+simple enough. It is still possible to add routes using the ip(8) command.
 
 .SH OPTIONS
 .TP
@@ -27,7 +27,7 @@ simple enough. it is still possible to add routes using the ip(8) command.
 Don't fork and run the background. Use this for debugging.
 .TP
 .I "\-v"
-Verbose. The more of these there are the more verbose droute will be.
+Verbose. The more of these there are the more verbose dnroute will be.
 .TP
 .I \-h \-?
 Displays help for using the command.

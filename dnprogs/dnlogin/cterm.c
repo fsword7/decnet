@@ -706,7 +706,9 @@ int cterm_send_oob(char oobchar, int discard)
 	/* Echo needed ? */
 	if (char_attr[(int)oobchar] & 0x30) //TODO NAME!
 	{
-		if (oobchar == CTRL_C || oobchar == CTRL_Y)
+		if (oobchar == CTRL_C)
+			tty_write("\033[7m Cancel \033[0m\n", 17);
+		if (oobchar == CTRL_Y)
 			tty_write("\033[7m Interrupt \033[0m\n", 20);
 		if (oobchar == CTRL_O)
 		{

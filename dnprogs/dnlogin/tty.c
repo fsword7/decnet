@@ -108,7 +108,7 @@ int tty_write(char *buf, int len)
 	if (len == 1 && buf[0] == '\f')
 		return write(termfd, "\033[H\033[2J", 7);
 
-	if (debug & 16) 
+	if (debug & 16)
 	{
 		int i;
 		fprintf(stderr, "TTY: Printing %d: ", len);
@@ -380,6 +380,11 @@ int tty_process_terminal(char *buf, int len)
 		//PJC: is this right??
 		if (buf[i] == '\n')
 			buf[i] = '\r';
+
+		/* I don't really understand this, but it's needed to make ^C work
+		   as ^Y at the VMS command-line */
+		if (buf[i] == CTRL_C && (!char_attr[(int)buf[i]] & 3))
+			buf[i] = CTRL_Y;
 
 		/* Check for OOB */
 		if (char_attr[(int)buf[i]] & 3)

@@ -1,3 +1,13 @@
+dnprogs (2.34) unstable; urgency=low
+
+  * Don't SIGBUS on sparc sending DAP packets > 255 bytes long
+  * Add -P & -D (print & delete) flags to dncopy
+  * Add zip files to fal -ae list of known filetypes
+  * dnlogin no loger loses spaces on ALLCAPS input
+  * dnlogin differentiates better betwwen ^C & ^Y when it needs to
+
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 16 Mar 2006 14:40:45 +0000
+
 dnprogs (2.33) unstable; urgency=low
   
   * Fix dncopy fetching from RSX (don't set RRL unless the user asks for it)

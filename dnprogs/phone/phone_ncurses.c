@@ -176,7 +176,8 @@ static int getch_callback(int fd)
 	// Send char to remote system(s)
 	for (i=1; i<num_users; i++)
 	{
-	    send_data(userinfo[i].out_fd, (char *)&key, 1);
+	    char keychar = key;
+	    send_data(userinfo[i].out_fd, (char *)&keychar, 1);
 	}
 	return 0;
     }

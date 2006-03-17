@@ -40,6 +40,7 @@
 #include <linux/if_ether.h>   /* The L2 protocols */
 #endif
 
+#include "dn_endian.h"
 #include "utils.h"
 #include "libnetlink.h"
 #include "csum.h"
@@ -155,7 +156,7 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 	    if ( (addr[0] != exec_addr->a_addr[0]) ||
 	         (addr[1] != exec_addr->a_addr[1]))
 	    {
-		add_route(faddr, interface);
+		add_route(dn_htons(faddr), interface);
 	    }
 	}
     }

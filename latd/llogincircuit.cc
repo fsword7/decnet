@@ -90,8 +90,10 @@ bool LLOGINCircuit::do_command()
 	}
 	else
 	{
+	    char error[1024];
 	    debuglog(("Connect from invalid llogin version %s\n", cmdbuf));
-	    send_reply(LATCP_ERRORMSG, "llogin version does not match latd version " VERSION, -1);
+	    sprintf(error, "llogin version %s does not match latd version " VERSION, cmdbuf);
+	    send_reply(LATCP_ERRORMSG, error, -1);
 	    retval = false;
 	}
 	break;
@@ -134,7 +136,7 @@ bool LLOGINCircuit::do_command()
 							  queued) < 0)
 	{
 	    debuglog(("sending failure back to llogin\n"));
-	    send_reply(LATCP_ERRORMSG, "Error creating client service.", -1);
+	    send_reply(LATCP_ERRORMSG, "Can't find LAT service.", -1);
 	}
 	else
 	{

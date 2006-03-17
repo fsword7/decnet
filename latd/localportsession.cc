@@ -27,7 +27,7 @@
 #include <queue>
 #include <string>
 #include <map>
-#include <strstream>
+#include <sstream>
 
 #include "lat.h"
 #include "utils.h"

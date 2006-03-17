@@ -25,7 +25,7 @@ class LocalPort
   void disconnect_session(int reason);
   void restart_pty();
   int get_port_fd();
-  void show_info(bool verbose, std::ostrstream &output);
+  void show_info(bool verbose, std::ostringstream &output);
   void close_and_delete();
   const std::string &get_devname() { return devname; };
   void init_port();

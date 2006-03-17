@@ -46,10 +46,11 @@
 #include <queue>
 #include <map>
 #include <string>
-#include <algo.h>
+#include <algorithm>
 #include <iterator>
 #include <string>
-#include <strstream>
+#include <sstream>
+#include <iostream>
 
 #include "lat.h"
 #include "latcp.h"
@@ -239,7 +240,7 @@ int main(int argc, char *argv[])
 	int cmd;
 	read_reply(latcp_socket, cmd, result, len);
 
-	cout << result;
+	std::cout << result;
 
 	delete[] result;
 	return 0;

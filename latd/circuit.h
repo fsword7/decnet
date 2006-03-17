@@ -25,5 +25,5 @@ class Circuit
  protected:
     int fd;
 
-    bool send_reply(int, char *, int);
+    bool send_reply(int, const char *, int);
 };

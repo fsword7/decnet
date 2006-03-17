@@ -120,7 +120,7 @@ class LATServer
     void  accept_llogin(int);
     void  read_latcp(int);
     void  read_llogin(int);
-    void  print_bitmap(std::ostrstream &, bool, unsigned char *bitmap);
+    void  print_bitmap(std::ostringstream &, bool, unsigned char *bitmap);
     void  tidy_dev_directory();
     int   make_connection(int fd, const char *, const char *, const char *, const char *, const char *, bool);
 
@@ -299,8 +299,8 @@ class LATServer
     void set_multicast(int newtime);
     void set_nodename(unsigned char *);
     void unlock();
-    bool show_characteristics(bool verbose, std::ostrstream &output);
-    bool show_nodes(bool verbose, std::ostrstream &output);
+    bool show_characteristics(bool verbose, std::ostringstream &output);
+    bool show_nodes(bool verbose, std::ostringstream &output);
     int  create_local_port(unsigned char *, unsigned char *,
 			   unsigned char *, unsigned char *, bool, bool,
 			   unsigned char *);

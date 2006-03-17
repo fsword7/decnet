@@ -16,7 +16,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <strstream>
+#include <sstream>
 #include <list>
 #include <string>
 #include <map>
@@ -97,39 +97,39 @@ bool LATCPCircuit::do_command()
     case LATCP_SHOWSERVICE:
     {
 	int verbose = cmdbuf[0];
-	std::ostrstream st;
+	std::ostringstream st;
 
 	debuglog(("latcp: show_services(verbose=%d)\n", verbose));
 
 	LATServices::Instance()->list_services(verbose?true:false, st);
-	send_reply(LATCP_SHOWSERVICE, st.str(), st.pcount());
-	st.freeze(false);
+	send_reply(LATCP_SHOWSERVICE, st.str().c_str(), (int)st.tellp());
+//	st.freeze(false);
     }
     break;
 
     case LATCP_SHOWCHAR:
     {
 	int verbose = cmdbuf[0];
-	std::ostrstream st;
+	std::ostringstream st;
 
 	debuglog(("latcp: show_characteristics(verbose=%d)\n", verbose));
 
 	LATServer::Instance()->show_characteristics(verbose?true:false, st);
-	send_reply(LATCP_SHOWCHAR, st.str(), st.pcount());
-	st.freeze(false);
+	send_reply(LATCP_SHOWCHAR, st.str().c_str(), (int)st.tellp());
+//	st.freeze(false);
     }
     break;
 
     case LATCP_SHOWNODES:
     {
 	int verbose = cmdbuf[0];
-	std::ostrstream st;
+	std::ostringstream st;
 
 	debuglog(("latcp: shownodes\n"));
 
 	LATServer::Instance()->show_nodes(verbose?true:false, st);
-	send_reply(LATCP_SHOWNODES, st.str(), st.pcount());
-	st.freeze(false);
+	send_reply(LATCP_SHOWNODES, st.str().c_str(), (int)st.tellp());
+//	st.freeze(false);
     }
     break;
 

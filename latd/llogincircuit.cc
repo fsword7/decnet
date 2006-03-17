@@ -17,7 +17,7 @@
 #include <syslog.h>
 #include <time.h>
 
-#include <strstream>
+#include <sstream>
 #include <list>
 #include <string>
 #include <map>
@@ -101,13 +101,13 @@ bool LLOGINCircuit::do_command()
     case LATCP_SHOWSERVICE:
     {
 	int verbose = cmdbuf[0];
-	std::ostrstream st;
+	std::ostringstream st;
 
 	debuglog(("llogin: show_services(verbose=%d)\n", verbose));
 
 	LATServices::Instance()->list_services(verbose?true:false, st);
-	send_reply(LATCP_SHOWSERVICE, st.str(), st.pcount());
-	st.freeze(false);
+	send_reply(LATCP_SHOWSERVICE, st.str().c_str(), (int)st.tellp());
+//	st.freeze(false);
     }
     break;
 

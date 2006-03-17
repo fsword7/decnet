@@ -39,10 +39,10 @@ class LATServices
 		     int rating, int interface, unsigned char *macaddr);
 
     bool remove_node(const std::string &node);
-    bool list_services(bool verbose, std::ostrstream &output);
+    bool list_services(bool verbose, std::ostringstream &output);
     void purge() {servicelist.clear(); }
     void expire_nodes();
-    bool list_dummy_nodes(bool verbose, std::ostrstream &output);
+    bool list_dummy_nodes(bool verbose, std::ostringstream &output);
     bool touch_dummy_node_respond_counter(const std::string &str_name);
 
 
@@ -75,9 +75,9 @@ class LATServices
       const std::string get_ident() { return ident; }
       bool  is_available();
       bool  remove_node(const std::string &node);
-      void  list_service(std::ostrstream &output);
+      void  list_service(std::ostringstream &output);
       void  expire_nodes(time_t);
-      void  list_nodes(std::ostrstream &output);
+      void  list_nodes(std::ostringstream &output);
       bool  touch_dummy_node_respond_counter(const std::string &str_name);
 
     private:

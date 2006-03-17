@@ -22,7 +22,7 @@
 #include <queue>
 #include <string>
 #include <map>
-#include <strstream>
+#include <sstream>
 #include <iomanip>
 
 #include "lat.h"
@@ -234,7 +234,7 @@ void LocalPort::do_read()
 }
 
 // Show info for latcp
-void LocalPort::show_info(bool verbose, std::ostrstream &output)
+void LocalPort::show_info(bool verbose, std::ostringstream &output)
 {
     output.setf(std::ios::left, std::ios::adjustfield);
 

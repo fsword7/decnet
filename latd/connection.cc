@@ -19,7 +19,7 @@
 #include <map>
 #include <queue>
 #include <string>
-#include <strstream>
+#include <sstream>
 #include <iterator>
 
 

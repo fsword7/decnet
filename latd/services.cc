@@ -21,7 +21,7 @@
 #include <string>
 #include <map>
 #include <iterator>
-#include <strstream>
+#include <sstream>
 #include <iomanip>
 
 #include "lat.h"
@@ -223,7 +223,7 @@ void LATServices::expire_nodes()
 
 
 // Verbose listing of nodes in this service
-void LATServices::serviceinfo::list_service(std::ostrstream &output)
+void LATServices::serviceinfo::list_service(std::ostringstream &output)
 {
     std::map<std::string, nodeinfo, std::less<std::string> >::iterator n(nodes.begin());
 
@@ -241,7 +241,7 @@ void LATServices::serviceinfo::list_service(std::ostrstream &output)
     }
 }
 
-void LATServices::serviceinfo::list_nodes(std::ostrstream &output)
+void LATServices::serviceinfo::list_nodes(std::ostringstream &output)
 {
     std::map<std::string, nodeinfo, std::less<std::string> >::iterator n(nodes.begin());
     const unsigned char *addr = NULL;
@@ -271,7 +271,7 @@ void LATServices::serviceinfo::list_nodes(std::ostrstream &output)
     }
 }
 
-bool LATServices::list_dummy_nodes(bool verbose, std::ostrstream &output)
+bool LATServices::list_dummy_nodes(bool verbose, std::ostringstream &output)
 {
     std::map<std::string, serviceinfo, std::less<std::string> >::iterator dummies =
              servicelist.find("");
@@ -319,7 +319,7 @@ bool LATServices::serviceinfo::touch_dummy_node_respond_counter(const std::strin
 
 
 // List all known services
-bool LATServices::list_services(bool verbose, std::ostrstream &output)
+bool LATServices::list_services(bool verbose, std::ostringstream &output)
 {
   std::map<std::string, serviceinfo, std::less<std::string> >::iterator s(servicelist.begin());
 

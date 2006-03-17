@@ -37,7 +37,7 @@
 #include <string>
 #include <map>
 #include <queue>
-#include <strstream>
+#include <sstream>
 
 #include "lat.h"
 #include "utils.h"

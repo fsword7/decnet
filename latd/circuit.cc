@@ -16,7 +16,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#include <strstream>
+#include <sstream>
 #include <list>
 #include <string>
 #include <map>
@@ -35,7 +35,7 @@
 #include "server.h"
 
 
-bool Circuit::send_reply(int cmd, char *buf, int len)
+bool Circuit::send_reply(int cmd, const char *buf, int len)
 {
     char outhead[3];
 

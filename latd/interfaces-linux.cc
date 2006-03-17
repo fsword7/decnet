@@ -54,9 +54,9 @@
 #include <queue>
 #include <map>
 #include <string>
-#include <algo.h>
+#include <algorithm>
 #include <iterator>
-#include <strstream>
+#include <sstream>
 #include <iomanip>
 
 #include "utils.h"

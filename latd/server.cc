@@ -45,9 +45,9 @@
 #include <queue>
 #include <map>
 #include <string>
-#include <algo.h>
+#include <algorithm>
 #include <iterator>
-#include <strstream>
+#include <sstream>
 #include <iomanip>
 
 #include "lat.h"
@@ -1845,7 +1845,7 @@ int LATServer::create_local_port(unsigned char *service,
 
 
 // Make this as much like VMS LATCP SHOW NODE as possible.
-bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
+bool LATServer::show_characteristics(bool verbose, std::ostringstream &output)
 {
     output <<std::endl;
     output.setf(std::ios::left, std::ios::adjustfield);
@@ -1901,12 +1901,12 @@ bool LATServer::show_characteristics(bool verbose, std::ostrstream &output)
     }
 
     // NUL-terminate it.
-    output << std::endl << ends;
+    output << std::endl << std::ends;
 
     return true;
 }
 
-bool LATServer::show_nodes(bool verbose, std::ostrstream &output)
+bool LATServer::show_nodes(bool verbose, std::ostringstream &output)
 {
     return LATServices::Instance()->list_dummy_nodes(verbose, output);
 }
@@ -2007,7 +2007,7 @@ int LATServer::find_connection_by_node(const char *node)
 
 // Print a groups bitmap
 // TODO: print x-y format like we accept in latcp.
-void LATServer::print_bitmap(std::ostrstream &output, bool isset, unsigned char *bitmap)
+void LATServer::print_bitmap(std::ostringstream &output, bool isset, unsigned char *bitmap)
 {
     if (!isset)
     {

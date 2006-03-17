@@ -41,7 +41,7 @@
 #include <string>
 #include <map>
 #include <iterator>
-#include <strstream>
+#include <sstream>
 
 #include "lat.h"
 #include "utils.h"

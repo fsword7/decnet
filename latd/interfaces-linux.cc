@@ -273,6 +273,21 @@ int LinuxInterfaces::set_lat_multicast(int ifn)
 	return -1;
     }
 
+    /* This is the LAT solicit address */
+    pack_info.mr_address[0]  = 0x09;
+    pack_info.mr_address[1]  = 0x00;
+    pack_info.mr_address[2]  = 0x2b;
+    pack_info.mr_address[3]  = 0x02;
+    pack_info.mr_address[4]  = 0x01;
+    pack_info.mr_address[5]  = 0x04;
+
+    if (setsockopt(fd, SOL_PACKET, PACKET_ADD_MEMBERSHIP,
+		   &pack_info, sizeof(pack_info)))
+    {
+	syslog(LOG_ERR, "can't add lat socket multicast : %m\n");
+	return -1;
+    }
+
     return 0;
 }
 
@@ -301,6 +316,22 @@ int LinuxInterfaces::remove_lat_multicast(int ifn)
 	syslog(LOG_ERR, "can't remove socket multicast : %m\n");
 	return -1;
     }
+
+    /* This is the LAT solicit address */
+    pack_info.mr_address[0]  = 0x09;
+    pack_info.mr_address[1]  = 0x00;
+    pack_info.mr_address[2]  = 0x2b;
+    pack_info.mr_address[3]  = 0x02;
+    pack_info.mr_address[4]  = 0x01;
+    pack_info.mr_address[5]  = 0x04;
+
+    if (setsockopt(fd, SOL_PACKET, PACKET_DROP_MEMBERSHIP,
+		   &pack_info, sizeof(pack_info)))
+    {
+	syslog(LOG_ERR, "can't remove socket multicast : %m\n");
+	return -1;
+    }
+
     return 0;
 }
 

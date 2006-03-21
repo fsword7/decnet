@@ -5,9 +5,6 @@ fal
   Reports of problems with FAL on DECnet/E. Need to test with new 
   RSX-friendly code.
 
-ctermd
-  Logs "NCT -- Internal error " on RSX when disconnecting.
-
 phone:
   Race condition in ANSWER where you can get the message "no-one is calling
     you now" when there is. Only happens with "phone answer" on the shell

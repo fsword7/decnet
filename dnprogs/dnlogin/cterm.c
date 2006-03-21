@@ -136,8 +136,7 @@ static void skip_first_lf(char *buf, int len)
 		{
 			buf[i] = '\0';
 			skipped = 1;
-			if (debug & 2)
-				fprintf(stderr, "PJC: skipping this LF\n");
+			DEBUG_CTERM("skipping this LF\n");
 			break;
 		}
 	}
@@ -173,7 +172,6 @@ static int cterm_process_start_read(char *buf, int len)
 	char term_len;
 	int  ptr = 0;
 	unsigned char ZZ, EE, DDD, Q, II;
-	int  old_esc_state;
 
 	flags = buf[1] | (buf[2] << 8) | (buf[3] << 16);
 	ptr = 4;
@@ -197,7 +195,7 @@ static int cterm_process_start_read(char *buf, int len)
 //           UU 1=write BEL on underflow, 2=terminate on underflow
 //           C  1=clear typeahead
 //           F  1=if last char was CR, end LF, discard LF if first char of
-//                preloaded input (whatever that is)
+//                preloaded input
 //           V  1=Terminate if vertical pos changes while echoing input char.
 //           K  1=This is a continuation of previous read - see doc
 //           II 2=Convert lower to uppercase
@@ -211,16 +209,21 @@ static int cterm_process_start_read(char *buf, int len)
 //               2=DO perform esc-seq recognition (this read only)
 //
 
-	if (debug & 2) fprintf(stderr, "CTERM: process_start_read. flags = %x (ZZ=%d)\n",flags, ZZ);
-	if (debug & 2) fprintf(stderr, "CTERM: len=%d, term_len=%d, ptr=%d\n",
-			       len, term_len, ptr);
-	if (debug & 2) fprintf(stderr, "CTERM: Q=%d timeout = %d, EE=%d\n", Q, timeout, EE);
+	if (debug & 2) DEBUG_CTERM("process_start_read. flags = %x\n",flags);
+	if (debug & 2) DEBUG_CTERM("len=%d, term_len=%d, ptr=%d\n",
+				   len, term_len, ptr);
+	if (debug & 2) DEBUG_CTERM("Q=%d timeout = %d, EE=%d, ZZ=%d\n", Q, timeout, EE, ZZ);
 
 	if (flags & 4) tty_clear_typeahead();
 	if (flags & 0x800) tty_set_noecho();
 
-	if (flags & 0x8 && buf[ptr+1] != '\n')
+	// PJC not happy with this last clause but editors seem to need it.
+	if (flags & 0x8 &&
+	    buf[ptr+term_len] != '\n' && buf[ptr+term_len+1] != '\n' && eoprompt)
+	{
+		DEBUG_CTERM("format CR: char1=%x, char2=%x, eoprompt=%d\n", buf[ptr+term_len], buf[ptr+term_len+1], eoprompt);
 		tty_format_cr();
+	}
 
 	if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
 	if (ZZ==2) tty_set_default_terminators();
@@ -258,12 +261,26 @@ static int cterm_process_unread(char *buf, int len)
 static int cterm_process_clear_input(char *buf, int len)
 {return len;}
 
+static void send_write_complete(void)
+{
+	char newbuf[6];
+
+	DEBUG_CTERM("Sending write complete\n");
+	newbuf[0] = CTERM_MSG_WRITE_COMPLETE;
+	newbuf[1] = 0;
+	newbuf[2] = 0 & 0xFF;    // Horiz pos
+	newbuf[3] = (0 >> 8) & 0xFF;
+	newbuf[4] = 0 & 0xFF;    // Vert pos
+	newbuf[5] = (0 >> 8) & 0xFF;
+
+	found_common_write(newbuf, 6);
+}
+
 static void send_prepostfix(int flag, char data)
 {
-	int i;
 	char feed;
 
-	if (debug & 2)fprintf(stderr, "CTERM: send_prepostfix: flag =%d, data=%d\n", flag, data);
+	DEBUG_CTERM("send_prepostfix: flag =%d, data=%d\n", flag, data);
 	if (flag == 0)
 		return;
 
@@ -297,11 +314,11 @@ static int cterm_process_write(char *buf, int len)
 	//       B   1=This is the beginning of a host data message
 	//       E   1=This is the end of a host data message
 	//       PP  1=prefixdata is a newline count, 2=prefixdata=character
-	//       QQ  1=postfix is a newline  count, 2=postfix=character
-	//       S   1=Send write completion when this wrote completes
+	//       QQ  1=postfix is a newline count, 2=postfix=character
+	//       S   1=Send write completion when this write completes
 	//       T   1=This data is written to foundation services transparently
 
-	if (debug & 2) fprintf(stderr, "CTERM: process_write flags = %x (prefix=%d,postfix=%d)\n",flags, prefixdata, postfixdata);
+	DEBUG_CTERM("process_write flags = %x (prefix=%d,postfix=%d)\n",flags, prefixdata, postfixdata);
 
 	tty_set_discard(!(flags>>3));
 
@@ -318,20 +335,21 @@ static int cterm_process_write(char *buf, int len)
 	{
 		if (!skip_next_lf)
 		{
-			if (debug & 2)
-				fprintf(stderr, "PJC: sending feed, skipping next LF\n");
+			DEBUG_CTERM("sending feed, skipping next LF\n");
 			tty_write(&feed, 1);
 			skip_next_lf = 1;
 		}
 		else
 		{
-			if (debug & 2)
-				fprintf(stderr, "PJC: NOT sending feed, skip_next_lf set\n");
+			DEBUG_CTERM("NOT sending feed, skip_next_lf set\n");
 			skip_next_lf = 0;
 		}
 	}
 
 	send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
+
+	if (flags & 2)
+		send_write_complete();
 
 	return len;
 }
@@ -347,7 +365,6 @@ static int cterm_process_read_characteristics(char *buf, int len)
 	int  bufptr = 2;/* skip past flags */
 	char outbuf[256];
 	int  outptr = 0;
-	int  procnt = 0;
 
 	outbuf[outptr++] = CTERM_MSG_CHARACTERISTINCS;
 
@@ -357,8 +374,7 @@ static int cterm_process_read_characteristics(char *buf, int len)
 
 		bufptr += 2;
 
-		if (debug & 2)
-			fprintf(stderr, "CTERM: selector = 0x%x\n", selector);
+		DEBUG_CTERM("selector = 0x%x\n", selector);
 
 		if ((selector & 0x200) == 0) /* Physical characteristics */
 		{
@@ -582,8 +598,7 @@ static int cterm_process_characteristics(char *buf, int len)
 		if ((selector & 0x300) != 0x200)
 		{
 			// TODO other characteristics ?
-			if (debug & 2)
-				fprintf(stderr, "Discarding rest of attrs, ptr=%d, len=%d\n",bufptr, len);
+			DEBUG_CTERM("Discarding rest of attrs, ptr=%d, len=%d\n",bufptr, len);
 			return len;
 		}
 		selector &= 0xFF;
@@ -601,9 +616,8 @@ static int cterm_process_characteristics(char *buf, int len)
 			char_attr[(int)c] &= ~mask; // clear those in the mask
 			char_attr[(int)c] |= (val & mask); // set the new ones.
 			bufptr += 3;
-			if (debug & 2)
-				fprintf(stderr, "CTERM: Setting characteristics for char %d to 0x%x\n",
-					c, char_attr[(int)c]);
+			DEBUG_CTERM("Setting characteristics for char %d to 0x%x\n",
+				 c, char_attr[(int)c]);
 			break;
 
 		case 0x03:	/* Control-o pass through 	*/
@@ -678,8 +692,8 @@ int cterm_process_network(char *buf, int len)
 
 	while (offset < len)
 	{
-		if (debug & 2) fprintf(stderr, "CTERM: got msg: %d, len=%d\n",
-				       buf[offset], len);
+		DEBUG_CTERM("got msg: %d, len=%d\n",
+			 buf[offset], len);
 
 		switch (buf[offset])
 		{
@@ -740,7 +754,8 @@ int cterm_send_oob(char oobchar, int discard)
 {
 	char newbuf[3];
 	int ret;
-	if (debug & 2) fprintf(stderr, "CTERM: sending OOB char %d\n", oobchar);
+
+	DEBUG_CTERM("sending OOB char %d\n", oobchar);
 
 	newbuf[0] = CTERM_MSG_OOB;
 	newbuf[1] = discard;
@@ -770,8 +785,7 @@ int cterm_send_oob(char oobchar, int discard)
 int cterm_send_input(char *buf, int len, int term_pos, int flags)
 {
 	char newbuf[len+9];
-	if (debug & 2) fprintf(stderr, "CTERM: sending input data: len=%d\n",
-			       len);
+	DEBUG_CTERM("sending input data: len=%d\n", len);
 
 	newbuf[0] = CTERM_MSG_READ_DATA;
 	newbuf[1] = flags;

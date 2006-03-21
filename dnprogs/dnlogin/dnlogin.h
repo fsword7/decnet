@@ -75,3 +75,18 @@ extern int debug;
 #define SEND_FLAG_FRAMING_ERROR 11
 #define SEND_FLAG_PARITY_ERROR  12
 #define SEND_FLAG_OVERRUN       13
+
+/* DEBUG flags */
+#define DEBUG_FLAG_FOUND   1
+#define DEBUG_FLAG_CTERM   2
+#define DEBUG_FLAG_TTY     4
+#define DEBUG_FLAG_FOUND2  8
+#define DEBUG_FLAG_TTY2   16
+
+#define DEBUGLOG(subsys, args...) if (debug & subsys) fprintf(stderr, args)
+
+#define DEBUG_FOUND(args...) DEBUGLOG(DEBUG_FLAG_FOUND, "FOUND: " args)
+#define DEBUG_FOUND2(args...) DEBUGLOG(DEBUG_FLAG_FOUND2, "FOUND2: " args)
+#define DEBUG_CTERM(args...) DEBUGLOG(DEBUG_FLAG_CTERM, "CTERM: " args)
+#define DEBUG_TTY(args...) DEBUGLOG(DEBUG_FLAG_TTY, "TTY: " args)
+#define DEBUG_TTY2(args...) DEBUGLOG(DEBUG_FLAG_TTY2, "TTY2: " args)

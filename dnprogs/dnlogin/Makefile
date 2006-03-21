@@ -8,7 +8,7 @@ MANPAGES=dnlogin.1
 
 PROG1OBJS=dnlogin.o found.o cterm.o tty.o
 
-CFLAGS+=-funsigned-char
+CFLAGS+=-funsigned-char -Wall
 
 CFLAGS+=-g
 #CFLAGS+=-O2

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2006      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -126,14 +126,14 @@ int found_common_write(char *buf, int len)
 	struct msghdr msg;
 	struct common_header header;
 
-	if (debug & 1) fprintf(stderr, "FOUND: sending %d bytes\n", len);
-	if (debug & 8)
+	DEBUG_FOUND("sending %d bytes\n", len);
+	if (debug & DEBUG_FLAG_FOUND2)
 	{
 		int i;
-
+		DEBUG_FOUND2("sending: ");
 		for (i=0; i<len; i++)
-			fprintf(stderr, "%02x  ", (char)buf[i]);
-		fprintf(stderr, "\n\n");
+			DEBUGLOG(DEBUG_FLAG_FOUND2, "%02x  ", (char)buf[i]);
+		DEBUGLOG(DEBUG_FLAG_FOUND2, "\n\n");
 	}
 
 
@@ -153,8 +153,7 @@ int found_common_write(char *buf, int len)
 	header.pad = 0;
 	header.len = dn_htons(len);
 
-	if (debug & 1)
-		fprintf(stderr, "FOUND: sending common message %d bytes:\n", len);
+	DEBUG_FOUND("sending common message %d bytes:\n", len);
 
 	return sendmsg(sockfd, &msg, MSG_EOR);
 }
@@ -163,7 +162,6 @@ int found_read()
 {
 	int len;
 	char inbuf[1024];
-	int ptr = 0;
 
 	if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT|MSG_NOSIGNAL)) <= 0)
 	
@@ -181,15 +179,15 @@ int found_read()
 		return -1;
 	}
 
-	if (debug & 1)
-		fprintf(stderr, "FOUND: got message %d bytes:\n", len);
-	if (debug & 8)
+	DEBUG_FOUND("got message %d bytes:\n", len);
+	if (debug & DEBUG_FLAG_FOUND2)
 	{
 		int i;
 
+		DEBUG_FOUND2("read: ");
 		for (i=0; i<len; i++)
-			fprintf(stderr, "%02x  ", (char)inbuf[i]);
-		fprintf(stderr, "\n\n");
+			DEBUGLOG(DEBUG_FLAG_FOUND2,  "%02x  ", (char)inbuf[i]);
+		DEBUGLOG(DEBUG_FLAG_FOUND2, "\n\n");
 	}
 
 
@@ -197,20 +195,17 @@ int found_read()
 	switch (inbuf[0])
 	{
 	case FOUND_MSG_BIND:
-		if (debug & 1)
-			fprintf(stderr, "FOUND: connected to %s host\n", hosttype[inbuf[4]-1]);
+		DEBUG_FOUND("connected to %s host\n", hosttype[inbuf[4]-1]);
 		return send_bindaccept();
 
 	case FOUND_MSG_UNBIND:
-		if (debug & 1)
-			fprintf(stderr, "FOUND: Unbind from host. reason = %d\n", inbuf[1]);
+		DEBUG_FOUND("Unbind from host. reason = %d\n", inbuf[1]);
 		return -1;
 
 	case FOUND_MSG_ENTERMODE:
         {
 		char nomode_msg[] = {0x8};
-		if (debug)
-			fprintf(stderr, "FOUND: Request to enter mode = %d\n", inbuf[1]);
+		DEBUG_FOUND("Request to enter mode = %d\n", inbuf[1]);
 		write(sockfd, nomode_msg, sizeof(nomode_msg));
 		return 0;
 	}
@@ -223,8 +218,7 @@ int found_read()
 		{
 			int msglen = inbuf[ptr] | inbuf[ptr+1]<<8;
 
-			if (debug&1)
-				fprintf(stderr, "FOUND: commondata: %d bytes\n",msglen);
+			DEBUG_FOUND("commondata: %d bytes\n",msglen);
 
 			ptr += 2;
 			terminal_processor(inbuf+ptr, msglen);

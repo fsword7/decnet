@@ -120,10 +120,7 @@ static void usage(char *prog, FILE * f)
 
 int main(int argc, char *argv[])
 {
-	struct sigaction sa;
-	sigset_t ss;
 	int opt;
-	char *nodename;
 
 	// Deal with command-line arguments.
 	opterr = 0;

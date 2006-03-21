@@ -49,6 +49,7 @@ static char prompt_len=0;
 static char line_start_pos=0;
 static char esc_buf[132];
 static int  esc_len=0;
+static int  esc_state=0;
 static int  max_read_len = sizeof(input_buf);
 static int  echo = 1;
 static int  reading = 0;
@@ -69,6 +70,90 @@ int  (*send_input)(char *buf, int len, int term_pos, int flags);
 int  (*send_oob)(char oobchar, int discard);
 void (*rahead_change)(int count);
 
+/* Escape parser. See appx B of cterm.txt.
+   returns 0 if we have terminated the sequenec (or an error)
+   returns 1 if we are stll in an escape sequence */
+
+/* Note that all the numbered rules fall through to the next rule */
+static int parse_escape(char c, int *state)
+{
+	switch (*state)
+	{
+	case 0:
+		if (c == '?' || c == ';')
+		{
+ 			*state = 10;
+			return 1;
+		}
+		if (c == 'O')
+		{
+			*state = 20;
+			return 1;
+		}
+		if (c == 'Y')
+		{
+			*state = 30;
+			return 1;
+		}
+		if (c == '[')
+		{
+			*state = 15;
+			return 1;
+		}
+
+	case 10:
+		if (c >= 32 && c <= 47)
+		{
+			*state = 10;
+			return 1;
+		}
+		if (c >= 48 && c <= 126)
+		{
+			*state = 0;
+			return 0;
+		}
+
+	case 15:
+		if (c >= 48 && c <= 63)
+		{
+			*state = 15;
+			return 1;
+		}
+
+	case 20:
+		if (c >= 32 && c <= 47)
+		{
+			*state = 20;
+			return 1;
+		}
+		if (c >= 64 && c <= 126)
+		{
+			*state = 0;
+			return 0;
+		}
+
+	case 30:
+		if (c >= 32 && c <= 126)
+		{
+			*state = 40;
+			return 1;
+		}
+
+	case 40:
+		if (c >= 32 && c <= 126)
+		{
+			*state = 0;
+			return 0;
+		}
+		break;
+	default:
+		*state = 0;
+		return 0;
+	}
+	return 0;
+}
+
+
 static void send_input_buffer(int flags)
 {
 	char buf[1024];
@@ -79,8 +164,7 @@ static void send_input_buffer(int flags)
 	send_input(buf, input_len, input_len-1, flags);
 	input_len = input_pos = 0;
 	reading = 0;
-	if (debug & 4)
-		fprintf(stderr, "TTY: clearing 'reading' flag\n");
+	DEBUG_TTY("clearing 'reading' flag\n");
 	echo = 1;
 	interpret_escape = 0;
 }
@@ -88,15 +172,15 @@ static void send_input_buffer(int flags)
 /* Called when select() times out */
 void tty_timeout()
 {
-	if (debug & 4)
-		fprintf(stderr, "TTY: timeout\n");
+	DEBUG_TTY("timeout\n");
 	send_input_buffer(SEND_FLAG_TIMEOUT);
 }
 
 /* Raw write to terminal */
 int tty_write(char *buf, int len)
 {
-	int in_esc = 0; /* escapes can't stradde writes ??? */
+	int in_esc = 0; /* escapes can't straddle writes */
+	int esc_state = 0;
 
 	if (discard)
 		return len;
@@ -112,31 +196,53 @@ int tty_write(char *buf, int len)
 		return write(termfd, "\033[H\033[2J", 7);
 	}
 
-	if (debug & 16)
+	if (debug & DEBUG_FLAG_TTY2)
 	{
 		int i;
-		fprintf(stderr, "TTY: Printing %d: ", len);
+		DEBUG_TTY2("Printing %d: ", len);
 		for (i=0; i<len; i++)
-			fprintf(stderr, "%02x ", (unsigned char)buf[i]);
-		fprintf(stderr, "\n");
+		{
+			if (isgraph(buf[i]))
+			{
+				DEBUGLOG(DEBUG_FLAG_TTY2,  "%c ", buf[i]);
+			}
+			else
+			{
+				DEBUGLOG(DEBUG_FLAG_TTY2,  "0x%02x ", (unsigned char)buf[i]);
+			}
+		}
+		DEBUGLOG(DEBUG_FLAG_TTY2, "\n");
 	}
 
 	write(termfd, buf, len);
 
 	if (len)
 	{
-		int i;
-		for (i=0; i<len; i++)
+		/* if interpret_escape is set then we don't include escape sequences
+		   as possible "last_char"s
+		*/
+		if (!interpret_escape)
 		{
-			if (buf[i] == ESC)
-				in_esc = 1;
-			if (!in_esc && buf[i])
-				last_char = buf[i];
-			if (in_esc && (isalpha(buf[i]) || buf[i] == '~' || buf[i] == '>'))
-				in_esc = 0;
+			int i;
+			for (i=0; i<len; i++)
+			{
+				if (buf[i] == ESC)
+					in_esc = 1;
+				else
+				{
+					if (!in_esc && buf[i])
+						last_char = buf[i];
+					if (in_esc && !parse_escape(buf[i], &esc_state))
+						in_esc = 0;
+				}
+			}
 		}
-		if (debug & 4)
-			fprintf(stderr, "TTY: Setting last_char to %02x\n", last_char);
+		else
+		{
+			last_char = buf[len-1];
+		}
+
+		DEBUG_TTY("Setting last_char to %02x, interpret_escape=%d\n", last_char, interpret_escape);
 	}
 	return len;
 }
@@ -150,8 +256,8 @@ void tty_format_cr()
 {
 	char lf = '\n';
 
-	if (debug & 4)
-		fprintf(stderr, "TTY: format_cr, last char was %x\n", last_char);
+	DEBUG_TTY("format_cr, last char was %x\n", last_char);
+
 	if (last_char == '\r')
 		tty_write(&lf, 1);
 }
@@ -178,7 +284,6 @@ void tty_allow_edit(int onoff)
 
 int tty_set_escape_proc(int onoff)
 {
-	int oldval = interpret_escape;
 	interpret_escape = onoff;
 
 	return interpret_escape;
@@ -191,16 +296,14 @@ int  tty_get_input_count(void)
 
 void tty_echo_terminator(int a)
 {
-	if (debug & 4)
-		fprintf(stderr, "TTY: echo terminators = %d\n", a);
+	DEBUG_TTY("echo terminators = %d\n", a);
 
 	echo_terminator = a;
 }
 
 void tty_set_default_terminators()
 {
-	if (debug & 4)
-		fprintf(stderr, "TTY: set default terminators\n");
+	DEBUG_TTY("set default terminators\n");
 
 	/* All control chars except ^R ^U ^W, BS & HT */
 	/* ie 18, 21, 23, 8, 9 */
@@ -215,13 +318,13 @@ void tty_set_default_terminators()
 
 void tty_set_terminators(char *buf, int len)
 {
-	if (debug & 4) {
+	if (debug & DEBUG_FLAG_TTY) {
 		int i;
-		fprintf(stderr, "TTY: set terminators... %d bytes\n", len);
-		fprintf(stderr, "TTY: terms: ");
+		DEBUG_TTY("set terminators... %d bytes\n", len);
+		DEBUG_TTY("terms: ");
 		for (i=0; i<len; i++)
-			fprintf(stderr, "%02x ", buf[i]);
-		fprintf(stderr, "\n");
+			DEBUGLOG(DEBUG_FLAG_TTY, "%02x ", buf[i]);
+		DEBUGLOG(DEBUG_FLAG_TTY, "\n");
 	}
 	memset(terminators, 0, sizeof(terminators));
 	memcpy(terminators, buf, len);
@@ -230,9 +333,9 @@ void tty_set_terminators(char *buf, int len)
 void tty_start_read(char *prompt, int len, int promptlen)
 {
 	int i;
-	if (debug & 4)
-		fprintf(stderr, "TTY: start_read promptlen = %d, maxlen=%d\n",
-			promptlen, len);
+	DEBUG_TTY("start_read promptlen = %d, maxlen=%d\n",
+		 promptlen, len);
+
 	if (promptlen) tty_write(prompt, promptlen);
 	if (len < 0) len = sizeof(input_buf);
 
@@ -241,7 +344,7 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	memcpy(prompt_buf, prompt, promptlen);
 	prompt_len = promptlen;
 
-	/* Work out the position of the cursor after the prompt (which may contain CRLF chars ) */
+	/* Work out the position of the cursor after the prompt (which may contain CRLF chars) */
 	line_start_pos = 0;
 	for (i = 0; i<prompt_len; i++)
 		if (prompt_buf[i] >= ' ')
@@ -259,16 +362,14 @@ void tty_start_read(char *prompt, int len, int promptlen)
 	{
 		int copylen = rahead_len;
 
-		if (debug & 4)
-			fprintf(stderr, "TTY: readahead = %d bytes\n", rahead_len);
+		DEBUG_TTY("readahead = %d bytes\n", rahead_len);
 
 		/* Don't overflow the input buffer */
 		if (input_len + copylen > sizeof(input_buf))
 			copylen = sizeof(input_buf)-input_len;
 		rahead_len -= copylen;
 		tty_process_terminal(rahead_buf, copylen);
-		if (debug & 4)
-			fprintf(stderr, "TTY: readahead now = %d bytes\n", rahead_len);
+		DEBUG_TTY("readahead now = %d bytes\n", rahead_len);
 	}
 }
 
@@ -285,10 +386,8 @@ void tty_clear_typeahead()
 
 void tty_set_maxlen(unsigned short len)
 {
+	DEBUG_TTY("max_read_len now = %d \n", len);
 	max_read_len = len;
-	if (debug & 4)
-		fprintf(stderr, "TTY: max_read_len now = %d \n", len);
-
 }
 
 /* Set/Reset the local TTY mode */
@@ -334,9 +433,8 @@ static short is_terminator(char c)
 	aux = c % 8;
 	msk = (1 << aux);
 
-	if (debug & 4)
-		fprintf(stderr, "TTY: is_terminator: %d: (byte=%x, msk=%x) %s\n", c, terminators[termind],msk,
-			(terminators[termind] & msk)?"Yes":"No");
+	DEBUG_TTY("is_terminator: %d: (byte=%x, msk=%x) %s\n", c, terminators[termind],msk,
+		 (terminators[termind] & msk)?"Yes":"No");
 
 	if (terminators[termind] & msk)
 	{
@@ -448,7 +546,7 @@ int tty_process_terminal(char *buf, int len)
 		if (esc_len)
 		{
 			esc_buf[esc_len++] = buf[i];
-			if (isalpha(buf[i]) || buf[i] == '~')
+			if (!parse_escape(buf[i], &esc_state))
 			{
 				int esc_done = 0;
 

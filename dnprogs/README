@@ -35,7 +35,7 @@ It will also install a startup script appropriate to your distribution. You
 will need to set up your system so that this script is run at system startup
 time.
 
-NOTE: These startup scripts are out of date for everthing except Debian.
+NOTE: These startup scripts are out of date for everything except Debian.
 If you can help with startup scripts for your particular distribution then
 please contact me.
 
@@ -115,11 +115,12 @@ dncopy	    -  copy files between VMS and Linux
 dntype      -  view VMS files
 dndir       -  show VMS directories
 dndel       -  delete VMS files
-sethost     -  connect a terminal session to VMS
+dnlogin     -  connect a terminal session to VMS
 dnping      -  "ping" (NCP LOOP NODE) a VMS machine
 dnsubmit    -  submit batch jobs to a VMS queue
 dnprint     -  print files on a VMS printer
 phone       -  phone client
+sethost	    -  old terminal client. use dnlogin instead.
 
 Administrator programs and daemons in /usr/local/sbin:
 ------------------------------------------------------
@@ -157,6 +158,10 @@ but that experience is with Xt and Motif because it was gained in a commercial
 environment (using VMS rather than Unix since you asked!). I believe that GTK+
 is the future of - free - software development and Motif, despite the
 excellent efforts of the Lesstif team, is merely a legacy toolkit.
+
+UPDATE: GTK+2 is now more common and (probably) better. I have no intention of
+updating phone to use this. It's just a waste of effort. If you really want
+a GTK+2 version of phone, send me the patch.
 
 
 Writing DECnet programs
@@ -225,7 +230,7 @@ And to everyone who has submitted bug reports - please don't stop.
 
 SUPPORT
 -------
-These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3 & 2.4 on Intel,
+These programs have been tested on Linux 2.0, 2.1, 2.2, 2.3, 2.4 & 2.6 on Intel,
 Alpha, SPARC and parisc machines (though not necessarily all combinations!).
 
 I encourage all users to join the linux-decnet mailing list by visiting the

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2005      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2006      P.J. Caulfield          patrick@debian.org
 
     Portions based on code (c) 2000 Eduardo M Serrat
 
@@ -12,8 +12,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    ******************************************************************************
-    */
+*******************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -124,6 +123,27 @@ han_char = {FALSE,FALSE,FALSE,TRUE,TRUE,TRUE,
 	    1,FALSE,FALSE};
 
 char char_attr[256];
+static int skip_next_lf;
+
+static void skip_first_lf(char *buf, int len)
+{
+	int i;
+	int skipped = 0;
+
+	for (i=0; i<len; i++)
+	{
+		if (buf[i] == '\n')
+		{
+			buf[i] = '\0';
+			skipped = 1;
+			if (debug & 2)
+				fprintf(stderr, "PJC: skipping this LF\n");
+			break;
+		}
+	}
+	if (skipped)
+		skip_next_lf = 0;
+}
 
 /* Process incoming CTERM messages */
 static int cterm_process_initiate(char *buf, int len)
@@ -199,8 +219,7 @@ static int cterm_process_start_read(char *buf, int len)
 	if (flags & 4) tty_clear_typeahead();
 	if (flags & 0x800) tty_set_noecho();
 
-	// PJC: The inclusion of the prompt len in here fixes TPU but is is right???
-	if (flags & 0x8 && buf[ptr+1] != '\n' && eoprompt > 0)
+	if (flags & 0x8 && buf[ptr+1] != '\n')
 		tty_format_cr();
 
 	if (ZZ==1) tty_set_terminators(buf+ptr, term_len);
@@ -212,6 +231,11 @@ static int cterm_process_start_read(char *buf, int len)
 	tty_set_maxlen(maxlength);
 	if (Q) tty_set_timeout(timeout);
 	tty_echo_terminator((flags>>12)&1);
+
+	if (skip_next_lf)
+	{
+		skip_first_lf(buf+ptr+term_len, eoprompt);
+	}
 
 	/* do the biz */
 	tty_start_read(buf+ptr+term_len, len-term_len-ptr, eoprompt);
@@ -250,8 +274,9 @@ static void send_prepostfix(int flag, char data)
 		feed = '\r';
 		tty_write(&feed, 1);
 		feed = '\n';
-		for (i=0; i<data; i++)
+		for (i=0; i<data - skip_next_lf; i++)
 			tty_write(&feed, 1);
+		skip_next_lf = 0;
 	}
 	if (flag == 2)
 		tty_write(&data, 1);
@@ -282,12 +307,32 @@ static int cterm_process_write(char *buf, int len)
 
 	send_prepostfix(((flags >> 6) & 3), prefixdata); //PP
 
+	if (skip_next_lf)
+	{
+		skip_first_lf(buf+4, len-4);
+	}
+
 	tty_write(buf+4, len-4);
 
 	if ((flags >>2)&1)
-		tty_write(&feed, 1);
+	{
+		if (!skip_next_lf)
+		{
+			if (debug & 2)
+				fprintf(stderr, "PJC: sending feed, skipping next LF\n");
+			tty_write(&feed, 1);
+			skip_next_lf = 1;
+		}
+		else
+		{
+			if (debug & 2)
+				fprintf(stderr, "PJC: NOT sending feed, skip_next_lf set\n");
+			skip_next_lf = 0;
+		}
+	}
 
 	send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
+
 	return len;
 }
 

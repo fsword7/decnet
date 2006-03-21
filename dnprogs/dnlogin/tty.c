@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2005      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2006      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -10,8 +10,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    ******************************************************************************
-    */
+*******************************************************************************/
 
 #include <stdio.h>
 #include <string.h>
@@ -97,6 +96,8 @@ void tty_timeout()
 /* Raw write to terminal */
 int tty_write(char *buf, int len)
 {
+	int in_esc = 0; /* escapes can't stradde writes ??? */
+
 	if (discard)
 		return len;
 
@@ -106,7 +107,10 @@ int tty_write(char *buf, int len)
 
 	/* FF is a special case (perhaps!) */
 	if (len == 1 && buf[0] == '\f')
+	{
+		last_char = '\f';
 		return write(termfd, "\033[H\033[2J", 7);
+	}
 
 	if (debug & 16)
 	{
@@ -116,10 +120,21 @@ int tty_write(char *buf, int len)
 			fprintf(stderr, "%02x ", (unsigned char)buf[i]);
 		fprintf(stderr, "\n");
 	}
+
 	write(termfd, buf, len);
+
 	if (len)
 	{
-		last_char = buf[len-1];
+		int i;
+		for (i=0; i<len; i++)
+		{
+			if (buf[i] == ESC)
+				in_esc = 1;
+			if (!in_esc && buf[i])
+				last_char = buf[i];
+			if (in_esc && (isalpha(buf[i]) || buf[i] == '~' || buf[i] == '>'))
+				in_esc = 0;
+		}
 		if (debug & 4)
 			fprintf(stderr, "TTY: Setting last_char to %02x\n", last_char);
 	}

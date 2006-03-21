@@ -16,7 +16,7 @@ CFLAGS+=-g
 all: $(PROG1)
 
 $(PROG1): $(PROG1OBJS) tty.h dnlogin.h $(DEPLIBDNET)
-	$(CC) -o $@ $(PROG1OBJS) $(LIBDNET)
+	$(CC) $(LDFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET)
 
 install:
 	install -d $(prefix)/bin

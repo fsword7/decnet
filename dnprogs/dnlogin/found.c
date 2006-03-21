@@ -164,7 +164,7 @@ int found_read()
 	char inbuf[1024];
 
 	if ( (len=dnet_recv(sockfd, inbuf, sizeof(inbuf), MSG_EOR|MSG_DONTWAIT|MSG_NOSIGNAL)) <= 0)
-	
+
 	{
 		if (len == -1 && (errno == EAGAIN || errno == ESPIPE))
 			return 0;

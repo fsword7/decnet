@@ -261,6 +261,7 @@ static int cterm_process_unread(char *buf, int len)
 static int cterm_process_clear_input(char *buf, int len)
 {return len;}
 
+#if 0
 static void send_write_complete(void)
 {
 	char newbuf[6];
@@ -275,6 +276,7 @@ static void send_write_complete(void)
 
 	found_common_write(newbuf, 6);
 }
+#endif
 
 static void send_prepostfix(int flag, char data)
 {
@@ -348,8 +350,11 @@ static int cterm_process_write(char *buf, int len)
 
 	send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
 
+#if 0
+	// This break RSX, and VMS is happy without it...
 	if (flags & 2)
 		send_write_complete();
+#endif
 
 	return len;
 }

@@ -89,7 +89,7 @@ static void send_start(unsigned short addr)
 }
 
 
-static int send_tun(unsigned char *buf, int len)
+static int send_tun(int mcast, unsigned char *buf, int len)
 {
 	unsigned char header[38];
 	struct iovec iov[2];
@@ -107,37 +107,54 @@ static int send_tun(unsigned char *buf, int len)
 	header[4] = local_addr[0];
 	header[5] = local_addr[1];
 
-	header[6] = 0xAA;
-	header[7] = 0x00;
-	header[8] = 0x04;
-	header[9] = 0x00;
-	header[10] = remote_decnet_addr[0];
-	header[11] = remote_decnet_addr[1];
-
+	if (mcast) /* Routing muticast - type may need to be in callers params */
+	{
+		header[6] = 0x09;
+		header[7] = 0x00;
+		header[8] = 0x00;
+		header[9] = 0x00;
+		header[10] = 0x09;
+		header[11] = 0x23;
+	}
+	else
+	{
+		header[6] = 0xAA;
+		header[7] = 0x00;
+		header[8] = 0x04;
+		header[9] = 0x00;
+		header[10] = remote_decnet_addr[0];
+		header[11] = remote_decnet_addr[1];
+	}
 	header[12] = 0x60; /* DECnet packet type */
 	header[13] = 0x03;
 
-	/* DECnet packet length */
-	header[14] = (len+16) & 0xFF;
-	header[15] = (len+16) >> 8;
+	if (!mcast)
+	{
+		/* DECnet packet length */
+		header[14] = (len+16) & 0xFF;
+		header[15] = (len+16) >> 8;
 
-	/* Fake DECnet header */
-	header[18] = header[19] = 0;
-	header[16] = 0x81; header[17] = 0x26;  // Don't know what this is!
+		/* Fake DECnet header */
+		header[18] = header[19] = 0;
+		header[16] = 0x81; header[17] = 0x26;  // Don't know what this is!
 
-	header[20] = header[28] = 0xAA;
-	header[21] = header[29] = 0x00;
-	header[22] = header[30] = 0x04;
-	header[23] = header[31] = 0x00;
-	header[24] = buf[1]; // Dest addr
-	header[25] = buf[2];
-	header[32] = buf[3]; // src addr
-	header[33] = buf[4];
+		header[20] = header[28] = 0xAA;
+		header[21] = header[29] = 0x00;
+		header[22] = header[30] = 0x04;
+		header[23] = header[31] = 0x00;
+		header[24] = buf[1]; // Dest addr
+		header[25] = buf[2];
+		header[32] = buf[3]; // src addr
+		header[33] = buf[4];
+
+		buf += 6;
+		len -= 6;
+	}
 
 	iov[0].iov_base = header;
 	iov[0].iov_len = sizeof(header);
-	iov[1].iov_base = buf+6;
-	iov[1].iov_len = len-6;
+	iov[1].iov_base = buf;
+	iov[1].iov_len = len;
 
 	dump_data("to TUN0:", header, sizeof(header));
 	dump_data("to TUN1:", buf+6, len-6);
@@ -161,7 +178,6 @@ static int send_ip(int fudge_header, unsigned char *buf, int len)
 
 	if (fudge_header)
 	{
-		dump_data("FUDGE", buf, 16);
 		/* Shorten DECnet addresses */
 		buf[0] = 0x02; // TODO what is this ??
 		buf[1] = buf[8]; // Destination
@@ -243,24 +259,61 @@ static void read_ip(void)
 	{
 		got_verification = 1;
 		alarm(0);
+
+		// TODO for '0x05' send hello packet
 	}
 
 	/* Trap INIT & VERF messages */
-	if ((buf[4] == 0x01 || buf[4] == 0x05) && !got_remote_addr)
+	if (buf[4] == 0x01 || buf[4] == 0x05)
 	{
-		unsigned short addr = buf[6]<<8 | buf[5];
-		got_remote_addr = 1;
-		remote_decnet_addr[0] = buf[5];
-		remote_decnet_addr[1] = buf[6];
+		if (!got_remote_addr)
+		{
+			unsigned short addr = buf[6]<<8 | buf[5];
+			got_remote_addr = 1;
+			remote_decnet_addr[0] = buf[5];
+			remote_decnet_addr[1] = buf[6];
 
-		printf("Remote address = %d.%d (%d)\n", addr>>10, addr&1023, addr);
+			printf("Remote address = %d.%d (%d)\n", addr>>10, addr&1023, addr);
+		}
 
 		return;
 	}
 	if (buf[4] == 0x03)
 		return;
+	if (buf[4] == 0x07) /* Routing info */
+	{
+		/*
+		  off ethernet:
+		  13:17:58.021480 lev-2-routing src 3.35 {areas 1-64 cost 4 hops 1}
+		  0x0000:  8800 0923 0c00 3f00 0100 0404 0a04 0000
+		  0x0010:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f 0404
+		  0x0020:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f ff7f
+		  0x0030:  ff7f ff7f ff7f ff7f ff7f ff7f 2428 1e08
+		  0x0040:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f ff7f
+		  0x0050:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f ff7f
+		  0x0060:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f ff7f
+		  0x0070:  ff7f ff7f ff7f ff7f ff7f ff7f ff7f 1408
+		  0x0080:  ff7f ff7f ff7f ff7f 8d44
 
-	send_tun(buf+4, len-4);
+		  off Multinet:
+		  09  00  00  00  09  23
+		  0c  00  3f  00  01  00  04  04  0a  04  00  00
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  04  04
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  04  04  1e  08
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
+		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  14  08
+		  ff  7f  ff  7f  ff  7f  ff  7f  6d  20
+		*/
+		buf[2] = len % 0xFF;
+		buf[3] = len >> 8;
+		send_tun(1, buf+2, len-2);
+		return;
+	}
+
+	send_tun(0, buf+4, len-4);
 }
 
 static void read_tun(void)

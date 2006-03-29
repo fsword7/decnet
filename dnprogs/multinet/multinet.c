@@ -93,6 +93,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 {
 	unsigned char header[38];
 	struct iovec iov[2];
+	int header_len;
 
 	if (!got_remote_addr)
 		return 0; /* Can't send yet */
@@ -107,7 +108,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 	header[4] = local_addr[0];
 	header[5] = local_addr[1];
 
-	if (mcast) /* Routing muticast - type may need to be in callers params */
+	if (mcast) /* Routing multicast - type may need to be in callers params */
 	{
 		header[6] = 0x09;
 		header[7] = 0x00;
@@ -115,6 +116,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[9] = 0x00;
 		header[10] = 0x09;
 		header[11] = 0x23;
+		header_len = 14;
 	}
 	else
 	{
@@ -124,6 +126,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[9] = 0x00;
 		header[10] = remote_decnet_addr[0];
 		header[11] = remote_decnet_addr[1];
+		header_len = sizeof(header);
 	}
 	header[12] = 0x60; /* DECnet packet type */
 	header[13] = 0x03;
@@ -152,11 +155,11 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 	}
 
 	iov[0].iov_base = header;
-	iov[0].iov_len = sizeof(header);
+	iov[0].iov_len = header_len;
 	iov[1].iov_base = buf;
 	iov[1].iov_len = len;
 
-	dump_data("to TUN0:", header, sizeof(header));
+	dump_data("to TUN0:", header, header_len);
 	dump_data("to TUN1:", buf+6, len-6);
 
 	writev(tunfd, iov, 2);
@@ -253,17 +256,21 @@ static void read_ip(void)
 
 	dump_data("from IP:", buf, len);
 
-
-	/* TODO Will need to resend this if other packets timeout */
 	if (buf[4] == 0x05)
 	{
+		// TODO what's this second MAC address????? 3.35 (in this packet)
+		unsigned char hello[] = {/* Router 2 hello message */
+			0x22, 0x00, 0x0b, 0x02, 0x00, 0x00, 0xaa, 0x00, 0x04, 0x00, buf[5], buf[6], 0x02, 0xda, 0x05, 0x40,
+			0x00, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xaa, 0x00, 0x04,
+			0x00, 0x02, 0x2c, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+		send_tun(1, hello, sizeof(hello)); // Should go to multicst ab-00-00-04-00-00,
+
 		got_verification = 1;
 		alarm(0);
-
-		// TODO for '0x05' send hello packet
 	}
 
-	/* Trap INIT & VERF messages */
+	/* Trap INIT & VERF messages, they're for us */
 	if (buf[4] == 0x01 || buf[4] == 0x05)
 	{
 		if (!got_remote_addr)
@@ -278,8 +285,11 @@ static void read_ip(void)
 
 		return;
 	}
-	if (buf[4] == 0x03)
+	if (buf[4] == 0x03) // TODO check this
 		return;
+	if (buf[4] == 0x02) // TODO check this
+		return;
+
 	if (buf[4] == 0x07) /* Routing info */
 	{
 		/*

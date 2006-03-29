@@ -59,7 +59,7 @@ static int port = 700;
 
 #define DUMP_MAX 1024
 
-static int send_ip(int use_seq, unsigned char *, int len);
+static int send_ip(int fudge_header, unsigned char *, int len);
 
 static void dump_data(char *from, unsigned char *databuf, int datalen)
 {
@@ -168,7 +168,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 	iov[1].iov_len = len;
 
 	dump_data("to TUN0:", header, header_len);
-	dump_data("to TUN1:", buf+6, len-6);
+	dump_data("to TUN1:", buf, len);
 
 	writev(tunfd, iov, 2);
 	return len;
@@ -266,26 +266,25 @@ static void read_ip(void)
 
 	if (buf[4] == 0x05) /* PtP hello */
 	{
-		// TODO get router priority & level from /proc */
-		unsigned char hello[] = {/* Router 2 hello message */
-			0x00, 0x00,       /* Length, filled in later */
-			0x0b,             /* FLAGS: Router hello */
-			0x02, 0x00, 0x00, /* Router version */
+		unsigned char hello[] = {
+			0x00, 0x00,           /* Length, filled in later */
+			0x0b,                 /* FLAGS: Router hello */
+			0x02, 0x00, 0x00,     /* Router version */
 			0xaa, 0x00, 0x04, 0x00, buf[5], buf[6], /* Routers MAC addr */
-			router_level,     /* Info, including routing level */
+			router_level,         /* Info, including routing level */
 			mtu % 0xFF, mtu >> 8, /* Data block size  */
-			0x40,             /* Priority */
-			0x00,             /* Reserved */
-			0x0f, 0x00,       /* Hello timer (seconds) */
-			0x00,             /* Reserved */
-			0x00,             /* Length of (other 'logical' ethernets) message that follows */
+			router_priority,      /* Priority */
+			0x00,                 /* Reserved */
+			0x0f, 0x00,           /* Hello timer (seconds) */ // TODO
+			0x00,                 /* Reserved */
+			0x00,                 /* Length of (other 'logical' ethernets) message that follows */
 		};
 
 		hello[0] = sizeof(hello); /* Allow me to edit it at will */
 		send_tun(1, hello, sizeof(hello));
 
 		got_verification = 1;
-		alarm(0);
+		alarm(0); /* cancel START timer */
 	}
 
 	/* Trap INIT & VERF messages, they're for us */
@@ -309,7 +308,7 @@ static void read_ip(void)
 		return;
 	}
 
-	if (buf[4] == 0x07) /* Routing info */ // TODO Fix this !
+	if (buf[4] == 0x07 || buf[4] == 0x09) /* Routing info */ // TODO Fix this !
 	{
 		/*
 		  off ethernet:
@@ -325,8 +324,8 @@ static void read_ip(void)
 		  0x0080:  ff7f ff7f ff7f ff7f 8d44
 
 		  off Multinet:
-		  09  00  00  00  09  23
-		  0c  00  3f  00  01  00  04  04  0a  04  00  00
+		  09  00  00  00  multinet header 
+		  09  23  0c  00  3f  00  01  00  04  04  0a  04  00  00
 		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  04  04
 		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
 		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  04  04  1e  08
@@ -376,6 +375,12 @@ static void read_tun(void)
 				fprintf(stderr, "Sending PTP hello\n");
 			send_ip(0, ptp_hello, sizeof(ptp_hello));
 			return ;
+		}
+		/* Routing messages, Don't fudge the header on these */
+		if (buf[16] == 0x07 || buf[16] == 0x09)
+		{
+			send_ip(0, buf+16, len-16);
+			return;
 		}
 
 		/* Data or other packet */
@@ -434,7 +439,6 @@ static int setup_tun(unsigned short addr)
 		fprintf(procfile, "%d", router_priority);
 		fclose(procfile);
 	}
-
 
 	return tunfd;
 }

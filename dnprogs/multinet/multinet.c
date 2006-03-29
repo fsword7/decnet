@@ -34,8 +34,8 @@
 #include <sys/signal.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <getopt.h>
 #include <string.h>
-#include <termios.h>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -51,7 +51,11 @@ static int got_remote_addr;
 static unsigned char remote_decnet_addr[2];
 static int got_verification;
 
-#define PORT 700
+static int router_priority = 64;
+static int router_level = 2;
+static int mtu = 578;
+static int port = 700;
+
 
 #define DUMP_MAX 1024
 
@@ -100,7 +104,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 
 	memset(header, 0, sizeof(header));
 
-	// Add ethernet header
+	/* Add ethernet header */
 	header[0] = 0xAA;
 	header[1] = 0x00;
 	header[2] = 0x04;
@@ -110,13 +114,16 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 
 	if (mcast) /* Routing multicast - type may need to be in callers params */
 	{
-		header[6] = 0x09;
-		header[7] = 0x00;
-		header[8] = 0x00;
-		header[9] = 0x00;
-		header[10] = 0x09;
-		header[11] = 0x23;
+		header[6]  = 0xab;
+		header[7]  = 0x00;
+		header[8]  = 0x00;
+		header[9]  = 0x03;
+		header[10] = 0x00;
+		header[11] = 0x00;
+
 		header_len = 14;
+		// TODO Maybe want to send to 09:00:2b:02:00:00 too,
+		// Not sure why VMS sends to both, probably backward compatibility
 	}
 	else
 	{
@@ -126,6 +133,7 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[9] = 0x00;
 		header[10] = remote_decnet_addr[0];
 		header[11] = remote_decnet_addr[1];
+
 		header_len = sizeof(header);
 	}
 	header[12] = 0x60; /* DECnet packet type */
@@ -145,9 +153,9 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[21] = header[29] = 0x00;
 		header[22] = header[30] = 0x04;
 		header[23] = header[31] = 0x00;
-		header[24] = buf[1]; // Dest addr
+		header[24] = buf[1]; /* Dest addr */
 		header[25] = buf[2];
-		header[32] = buf[3]; // src addr
+		header[32] = buf[3]; /* src addr */
 		header[33] = buf[4];
 
 		buf += 6;
@@ -182,10 +190,10 @@ static int send_ip(int fudge_header, unsigned char *buf, int len)
 	if (fudge_header)
 	{
 		/* Shorten DECnet addresses */
-		buf[0] = 0x02; // TODO what is this ??
-		buf[1] = buf[8]; // Destination
+		buf[0] = 0x02;    // TODO what is this ??
+		buf[1] = buf[8];  /* Destination */
 		buf[2] = buf[9];
-		buf[3] = buf[16]; // Source
+		buf[3] = buf[16]; /* Source */
 		buf[4] = buf[17];
 		buf[5] = 0;
 		memmove(buf+6, buf+22, len-16);
@@ -203,7 +211,7 @@ static int send_ip(int fudge_header, unsigned char *buf, int len)
 	msg.msg_name = (void *)&remote_addr;
 	msg.msg_namelen = sizeof(struct sockaddr_in);
 
-//	dump_data("Send to IP0", header, sizeof(header));
+	dump_data("Send to IP0", header, sizeof(header));
 	dump_data("Send to IP1:", buf, len);
 
 	if (sendmsg(ipfd, &msg, 0) <= 0)
@@ -256,15 +264,25 @@ static void read_ip(void)
 
 	dump_data("from IP:", buf, len);
 
-	if (buf[4] == 0x05)
+	if (buf[4] == 0x05) /* PtP hello */
 	{
-		// TODO what's this second MAC address????? 3.35 (in this packet)
+		// TODO get router priority & level from /proc */
 		unsigned char hello[] = {/* Router 2 hello message */
-			0x22, 0x00, 0x0b, 0x02, 0x00, 0x00, 0xaa, 0x00, 0x04, 0x00, buf[5], buf[6], 0x02, 0xda, 0x05, 0x40,
-			0x00, 0x0f, 0x00, 0x00, 0x0f, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xaa, 0x00, 0x04,
-			0x00, 0x02, 0x2c, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+			0x00, 0x00,       /* Length, filled in later */
+			0x0b,             /* FLAGS: Router hello */
+			0x02, 0x00, 0x00, /* Router version */
+			0xaa, 0x00, 0x04, 0x00, buf[5], buf[6], /* Routers MAC addr */
+			router_level,     /* Info, including routing level */
+			mtu % 0xFF, mtu >> 8, /* Data block size  */
+			0x40,             /* Priority */
+			0x00,             /* Reserved */
+			0x0f, 0x00,       /* Hello timer (seconds) */
+			0x00,             /* Reserved */
+			0x00,             /* Length of (other 'logical' ethernets) message that follows */
+		};
 
-		send_tun(1, hello, sizeof(hello)); // Should go to multicst ab-00-00-04-00-00,
+		hello[0] = sizeof(hello); /* Allow me to edit it at will */
+		send_tun(1, hello, sizeof(hello));
 
 		got_verification = 1;
 		alarm(0);
@@ -282,15 +300,16 @@ static void read_ip(void)
 
 			printf("Remote address = %d.%d (%d)\n", addr>>10, addr&1023, addr);
 		}
-
 		return;
 	}
 	if (buf[4] == 0x03) // TODO check this
+	{
+		if (verbose)
+			fprintf(stderr, "Discarding 0x03 message\n");
 		return;
-	if (buf[4] == 0x02) // TODO check this
-		return;
+	}
 
-	if (buf[4] == 0x07) /* Routing info */
+	if (buf[4] == 0x07) /* Routing info */ // TODO Fix this !
 	{
 		/*
 		  off ethernet:
@@ -334,7 +353,7 @@ static void read_tun(void)
 	len = read(tunfd, buf, sizeof(buf));
 	if (len <= 0) return;
 
-	/* Only send DECnet packets... */
+	/* Only forward DECnet packets... */
 	if (buf[12] == 0x60 && buf[13] == 0x03)
 	{
 		dump_data("DECnet from TUN:", buf, len);
@@ -348,7 +367,9 @@ static void read_tun(void)
 			return;
 		}
 
-		if (buf[16] == 0x0d) // Ethernet Hello, (TODO check routing ones too ?)
+		/* Ethernet endnode or router hello,
+		   we replace these with PtP hello messages */
+		if (buf[16] == 0x0d || buf[16] == 0x0b)
 		{
 			unsigned char ptp_hello[] = { 0x5, buf[10], buf[11], 0252, 0252, 0252, 0252};
 			if (verbose)
@@ -357,6 +378,7 @@ static void read_tun(void)
 			return ;
 		}
 
+		/* Data or other packet */
 		send_ip(1, buf+16, len-16);
 	}
 }
@@ -366,6 +388,7 @@ static int setup_tun(unsigned short addr)
 	int ret;
 	struct ifreq ifr;
 	char cmd[132];
+	FILE *procfile;
 
 	tunfd = open("/dev/net/tun", O_RDWR);
 	if (tunfd < 0)
@@ -384,10 +407,51 @@ static int setup_tun(unsigned short addr)
 	}
 	fprintf(stderr, "using tun device %s\n", ifr.ifr_name);
 
-	sprintf(cmd, "/sbin/ifconfig %s hw ether AA:00:04:00:%02X:%02X allmulti mtu 576 up\n", ifr.ifr_name, addr & 0xFF, addr>>8);
+	sprintf(cmd, "/sbin/ifconfig %s hw ether AA:00:04:00:%02X:%02X allmulti mtu %d up\n",
+		ifr.ifr_name, addr & 0xFF, addr>>8, mtu);
 	system(cmd);
 
+	sprintf(cmd, "/proc/sys/net/decnet/conf/%s/forwarding", ifr.ifr_name);
+	procfile = fopen(cmd, "w");
+	if (!procfile)
+	{
+		fprintf(stderr, "Cannot set forwarding on interface\n");
+	}
+	else
+	{
+		fprintf(procfile, "1");
+		fclose(procfile);
+	}
+
+	sprintf(cmd, "/proc/sys/net/decnet/conf/%s/priority", ifr.ifr_name);
+	procfile = fopen(cmd, "w");
+	if (!procfile)
+	{
+		fprintf(stderr, "Cannot set priority on interface\n");
+	}
+	else
+	{
+		fprintf(procfile, "%d", router_priority);
+		fclose(procfile);
+	}
+
+
 	return tunfd;
+}
+
+static void usage(char *cmd)
+{
+
+	printf("Usage: %s [-v12?h] [-p<prio>] [-P<port>] [-m<MTU>] <decnet-addr> <remote-host>\n", cmd);
+	printf("eg     %s zarqon 3.2\n", cmd);
+
+	printf("    -v       Verbose output\n");
+	printf("    -1       Advertise as a level 1 router\n");
+	printf("    -2       Advertise as a level 2 router (default)\n");
+	printf("    -p<prio> Router priority (default 64)\n");
+	printf("    -P<port> IP port to talk to multinet on (default 700)\n");
+	printf("    -m<MTU>  MTU of interface (default 578)\n");
+
 }
 
 int main(int argc, char *argv[])
@@ -397,55 +461,98 @@ int main(int argc, char *argv[])
 	unsigned short addr;
 	struct addrinfo *ainfo;
 	struct addrinfo ahints;
+	int res;
+	int opt;
 
-	if (argc > 2 && strcmp(argv[1], "-v") == 0)
+	while ((opt=getopt(argc,argv,"vp:12m:P:?h")) != EOF)
 	{
-		argv++;
-		argc--;
-		verbose = 1;
+		switch(opt)
+		{
+		case 'v':
+			verbose++;
+			break;
+
+		case '2':
+			router_level = 2;
+			break;
+		case '1':
+			router_level = 1;
+			break;
+
+		case 'p':
+			router_priority = atoi(optarg);
+			if (router_priority > 127 || router_priority < 0)
+			{
+				fprintf(stderr, "Router priority must be between 0 & 127\n");
+				exit(2);
+			}
+			break;
+		case 'P':
+			port = atoi(optarg);
+			break;
+
+		case 'm':
+			mtu = atoi(optarg);
+			if (mtu > 1500 || mtu < 20)
+			{
+				fprintf(stderr, "MTU is invalid\n");
+				exit(2);
+			}
+			break;
+
+		case '?':
+		case 'h':
+			usage(argv[0]);
+			break;
+
+		}
 	}
 
-	if (argc < 3)
+	if (argc - optind < 2)
 	{
-		printf("Usage: %s [-v] <remote-addr> <decnet-addr>\n", argv[0]);
-		printf("eg     %s zarqon 3.2\n", argv[0]);
-		exit(1);
+		usage(argv[0]);
+		exit(2);
 	}
 
-	if (sscanf(argv[2], "%d.%d", &area, &node) != 2)
+	if (sscanf(argv[optind], "%d.%d", &area, &node) != 2)
 	{
-		fprintf(stderr, "DECnet address not valid\n");
+		fprintf(stderr, "DECnet address %s not valid\n", argv[optind]);
 		return -1;
 	}
 	if (area > 63 || node > 1023)
 	{
-		fprintf(stderr, "DECnet address not valid\n");
+		fprintf(stderr, "DECnet address %d.%d not valid\n", area, node);
 		return -1;
 	}
+
+	/* Save address for later */
+	addr = (area<<10) | node;
+	local_addr[0] = addr & 0xFF;
+	local_addr[1] = addr >> 8;
+
+	/* Check remote address is valid */
+	optind++;
 
 	memset(&ahints, 0, sizeof(ahints));
 	ahints.ai_socktype = SOCK_DGRAM;
 	ahints.ai_protocol = IPPROTO_UDP;
 
 	/* Lookup the nodename address */
-	if (getaddrinfo(argv[1], NULL, &ahints, &ainfo))
+	if ( (res=getaddrinfo(argv[optind], NULL, &ahints, &ainfo)) )
 	{
-		perror("getaddrinfo");
-		return -errno;
+		fprintf(stderr, "Can't resolve name '%s': %s\n", argv[optind], gai_strerror(res));
+		return 2;
 	}
 
 	memcpy(&remote_addr, ainfo->ai_addr, sizeof(struct sockaddr_in));
 	remote_addr.sin_family = AF_INET;
-	remote_addr.sin_port = htons(PORT);
+	remote_addr.sin_port = htons(port);
 
-
-	addr = (area<<10) | node;
-	local_addr[0] = addr & 0xFF;
-	local_addr[1] = addr >> 8;
-
+	/* initialise network ports */
 	tunfd = setup_tun(addr);
-	ipfd = setup_ip(PORT);
+	ipfd = setup_ip(port);
 
+	/* Wait for START */
 	signal(SIGALRM, resend_start);
 	alarm(10);
 	send_start(addr);

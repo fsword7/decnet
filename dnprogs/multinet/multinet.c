@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/poll.h>
 #include <sys/errno.h>
@@ -55,9 +56,20 @@ static int router_priority = 64;
 static int router_level = 2;
 static int mtu = 578;
 static int port = 700;
-
+static int ip_timeout = 300;
+static int hello_timer = 60;
+static char old_default[1024];
+static time_t last_ip_packet;
+static sig_atomic_t running;
 
 #define DUMP_MAX 1024
+
+static void do_shutdown(int sig)
+{
+	if (verbose)
+		fprintf(stderr, "Got signal, shutting down\n");
+	running = 0;
+}
 
 static int send_ip(int fudge_header, unsigned char *, int len);
 
@@ -145,9 +157,9 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[14] = (len+16) & 0xFF;
 		header[15] = (len+16) >> 8;
 
-		/* Fake DECnet header */
+		/* Fake Long DECnet header */
 		header[18] = header[19] = 0;
-		header[16] = 0x81; header[17] = 0x26;  // Don't know what this is!
+		header[16] = 0x81; header[17] = 0x26;  // TODO Don't know what this is!
 
 		header[20] = header[28] = 0xAA;
 		header[21] = header[29] = 0x00;
@@ -190,7 +202,7 @@ static int send_ip(int fudge_header, unsigned char *buf, int len)
 	if (fudge_header)
 	{
 		/* Shorten DECnet addresses */
-		buf[0] = 0x02;    // TODO what is this ??
+		buf[0] = 0x02;    /* Short data message */
 		buf[1] = buf[8];  /* Destination */
 		buf[2] = buf[9];
 		buf[3] = buf[16]; /* Source */
@@ -262,6 +274,8 @@ static void read_ip(void)
 	len = read(ipfd, buf, sizeof(buf));
 	if (len <= 0) return;
 
+	last_ip_packet = time(NULL);
+
 	dump_data("from IP:", buf, len);
 
 	if (buf[4] == 0x05) /* PtP hello */
@@ -275,7 +289,8 @@ static void read_ip(void)
 			mtu % 0xFF, mtu >> 8, /* Data block size  */
 			router_priority,      /* Priority */
 			0x00,                 /* Reserved */
-			0x0f, 0x00,           /* Hello timer (seconds) */ // TODO
+			hello_timer&0xFF,
+			hello_timer >> 8,     /* Hello timer (seconds) */
 			0x00,                 /* Reserved */
 			0x00,                 /* Length of (other 'logical' ethernets) message that follows */
 		};
@@ -287,8 +302,8 @@ static void read_ip(void)
 		alarm(0); /* cancel START timer */
 	}
 
-	/* Trap INIT & VERF messages, they're for us */
-	if (buf[4] == 0x01 || buf[4] == 0x05)
+	/* Trap INIT & VERF & test messages, they're for us */
+	if (buf[4] == 0x01 || buf[4] == 0x05 || buf[4] == 0x03)
 	{
 		if (!got_remote_addr)
 		{
@@ -301,14 +316,8 @@ static void read_ip(void)
 		}
 		return;
 	}
-	if (buf[4] == 0x03) // TODO check this
-	{
-		if (verbose)
-			fprintf(stderr, "Discarding 0x03 message\n");
-		return;
-	}
 
-	if (buf[4] == 0x07 || buf[4] == 0x09) /* Routing info */ // TODO Fix this !
+	if (buf[4] == 0x07 || buf[4] == 0x09) /* Routing info */ // TODO check this
 	{
 		/*
 		  off ethernet:
@@ -324,7 +333,7 @@ static void read_ip(void)
 		  0x0080:  ff7f ff7f ff7f ff7f 8d44
 
 		  off Multinet:
-		  09  00  00  00  multinet header 
+		  09  00  00  00  multinet header
 		  09  23  0c  00  3f  00  01  00  04  04  0a  04  00  00
 		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  04  04
 		  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f  ff  7f
@@ -351,6 +360,15 @@ static void read_tun(void)
 
 	len = read(tunfd, buf, sizeof(buf));
 	if (len <= 0) return;
+
+	/* We get local HELLOs from time to time so this shoud ensure that we're not
+	   flooding the IP link with dodgy UDP continously
+	*/
+	if (time(NULL) - last_ip_packet > ip_timeout)
+	{
+		got_verification = 0;
+		resend_start(SIGALRM);
+	}
 
 	/* Only forward DECnet packets... */
 	if (buf[12] == 0x60 && buf[13] == 0x03)
@@ -388,7 +406,7 @@ static void read_tun(void)
 	}
 }
 
-static int setup_tun(unsigned short addr)
+static int setup_tun(unsigned short addr, int make_default)
 {
 	int ret;
 	struct ifreq ifr;
@@ -412,10 +430,18 @@ static int setup_tun(unsigned short addr)
 	}
 	fprintf(stderr, "using tun device %s\n", ifr.ifr_name);
 
+	/* Bring the interface up
+	 *   TODO: use ioctls...perhaps
+	 */
 	sprintf(cmd, "/sbin/ifconfig %s hw ether AA:00:04:00:%02X:%02X allmulti mtu %d up\n",
 		ifr.ifr_name, addr & 0xFF, addr>>8, mtu);
 	system(cmd);
 
+
+	/* Configure the interface.
+	 * Sigh, this maybe should be sone using sysctl but that interface
+	 * is probably worse than poking values into /proc !
+	 */
 	sprintf(cmd, "/proc/sys/net/decnet/conf/%s/forwarding", ifr.ifr_name);
 	procfile = fopen(cmd, "w");
 	if (!procfile)
@@ -440,21 +466,70 @@ static int setup_tun(unsigned short addr)
 		fclose(procfile);
 	}
 
+	sprintf(cmd, "/proc/sys/net/decnet/conf/%s/t3", ifr.ifr_name);
+	procfile = fopen(cmd, "w");
+	if (!procfile)
+	{
+		fprintf(stderr, "Cannot set hello timer\n");
+	}
+	else
+	{
+		fprintf(procfile, "%d", hello_timer);
+		fclose(procfile);
+	}
+
+	if (make_default)
+	{
+		procfile = fopen("/proc/sys/net/decnet/default_device", "w+");
+		if (!procfile)
+		{
+			fprintf(stderr, "Cannot set default device\n");
+		}
+		else
+		{
+			fgets(old_default, sizeof(old_default), procfile);
+			fprintf(procfile, "%s", ifr.ifr_name);
+			fclose(procfile);
+		}
+	}
+
 	return tunfd;
+}
+
+static void restore_interface(void)
+{
+	if (old_default[0])
+	{
+		FILE *procfile;
+
+		procfile = fopen("/proc/sys/net/decnet/default_device", "w+");
+		if (!procfile)
+		{
+			fprintf(stderr, "Cannot restore default device\n");
+		}
+		else
+		{
+			fprintf(procfile, "%s", old_default);
+			fclose(procfile);
+		}
+	}
 }
 
 static void usage(char *cmd)
 {
 
-	printf("Usage: %s [-v12?h] [-p<prio>] [-P<port>] [-m<MTU>] <decnet-addr> <remote-host>\n", cmd);
-	printf("eg     %s zarqon 3.2\n", cmd);
+	printf("Usage: %s [options] <local-decnet-addr> <remote-host>\n", cmd);
+	printf("eg     %s -D 3.2 zarqon\n\n", cmd);
 
 	printf("    -v       Verbose output\n");
 	printf("    -1       Advertise as a level 1 router\n");
 	printf("    -2       Advertise as a level 2 router (default)\n");
+	printf("    -D       Make this the default DECnet interface (default no)\n");
 	printf("    -p<prio> Router priority (default 64)\n");
 	printf("    -P<port> IP port to talk to multinet on (default 700)\n");
-	printf("    -m<MTU>  MTU of interface (default 578)\n");
+	printf("    -m<MTU>  MTU of interface (default 576)\n");
+	printf("    -t<secs> Timeout to restart IP connections (default 600)\n");
+	printf("    -H<secs> Hello timer (default 60)\n");
 
 }
 
@@ -463,12 +538,13 @@ int main(int argc, char *argv[])
 	struct pollfd pfds[2];
 	unsigned int area, node;
 	unsigned short addr;
+	int make_default = 0;
 	struct addrinfo *ainfo;
 	struct addrinfo ahints;
 	int res;
 	int opt;
 
-	while ((opt=getopt(argc,argv,"vp:12m:P:?h")) != EOF)
+	while ((opt=getopt(argc,argv,"vp:12m:P:t:H:D?h")) != EOF)
 	{
 		switch(opt)
 		{
@@ -493,6 +569,18 @@ int main(int argc, char *argv[])
 			break;
 		case 'P':
 			port = atoi(optarg);
+			break;
+
+		case 'D':
+			make_default = 1;
+			break;
+
+		case 'H':
+			hello_timer = atoi(optarg);
+			break;
+
+		case 't':
+			ip_timeout = atoi(optarg);
 			break;
 
 		case 'm':
@@ -552,8 +640,11 @@ int main(int argc, char *argv[])
 	remote_addr.sin_family = AF_INET;
 	remote_addr.sin_port = htons(port);
 
-	/* initialise network ports */
-	tunfd = setup_tun(addr);
+	signal(SIGINT, do_shutdown);
+	signal(SIGTERM, do_shutdown);
+
+	/* Initialise network ports */
+	tunfd = setup_tun(addr, make_default);
 	ipfd = setup_ip(port);
 
 	/* Wait for START */
@@ -570,7 +661,8 @@ int main(int argc, char *argv[])
 	fcntl(ipfd, F_SETFL, fcntl(ipfd, F_GETFL, 0) | O_NONBLOCK);
 	fcntl(tunfd, F_SETFL, fcntl(tunfd, F_GETFL, 0) | O_NONBLOCK);
 
-	while (1)
+	running = 1;
+	while (running)
 	{
 		int status;
 
@@ -585,6 +677,9 @@ int main(int argc, char *argv[])
 		if (pfds[1].revents & POLLIN)
 			read_tun();
 	}
+
+	if (make_default)
+		restore_interface();
 
 	return 0;
 }

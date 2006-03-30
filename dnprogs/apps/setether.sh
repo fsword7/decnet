@@ -6,7 +6,7 @@
 # Parameters:
 #
 # $1 - DECnet address in the usual area.node format
-# $2 - optional list of ethernet card names to set.
+# $2 - List of ethernet card names to set or "all"
 #
 
 # Use the "ip" command if available
@@ -35,6 +35,17 @@ calc_ether()
   return 0
 }
 
+if [ -z "$2" ]
+then
+  echo ""
+  echo "usage: $0 <decnet-addr> <network interfaces>|all"
+  echo ""
+  echo " eg.   $0 1.9 eth0 "
+  echo " eg.   $0 1.9 all"
+  echo ""
+  exit 1
+fi
+
 calc_ether $1
 if [ $? != 0 ]
 then
@@ -42,11 +53,6 @@ then
 fi
 
 CARDS=$2
-if [ -z "$CARDS" ]
-then
-  exit 0
-fi
-
 if [ "$CARDS" = "all" -o "$CARDS" = "ALL" ]
 then
   CARDS=`cat /proc/net/dev|grep eth|cut -f1 -d':'`

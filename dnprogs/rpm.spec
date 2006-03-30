@@ -39,6 +39,7 @@ To use them you will need to have DECnet built into your kernel or as a module.
 %%PREFIX%%/sbin/setether
 %%PREFIX%%/sbin/sendvmsmail
 %%PREFIX%%/sbin/vmsmaild
+%%PREFIX%%/sbin/multinet
 %%PREFIX%%/man/man1/dncopy.1
 %%PREFIX%%/man/man1/phone.1
 %%PREFIX%%/man/man1/dntype.1
@@ -81,6 +82,7 @@ To use them you will need to have DECnet built into your kernel or as a module.
 %%PREFIX%%/man/man8/vmsmaild.8
 %%PREFIX%%/man/man8/setether.8
 %%PREFIX%%/man/man8/decnetconf.8
+%%PREFIX%%/man/man8/multinet.8
 /etc/rc.d/init.d/decnet
 /etc/decnet.proxy
 %%LIBPREFIX%%/lib/libdnet.a

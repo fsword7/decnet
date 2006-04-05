@@ -246,6 +246,7 @@ static void do_show_network(void)
 			char *nodename = NULL;
 			char *routername = NULL;
 			unsigned short router;
+			int interface = 0;
 
 			if (first)
 			{
@@ -260,26 +261,34 @@ static void do_show_network(void)
 			if (ne)
 				nodename = strdup(ne->n_name);
 
+			/* Is this node behind a level 1 router ? */
 			if (node_table[i].router)
 			{
+				struct nodeinfo *rn;
+
 				router = node_table[i].router;
 				dn_addr[0] = router & 0xFF;
 				dn_addr[1] = router>>8;
 				ne = getnodebyaddr((const char *)dn_addr, 2, AF_DECnet);
 				if (ne)
 					routername = strdup(ne->n_name);
+				rn = dm_hash_lookup_binary(node_hash, (void *)&router, 2);
+				if (rn)
+					interface = rn->interface;
 			}
 			else
 			{
 				router = exec_addr->a_addr[1] << 8 | i;
 				routername = nodename;
+				if (n)
+					interface = n->interface;
 			}
 
 			fprintf(fp, "  %2d.%-3d  %-12s  %3d    %3d    %-5s   ->  %2d.%-3d  %-12s\n",
 				exec_addr->a_addr[1]>>2, i,
 				nodename?nodename:"",
 				node_table[i].cost, node_table[i].hops,
-				n?if_index_to_name(n->interface):"????",
+				if_index_to_name(interface),
 				router>>10, router & 0x3FF,
 				routername?routername:"");
 		}
@@ -562,6 +571,11 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 		debuglog("Got neighbour node %d.%d on %s(%d woz %d)\n",
 			 area, node, if_index_to_name(interface), interface, n?n->interface:0);
 
+		/* If this node has already been scanned then ignore it.
+		   This can happen if a node has two NICS on one ethernet
+		   and we don't want routes to flip-flop */
+		if (n && n->scanned)
+			return 0;
 
 		/* If it's not there or the interface has changed then
 		   update the routing table */

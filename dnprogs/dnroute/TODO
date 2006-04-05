@@ -1,5 +1,2 @@
-- Remove dead routes
-- Add routes based on incoming routing messages
 - Check outgoing routing messages are still correct
-- Cope with the node having more than one address
-- Cope with the node being in more than one area (or an area router)
+- Cope with the node having more than one address (needs libdnet support!)

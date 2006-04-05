@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@ChyGwyn.com>
+ * Authors:     Patrick Caulfield <patrick@debian.org>
  *
  */
 #include <stdio.h>
@@ -15,7 +15,7 @@ unsigned short route_csum(unsigned char *buf, int start, int end)
 {
     unsigned int  sum = 1; /* Starting value for Phase IV */
     int i;
-    
+
     for (i=start; i<end; i++, i++)
     {
 	sum += buf[i] + (buf[i+1]<<8);

@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@ChyGwyn.com>
+ * Authors:     Patrick Caulfield <patrick@debian.org>
  *              based on rtmon.c by Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
  *
  */
@@ -31,8 +31,6 @@
 #include "utils.h"
 #include "csum.h"
 
-int routing_multicast_timer = 15;
-
 extern void  send_route_msg(int);
 
 
@@ -56,6 +54,22 @@ char *if_index_to_name(int ifindex)
 
     close(sock);
     return buf;
+}
+
+int if_name_to_index(char *name)
+{
+    struct ifreq ifr;
+    static char buf[64];
+
+    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+    ifr.ifr_ifindex = -1;
+    strcpy(ifr.ifr_name, name);
+
+    ioctl(sock, SIOCGIFINDEX, &ifr);
+
+    close(sock);
+    return ifr.ifr_ifindex;
 }
 
 

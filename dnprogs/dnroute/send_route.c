@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@ChyGwyn.com>
+ * Authors:     Patrick Caulfield <patrick@debian.org>
  *              based on rtmon.c by Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
  *
  */
@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <fcntl.h>
+#include <assert.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -41,56 +42,33 @@
 #include "libnetlink.h"
 #include "dnrtlink.h"
 #include "csum.h"
+#include "dnroute.h"
 
 extern char *if_index_to_name(int ifindex);
-extern int routing_multicast_timer;
+extern int dnet_socket;
 
-/* Send a packet to all ethernet interfaces */
-static int send_to_all(int dnet_socket, char *packet, int len, struct sockaddr_ll *sock_info)
-{
-    struct ifreq ifr;
-    int iindex = 1;
-
-    int sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-    ifr.ifr_ifindex = iindex;
-
-    while (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
-    {
-	/* Only send to ethernet interfaces */
-	ioctl(sock, SIOCGIFHWADDR, &ifr);
-	if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
-	{
-	    sock_info->sll_ifindex = iindex;
-	    if (sendto(dnet_socket, packet, len, 0,
-		      (struct sockaddr *)sock_info, sizeof(*sock_info)) < 0)
-		perror("sendto");
-	}
-	ifr.ifr_ifindex = ++iindex;
-    }
-
-    close(sock);
-    return 0;
-}
-
-
-/* Send a routine message for nodes "start" to "end".
-   "start" should be a multiple of 32 for the header to be
-   added correctly */
-static int send_routing_message(char *node_table, int start, int end,
-				int dnet_socket, struct dn_naddr *exec)
+/* Send a Level 1 routing message for nodes "start" to "end".
+ * "start" should be a multiple of 32 for the header to be
+ * added correctly/
+ */
+static int send_routing_message(unsigned char type, struct routeinfo *node_table, int start, int end,
+				struct dn_naddr *exec, int interface)
 {
     struct sockaddr_ll sock_info;
     unsigned char packet[1600];
     unsigned short sum;
     int i,j;
 
+    assert (!((start-end) & 0x3F));
+
+    fprintf(stderr,"Sending message type %d. start=%d, end=%d\n", type,start,end);
+
     i=0;
 
     packet[i++] = 0x9a;
     packet[i++] = 0x05;
 
-    packet[i++] = 0x07; /* Level 1 routing message */
+    packet[i++] = type;
     packet[i++] = exec->a_addr[0]; /* Our node address */
     packet[i++] = exec->a_addr[1];
     packet[i++] = 0x00; /* Reserved */
@@ -105,38 +83,32 @@ static int send_routing_message(char *node_table, int start, int end,
 	    packet[i++] = j&0xFF;
 	    packet[i++] = j>>8;
 	}
-	switch (node_table[j])
+	if (node_table[j].valid)
 	{
-	case 0: /* Unreachable */
-	default:
+		packet[i++] = node_table[j].cost; /* cost can use the low bit of the next byte... */
+		packet[i++] = (node_table[j].hops << 1) | ((node_table[j].cost>>8) & 1);   /* hops - starting bit 1 */
+	}
+	else
+	{
 	    packet[i++] = 0xff;
 	    packet[i++] = 0x7f;
-	    break;
-	case 1: /* Reachable, cost 4, hops 2 */
-	    packet[i++] = 0x04;
-	    packet[i++] = 0x04;
-	    break;
-	case 2: /* Local, cost 0, hops 0 */
-	    packet[i++] = 0x0;
-	    packet[i++] = 0x0;
-	    break;
 	}
     }
 
     /* Add in checksum */
-    sum = route_csum(packet, 4, i);
+    sum = route_csum(packet, 6, i);
     packet[i++] = sum & 0xFF;
     packet[i++] = sum >> 8;
 
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
     sock_info.sll_protocol = htons(ETH_P_DNA_RT);
-    sock_info.sll_ifindex  = 2; /* TODO: DO ALL INTERFACES... */
+    sock_info.sll_ifindex  = interface;
     sock_info.sll_hatype   = 0;
     sock_info.sll_pkttype  = PACKET_MULTICAST;
     sock_info.sll_halen    = 6;
 
-    /* This is the DECnet multicast address */
+    /* This is the DECnet routing multicast address */
     sock_info.sll_addr[0]  = 0xab;
     sock_info.sll_addr[1]  = 0x00;
     sock_info.sll_addr[2]  = 0x00;
@@ -144,24 +116,77 @@ static int send_routing_message(char *node_table, int start, int end,
     sock_info.sll_addr[4]  = 0x00;
     sock_info.sll_addr[5]  = 0x00;
 
-    /* Send to all interfaces */
-    return send_to_all(dnet_socket, packet, i, &sock_info);
+    if (sendto(dnet_socket, packet, i, 0,
+	       (struct sockaddr *)&sock_info, sizeof(sock_info)) < 0)
+    {
+	    perror("sendto");
+	    return -1;
+    }
+    return 0;
 }
 
-void send_route_msg(char *node_table)
+static void send_route_msg(unsigned char type, struct routeinfo *node_table, int num)
 {
-    int dnet_socket;
-    struct rtnl_handle rth;
+    struct ifreq ifr;
+    int iindex = 1;
     struct dn_naddr *addr;
+    int last_node;
+    int sock;
+
+    sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock < 0)
+	    return;
 
     /* Get our node address */
     addr = getnodeadd();
-    dnet_socket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_DNA_RT));
 
-    /* 576 is a multiple of 32 so the mask in
-       send_routine_message() works */
-    send_routing_message(node_table, 0, 575, dnet_socket, addr);
-    send_routing_message(node_table, 576, 1023, dnet_socket, addr);
+    for (iindex = 0; iindex < 128; iindex++)
+    {
+	    ifr.ifr_ifindex = iindex;
+	    if (ioctl(sock, SIOCGIFNAME, &ifr) == 0)
+	    {
+		    /* Only send to ethernet interfaces */
+		    ioctl(sock, SIOCGIFHWADDR, &ifr);
+		    if (ifr.ifr_hwaddr.sa_family == ARPHRD_ETHER)
+		    {
+			    int mtu;
+			    int num_nodes;
 
-    close(dnet_socket);
+			    last_node = 0;
+
+			    ioctl(sock, SIOCGIFMTU, &ifr);
+			    mtu = ifr.ifr_mtu;
+
+			    /* Work out how many blocks we get into one MTU-sized packet */
+			    /* header = 32 bytes, 2 bytes per node, in multiples of 32 nodes */
+			    num_nodes = (mtu-32)/2 & 0xFFC0;
+			    if (num_nodes > 256) num_nodes = 256; /* cap it */
+
+			    while (last_node < num)
+			    {
+				    /* Don't overflow the end of the list */
+				    if (last_node+num_nodes > num)
+					    num_nodes = num-last_node;
+
+				    send_routing_message(type, node_table, last_node, last_node+num_nodes, addr, iindex);
+				    last_node += num_nodes;
+			    }
+		    }
+		    ifr.ifr_ifindex = iindex;
+	    }
+    }
+
+    close(sock);
+    return;
+}
+
+
+void send_level1_msg(struct routeinfo *node_table)
+{
+	send_route_msg(0x07, node_table, 1024);
+}
+
+void send_level2_msg(struct routeinfo *area_table)
+{
+	send_route_msg(0x09, area_table, 64);
 }

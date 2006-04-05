@@ -250,7 +250,7 @@ static void do_show_network(void)
 
 			addr = exec_addr->a_addr[1] << 8 | i;
 			n = dm_hash_lookup_binary(node_hash, (void *)&addr, 2);
-			if (!n || n->deleted)
+			if (n && n->deleted)
 				continue;
 
 			dn_addr[0] = addr & 0xFF;
@@ -765,6 +765,7 @@ static void process_level1_message(unsigned char *buf, int len, int iface)
 		i+=2;
 		start_id = buf[i] | buf[i+1]<<8;
 		i+=2; /* Start of entries */
+		debuglog("PJC start_id = %d, num_ids = %d pos=%d\n", start_id, num_ids, i);
 
 		for (num = 0; num<num_ids; num++)
 		{

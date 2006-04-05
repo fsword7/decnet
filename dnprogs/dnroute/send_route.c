@@ -59,7 +59,7 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     unsigned short sum;
     int i,j;
 
-    assert (!((start-end) & 0x3F));
+    assert (!((start-end) & 0x1F));
 
     fprintf(stderr,"Sending message type %d. start=%d, end=%d\n", type,start,end);
 

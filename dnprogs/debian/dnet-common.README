@@ -5,7 +5,7 @@ The homepage for the project is at
 
 http://linux-decnet.sourceforge.net
 
-Configuration can be done by editting /etc/defaults/decnet, several environment
+Configuration can be done by editing /etc/defaults/decnet, several environment
 variables can be set:
 
 DNET_INTERFACES: List if ethernet interfaces to enable for DECnet, This sets
@@ -20,3 +20,4 @@ ROUTING:         Enable routing at level <n>
 PRIORITY:	 Router priority
 <daemon>_FLAGS:	 flags to add when starting <daemon>
 		 eg dnroute_FLAGS="-v"
+

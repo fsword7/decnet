@@ -34,6 +34,7 @@ To use them you will need to have DECnet built into your kernel or as a module.
 %%PREFIX%%/sbin/dnetd
 %%PREFIX%%/sbin/fal
 %%PREFIX%%/sbin/dnroute
+%%PREFIX%%/sbin/dnetinfo
 %%PREFIX%%/sbin/startnet
 %%PREFIX%%/sbin/decnetconf
 %%PREFIX%%/sbin/setether
@@ -73,6 +74,7 @@ To use them you will need to have DECnet built into your kernel or as a module.
 %%PREFIX%%/man/man5/vmsmail.conf.5
 %%PREFIX%%/man/man8/fal.8
 %%PREFIX%%/man/man8/dnroute.8
+%%PREFIX%%/man/man8/dnetinfo.8
 %%PREFIX%%/man/man8/phoned.8
 %%PREFIX%%/man/man8/dnetd.8
 %%PREFIX%%/man/man8/ctermd.8

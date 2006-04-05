@@ -29,13 +29,14 @@ static char             asc_addr[6];
 static struct nodeent	dp;
 static char   		laddr[2];
 
-struct nodeent *getnodebyaddr(const char *addr, int len, int family)
+struct nodeent *getnodebyaddr(const char *inaddr, int len, int family)
 {
 	FILE	*dnhosts;
 	char	nodeln[80];
+	const unsigned char *addr = (const unsigned char *)inaddr;
 
-	sprintf (asc_addr,"%d.%d",((char)*(addr+1) >> 2),
-		 (((char)*(addr+1) & 0x03) << 8) | ((char)*(addr))
+	sprintf (asc_addr,"%d.%d",((unsigned char)*(addr+1) >> 2),
+		 (((unsigned char)*(addr+1) & 0x03) << 8) | ((unsigned char)*(addr))
 		);
 	
 	if ((dnhosts = fopen(SYSCONF_PREFIX "/etc/decnet.conf","r")) == NULL)

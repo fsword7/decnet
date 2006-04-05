@@ -1,3 +1,17 @@
+dnprogs (2.35) unstable; urgency=low
+
+  * Make dnroute work on big-endian machines
+  * dnroute can now send router messages on devices with small MTUs
+  * dnroute now sends level2 router messages and creates area
+    routing tables from those it receives
+  * Add script 'dnetinfo' to query the routing daemon
+  * libdnet: Fix getnodebyaddr so it works with high node numbers.
+  * Make ncurses phone work on big-endian machines
+  * Better newline handling in dnlogin. This should fix those niggling
+    "that doesn't look quite right" things. It also works with GNV's bash too!
+  * Add multinet IP tunnelling daemon.
+
+
 dnprogs (2.34) unstable; urgency=low
 
   * Don't SIGBUS on sparc sending DAP packets > 255 bytes long

@@ -29,7 +29,8 @@ case $1 in
        if [ -f /usr/sbin/$i ]
        then
          echo -n " $i"
-         start-stop-daemon --start --quiet --exec /usr/sbin/$i
+         eval "flags=\$${i}_FLAGS"
+         start-stop-daemon --start --quiet --exec /usr/sbin/$i $flags
        fi
      done
      echo "."
@@ -54,8 +55,9 @@ case $1 in
      for i in $DNET_DAEMONS
      do
        echo -n " $i"
+       eval "flags=\$${i}_FLAGS"
        start-stop-daemon --stop --quiet --exec /usr/sbin/$i
-       start-stop-daemon --start --quiet --exec /usr/sbin/$i
+       start-stop-daemon --start --quiet --exec /usr/sbin/$i  $flags
      done
      echo "."
      ;;

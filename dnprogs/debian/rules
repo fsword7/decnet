@@ -26,8 +26,9 @@ binary-indep: checkroot build
 	echo '# MAC address is to be set to the DECnet node address' >> debian/tmp/etc/default/decnet
 	echo "DNET_INTERFACES=\"all\"" >> debian/tmp/etc/default/decnet
 	echo '# DNET_DAEMONS lists the daemons to start when dnet-progs is installed.' >> debian/tmp/etc/default/decnet
-	echo "DNET_DAEMONS=\"dnetd phoned #dnroute\"" >> debian/tmp/etc/default/decnet
 	echo "#" >> debian/tmp/etc/default/decnet
+	echo "DNET_DAEMONS=\"dnetd phoned\"" >> debian/tmp/etc/default/decnet
+	echo "dnroute_FLAGS=\"-v -2\"" >> debian/tmp/etc/default/decnet
 	echo "# The following two lines enable routing, note that if you are" >> debian/tmp/etc/default/decnet
 	echo "# being a router, then add dnroute to the DNET_DAEMONS too" >> debian/tmp/etc/default/decnet
 	echo "#ROUTING=1" >> debian/tmp/etc/default/decnet
@@ -38,7 +39,7 @@ binary-indep: checkroot build
 	cp apps/decnet.conf debian/tmp/usr/share/doc/dnet-common/decnet.conf.sample
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
-	rm debian/tmp/usr/sbin/startnet
+	rm -f debian/tmp/usr/sbin/startnet
 	install -m755 apps/setether.sh debian/tmp/sbin/setether
 	dh_installdirs -pdnet-common
 	dh_installchangelogs  -pdnet-common

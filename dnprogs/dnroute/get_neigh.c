@@ -248,13 +248,11 @@ static void do_show_network(void)
 			unsigned short router;
 			int interface = 0;
 
-			if (first)
-			{
-				first = 0;
-				fprintf(fp, "     Node              Cost    Hops   Next hop to node\n");
-			}
 			addr = exec_addr->a_addr[1] << 8 | i;
 			n = dm_hash_lookup_binary(node_hash, (void *)&addr, 2);
+			if (!n || n->deleted)
+				continue;
+
 			dn_addr[0] = addr & 0xFF;
 			dn_addr[1] = addr>>8;
 			ne = getnodebyaddr((const char *)dn_addr, 2, AF_DECnet);
@@ -282,6 +280,12 @@ static void do_show_network(void)
 				routername = nodename;
 				if (n)
 					interface = n->interface;
+			}
+
+			if (first)
+			{
+				first = 0;
+				fprintf(fp, "     Node              Cost    Hops   Next hop to node\n");
 			}
 
 			fprintf(fp, "  %2d.%-3d  %-12s  %3d    %3d    %-5s   ->  %2d.%-3d  %-12s\n",

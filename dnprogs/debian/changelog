@@ -4,13 +4,15 @@ dnprogs (2.35) unstable; urgency=low
   * dnroute can now send router messages on devices with small MTUs
   * dnroute now sends level2 router messages and creates area
     routing tables from those it receives
-  * Add script 'dnetinfo' to query the routing daemon
+  * Add script 'dnetinfo' to query the routing daemon state - the
+    output emulates SHOW NET/OLD
   * libdnet: Fix getnodebyaddr so it works with high node numbers.
   * Make ncurses phone work on big-endian machines
   * Better newline handling in dnlogin. This should fix those niggling
     "that doesn't look quite right" things. It also works with GNV's bash too!
-  * Add multinet IP tunnelling daemon.
+  * Add multinet IP tunnelling daemon
 
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  5 Apr 2006 09:39:04 +0100
 
 dnprogs (2.34) unstable; urgency=low
 

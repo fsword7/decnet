@@ -16,7 +16,7 @@ install:
 	install -d $(prefix)/sbin
 	install -d $(manprefix)/man/man8
 	install -m 0755 -s dnroute $(prefix)/sbin
-	install -m 0755 -s dnetinfo.sh $(prefix)/sbin/dnetinfo
+	install -m 0755 dnetinfo.sh $(prefix)/sbin/dnetinfo
 	install -m 0644 dnroute.8 $(manprefix)/man/man8
 	install -m 0644 dnetinfo.8 $(manprefix)/man/man8
 

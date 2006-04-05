@@ -236,11 +236,15 @@ static int send_ip(int fudge_header, unsigned char *buf, int len)
 static int setup_ip(int port)
 {
 	int fd;
+	int flag = 1;
 	struct sockaddr_in sin;
 
 	fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd < 0)
 		return -1;
+
+
+	setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&flag, sizeof(flag));
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = htons(port);
@@ -270,9 +274,16 @@ static void read_ip(void)
 {
 	unsigned char buf[1600];
 	int len;
+	struct sockaddr_in sin;
+	unsigned int sinlen = sizeof(sin);
 
-	len = read(ipfd, buf, sizeof(buf));
+	len = recvfrom(ipfd, buf, sizeof(buf), 0, (struct sockaddr *)&sin, &sinlen);
 	if (len <= 0) return;
+
+	/* Ignore packets from people we're not talking to */
+	if (sin.sin_port != remote_addr.sin_port ||
+	    sin.sin_addr.s_addr != remote_addr.sin_addr.s_addr)
+		return;
 
 	last_ip_packet = time(NULL);
 

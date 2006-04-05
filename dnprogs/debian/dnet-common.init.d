@@ -49,10 +49,10 @@ then
 	PRIORITY=32
     fi
 
-    for i in /proc/sys/net/decnet/conf/eth*
+    for i in /proc/sys/net/decnet/conf/eth[0-9]*
     do
-      echo $1        > $i/forwarding
-      echo $PRIORITY > $i/priority
+      echo "$1"        > $i/forwarding
+      echo "$PRIORITY" > $i/priority
     done 
 fi
 

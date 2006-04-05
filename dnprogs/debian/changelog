@@ -11,6 +11,7 @@ dnprogs (2.35) unstable; urgency=low
   * Better newline handling in dnlogin. This should fix those niggling
     "that doesn't look quite right" things. It also works with GNV's bash too!
   * Add multinet IP tunnelling daemon
+  * Some minor fixes to init scripts 
 
  -- Patrick Caulfield <patrick@debian.org>  Wed,  5 Apr 2006 09:39:04 +0100
 

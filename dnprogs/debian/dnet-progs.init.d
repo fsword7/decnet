@@ -30,7 +30,7 @@ case $1 in
        then
          echo -n " $i"
          eval "flags=\$${i}_FLAGS"
-         start-stop-daemon --start --quiet --exec /usr/sbin/$i $flags
+         start-stop-daemon --start --quiet --exec /usr/sbin/$i -- $flags
        fi
      done
      echo "."

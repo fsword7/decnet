@@ -1084,7 +1084,7 @@ int main(int argc, char **argv)
 			if (FD_ISSET(dnet_socket, &fds))
 			{
 				struct sockaddr_ll sll;
-				int sll_len = sizeof(sll);
+				unsigned int sll_len = sizeof(sll);
 				len = recvfrom(dnet_socket, buf, sizeof(buf), 0, (struct sockaddr *)&sll, &sll_len);
 				if (len > 0)
 					process_routing_message(buf, len, sll.sll_ifindex);

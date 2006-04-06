@@ -1,5 +1,5 @@
 /*
- * dnroute.c    DECnet routing daemon (eventually...)
+ * send_route.c    DECnet routing daemon
  *
  *		This program is free software; you can redistribute it and/or
  *		modify it under the terms of the GNU General Public License
@@ -7,7 +7,6 @@
  *		2 of the License, or (at your option) any later version.
  *
  * Authors:     Patrick Caulfield <patrick@debian.org>
- *              based on rtmon.c by Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
  *
  */
 
@@ -59,8 +58,6 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     unsigned short sum;
     int i,j;
 
-    assert (!((start-end) & 0x1F));
-
     fprintf(stderr,"Sending message type %d. start=%d, end=%d\n", type,start,end);
 
     i=0;
@@ -73,16 +70,15 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     packet[i++] = exec->a_addr[1];
     packet[i++] = 0x00; /* Reserved */
 
-    /* Do the nodes in blocks of 32 */
+
+    /* Header */
+    packet[i++] = (end-start) & 0xFF;
+    packet[i++] = (end-start) >> 8;
+    packet[i++] = start & 0xFF;
+    packet[i++] = start >> 8;
+
     for (j=start; j<end; j++)
     {
-	if ( !(j & 0x3F))
-	{
-	    packet[i++] = 32;
-	    packet[i++] = 0;
-	    packet[i++] = j&0xFF;
-	    packet[i++] = j>>8;
-	}
 	if (node_table[j].valid)
 	{
 		packet[i++] = node_table[j].cost; /* cost can use the low bit of the next byte... */
@@ -125,7 +121,7 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     return 0;
 }
 
-static void send_route_msg(unsigned char type, struct routeinfo *node_table, int num)
+static void send_route_msg(unsigned char type, struct routeinfo *node_table, int start, int num)
 {
     struct ifreq ifr;
     int iindex = 1;
@@ -152,7 +148,7 @@ static void send_route_msg(unsigned char type, struct routeinfo *node_table, int
 			    int mtu;
 			    int num_nodes;
 
-			    last_node = 0;
+			    last_node = start;
 
 			    ioctl(sock, SIOCGIFMTU, &ifr);
 			    mtu = ifr.ifr_mtu;
@@ -183,10 +179,10 @@ static void send_route_msg(unsigned char type, struct routeinfo *node_table, int
 
 void send_level1_msg(struct routeinfo *node_table)
 {
-	send_route_msg(0x07, node_table, 1024);
+	send_route_msg(0x07, node_table, 0, 1023);
 }
 
 void send_level2_msg(struct routeinfo *area_table)
 {
-	send_route_msg(0x09, area_table, 64);
+	send_route_msg(0x09, area_table, 1, 64);
 }

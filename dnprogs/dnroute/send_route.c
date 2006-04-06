@@ -62,8 +62,8 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
 
     i=0;
 
-    packet[i++] = 0x9a;
-    packet[i++] = 0x05;
+    packet[i++] = 0x00; /* Length, filled in at end */
+    packet[i++] = 0x00;
 
     packet[i++] = type;
     packet[i++] = exec->a_addr[0]; /* Our node address */
@@ -95,6 +95,9 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     sum = route_csum(packet, 6, i);
     packet[i++] = sum & 0xFF;
     packet[i++] = sum >> 8;
+
+    packet[0] = (i-2) & 0xFF;
+    packet[1] = (i-2) >> 8;
 
     /* Build the sockaddr_ll structure */
     sock_info.sll_family   = AF_PACKET;
@@ -179,7 +182,7 @@ static void send_route_msg(unsigned char type, struct routeinfo *node_table, int
 
 void send_level1_msg(struct routeinfo *node_table)
 {
-	send_route_msg(0x07, node_table, 0, 1023);
+	send_route_msg(0x07, node_table, 0, 1024);
 }
 
 void send_level2_msg(struct routeinfo *area_table)

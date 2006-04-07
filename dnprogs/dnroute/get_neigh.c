@@ -755,7 +755,7 @@ static void process_level1_message(unsigned char *buf, int len, int iface)
 		return;
 	}
 
-	debuglog("Level 1 routing message from %s len = %d\n", node, len);
+	debuglog("Level 1 routing message from %s on %s len = %d\n", node, if_index_to_name(iface), len);
 
 	/* Look for nodes that are not in our neighbour list and add routes for them */
 	i=6;
@@ -838,8 +838,8 @@ static void process_level2_message(unsigned char *buf, int len, int iface)
 		return;
 	}
 
-	debuglog("Level 2 routing message from %s(%d) len = %d\n",
-		 node, nodeaddr, len);
+	debuglog("Level 2 routing message from %s(%d) on %s len = %d\n",
+		 node, nodeaddr, if_index_to_name(iface), len);
 
 	/* In case we don't get a router hello in time, some nodes seem
 	   not to send them (RSX).  Assign a default priority too. */
@@ -905,8 +905,8 @@ static void process_routing_message(unsigned char *buf, int len, int iface)
 		level = buf[12] & 0x3;
 		priority = buf[15];
 
-		debuglog("Got router hello from %d, level = %d, prio = %d\n",
-			 nodeaddr,level, priority);
+		debuglog("Got router hello from %d on %s, level = %d, prio = %d\n",
+			 nodeaddr, if_index_to_name(iface), level, priority);
 
 		/* Add to (or update) neighbour hash */
 		add_routing_neighbour(nodeaddr, level, priority, 1);

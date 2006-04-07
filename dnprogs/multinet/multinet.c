@@ -158,8 +158,8 @@ static int send_tun(int mcast, unsigned char *buf, int len)
 		header[15] = (len+16) >> 8;
 
 		/* Fake Long DECnet header */
-		header[18] = header[19] = 0;
 		header[16] = 0x81; header[17] = 0x26;  // TODO Don't know what this is!
+		header[18] = header[19] = 0;
 
 		header[20] = header[28] = 0xAA;
 		header[21] = header[29] = 0x00;
@@ -289,21 +289,25 @@ static void read_ip(void)
 
 	dump_data("from IP:", buf, len);
 
-	if (buf[4] == 0x05) /* PtP hello */
+	if (buf[4] == 0x05) /* PtP hello, make into ethernet hello */
 	{
 		unsigned char hello[] = {
 			0x00, 0x00,           /* Length, filled in later */
 			0x0b,                 /* FLAGS: Router hello */
 			0x02, 0x00, 0x00,     /* Router version */
 			0xaa, 0x00, 0x04, 0x00, buf[5], buf[6], /* Routers MAC addr */
-			router_level,         /* Info, including routing level */
+			3-router_level,         /* Info, including routing level */
 			mtu % 0xFF, mtu >> 8, /* Data block size  */
 			router_priority,      /* Priority */
 			0x00,                 /* Reserved */
 			hello_timer&0xFF,
 			hello_timer >> 8,     /* Hello timer (seconds) */
 			0x00,                 /* Reserved */
-			0x00,                 /* Length of (other 'logical' ethernets) message that follows */
+			0x0f,                 /* Length of (other 'logical' ethernets) message that follows */
+			0x00,0x00,0x00,0x00,0x00,0x00,0x00, /* "e-list" name */
+			0x07,                 /* Elist name */
+			0xaa, 0x00, 0x04, 0x00, remote_decnet_addr[0], remote_decnet_addr[1],
+			0x40 /* state : (=priority) */
 		};
 
 		hello[0] = sizeof(hello); /* Allow me to edit it at will */
@@ -328,7 +332,7 @@ static void read_ip(void)
 		return;
 	}
 
-	if (buf[4] == 0x07 || buf[4] == 0x09) /* Routing info */ // TODO check this
+	if (buf[4] == 0x07 || buf[4] == 0x09) /* Routing info */
 	{
 		/*
 		  off ethernet:

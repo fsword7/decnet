@@ -1,3 +1,11 @@
+dnprogs (2.36) unstable; urgency=low
+
+  * Misc fixes to routing daemon. Especially more compliant routing messages
+  * Better hello messages from multinet tunnel
+  * Depend on module-init-tools | modutils
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 10 Apr 2006 11:59:27 +0100
+
 dnprogs (2.35) unstable; urgency=low
 
   * Make dnroute work on big-endian machines

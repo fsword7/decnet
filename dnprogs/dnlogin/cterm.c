@@ -190,7 +190,7 @@ static int cterm_process_start_read(char *buf, int len)
 	Q   = (flags>>13)&1;
 	II  = (flags>>6)&3;
 
-// TODO more flags (Page 59)
+// INFO: flags (Page 59)
 //           EE ZZQT NDDD IIKV FCUU
 //           UU 1=write BEL on underflow, 2=terminate on underflow
 //           C  1=clear typeahead
@@ -261,7 +261,6 @@ static int cterm_process_unread(char *buf, int len)
 static int cterm_process_clear_input(char *buf, int len)
 {return len;}
 
-#if 0
 static void send_write_complete(void)
 {
 	char newbuf[6];
@@ -276,7 +275,6 @@ static void send_write_complete(void)
 
 	found_common_write(newbuf, 6);
 }
-#endif
 
 static void send_prepostfix(int flag, char data)
 {
@@ -286,7 +284,7 @@ static void send_prepostfix(int flag, char data)
 	if (flag == 0)
 		return;
 
-	if (flag == 1)
+	if (flag == 1 && data)
 	{
 		int i;
 
@@ -308,7 +306,7 @@ static int cterm_process_write(char *buf, int len)
 	char  postfixdata = buf[4];
 	char  feed = '\n';
 
-	// TODO: flags...
+	// INFO: flags...
 	//       TSQQ PPEB DLUU
 	//       UU  lock handling "Page 65"
 	//       L   1=Output LF at end and set a flag to skip next LF in next write
@@ -320,11 +318,11 @@ static int cterm_process_write(char *buf, int len)
 	//       S   1=Send write completion when this write completes
 	//       T   1=This data is written to foundation services transparently
 
-	DEBUG_CTERM("process_write flags = %x (prefix=%d,postfix=%d)\n",flags, prefixdata, postfixdata);
+	DEBUG_CTERM("process_write flags = %x (prefix=%d, postfix=%d)\n",flags, prefixdata, postfixdata);
 
-	tty_set_discard(!(flags>>3));
+	tty_set_discard(!(flags >> 3)); // D
 
-	send_prepostfix(((flags >> 6) & 3), prefixdata); //PP
+	send_prepostfix(((flags >> 6) & 3), prefixdata); // PP
 
 	if (skip_next_lf)
 	{
@@ -333,7 +331,7 @@ static int cterm_process_write(char *buf, int len)
 
 	tty_write(buf+4, len-4);
 
-	if ((flags >>2)&1)
+	if ((flags >> 2)&1) // L
 	{
 		if (!skip_next_lf)
 		{
@@ -348,13 +346,11 @@ static int cterm_process_write(char *buf, int len)
 		}
 	}
 
-	send_prepostfix(((flags >> 8) & 3), postfixdata); //QQ
+	send_prepostfix(((flags >> 8) & 3), postfixdata); // QQ
 
-#if 0
-	// This break RSX, and VMS is happy without it...
-	if (flags & 2)
+	// PJC: This broke to RSX, but was wrong -- TODO: Retest
+	if ((flags >> 10) & 1) // S
 		send_write_complete();
-#endif
 
 	return len;
 }

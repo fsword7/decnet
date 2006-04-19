@@ -46,6 +46,7 @@ static int mainloop(void)
 		char inbuf[1024];
 		struct timeval tv;
 		int res;
+		int sockfd = found_getsockfd();
 
 		tv.tv_usec = 0;
 		tv.tv_sec = char_timeout;
@@ -53,7 +54,7 @@ static int mainloop(void)
 		fd_set in_set;
 		FD_ZERO(&in_set);
 		FD_SET(termfd, &in_set);
-		FD_SET(found_getsockfd(), &in_set);
+		FD_SET(sockfd, &in_set);
 
 		if ( (res=select(FD_SETSIZE, &in_set, NULL, NULL, timeout_valid?&tv:NULL)) < 0)
 		{
@@ -79,8 +80,9 @@ static int mainloop(void)
 			tty_process_terminal(inbuf, len);
 		}
 
-		if (found_read() == -1)
-			break;
+		if (FD_ISSET(sockfd, &in_set))
+			if (found_read() == -1)
+				break;
 	}
 	write(termfd, "\n", 1);
 	return 0;

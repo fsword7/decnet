@@ -199,38 +199,53 @@ static void do_show_network(void)
 	}
 
 	/* Areas */
-	for (i=1; i<64; i++)
+	if (send_level2)
 	{
-		if (area_table[i].valid)
+		for (i=1; i<64; i++)
 		{
-			struct nodeinfo *n;
-			unsigned short area_node = area_table[i].router;
-			char *ifname = "";
-
-			if (first)
+			if (area_table[i].valid)
 			{
-				first = 0;
-				fprintf(fp, "\n     Area     Cost    Hops     Next Hop to Area\n");
+				struct nodeinfo *n;
+				unsigned short area_node = area_table[i].router;
+				char *ifname = "";
+
+				if (first)
+				{
+					first = 0;
+					fprintf(fp, "\n     Area     Cost    Hops     Next Hop to Area\n");
+				}
+
+				if (!area_node) /* Local */
+				{
+					area_node = exec_addr->a_addr[1] << 8 | exec_addr->a_addr[0];
+					ifname = "(local)";
+				}
+
+				n = dm_hash_lookup_binary(node_hash, (void*)&area_table[i].router, 2);
+				dn_addr[0] = area_node & 0xFF;
+				dn_addr[1] = area_node>>8;
+				ne = getnodebyaddr((const char *)dn_addr, 2, AF_DECnet);
+
+				fprintf(fp, "     %3d      %3d    %3d        %-7s   ->   %2d.%-4d    %s   %s\n",
+					i, area_table[i].cost, area_table[i].hops,
+					n?if_index_to_name(n->interface):ifname,
+					area_node>>10, area_node & 0x03FF,
+					ne?ne->n_name:"",
+					area_table[i].manual?"(M)":"");
 			}
-
-			if (!area_node) /* Local */
-			{
-				area_node = exec_addr->a_addr[1] << 8 | exec_addr->a_addr[0];
-				ifname = "(local)";
-			}
-
-			n = dm_hash_lookup_binary(node_hash, (void*)&area_table[i].router, 2);
-			dn_addr[0] = area_node & 0xFF;
-			dn_addr[1] = area_node>>8;
-			ne = getnodebyaddr((const char *)dn_addr, 2, AF_DECnet);
-
-			fprintf(fp, "     %3d      %3d    %3d        %-7s   ->   %2d.%-4d    %s   %s\n",
-				i, area_table[i].cost, area_table[i].hops,
-				n?if_index_to_name(n->interface):ifname,
-				area_node>>10, area_node & 0x03FF,
-				ne?ne->n_name:"",
-				area_table[i].manual?"(M)":"");
 		}
+	}
+	else
+	{
+		int area = exec_addr->a_addr[1] >> 2;
+		unsigned short area_node = area_table[area].router;
+		dn_addr[0] = area_node & 0xFF;
+		dn_addr[1] = area_node >> 8;
+		ne = getnodebyaddr((const char *)dn_addr, 2, AF_DECnet);
+
+		fprintf(fp, "\nThe next hop to the nearest area router is node %d.%d %s\n\n",
+			area_node>>10, area_node & 1023,
+			ne?ne->n_name:"");
 	}
 
 	/* Nodes */
@@ -521,8 +536,8 @@ static void add_routeinfo(unsigned short addr, struct routeinfo *routehead, int 
 
 static void add_area_routeinfo(unsigned short area, int cost, int hops, unsigned short from_node)
 {
-	/* Don't add a local area route */
-	if (area == (exec_addr->a_addr[1] >> 2))
+	/* Don't add a local area route if we're the area router */
+	if (area == (exec_addr->a_addr[1] >> 2) && send_level2)
 	{
 		area_table[area].cost = 0;
 		area_table[area].hops = 0;
@@ -902,7 +917,7 @@ static void process_routing_message(unsigned char *buf, int len, int iface)
 		struct nodeinfo *n;
 
 		nodeaddr = (buf[11]<<8) | buf[10];
-		level = buf[12] & 0x3;
+		level = 3-(buf[12] & 0x3);
 		priority = buf[15];
 
 		debuglog("Got router hello from %d on %s, level = %d, prio = %d\n",
@@ -1049,11 +1064,17 @@ int main(int argc, char **argv)
 	}
 
 	/*
-	 * Add an entry for our area. If we are running this, we must assume
-	 * this node is a router !
+	 * Add an entry for our area. If we are a level2 router, then it's us.
 	 */
-	area_table[exec_addr->a_addr[1]>>2].router = 0;
-	area_table[exec_addr->a_addr[1]>>2].valid = 1;
+	if (send_level2)
+	{
+		area_table[exec_addr->a_addr[1]>>2].router = 0;
+		area_table[exec_addr->a_addr[1]>>2].valid = 1;
+	}
+
+	/* Set the local area to "manual control" so we don't force all
+	   traffic through a local router */
+	area_table[exec_addr->a_addr[1]>>2].manual = 1;
 
 	/* Start it off */
 	get_neighbours();

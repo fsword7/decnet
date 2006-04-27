@@ -1,3 +1,37 @@
+dnprogs (2.37) unstable; urgency=low
+
+  * dnlogin: more LF bug fixes (you wouldn't beleive how complicated this is!)
+  * dnroute is now a bit better at being a level 1 router
+  * Fix cost & hops sent by dnroute.
+
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 27 Apr 2006 10:51:04 +0100
+
+
+dnprogs (2.36) unstable; urgency=low
+
+  * Misc fixes to routing daemon. Especially more compliant routing messages
+  * Better hello messages from multinet tunnel
+  * Depend on module-init-tools | modutils
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon, 10 Apr 2006 11:59:27 +0100
+
+dnprogs (2.35) unstable; urgency=low
+
+  * Make dnroute work on big-endian machines
+  * dnroute can now send router messages on devices with small MTUs
+  * dnroute now sends level2 router messages and creates area
+    routing tables from those it receives
+  * Add script 'dnetinfo' to query the routing daemon state - the
+    output emulates SHOW NET/OLD
+  * libdnet: Fix getnodebyaddr so it works with high node numbers.
+  * Make ncurses phone work on big-endian machines
+  * Better newline handling in dnlogin. This should fix those niggling
+    "that doesn't look quite right" things. It also works with GNV's bash too!
+  * Add multinet IP tunnelling daemon
+  * Some minor fixes to init scripts 
+
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  5 Apr 2006 09:39:04 +0100
+
 dnprogs (2.34) unstable; urgency=low
 
   * Don't SIGBUS on sparc sending DAP packets > 255 bytes long

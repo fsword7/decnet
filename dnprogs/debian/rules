@@ -39,7 +39,6 @@ binary-indep: checkroot build
 	cp apps/decnet.conf debian/tmp/usr/share/doc/dnet-common/decnet.conf.sample
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
-	rm -f debian/tmp/usr/sbin/startnet
 	install -m755 apps/setether.sh debian/tmp/sbin/setether
 	dh_installdirs -pdnet-common
 	dh_installchangelogs  -pdnet-common
@@ -77,7 +76,6 @@ binary-arch: checkroot build
 	cp libvaxdata/*pdf debian/tmp/usr/share/doc/libdnet-dev
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
 	mv debian/tmp/usr/man debian/tmp/usr/share
-	mv debian/tmp/usr/sbin/startnet debian/tmp/sbin
 	dh_installdirs -Ndnet-common
 	dh_installchangelogs -Ndnet-common
 	dh_installdocs -Ndnet-common

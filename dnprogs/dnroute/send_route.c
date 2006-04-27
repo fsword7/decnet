@@ -81,8 +81,8 @@ static int send_routing_message(unsigned char type, struct routeinfo *node_table
     {
 	if (node_table[j].valid)
 	{
-		packet[i++] = node_table[j].cost; /* cost can use the low bit of the next byte... */
-		packet[i++] = (node_table[j].hops << 1) | ((node_table[j].cost>>8) & 1);   /* hops - starting bit 1 */
+		packet[i++] = node_table[j].cost; /* cost can use the low 2 bit of the next byte... */
+		packet[i++] = (node_table[j].hops << 2) | ((node_table[j].cost>>8) & 3);   /* hops - starting bit 2 */
 	}
 	else
 	{

@@ -31,40 +31,40 @@
 /* Structure of a LAT header */
 typedef struct
 {
-    unsigned char  cmd             __attribute__ ((packed));
-    unsigned char  num_slots       __attribute__ ((packed));
-    unsigned short remote_connid   __attribute__ ((packed));
-    unsigned short local_connid    __attribute__ ((packed));
-    unsigned char  sequence_number __attribute__ ((packed));
-    unsigned char  ack_number      __attribute__ ((packed));
+	unsigned char  cmd;
+	unsigned char  num_slots;
+	unsigned short remote_connid   __attribute__ ((packed));
+	unsigned short local_connid    __attribute__ ((packed));
+	unsigned char  sequence_number;
+	unsigned char  ack_number;
 
 } LAT_Header;
 
 typedef struct
 {
-  unsigned char  cmd             __attribute__ ((packed));
-  unsigned char  dummy           __attribute__ ((packed));
-  unsigned char  hiver           __attribute__ ((packed)); // Highest protocol version
-  unsigned char  lover           __attribute__ ((packed)); // Lowest protocol version
-  unsigned char  latver          __attribute__ ((packed)); // LAT version No. (5)
-  unsigned char  latver_eco      __attribute__ ((packed)); // LAT version No. (LSB)
-  unsigned short mtu             __attribute__ ((packed)); // 1500
-  unsigned short id              __attribute__ ((packed));
-  unsigned short retrans_timer   __attribute__ ((packed));
+	unsigned char  cmd;
+	unsigned char  dummy;
+	unsigned char  hiver;      // Highest protocol version
+	unsigned char  lover;      // Lowest protocol version
+	unsigned char  latver;     // LAT version No. (5)
+	unsigned char  latver_eco; // LAT version No. (LSB)
+	unsigned short mtu             __attribute__ ((packed)); // 1500
+	unsigned short id              __attribute__ ((packed));
+	unsigned short retrans_timer   __attribute__ ((packed));
 
 } LAT_Enquiry;
 
 typedef struct
 {
-    unsigned char  cmd             __attribute__ ((packed));
-    unsigned char  dummy           __attribute__ ((packed));
-    unsigned char  hiver           __attribute__ ((packed)); // Highest protocol version
-    unsigned char  lover           __attribute__ ((packed)); // Lowest protocol version
-    unsigned char  latver          __attribute__ ((packed)); // LAT version No. (5)
-    unsigned char  latver_eco      __attribute__ ((packed)); // LAT version No. (LSB)
-    unsigned short mtu             __attribute__ ((packed)); // 1500
-    unsigned short id              __attribute__ ((packed));
-    unsigned short retrans_timer   __attribute__ ((packed));
+	unsigned char  cmd;
+	unsigned char  dummy;
+	unsigned char  hiver;
+	unsigned char  lover;
+	unsigned char  latver;     // LAT version No. (5)
+	unsigned char  latver_eco; // LAT version No. (LSB)
+	unsigned short mtu             __attribute__ ((packed)); // 1500
+	unsigned short id              __attribute__ ((packed));
+	unsigned short retrans_timer   __attribute__ ((packed));
 
 } LAT_Enqreply;
 
@@ -72,18 +72,18 @@ typedef struct
 // Service Announcement message
 typedef struct
 {
-  unsigned char  cmd             __attribute__ ((packed)); // always 0x28
-  unsigned char  circuit_timer   __attribute__ ((packed)); // in 10s milliseconds
-  unsigned char  hiver           __attribute__ ((packed)); // Highest protocol version
-  unsigned char  lover           __attribute__ ((packed)); // Lowest protocol version
-  unsigned char  latver          __attribute__ ((packed)); // LAT version No. (5)
-  unsigned char  latver_eco      __attribute__ ((packed)); // LAT version No. (LSB)
-  unsigned char  incarnation     __attribute__ ((packed)); // Message incarnation
-  unsigned char  flags           __attribute__ ((packed)); // Change flags
-  unsigned short mtu             __attribute__ ((packed)); // 1500
-  unsigned char  multicast_timer __attribute__ ((packed)); // Multicast timer (seconds)
-  unsigned char  node_status     __attribute__ ((packed)); // 2 (accepting connections)
-  unsigned char  group_length    __attribute__ ((packed));
+	unsigned char  cmd             ; // always 0x28
+	unsigned char  circuit_timer   ; // in 10s milliseconds
+	unsigned char  hiver           ; // Highest protocol version
+	unsigned char  lover           ; // Lowest protocol version
+	unsigned char  latver          ; // LAT version No. (5)
+	unsigned char  latver_eco      ; // LAT version No. (LSB)
+	unsigned char  incarnation     ; // Message incarnation
+	unsigned char  flags           ; // Change flags
+	unsigned short mtu             __attribute__ ((packed)); // 1500
+	unsigned char  multicast_timer ; // Multicast timer (seconds)
+	unsigned char  node_status     ; // 2 (accepting connections)
+	unsigned char  group_length    ;
 
   // Following:
   // Node groups
@@ -94,120 +94,120 @@ typedef struct
 // LAT Start message
 typedef struct
 {
-    LAT_Header header;
-    unsigned short maxsize     __attribute__ ((packed)); // Max message size
-    unsigned char  latver      __attribute__ ((packed)); // LAT version No. (5)
-    unsigned char  latver_eco  __attribute__ ((packed)); // LAT version No. (LSB)
-    unsigned char  maxsessions __attribute__ ((packed));
-    unsigned char  exqueued    __attribute__ ((packed)); // Extra data link buffer queued
-    unsigned char  circtimer   __attribute__ ((packed)); // in 10s of milliseconds
-    unsigned char  keepalive   __attribute__ ((packed)); // in seconds
-    unsigned short facility    __attribute__ ((packed));
-    unsigned char  prodtype    __attribute__ ((packed));
-    unsigned char  prodver     __attribute__ ((packed));
+	LAT_Header header;
+	unsigned short maxsize     __attribute__ ((packed)); // Max message size
+	unsigned char  latver;
+	unsigned char  latver_eco;
+	unsigned char  maxsessions;
+	unsigned char  exqueued;  // Extra data link buffer queued
+	unsigned char  circtimer; // in 10s of milliseconds
+	unsigned char  keepalive; // in seconds
+	unsigned short facility    __attribute__ ((packed));
+	unsigned char  prodtype;
+	unsigned char  prodver;
 
-  // Following:
-    // ASCIC Destination Service
-    // ASCIC Source Node
+	// Following:
+	// ASCIC Destination Service
+	// ASCIC Source Node
 } LAT_Start;
 
 // LAT Connect message
 typedef struct
 {
-    LAT_Header header;
-    unsigned short maxsize     __attribute__ ((packed));
-    unsigned char  latver      __attribute__ ((packed)); // LAT version No. (5)
-    unsigned char  latver_eco  __attribute__ ((packed)); // LAT version No. (LSB)
-    unsigned char  maxsessions __attribute__ ((packed));
-    unsigned char  exqueued    __attribute__ ((packed));
-    unsigned char  circtimer   __attribute__ ((packed));
-    unsigned char  keepalive   __attribute__ ((packed));
-    unsigned short facility    __attribute__ ((packed));
-    unsigned char  prodtype    __attribute__ ((packed));
-    unsigned char  prodver     __attribute__ ((packed));
+	LAT_Header header;
+	unsigned short maxsize     __attribute__ ((packed));
+	unsigned char  latver;
+	unsigned char  latver_eco;
+	unsigned char  maxsessions;
+	unsigned char  exqueued;
+	unsigned char  circtimer;
+	unsigned char  keepalive;
+	unsigned short facility    __attribute__ ((packed));
+	unsigned char  prodtype;
+	unsigned char  prodver;
 
-    // Following:
-    // ASCIC Destination Node
-    // ASCIC Source Node
-    // ASCIC Local description (NUL terminated)
+	// Following:
+	// ASCIC Destination Node
+	// ASCIC Source Node
+	// ASCIC Local description (NUL terminated)
 } LAT_StartResponse;
 
 // LAT Slot command - follows the header - may be more than one
 // in a packet. Word-aligned
 typedef struct
 {
-    unsigned char local_session  __attribute__ ((packed));
-    unsigned char remote_session __attribute__ ((packed));
-    unsigned char length         __attribute__ ((packed));
-    unsigned char cmd            __attribute__ ((packed));
+	unsigned char local_session;
+	unsigned char remote_session;
+	unsigned char length;
+	unsigned char cmd;
 } LAT_SlotCmd;
 
 
 typedef struct
 {
-    LAT_Header  header  __attribute__ ((packed));
-    LAT_SlotCmd slot    __attribute__ ((packed));
+	LAT_Header  header;
+	LAT_SlotCmd slot;
 } LAT_SessionCmd;
 
 typedef struct
 {
-    LAT_Header    header        __attribute__ ((packed));
-    LAT_SlotCmd   slot          __attribute__ ((packed));
-    unsigned char serviceclass  __attribute__ ((packed));
-    unsigned char attslotsize   __attribute__ ((packed));
-    unsigned char dataslotsize  __attribute__ ((packed));
+	LAT_Header    header;
+	LAT_SlotCmd   slot;
+	unsigned char serviceclass;
+	unsigned char attslotsize;
+	unsigned char dataslotsize;
 } LAT_SessionStartCmd;
 
 typedef struct
 {
-    unsigned char  cmd           __attribute__ ((packed));
-    unsigned char  format        __attribute__ ((packed));
-    unsigned char  hiver         __attribute__ ((packed)); // Highest protocol version
-    unsigned char  lover         __attribute__ ((packed)); // Lowest protocol version
-    unsigned char  latver        __attribute__ ((packed)); // LAT version No. (5)
-    unsigned char  latver_eco    __attribute__ ((packed)); // LAT version No. (LSB)
-    unsigned short maxsize       __attribute__ ((packed));
-    unsigned short request_id    __attribute__ ((packed));
-    unsigned short entry_id      __attribute__ ((packed));
-    unsigned char  opcode        __attribute__ ((packed));
-    unsigned char  modifier      __attribute__ ((packed));
-    // ASCIC Destination node name
-    // ASCIC Source node name
-    // ASCIC Source node port name (usually NUL)
-    // ASCIC Source description (usually NUL)
-    // ASCIC Destination port name
-    // Parameters
+	unsigned char  cmd;
+	unsigned char  format;
+	unsigned char  hiver;
+	unsigned char  lover;
+	unsigned char  latver;
+	unsigned char  latver_eco;
+	unsigned short maxsize       __attribute__ ((packed));
+	unsigned short request_id    __attribute__ ((packed));
+	unsigned short entry_id      __attribute__ ((packed));
+	unsigned char  opcode;
+	unsigned char  modifier;
+	// ASCIC Destination node name
+	// ASCIC Source node name
+	// ASCIC Source node port name (usually NUL)
+	// ASCIC Source description (usually NUL)
+	// ASCIC Destination port name
+	// Parameters
 } LAT_Command;
 
 // A Status message can contain one or more of these entries.
 typedef struct
 {
-    unsigned short length        __attribute__ ((packed));
-    unsigned short status        __attribute__ ((packed));
-    unsigned short request_id    __attribute__ ((packed));
-    unsigned short session_id    __attribute__ ((packed));
-    unsigned short elapsed_time  __attribute__ ((packed)); // set to -1? seconds
-    unsigned short min_que_pos   __attribute__ ((packed));
-    unsigned short max_que_pos   __attribute__ ((packed));
-    // ASCIC Service Name
-    // ASCIC Port Name
-    // ASCIC Service description
+	unsigned short length        __attribute__ ((packed));
+	unsigned short status        __attribute__ ((packed));
+	unsigned short request_id    __attribute__ ((packed));
+	unsigned short session_id    __attribute__ ((packed));
+	unsigned short elapsed_time  __attribute__ ((packed)); // set to -1? seconds
+	unsigned short min_que_pos   __attribute__ ((packed));
+	unsigned short max_que_pos   __attribute__ ((packed));
+	// ASCIC Service Name
+	// ASCIC Port Name
+	// ASCIC Service description
 
 } LAT_StatusEntry;
 
 typedef struct
 {
-    unsigned char  cmd           __attribute__ ((packed));
-    unsigned char  format        __attribute__ ((packed));
-    unsigned char  hiver         __attribute__ ((packed)); // Highest protocol version
-    unsigned char  lover         __attribute__ ((packed)); // Lowest protocol version
-    unsigned char  latver        __attribute__ ((packed)); // LAT version No. (5)
-    unsigned char  latver_eco    __attribute__ ((packed)); // LAT version No. (LSB)
-    unsigned short maxsize       __attribute__ ((packed));
-    unsigned short retrans_timer __attribute__ ((packed));
-    unsigned char  entry_count   __attribute__ ((packed));
-    //ASCIC Subject node name
-    // Array of LAT_StatusEntry structs
+	unsigned char  cmd;
+	unsigned char  format;
+	unsigned char  hiver;
+	unsigned char  lover;
+	unsigned char  latver;
+	unsigned char  latver_eco;
+	unsigned short maxsize       __attribute__ ((packed));
+	unsigned short retrans_timer __attribute__ ((packed));
+	unsigned char  entry_count;
+	//ASCIC Subject node name
+	// Array of LAT_StatusEntry structs
 
 } LAT_Status;
 

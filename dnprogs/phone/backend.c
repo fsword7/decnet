@@ -38,7 +38,7 @@ static void do_hangup(void);
 static void do_facsimile(char *filename);
 static void do_help(void);
 static void do_directory(char *node);
-    
+
 int  dial_remote(char *remuser);
 int  get_fd_from_userpipe(char *, int);
 void send_dial(int sig);
@@ -61,9 +61,12 @@ char *get_local_name(void)
     if (local_name[0] == '\0')
     {
         addr = getnodeadd();
+	if (!addr)
+		return NULL;
+
 	sprintf(local_name, "%s::%s", dnet_htoa(addr), getenv("LOGNAME"));
-	
-	
+
+
 	// Make it all upper case
 	for (i=0; i<strlen(local_name); i++)
 	{
@@ -86,8 +89,8 @@ char *get_local_node(void)
     {
         addr = getnodeadd();
 	sprintf(local_name, "%s", dnet_htoa(addr));
-	
-	
+
+
 	// Make it all upper case
 	for (i=0; i<strlen(local_name); i++)
 	{
@@ -103,7 +106,8 @@ int init_backend()
     struct sockaddr_un sockaddr;
     int                user_pipe;
     char               len;
-    
+    char              *localname;
+
     user_pipe = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
     if (user_pipe == -1)
     {
@@ -120,14 +124,18 @@ int init_backend()
     }
 
 // Send the local username
-    len = strlen(get_local_name())+1; // make sure it includes \0
+    localname = get_local_name();
+    if (!localname)
+	    return -1;
+
+    len = strlen(localname)+1; // make sure it includes \0
     if (write(user_pipe, &len, 1) == -1 ||
 	write(user_pipe, get_local_name(), len) == -1)
     {
 	close (user_pipe);
 	return -1;
     }
-    
+
     return user_pipe;
 }
 
@@ -147,7 +155,7 @@ void do_command(char *cmd)
 {
     // Clear message line
     cr.show_error(0, "");
-    
+
     // Exit and quit are synonymous
     if (strcasecmp(cmd, "exit") == 0) { cr.quit(); return; }
     if (strcasecmp(cmd, "quit") == 0) { cr.quit(); return; }
@@ -159,7 +167,7 @@ void do_command(char *cmd)
     if (strncasecmp(cmd, "unh", 3) == 0) { do_hold(0); return; }
     if (strncasecmp(cmd, "han", 3) == 0) { do_hangup(); return; }
     if (strncasecmp(cmd, "hel", 3) == 0) { do_help(); return; }
-    
+
     // DIRECTORY command
     if (strncasecmp(cmd, "dir", 3) == 0)
     {
@@ -213,10 +221,10 @@ void do_command(char *cmd)
     // The default command is also DIAL but only if the string contains
     // a double colon
     if (strstr(cmd, "::")) { dial_remote(cmd); return; }
-    
+
     if (strlen(cmd) > 0)
 	cr.show_error(0, "Unknown command");
-} 
+}
 
 // FACSIMILE command
 // Send a file to the remote users(s), also show it in the local window
@@ -252,7 +260,7 @@ static void do_facsimile(char *filename)
 	// Send the (EOF) string - use correct line-ending for the
 	// local copy so it doesn't try to write into the constant.
 	cr.write_text(get_local_name(), "(EOF)\n");
-	
+
 	for (i=0; i<num_fds; i++)
 	{
 	    send_data(fds[i].out_fd, "(EOF)\r", 6);
@@ -286,7 +294,7 @@ static void do_answer(int reject)
         cr.show_error(0, "No one is calling you now.");
 	return;
     }
-    
+
     for (i=0; i<num_fds; i++)
     {
 	if (fds[i].in_fd >-1 && fds[i].out_fd == -1) // Not answered
@@ -295,12 +303,12 @@ static void do_answer(int reject)
 	    found = TRUE;
 
             // Make outgoing connection...
-	    if ((out_fd = socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP)) == -1) 
+	    if ((out_fd = socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP)) == -1)
 	    {
 		perror("socket");
 		return;
 	    }
-	    
+
 	    // Connect back to the system that connected to us.
 	    memset(&out_sockaddr, 0, sizeof(out_sockaddr));
 	    getpeername(in_fd, (struct sockaddr *)&out_sockaddr, &len_out_sockaddr);
@@ -310,7 +318,7 @@ static void do_answer(int reject)
 	    out_sockaddr.sdn_objnum    = PHONE_OBJECT;
 	    out_sockaddr.sdn_objnamel  = 0x00;
 	    out_sockaddr.sdn_add.a_len = 0x02;
-	    if (connect(out_fd, (struct sockaddr *)&out_sockaddr, len_out_sockaddr) < 0) 
+	    if (connect(out_fd, (struct sockaddr *)&out_sockaddr, len_out_sockaddr) < 0)
 	    {
 		cr.show_error(1, "Cannot connect to caller");
 		close(out_fd);
@@ -330,16 +338,16 @@ static void do_answer(int reject)
 		perror("connect error");
 		close(out_fd);
 		close(in_fd);
-		cr.delete_caller(in_fd);	    
+		cr.delete_caller(in_fd);
 		return;
 	    }
-	    
+
 	    // Send ANSWER or REJECT
 	    if (reject)
 		outbuf[0] = PHONE_REJECT;
 	    else
 		outbuf[0] = PHONE_ANSWER;
-	    
+
 	    strcpy(outbuf+1, get_local_name());
 	    if (write(out_fd, outbuf, strlen(outbuf)+1) < 0)
 	    {
@@ -349,7 +357,7 @@ static void do_answer(int reject)
 		cr.delete_caller(in_fd);
 		return;
 	    }
-	    
+
 	    // If we rejected the call then tidy up.
 	    if (reject)
 	    {
@@ -385,7 +393,7 @@ static int socket_callback(int fd)
     {
 	char *text = buf+strlen(buf)+1;
 	buf[status] = '\0';
-	
+
 	switch (buf[0])
 	{
 	case PHONE_DATA:
@@ -419,7 +427,7 @@ static int socket_callback(int fd)
 		strftime(d, sizeof(d), "%d-%b-%Y %H:%M:%S", &tm);
 		sprintf(message, "\007%s is phoning you on %s::     (%s)", buf+1, get_local_node(), d);
 		cr.show_error(0, message);
-		
+
 		d[0] = PHONE_REPLYOK;
 		write(fd, d, 1);
 	    }
@@ -452,7 +460,7 @@ static int socket_callback(int fd)
     }
     return 0;
 }
-    
+
 // Receive a file descriptor from another process.
 // This code is largely lifted from Stevens' book.
 static int receive_fd(int pipe)
@@ -464,9 +472,9 @@ static int receive_fd(int pipe)
     struct msghdr  msg;
     static struct cmsghdr *cmptr = NULL;
 #define CONTROLLEN (sizeof(struct cmsghdr) + sizeof(int))
-  
+
     status = -1;
-    for ( ; ; ) 
+    for ( ; ; )
     {
 	iov[0].iov_base = buf;
 	iov[0].iov_len = sizeof(buf);
@@ -474,31 +482,31 @@ static int receive_fd(int pipe)
 	msg.msg_iovlen = 1;
 	msg.msg_name = NULL;
 	msg.msg_namelen = 0;
-	
+
 	if (cmptr == NULL && (cmptr = (struct cmsghdr *)malloc(CONTROLLEN)) == NULL)
 	    return -1;
 	msg.msg_control = (caddr_t) cmptr;
 	msg.msg_controllen = CONTROLLEN;
-	
+
 	nread = recvmsg(pipe, &msg, 0);
-	
+
 	if (nread <= 0)
 	{
 	    return -1;
-	} 
-	
-	for (ptr = buf; ptr < &buf[nread]; ) 
+	}
+
+	for (ptr = buf; ptr < &buf[nread]; )
 	{
 	    if (*ptr++ == 0) {
-		if (ptr != &buf[nread-1]) 
+		if (ptr != &buf[nread-1])
 		{
 		    fprintf(stderr, "Message format error");
 		    return -1;
 		}
 		status = *ptr & 255;
-		if (status == 0) 
+		if (status == 0)
 		{
-		    if (msg.msg_controllen != CONTROLLEN) 
+		    if (msg.msg_controllen != CONTROLLEN)
 		    {
 			fprintf(stderr, "status was 0 but no fd found");
 			return -1;
@@ -532,7 +540,7 @@ static void do_hold(int hold)
     else
 	buf[0] = PHONE_UNHOLD;
     strcpy(buf+1, get_local_name());
-    
+
     for (i=0; i< num_fds; i++)
     {
 	write(fds[i].out_fd, buf, strlen(buf)+1);
@@ -552,7 +560,7 @@ static void do_hangup()
     struct fd_list fds[6];
     int i;
     int num_fds = cr.get_fds(fds);
-    
+
     for (i=0; i< num_fds; i++)
     {
 	close_connection(fds[i].out_fd);
@@ -613,7 +621,7 @@ void send_dial(int sig)
 	    cr.show_error(0, "That person's phone is unplugged (/NOBROADCAST).");
 	    return;
 	}
-	
+
 	dial_flag = 0;
 	signal(SIGALRM, send_dial);
 	alarm(10);
@@ -630,7 +638,7 @@ void send_hold(int held, int fd)
 	buf[0] = PHONE_HOLD;
     else
 	buf[0] = PHONE_UNHOLD;
-	
+
     strcpy(buf+1, get_local_name());
     write(fd, buf, strlen(buf)+1);
 
@@ -663,9 +671,9 @@ int dial_remote(char *remuser)
 	cr.show_error(1, "Talking to yourself is the first sign of madness");
 	return -1;
     }
-    
+
     // Open a connection to the remote host.
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
 	cr.show_error(1, "can't get socket for remote connection");
 	return -1;
@@ -679,7 +687,7 @@ int dial_remote(char *remuser)
 	return -1;
     }
     strcpy(node, np->n_name);
- 
+
     memset(&sockaddr, 0, sizeof(sockaddr));
     sockaddr.sdn_family    = AF_DECnet;
     sockaddr.sdn_flags	   = 0x00;
@@ -687,9 +695,9 @@ int dial_remote(char *remuser)
     sockaddr.sdn_objnamel  = 0x00;
     sockaddr.sdn_add.a_len = 0x02;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
-    
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+
+    if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
     {
 	cr.show_error(1, "Cannot connect to remote node");
 	close(sockfd);
@@ -709,19 +717,19 @@ int dial_remote(char *remuser)
 	    strcpy(node, np2->n_name);
 	}
     }
-    
+
     // Rebuild the node::user from the real node name and make it all caps
     snprintf(newuser, sizeof(newuser), "%s::%s", node, colons+2);
     for (i=0; i<strlen(newuser); i++)
     {
 	if (islower(newuser[i])) newuser[i] = toupper(newuser[i]);
     }
-    
+
     // Send initial connect message
     msg[0] = PHONE_CONNECT;
     strcpy(msg+1, get_local_name());
     strcpy(msg+strlen(msg)+1, newuser);
-    
+
     if (write(sockfd, msg, strlen(msg)+strlen(newuser)+1) < 0)
     {
 	cr.show_error(1, "Cannot send message to remote node");
@@ -786,7 +794,7 @@ int get_fd_from_userpipe(char *inbuf, int user_pipe)
 	replybuf[0] = PHONE_REPLYOK;
 	write(incoming_fd, replybuf, 1);
     }
-    
+
     return incoming_fd;
 }
 
@@ -848,9 +856,9 @@ static void do_directory(char *node)
     // colons are optional but we don't want them
     colon = strstr(node, ":");
     if (colon) *colon = '\0';
-    
+
     // Open a connection to the remote host.
-    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1) 
+    if ((sockfd=socket(AF_DECnet,SOCK_SEQPACKET,DNPROTO_NSP)) == -1)
     {
 	cr.show_error(1, "can't get socket for remote connection");
 	return;
@@ -868,9 +876,9 @@ static void do_directory(char *node)
     sockaddr.sdn_objnamel  = 0x00;
     sockaddr.sdn_add.a_len = 0x02;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
-    
-    if (connect(sockfd, (struct sockaddr *)&sockaddr, 
-		sizeof(sockaddr)) < 0) 
+
+    if (connect(sockfd, (struct sockaddr *)&sockaddr,
+		sizeof(sockaddr)) < 0)
     {
 	cr.show_error(1, "Cannot connect to remote node");
 	close(sockfd);
@@ -882,7 +890,7 @@ static void do_directory(char *node)
     cr.open_display_window(buf);
     cr.display_line("Process Name    User Name       Terminal        Phone Status");
     cr.display_line("");
-    
+
 // Send DIRECTORY request message
     msg[0] = PHONE_DIRECTORY;
     write(sockfd, msg, 1);
@@ -908,6 +916,6 @@ void cancel_dial(void)
 	close(dial_fd);
 	alarm(0);
 	dial_fd = -1;
-	cr.show_error(0, "Dial was cancelled");	
+	cr.show_error(0, "Dial was cancelled");
     }
 }

@@ -33,6 +33,7 @@
 #                                                                              #
 #  2-Sep-2005  L. M. Baker      Original version (from make.libvfbb).          #
 #  5-Oct-2005  L. M. Baker      Use custom compile rule for is_little_endian.  #
+#  2-Aug-2006  P. J. Caulfield  Remove -c from ar command.                     #
 #                                                                              #
 ################################################################################
 
@@ -79,7 +80,7 @@ $(LIB_NAME):
 	cd $(ARCH) ; $(RM) $(OBJS)
 
 $(LIB_NAME).a:	$(OBJS)
-	ar -r -c $(LIB_NAME).a $(OBJS)
+	ar -r  $(LIB_NAME).a $(OBJS)
 	ranlib $(LIB_NAME).a
 
 is_little_endian.o:	is_little_endian.c

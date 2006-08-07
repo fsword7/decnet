@@ -1,3 +1,10 @@
+latd (1.23.1) unstable; urgency=low
+
+  * Fix compilation with gcc 4.1
+    Closes: #355599
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue,  7 Mar 2006 08:52:23 +0000
+
 latd (1.23) unstable; urgency=low
 
   * Send correct disconnect packets that don't upset VMS & some DECservers.

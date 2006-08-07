@@ -1,3 +1,10 @@
+latd (1.24) unstable; urgency=low
+
+  * llogin stops terminal driver generating CRs. Should help in editors.
+  * Slightly improve a couple of error messages.
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  7 Aug 2006 08:38:12 +0100
+
 latd (1.23.1) unstable; urgency=low
 
   * Fix compilation with gcc 4.1

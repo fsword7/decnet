@@ -1,3 +1,35 @@
+latd (1.25) unstable; urgency=low
+
+  * llogin stops terminal driver generating CRs. Should help in editors.
+  * Slightly improve a couple of error messages.
+  * NB: 1.24 was a BSD-only fix.
+
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  7 Aug 2006 08:38:12 +0100
+
+latd (1.23.1) unstable; urgency=low
+
+  * Fix compilation with gcc 4.1
+    Closes: #355599
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue,  7 Mar 2006 08:52:23 +0000
+
+latd (1.23) unstable; urgency=low
+
+  * Send correct disconnect packets that don't upset VMS & some DECservers.
+  * Fix some alignment problems on sparc.
+  * Fix some double increments that break on some architectures.
+  * Fix incoming reverse LAT that was broken in 1.22.
+  * Include example script for using latd as a print server.
+  
+ -- Patrick Caulfield <patrick@debian.org>  Sun,  6 Mar 2005 13:43:02 +0000
+
+latd (1.22) unstable; urgency=low
+
+  * Fix some silly code errors.
+    Closes: #261661
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 20 Aug 2004 14:22:40 +0100
+
 latd (1.21) unstable; urgency=low
 
   * Don't expect an ACK to an ACK. (duh)

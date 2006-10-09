@@ -335,7 +335,7 @@ static int edit_dev_route(int function, unsigned short node, int interface)
 	req.n.nlmsg_type = function;
 	req.r.rtm_family = AF_DECnet;
 	req.r.rtm_table = RT_TABLE_MAIN;
-	req.r.rtm_protocol = RTPROT_BOOT;
+	req.r.rtm_protocol = RTPROT_DNROUTED;
 	req.r.rtm_scope = RT_SCOPE_LINK;
 	req.r.rtm_type = RTN_UNICAST;
 	req.r.rtm_dst_len = 16;
@@ -388,7 +388,7 @@ static int edit_via_route(int function, unsigned short addr, unsigned short via_
 	req.n.nlmsg_type = function;
 	req.r.rtm_family = AF_DECnet;
 	req.r.rtm_table = RT_TABLE_MAIN;
-	req.r.rtm_protocol = RTPROT_BOOT;
+	req.r.rtm_protocol = RTPROT_DNROUTED;
 	req.r.rtm_scope = RT_SCOPE_UNIVERSE;
 	req.r.rtm_type = RTN_UNICAST;
 	req.r.rtm_dst_len = bits;

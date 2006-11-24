@@ -1,3 +1,17 @@
+dnprogs (2.37.2) unstable; urgency=low
+
+  * Add Vietnamese debconf translation
+    Closes: #313566
+  * Fix typo in German debconf translation
+    Closes: #314123
+  * Make library packages Recommend rather then Depend on dnet-common
+    so they can be installed without configuring DECnet. dnet-progs still
+    depends on dnet-common to simplfy installations
+    Closes: #399665
+  * Add LSB sections to init.d scripts.
+ 
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 24 Nov 2006 15:50:18 +0000
+
 dnprogs (2.37.1) unstable; urgency=low
 
   * Add Spanish debconf translation.

@@ -25,7 +25,7 @@ Description: Base package for Linux DECnet
 
 Package: dnet-progs
 Architecture: any
-Depends: ${shlibs:Depends}, libdnet(>=${Source-Version})
+Depends: dnet-common(>=${Source-Version}), libdnet(>=${Source-Version}), ${shlibs:Depends}
 Priority: extra
 Section: net
 Description: DECnet user programs and daemons
@@ -37,7 +37,8 @@ Description: DECnet user programs and daemons
 
 Package: libdnet
 Architecture: any
-Depends: ${shlibs:Depends}, dnet-common(>=${Source-Version})
+Depends: ${shlibs:Depends}
+Recommends: dnet-common(>=${Source-Version})
 Priority: extra
 Section: libs
 Description: DECnet Libraries

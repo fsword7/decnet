@@ -6,6 +6,16 @@
 #
 # --------------------------------------------------------------------------
 #
+### BEGIN INIT INFO
+# Provides:          decnet-progs
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Starts DECnet daemons
+# Description:       Starts dnetd (the DECnet superserver) and other
+#                    optional daemons
+### END INIT INFO
 #
 # Daemons to start are defined in /etc/default/decnet
 #

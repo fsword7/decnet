@@ -6,6 +6,16 @@
 #
 # This script MUST be run before TCP/IP is started.
 #
+### BEGIN INIT INFO
+# Provides:          decnet
+# Required-Start:    $network
+# Required-Stop:     $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Set up ethernet interface(s) for DECnet
+# Description:       Sets the MAC address of the ethernet card(s) for DECnet
+#                    operation, and enables routing if requested.
+### END INIT INFO
 # ---------------------------------------------------------------------------
 #
 FLAGS="start 39 S .  stop 11 1 ."

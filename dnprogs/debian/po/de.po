@@ -41,7 +41,7 @@ msgid ""
 msgstr ""
 "Alle Knoten in einem DECnet-Netzwerk haben einen Knotennamen. Dieser ist "
 "vergleichbar mit dem Hostnamen in einem IP-Netz, jedoch kann der Knotenname "
-"nich länger als 6 Zeichen sein."
+"nicht länger als 6 Zeichen sein."
 
 #. Type: string
 #. Description

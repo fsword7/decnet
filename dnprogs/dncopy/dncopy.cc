@@ -29,6 +29,7 @@
 #include "unixfile.h"
 
 static bool  dntype = false;
+static bool  cont_on_error = false;
 
 // Prototypes
 static void usage(char *name, int dntype, FILE *f);
@@ -233,7 +234,10 @@ int main(int argc, char *argv[])
 		    {
 			out->perror("Error opening file for output");
 			in->close();
-			return 1;
+			if (cont_on_error)
+			    continue;
+			else
+			    return 1;
 		    }
 		}
 		else
@@ -446,7 +450,7 @@ static void do_options(int argc, char *argv[],
     int opt;
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:PD")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:PDE")) != EOF)
     {
 	switch(opt) {
 	case 'h':
@@ -463,6 +467,10 @@ static void do_options(int argc, char *argv[],
 
 	case 'l':
 	    flags |= file::FILE_FLAGS_RRL;
+	    break;
+
+	case 'E':
+	    cont_on_error = true;
 	    break;
 
 	case 'r':

@@ -190,6 +190,7 @@ int dnetfile::open(char *mode)
         dap_send_attributes();
         dap_send_access();
 	status = dap_get_file_entry(&real_rfm, &real_rat);
+    	if (status) return status;
     }
     status = dap_send_connect();
     if (status) return status;

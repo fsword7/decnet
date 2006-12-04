@@ -15,7 +15,7 @@ source...
 .br
 Options:
 .br
-[\-vdisklVh] [\-m mode] [\-a record attributes] [\-r record format]
+[\-vdisklEVh] [\-m mode] [\-a record attributes] [\-r record format]
 [\-b block size] [\-p VMS protection]
 .SH DESCRIPTION
 .PP
@@ -159,6 +159,11 @@ Queue the file for printing to SYS$PRINT when it arrives at the VMS end.
 Delete the file when it is closed. This is only really useful in conjunction
 with 
 .I -P.
+.TP
+.I \-E
+Ignore errors opening output files. This is handy if you are sending a lot
+of Unix files to VMS, some of which have illegal filenames (eg ~ backup files).
+dncopy will report an error for each file but continue sending.
 .TP
 .I \-h \-?
 Displays help for using the command.

@@ -115,7 +115,10 @@ int dnetfile::dap_send_access()
 // Receive the attributes of a file for download or a newly created file
 int dnetfile::dap_get_file_entry(int *rfm, int *rat)
 {
+    char sentname[strlen(filname)+1];
     if (verbose > 2) DAPLOG((LOG_INFO, "in dap_get_file_entry()\n"));
+
+    strcpy(sentname, filname); // Save in case of error
     dirname[0] = volname[0] = filname[0] = '\0';
 
     dap_message *m;
@@ -175,6 +178,11 @@ int dnetfile::dap_get_file_entry(int *rfm, int *rat)
 		{
 		    dap_send_skip();
 		    break;
+		}
+		if (sm->get_code() == 0x4097) // Name syntax error
+		{
+			fprintf(stderr, "Can't send '%s' : Name is not legal at remote end\n", sentname);
+			return -1;
 		}
 		return dap_check_status(m,-1);
 	    }

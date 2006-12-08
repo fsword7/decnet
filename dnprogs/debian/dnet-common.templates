@@ -3,7 +3,7 @@ Type: string
 Default: linux
 _Description: DECnet node name:
  All nodes on a DECnet network have a node name. This is similar to the IP
- hostname but can only be a maximum of 6 characters long. . It is common that
+ hostname but can only be a maximum of 6 characters long. It is common that
  the DECnet name is the same as the IP name (if your machine has one). If you
  do not know the answer to this question please contact your system
  administrator.
@@ -13,7 +13,7 @@ Type: string
 Default: 1.10
 _Description: DECnet node address:
  All nodes on a DECnet network have a node address. This is two numbers
- seperated with a period (eg 3.45) where the first number denotes the area
+ separated with a period (e.g. 3.45) where the first number denotes the area
  and the second is the node within that area.
  .
  Do not make up a number here. If you do not know your DECnet node address

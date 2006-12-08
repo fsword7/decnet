@@ -14,8 +14,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dnsprogs 2.26\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-07-09 13:38+0100\n"
+"Report-Msgid-Bugs-To: patrick@debian.org\n"
+"POT-Creation-Date: 2006-12-07 11:43+0000\n"
 "PO-Revision-Date: 2004-04-16 11:33+0100\n"
 "Last-Translator: Luk Claes <luk.claes@ugent.be>\n"
 "Language-Team: Debian l10n Dutch <debian-l10n-dutch@lists.debian.org>\n"
@@ -25,16 +25,17 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
-msgid "DECnet node name"
+#: ../dnet-common.templates:1001
+#, fuzzy
+msgid "DECnet node name:"
 msgstr "DECnet-knoopnaam"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
+#: ../dnet-common.templates:1001
 msgid ""
 "All nodes on a DECnet network have a node name. This is similar to the IP "
-"hostname but can only be a maximum of 6 characters long. . It is common that "
+"hostname but can only be a maximum of 6 characters long. It is common that "
 "the DECnet name is the same as the IP name (if your machine has one). If you "
 "do not know the answer to this question please contact your system "
 "administrator."
@@ -47,16 +48,18 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
-msgid "DECnet node address"
+#: ../dnet-common.templates:2001
+#, fuzzy
+msgid "DECnet node address:"
 msgstr "DECnet-knoopadres"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
+#, fuzzy
 msgid ""
 "All nodes on a DECnet network have a node address. This is two numbers "
-"seperated with a period (eg 3.45) where the first number denotes the area "
+"separated with a period (e.g. 3.45) where the first number denotes the area "
 "and the second is the node within that area."
 msgstr ""
 "Alle knopen op een DECnet-netwerk hebben een knoopadres. Dit bestaat uit "
@@ -65,7 +68,7 @@ msgstr ""
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
 msgid ""
 "Do not make up a number here. If you do not know your DECnet node address "
 "then ask your system administrator."
@@ -75,13 +78,13 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid "DECnet startup changes your ethernet hardware address"
 msgstr "Het opstarten van DECnet wijzigt uw ethernet-hardwareadres"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The \"setether\" program in this package will change the hardware (MAC) "
 "address of all ethernet cards in your system (by default) to match the "
@@ -99,7 +102,7 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "Be aware that any other machines that have your system's MAC address in "
 "their ARP cache may no longer be able to communicate with you via IP "
@@ -111,7 +114,7 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The MAC address cannot be changed on-the-fly so you will need to reboot your "
 "machine before DECnet can function."
@@ -121,7 +124,7 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "You should also edit /etc/decnet.conf to add the names and addresses of "
 "DECnet nodes you want to communicate with."

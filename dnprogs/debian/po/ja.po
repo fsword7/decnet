@@ -14,64 +14,67 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dnprogs\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-07-09 13:38+0100\n"
-"PO-Revision-Date: 2005-04-30 18:27+0900\n"
+"Report-Msgid-Bugs-To: patrick@debian.org\n"
+"POT-Creation-Date: 2006-12-07 11:43+0000\n"
+"PO-Revision-Date: 2006-12-07 21:13+0900\n"
 "Last-Translator: Kenshi Muto <kmuto@debian.org>\n"
 "Language-Team: Japanese <debian-japanese@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=EUC-JP\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
-msgid "DECnet node name"
-msgstr "DECnet ¤Î¥Î¡¼¥ÉÌ¾"
+#: ../dnet-common.templates:1001
+msgid "DECnet node name:"
+msgstr "DECnet ã®ãƒãƒ¼ãƒ‰å:"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
+#: ../dnet-common.templates:1001
 msgid ""
 "All nodes on a DECnet network have a node name. This is similar to the IP "
-"hostname but can only be a maximum of 6 characters long. . It is common that "
+"hostname but can only be a maximum of 6 characters long. It is common that "
 "the DECnet name is the same as the IP name (if your machine has one). If you "
 "do not know the answer to this question please contact your system "
 "administrator."
-msgstr "DECnet ¥Í¥Ã¥È¥ï¡¼¥¯¤Î¤¹¤Ù¤Æ¤Î¥Î¡¼¥É¤Ï¡¢¥Î¡¼¥ÉÌ¾¤ò»ı¤Á¤Ş¤¹¡£¤³¤ì¤Ï IP ¥Û¥¹¥ÈÌ¾¤Ë»÷¤Æ¤¤¤Ş¤¹¤¬¡¢ºÇÂç 6 Ê¸»ú¤È¤¤¤¦À©¸Â¤¬¤¢¤ê¤Ş¤¹¡£°ìÈÌÅª¤Ë¡¢DECnet Ì¾¤Ï IP Ì¾ (¤â¤·¥Ş¥·¥ó¤¬¤½¤ì¤ò»ı¤Ã¤Æ¤¤¤ë¤Ê¤é) ¤ÈÆ±¤¸¤Ë¤·¤Ş¤¹¡£¼ÁÌä¤ÎÅú¤¨¤¬¤ï¤«¤é¤Ê¤±¤ì¤Ğ¡¢¤¢¤Ê¤¿¤Î¥·¥¹¥Æ¥à´ÉÍı¼Ô¤ËÌä¤¤¹ç¤ï¤»¤Æ¤¯¤À¤µ¤¤¡£"
+msgstr "DECnet ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã®ã™ã¹ã¦ã®ãƒãƒ¼ãƒ‰ã¯ã€ãƒãƒ¼ãƒ‰åã‚’æŒã¡ã¾ã™ã€‚ã“ã‚Œã¯ IP ãƒ›ã‚¹ãƒˆåã«ä¼¼ã¦ã„ã¾ã™ãŒã€æœ€å¤§é•·ãŒ 6 æ–‡å­—ã¨ã„ã†åˆ¶é™ãŒã‚ã‚Šã¾ã™ã€‚ä¸€èˆ¬çš„ã«ã€DECnet åã¯ IP å (ã‚‚ã—ãƒã‚·ãƒ³ãŒãã‚Œã‚’æŒã£ã¦ã„ã‚‹ãªã‚‰) ã¨åŒã˜ã«ã—ã¾ã™ã€‚è³ªå•ã®ç­”ãˆãŒã‚ã‹ã‚‰ãªã‘ã‚Œã°ã€ã‚ãªãŸã®ã‚·ã‚¹ãƒ†ãƒ ç®¡ç†è€…ã«å•ã„åˆã‚ã›ã¦ãã ã•ã„ã€‚"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
-msgid "DECnet node address"
-msgstr "DECnet ¥Î¡¼¥É¥¢¥É¥ì¥¹"
+#: ../dnet-common.templates:2001
+msgid "DECnet node address:"
+msgstr "DECnet ãƒãƒ¼ãƒ‰ã‚¢ãƒ‰ãƒ¬ã‚¹:"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
 msgid ""
 "All nodes on a DECnet network have a node address. This is two numbers "
-"seperated with a period (eg 3.45) where the first number denotes the area "
+"separated with a period (e.g. 3.45) where the first number denotes the area "
 "and the second is the node within that area."
-msgstr "DECnet ¥Í¥Ã¥È¥ï¡¼¥¯¤Î¤¹¤Ù¤Æ¤Î¥Î¡¼¥É¤Ï¥Î¡¼¥É¥¢¥É¥ì¥¹¤ò»ı¤Á¤Ş¤¹¡£¤³¤ì¤Ï¡¢¥Ô¥ê¥ª¥É¤Ç¶èÀÚ¤é¤ì¤¿ 2 ¤Ä¤Î¿ô (¤¿¤È¤¨¤Ğ 3.45) ¤Ç¡¢ºÇ½é¤Î¿ô¤¬¥¨¥ê¥¢¡¢2 ÈÖÌÜ¤Î¿ô¤¬¥¨¥ê¥¢Æâ¤Î¥Î¡¼¥É¤ò°ÕÌ£¤·¤Ş¤¹¡£"
+msgstr "DECnet ãƒãƒƒãƒˆãƒ¯ãƒ¼ã‚¯ã®ã™ã¹ã¦ã®ãƒãƒ¼ãƒ‰ã¯ãƒãƒ¼ãƒ‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æŒã¡ã¾ã™ã€‚ã“ã‚Œã¯ã€ãƒ”ãƒªã‚ªãƒ‰ã§åŒºåˆ‡ã‚‰ã‚ŒãŸ 2 ã¤ã®æ•° (ãŸã¨ãˆã° 3.45) ã§ã€æœ€åˆã®æ•°ãŒã‚¨ãƒªã‚¢ã€2 ç•ªç›®ã®æ•°ãŒã‚¨ãƒªã‚¢å†…ã®ãƒãƒ¼ãƒ‰ã‚’æ„å‘³ã—ã¾ã™ã€‚"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
 msgid ""
 "Do not make up a number here. If you do not know your DECnet node address "
 "then ask your system administrator."
-msgstr "¤³¤Î¿ô¤òÅ¬Åö¤Ë¤Ç¤Ã¤Á¾å¤²¤Ê¤¤¤Ç¤¯¤À¤µ¤¤¡£DECnet ¥Î¡¼¥É¥¢¥É¥ì¥¹¤¬¤ï¤«¤é¤Ê¤¤¤È¤­¤Ë¤Ï¡¢¤¢¤Ê¤¿¤Î¥·¥¹¥Æ¥à´ÉÍı¼Ô¤ËÌä¤¤¹ç¤ï¤»¤Æ¤¯¤À¤µ¤¤¡£"
+msgstr ""
+"ã“ã®æ•°ã‚’é©å½“ã«ã§ã£ã¡ä¸Šã’ãªã„ã§ãã ã•ã„ã€‚DECnet ãƒãƒ¼ãƒ‰ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒã‚ã‹ã‚‰ãªã„ã¨ã"
+"ã«ã¯ã€ã‚ãªãŸã®ã‚·ã‚¹ãƒ†ãƒ ç®¡ç†è€…ã«å•ã„åˆã‚ã›ã¦ãã ã•ã„ã€‚"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid "DECnet startup changes your ethernet hardware address"
-msgstr "DECnet ¥¹¥¿¡¼¥È¥¢¥Ã¥×¤Ï¡¢¤¢¤Ê¤¿¤Î¥¤¡¼¥µ¥Í¥Ã¥È¥Ï¡¼¥É¥¦¥§¥¢¥¢¥É¥ì¥¹¤òÊÑ¹¹¤·¤Ş¤¹"
+msgstr ""
+"DECnet ã‚¹ã‚¿ãƒ¼ãƒˆã‚¢ãƒƒãƒ—ã¯ã€ã‚ãªãŸã®ã‚¤ãƒ¼ã‚µãƒãƒƒãƒˆãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’å¤‰æ›´ã—ã¾ã™"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The \"setether\" program in this package will change the hardware (MAC) "
 "address of all ethernet cards in your system (by default) to match the "
@@ -79,29 +82,42 @@ msgid ""
 "not optional. However, if you have more than one ethernet card you may want "
 "to edit /etc/default/decnet to alter the list of cards whose hardware "
 "addresses are changed."
-msgstr "¤³¤Î¥Ñ¥Ã¥±¡¼¥¸¤Î \"setether\" ¥×¥í¥°¥é¥à¤Ï¡¢¤¢¤Ê¤¿¤Î¥·¥¹¥Æ¥à¤Î¤¹¤Ù¤Æ¤Î¥¤¡¼¥µ¥Í¥Ã¥È¥«¡¼¥É¤Î¥Ï¡¼¥É¥¦¥§¥¢ (MAC) ¥¢¥É¥ì¥¹¤ò¡¢DECnet ¥Î¡¼¥É¥¢¥É¥ì¥¹¤ËÅ¬¹ç¤¹¤ë¤è¤¦ (¥Ç¥Õ¥©¥ë¥È¤Ç) ÊÑ¹¹¤·¤Ş¤¹¡£¤³¤ì¤Ï DECnet ¤ÎÁàºî¤Ë¤ª¤¤¤Æ´ğËÜ¤Ç¤¢¤ê¡¢¿ï°Õ¤Ë¤¹¤ë¤³¤È¤Ï¤Ç¤­¤Ş¤»¤ó¡£¤¿¤À¤·¡¢2 ¤Ä°Ê¾å¤Î¥¤¡¼¥µ¥Í¥Ã¥È¥«¡¼¥É¤ò»ı¤Ã¤Æ¤¤¤ë¤Î¤Ç¤¢¤ì¤Ğ¡¢¥Ï¡¼¥É¥¦¥§¥¢¥¢¥É¥ì¥¹¤¬ÊÑ¹¹¤µ¤ì¤ë¥«¡¼¥É¤Î¥ê¥¹¥È¤òÄ´À°¤¹¤ë¤¿¤á¤Ë¡¢/etc/default/decnet ¤òÊÔ½¸¤Ç¤­¤Ş¤¹¡£"
+msgstr ""
+"ã“ã®ãƒ‘ãƒƒã‚±ãƒ¼ã‚¸ã® \"setether\" ãƒ—ãƒ­ã‚°ãƒ©ãƒ ã¯ã€ã‚ãªãŸã®ã‚·ã‚¹ãƒ†ãƒ ã®ã™ã¹ã¦ã®ã‚¤ãƒ¼ã‚µ"
+"ãƒãƒƒãƒˆã‚«ãƒ¼ãƒ‰ã®ãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ (MAC) ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’ã€DECnet ãƒãƒ¼ãƒ‰ã‚¢ãƒ‰ãƒ¬ã‚¹ã«é©åˆã™ã‚‹"
+"ã‚ˆã† (ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§) å¤‰æ›´ã—ã¾ã™ã€‚ã“ã‚Œã¯ DECnet ã®æ“ä½œã«ãŠã„ã¦åŸºæœ¬ã§ã‚ã‚Šã€éšæ„"
+"ã«ã™ã‚‹ã“ã¨ã¯ã§ãã¾ã›ã‚“ã€‚ãŸã ã—ã€2 ã¤ä»¥ä¸Šã®ã‚¤ãƒ¼ã‚µãƒãƒƒãƒˆã‚«ãƒ¼ãƒ‰ã‚’æŒã£ã¦ã„ã‚‹ã®ã§"
+"ã‚ã‚Œã°ã€ãƒãƒ¼ãƒ‰ã‚¦ã‚§ã‚¢ã‚¢ãƒ‰ãƒ¬ã‚¹ãŒå¤‰æ›´ã•ã‚Œã‚‹ã‚«ãƒ¼ãƒ‰ã®ãƒªã‚¹ãƒˆã‚’èª¿æ•´ã™ã‚‹ãŸã‚ã«ã€/etc/"
+"default/decnet ã‚’ç·¨é›†ã§ãã¾ã™ã€‚"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "Be aware that any other machines that have your system's MAC address in "
 "their ARP cache may no longer be able to communicate with you via IP "
 "protocols until this cache has timed out or been flushed."
-msgstr "ARP ¥­¥ã¥Ã¥·¥å¤Ë¤¢¤Ê¤¿¤Î¥·¥¹¥Æ¥à¤Î MAC ¥¢¥É¥ì¥¹¤ò»ı¤Ä¤Û¤«¤Î¥Ş¥·¥ó¤Ï¡¢¥­¥ã¥Ã¥·¥å¤¬¥¿¥¤¥à¥¢¥¦¥È¤¹¤ë¤«¥Õ¥é¥Ã¥·¥å¤µ¤ì¤ë¤Ş¤Ç¡¢¤â¤¦¤¢¤Ê¤¿¤Î¥Ş¥·¥ó¤È¤Ï IP ¥×¥í¥È¥³¥ë·ĞÍ³¤ÇÄÌ¿®¤Ç¤­¤Ê¤¤¤«¤â¤·¤ì¤Ê¤¤¤³¤È¤Ëµ¤¤òÉÕ¤±¤Æ¤¯¤À¤µ¤¤¡£"
+msgstr ""
+"ARP ã‚­ãƒ£ãƒƒã‚·ãƒ¥ã«ã‚ãªãŸã®ã‚·ã‚¹ãƒ†ãƒ ã® MAC ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’æŒã¤ã»ã‹ã®ãƒã‚·ãƒ³ã¯ã€ã‚­ãƒ£ãƒƒ"
+"ã‚·ãƒ¥ãŒã‚¿ã‚¤ãƒ ã‚¢ã‚¦ãƒˆã™ã‚‹ã‹ãƒ•ãƒ©ãƒƒã‚·ãƒ¥ã•ã‚Œã‚‹ã¾ã§ã€ã‚‚ã†ã‚ãªãŸã®ãƒã‚·ãƒ³ã¨ã¯ IP ãƒ—ãƒ­"
+"ãƒˆã‚³ãƒ«çµŒç”±ã§é€šä¿¡ã§ããªã„ã‹ã‚‚ã—ã‚Œãªã„ã“ã¨ã«æ°—ã‚’ä»˜ã‘ã¦ãã ã•ã„ã€‚"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The MAC address cannot be changed on-the-fly so you will need to reboot your "
 "machine before DECnet can function."
-msgstr "MAC ¥¢¥É¥ì¥¹¤ÏÆ°Åª¤ËÊÑ¹¹¤Ç¤­¤Ê¤¤¤Î¤Ç¡¢DECnet ¤òµ¡Ç½¤µ¤»¤ëÁ°¤Ë¤¢¤Ê¤¿¤Î¥Ş¥·¥ó¤òºÆµ¯Æ°¤¹¤ëÉ¬Í×¤¬¤¢¤ê¤Ş¤¹¡£"
+msgstr ""
+"MAC ã‚¢ãƒ‰ãƒ¬ã‚¹ã¯å‹•çš„ã«å¤‰æ›´ã§ããªã„ã®ã§ã€DECnet ã‚’æ©Ÿèƒ½ã•ã›ã‚‹å‰ã«ã‚ãªãŸã®ãƒã‚·ãƒ³ã‚’"
+"å†èµ·å‹•ã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "You should also edit /etc/decnet.conf to add the names and addresses of "
 "DECnet nodes you want to communicate with."
-msgstr "¤ä¤ê¼è¤ê¤·¤¿¤¤ DECnet ¥Î¡¼¥É¤ÎÌ¾Á°¤È¥¢¥É¥ì¥¹¤òÄÉ²Ã¤¹¤ë¤¿¤á¤Ë¡¢/etc/decnet.conf ¤âÊÔ½¸¤¹¤Ù¤­¤Ç¤¹¡£"
+msgstr ""
+"ã‚„ã‚Šå–ã‚Šã—ãŸã„ DECnet ãƒãƒ¼ãƒ‰ã®åå‰ã¨ã‚¢ãƒ‰ãƒ¬ã‚¹ã‚’è¿½åŠ ã™ã‚‹ãŸã‚ã«ã€/etc/decnet."
+"conf ã‚‚ç·¨é›†ã™ã¹ãã§ã™ã€‚"

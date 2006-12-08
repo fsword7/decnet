@@ -1,85 +1,79 @@
-#
-#    Translators, if you are not familiar with the PO format, gettext
-#    documentation is worth reading, especially sections dedicated to
-#    this format, e.g. by running:
-#         info -n '(gettext)PO Files'
-#         info -n '(gettext)Header Entry'
-#
-#    Some information specific to po-debconf are available at
-#            /usr/share/doc/po-debconf/README-trans
-#         or http://www.debian.org/intl/l10n/po-debconf/README-trans
-#
-#    Developers do not need to manually edit POT or PO files.
+# Translation of dnprogs debconf templates to German
+# Copyright (C) Sebastian Feltel 
+# Copyright (C) Helge Kreutzmann <debian@helgefjell.de>, 2006.
+# This file is distributed under the same license as the dnprogs package.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-07-09 13:38+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: Sebastian Feltel\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Project-Id-Version: dnprogs 2.1.7\n"
+"Report-Msgid-Bugs-To: patrick@debian.org\n"
+"POT-Creation-Date: 2006-12-07 11:43+0000\n"
+"PO-Revision-Date: 2006-12-07 18:51+0100\n"
+"Last-Translator: Helge Kreutzmann <debian@helgefjell.de>\n"
+"Language-Team: German <debian-l10n-german@lists.debian.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-15\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
-msgid "DECnet node name"
-msgstr "Wie lautet der DECnet Knotenname?"
+#: ../dnet-common.templates:1001
+msgid "DECnet node name:"
+msgstr "DECnet-Knotenname:"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:4
+#: ../dnet-common.templates:1001
 msgid ""
 "All nodes on a DECnet network have a node name. This is similar to the IP "
-"hostname but can only be a maximum of 6 characters long. . It is common that "
+"hostname but can only be a maximum of 6 characters long. It is common that "
 "the DECnet name is the same as the IP name (if your machine has one). If you "
 "do not know the answer to this question please contact your system "
 "administrator."
 msgstr ""
-"Alle Knoten in einem DECnet-Netzwerk haben einen Knotennamen. Dieser ist "
+"Alle Knoten in einem DECnet-Netz haben einen Knotennamen. Dieser ist "
 "vergleichbar mit dem Hostnamen in einem IP-Netz, jedoch kann der Knotenname "
-"nicht länger als 6 Zeichen sein."
+"nicht länger als 6 Zeichen sein. Es ist normal, dass der DECnet-Name mit dem "
+"IP-Namen identisch ist (falls Ihre Maschine einen hat). Falls Sie die "
+"Antwort auf diese Frage nicht wissen, fragen Sie Ihren System-Administrator."
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
-msgid "DECnet node address"
-msgstr "Wie lautet die DECnet Knotenadresse?"
+#: ../dnet-common.templates:2001
+msgid "DECnet node address:"
+msgstr "DECnet-Knotenadresse:"
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
 msgid ""
 "All nodes on a DECnet network have a node address. This is two numbers "
-"seperated with a period (eg 3.45) where the first number denotes the area "
+"separated with a period (e.g. 3.45) where the first number denotes the area "
 "and the second is the node within that area."
 msgstr ""
-"Alle Knoten in einem DECnet-Netzwerk haben eine Knotenadresse. Sie besteht "
-"aus zwei Zahlen, die durch einen Punkt getrennt sind. Die erste Zahl "
-"spezifiziert das Netz, die zweite den Knoten innerhalb des Netzes."
+"Alle Knoten in einem DECnet-Netz haben eine Knotenadresse. Sie besteht aus "
+"zwei Zahlen, die durch einen Punkt getrennt sind (z.B. 3.45). Die erste Zahl "
+"spezifiziert das Gebiet, die zweite den Knoten innerhalb des Gebiets."
 
 #. Type: string
 #. Description
-#: ../dnet-common.templates:14
+#: ../dnet-common.templates:2001
 msgid ""
 "Do not make up a number here. If you do not know your DECnet node address "
 "then ask your system administrator."
 msgstr ""
-"Wählen Sie hier keine beliebige Nummer. Wenn Sie die Knotennummer nicht "
-"kennen, dann sollten Sie Ihren Systemadministrator fragen."
+"Wählen Sie hier keine beliebige Zahlen. Falls Sie die DECnet-Knotenadresse "
+"nicht kennen, sollten Sie Ihren Systemadministrator fragen."
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid "DECnet startup changes your ethernet hardware address"
-msgstr "Starten des DECnet verändert die MAC-Adresse Ihrer Netzwerkkarten."
+msgstr "Starten des DECnet verändert die Hardware-Adresse Ihrer Netzwerkkarten"
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The \"setether\" program in this package will change the hardware (MAC) "
 "address of all ethernet cards in your system (by default) to match the "
@@ -88,28 +82,29 @@ msgid ""
 "to edit /etc/default/decnet to alter the list of cards whose hardware "
 "addresses are changed."
 msgstr ""
-"Das setether-Programm in diesem Paket wird standardmäßig die Hardware- "
-"Adresse aller im Rechner installierten Netzwerkkarten ändern, um diese an "
-"die Knotenadresse anzupassen. Dies ist wichtig für den Betrieb des DECnet "
-"und kann nicht unterbunden werden. Wenn Sie mehr als eine Netz- werkkarte im "
-"Rechner installiert haben, dann können Sie die Karte, die Sie für DECnet "
-"verwenden wollen, in der Datei /etc/default/decnet angeben."
+"Das »setether«-Programm in diesem Paket wird standardmäßig die Hardware-"
+"(MAC)-Adresse aller im Rechner installierten Netzwerkkarten ändern, um diese "
+"an die Knotenadresse anzupassen. Dies ist wichtig für den Betrieb des DECnet "
+"und kann nicht unterbunden werden. Falls Sie allerdings mehr als eine "
+"Netzwerkkarte im Rechner installiert haben, dann können Sie die Karten, "
+"deren Hardware-Adressen geändert werden soll, in der Datei /etc/default/"
+"decnet angeben."
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "Be aware that any other machines that have your system's MAC address in "
 "their ARP cache may no longer be able to communicate with you via IP "
 "protocols until this cache has timed out or been flushed."
 msgstr ""
-"Achten Sie darauf, das Ihr Rechner nicht mit anderen Rechnern über IP "
+"Beachten Sie, dass Ihr Rechner nicht mit anderen Rechnern über IP "
 "kommunizieren kann, solange diese nicht ihren ARP-Cache (Zwischenspeicher "
 "für MAC-Adressen) leeren oder er von alleine verfällt."
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "The MAC address cannot be changed on-the-fly so you will need to reboot your "
 "machine before DECnet can function."
@@ -119,39 +114,40 @@ msgstr ""
 
 #. Type: note
 #. Description
-#: ../dnet-common.templates:24
+#: ../dnet-common.templates:3001
 msgid ""
 "You should also edit /etc/decnet.conf to add the names and addresses of "
 "DECnet nodes you want to communicate with."
 msgstr ""
 "Sie sollten die Datei /etc/decnet.conf anpassen, und darin die Namen und "
-"Adressen der DECnet-Knoten angeben mit denen Sie kommunizieren wollen."
+"Adressen der DECnet-Knoten angeben, mit denen Sie kommunizieren wollen."
 
 #~ msgid "What is your DECnet node name?"
-#~ msgstr "Wie lautet der DECnet Knotenname?"
+#~ msgstr "Wie lautet der DECnet-Knotenname?"
 
 #~ msgid "What is your DECnet node address?"
-#~ msgstr "Wie lautet die DECnet Knotenadresse?"
+#~ msgstr "Wie lautet die DECnet-Knotenadresse?"
 
 #~ msgid ""
 #~ "All nodes on a DECnet network have a node address. Such address consists "
-#~ "of two numbers seperated with a period (eg 3.45) where the first number "
+#~ "of two numbers seperated with a period (e.g. 3.45) where the first number "
 #~ "is the area and the second is the node within that area."
 #~ msgstr ""
 #~ "Alle Knoten in einem DECnet-Netzwerk haben eine Knotenadresse. Sie "
-#~ "besteht aus zwei Zahlen, die durch einen Punkt getrennt sind. Die erste "
-#~ "Zahl spezifiziert das Netz, die zweite den Knoten innerhalb des Netzes."
+#~ "besteht aus zwei Zahlen, die durch einen Punkt getrennt sind (z.B. "
+#~ "3.45) . Die erste Zahl spezifiziert das Gebiet, die zweite den Knoten "
+#~ "innerhalb des Gebiets."
 
 #~ msgid ""
 #~ "Do not use a random number here. If you do not know your DECnet node "
 #~ "address, then ask your system administrator."
 #~ msgstr ""
-#~ "Wählen Sie hier keine beliebige Nummer. Wenn Sie die Knotennummer nicht "
-#~ "kennen, dann sollten Sie Ihren Systemadministrator fragen."
+#~ "Wählen Sie hier keine beliebige Zahl. Falls Sie die DECnet-Knotenadresse "
+#~ "nicht kennen, dann fragen Sie Ihren Systemadministrator."
 
 #~ msgid ""
 #~ "Do not make up a number here, If you do not know your DECnet node addres "
 #~ "then ask your system administrator."
 #~ msgstr ""
-#~ "Wählen Sie hier keine beliebige Nummer. Wenn Sie die Knotennummer nicht "
-#~ "kennen, dann sollten Sie Ihren Systemadministrator fragen."
+#~ "Wählen Sie hier keine beliebige Zahl. Falls Sie die DECnet-Knostenadresse "
+#~ "nicht kennen, dann fragen Sie Ihren Systemadministrator."

@@ -1,3 +1,19 @@
+dnprogs (2.38) unstable; urgency=low
+
+  * Add -E switch to dncopy to allow it to continue on output error.
+  * Better reporting of filename syntax errors reported by remote end.
+    e.g. tilde characters in local files being rejected by VMS.
+  * Add French debconf translation
+    Closes: #400712, #402126
+  * Update German debconf translation
+    Closes: #401907
+  * Fix some debconf template typos
+    Closes: #401906
+  * Updated Japanese debconf translation
+    Closes: #402004   
+  
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 16 Dec 2006 15:24:44 +0000
+
 dnprogs (2.37.2) unstable; urgency=low
 
   * Add Vietnamese debconf translation

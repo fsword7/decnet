@@ -71,7 +71,7 @@ ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/ar
 ifdef DESTDIR
 prefix=$(DESTDIR)/usr
 libprefix=$(DESTDIR)/usr
-manprefix=$(DESTDIR)/usr
+manprefix=$(DESTDIR)/usr/share
 sysconfprefix=$(DESTDIR)
 endif
 

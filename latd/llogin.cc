@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2006 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -389,7 +389,9 @@ static int terminal(int latfd, int endchar, int crlf, int bsdel, int lfvt, char 
     new_term.c_iflag &= ~BRKINT;
     new_term.c_iflag |= IGNBRK;
     new_term.c_lflag &= ~ISIG;
+#ifdef OCRNL
     new_term.c_oflag &= ~OCRNL;
+#endif
     new_term.c_oflag &= ~ONLCR;
     new_term.c_cc[VMIN] = 1;
     new_term.c_cc[VTIME] = 0;

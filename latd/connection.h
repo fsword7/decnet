@@ -18,6 +18,7 @@ class LATConnection
  public:
 
     typedef enum {REPLY, DATA, CONTINUATION} send_type;
+    static const unsigned int MAX_SESSIONS = 4;
 
     LATConnection(int _num, unsigned char *buf, int len,
 		  int _interface,
@@ -92,7 +93,6 @@ class LATConnection
     int next_session_number();
     bool is_queued_reconnect(unsigned char *buf, int len, int *conn);
 
-    static const unsigned int MAX_SESSIONS = 254;
     enum {CLIENT, SERVER} role;
 
     // A class for keeping pending messages.

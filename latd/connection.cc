@@ -1205,6 +1205,8 @@ int LATConnection::create_llogin_session(int fd, const char *service, const char
 {
 // Create an lloginSession
     int newsessionnum = next_session_number();
+    if (newsessionnum == -1)
+	return -1;
 
     lloginSession *newsession = new lloginSession(*this, 0, newsessionnum,
 						  (char *)localport, fd);

@@ -1996,7 +1996,7 @@ int LATServer::find_connection_by_node(const char *node)
     {
 	if (connections[i] &&
 	    connections[i]->node_is(node) &&
-	    connections[i]->num_clients() < MAX_CONNECTIONS-1)
+	    connections[i]->num_clients() < LATConnection::MAX_SESSIONS-1)
 	{
 	    debuglog(("Reusing connection for node %s\n", node));
 	    return i;

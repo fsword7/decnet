@@ -1,3 +1,10 @@
+dnprogs (2.38.1) unstable; urgency=low
+
+  * Updated Dutch debconf translation
+    Closes: #404561
+
+ -- Patrick Caulfield <patrick@debian.org>  Thu, 28 Dec 2006 13:26:07 +0000
+
 dnprogs (2.38) unstable; urgency=low
 
   * Add -E switch to dncopy to allow it to continue on output error.

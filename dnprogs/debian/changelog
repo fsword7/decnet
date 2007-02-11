@@ -1,3 +1,12 @@
+dnprogs (2.38.2) unstable; urgency=low
+
+  * Add Portugese debconf translation
+    Closes: #409854, ##409894
+  * Update Czech debconf translation
+    Closes: #402729
+    
+ -- Patrick Caulfield <patrick@debian.org>  Sun, 11 Feb 2007 13:11:06 +0000
+	
 dnprogs (2.38.1) unstable; urgency=low
 
   * Updated Dutch debconf translation

@@ -47,6 +47,11 @@
 #include "hash.h"
 #include "dnroute.h"
 
+/* Sigh - people keep removing features ... */
+#ifndef NDA_RTA
+#define NDA_RTA(r)  ((struct rtattr*)(((char*)(r)) + NLMSG_ALIGN(sizeof(struct ndmsg))))
+#endif
+
 /* Where we write our status info to */
 #define STATUS_FIFO "/var/run/dnroute.status"
 

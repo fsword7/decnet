@@ -13,7 +13,6 @@ SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	multinet scripts
 
 all: 	
-	@. scripts/check_kernel.sh; if [ $$? = 1 ]; then exit 1; fi
 	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
 
 install:

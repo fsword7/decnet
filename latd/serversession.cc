@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2003 Patrick Caulfield                 patrick@debian.org
+    (c) 2000-2007 Patrick Caulfield                 patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include <cstdlib>
 
 #include "lat.h"
 #include "utils.h"

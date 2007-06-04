@@ -1,8 +1,9 @@
 dnprogs (2.39) unstable; urgency=low
 
   * Fix compile error with latest kernel headers.
+    Closes: #427324
 
- -- Patrick Caulfield <patrick@debian.org>  Sat, 17 Feb 2007 11:01:19 +0000
+ -- Patrick Caulfield <patrick@debian.org>  Mon,  4 Jun 2007 09:58:58 +0100
 
 dnprogs (2.38.2) unstable; urgency=low
 

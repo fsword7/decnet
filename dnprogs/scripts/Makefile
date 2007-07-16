@@ -18,7 +18,10 @@ ifndef MAKEDEB
 	  install -Dm 0700 decnet.sh $(sysconfprefix)/sbin/init.d/decnet; \
 	elif [ -d /var/lib/rpm ]; then \
 	  install -Dm 0700 decnet.sh $(sysconfprefix)/etc/rc.d/init.d/decnet; \
-	else install -Dm 0700 rc.decnet $(sysconfprefix)/etc/rc.d/rc.decnet; \
+	elif [ -d /var/lib/portage ]; then \
+	  install -Dm 0700 dnetd $(sysconfprefix)/etc/init.d/dnetd; \
+	  install -Dm 0700 dnetconf $(sysconfprefix)/etc/conf.d/dnetd; \
+        else install -Dm 0700 rc.decnet $(sysconfprefix)/etc/rc.d/rc.decnet; \
 	fi
 endif
 	install -m 0755 setup.sh $(prefix)/sbin/decnetconf

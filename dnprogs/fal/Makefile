@@ -18,7 +18,7 @@ install:
 	install -d $(prefix)/sbin
 	install -d $(manprefix)/man/man8
 	install -d $(manprefix)/man/man5
-	install -m 0755 -s $(PROG1) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin
 	install -m 0644 fal.8 $(manprefix)/man/man8
 	install -m 0644 decnet.proxy.5 $(manprefix)/man/man5
 

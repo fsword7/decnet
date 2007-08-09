@@ -11,7 +11,7 @@ multinet: multinet.c
 install:
 	install -d $(prefix)/sbin
 	install -d $(manprefix)/man/man8
-	install -m 0755 -s multinet $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) multinet $(prefix)/sbin
 	install -m 0644 multinet.8 $(manprefix)/man/man8
 
 dep depend:	

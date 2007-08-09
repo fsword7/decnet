@@ -36,8 +36,8 @@ install:
 	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man5
 	install -d $(manprefix)/man/man8
-	install -m 0755 -s $(PROG1) $(prefix)/sbin
-	install -m 0755 -s $(PROG2) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG2) $(prefix)/sbin
 	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8
 

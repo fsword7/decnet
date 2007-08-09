@@ -136,6 +136,12 @@ DEPLIBDAEMON=../libdaemon/libdnet_daemon.so
 DEPLIBDAP=../libdap/libdap.so
 endif
 
+ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
+STRIPBIN=
+else
+STRIPBIN=-s
+endif
+
 LIBS=$(LIBDAP) $(LIBDNET)
 DEPLIBS=$(DEPLIBDAP) $(DEPLIBDNET)
 

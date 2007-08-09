@@ -42,7 +42,7 @@ $(SHAREDLIB): ${PICOBJS}
 install: libdnet.a $(SHAREDLIB)
 	install -d $(libprefix)/lib
 	install -m 0644 libdnet.a $(libprefix)/lib/libdnet.a
-	install -m 0644 -s $(SHAREDLIB) $(libprefix)/lib/$(SHAREDLIB)
+	install -m 0644 $(STRIPBIN) $(SHAREDLIB) $(libprefix)/lib/$(SHAREDLIB)
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(SHAREDLIB) $(libprefix)/lib/$(LIBNAME).so
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(libprefix)/lib/$(LIBNAME).so

@@ -21,7 +21,7 @@ $(PROG1): $(PROG1OBJS) tty.h dnlogin.h $(DEPLIBDNET)
 install:
 	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man1
-	install -m 0755 -s $(PROG1) $(prefix)/bin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/bin
 	install -m 0644 $(MANPAGES) $(manprefix)/man/man1
 
 dep depend:

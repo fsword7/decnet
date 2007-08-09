@@ -48,7 +48,7 @@ clean:
 
 install:
 	install -d $(prefix)/lib
-	install -m 0644 -s $(SHAREDLIB) $(libprefix)/lib
+	install -m 0644 $(STRIPBIN) $(SHAREDLIB) $(libprefix)/lib
 	install -m 0644 $(STATICLIB) $(libprefix)/lib
 	install -d $(prefix)/include
 	install -m 0644 $(INCLUDEFILES) $(libprefix)/include

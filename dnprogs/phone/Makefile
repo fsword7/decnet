@@ -62,8 +62,8 @@ install: $(INSTALLDEPS)
 	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man1
 	install -d $(manprefix)/man/man8
-	install -m 0755 -s $(PROG1) $(prefix)/bin
-	install -m 0755 -s $(PROG2) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/bin
+	install -m 0755 $(STRIPBIN) $(PROG2) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(manprefix)/man/man1
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8
 

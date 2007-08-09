@@ -68,12 +68,12 @@ install:
 	install -d $(manprefix)/man/man5
 	install -d $(manprefix)/man/man8
 	install -d $(sysconfprefix)/etc
-	install -m 0755 -s $(PROG2) $(prefix)/bin
-	install -m 0755 -s $(PROG4) $(prefix)/bin
-	install -m 0755 -s $(PROG5) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG2) $(prefix)/bin
+	install -m 0755 $(STRIPBIN) $(PROG4) $(prefix)/bin
+	install -m 0755 $(STRIPBIN) $(PROG5) $(prefix)/sbin
 	install -m 0700 setether.sh $(prefix)/sbin/setether
-	if [ -f $(PROG6) ]; then install -m 0750 -s $(PROG6) $(prefix)/sbin; fi
-	install -m 0755 -s $(PROG7) $(prefix)/sbin
+	if [ -f $(PROG6) ]; then install -m 0750 $(STRIPBIN) $(PROG6) $(prefix)/sbin; fi
+	install -m 0755 $(STRIPBIN) $(PROG7) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(manprefix)/man/man1
 	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8

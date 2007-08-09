@@ -10,7 +10,7 @@ PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
 
 all: $(PROG1)
 
-CFLAGS=-g
+CFLAGS=-g -I../include
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(PROG1OBJS) -lrms -lfuse
@@ -18,7 +18,7 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 install:
 	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man1
-	install -m 0755 -s $(PROG1) $(prefix)/bin
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/bin
 	install -m 0644 $(MANPAGES) $(manprefix)/man/man1
 
 dep depend:	

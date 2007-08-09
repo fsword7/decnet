@@ -21,7 +21,7 @@ install:
 	install -d $(prefix)/bin
 	install -d $(manprefix)/man/man5
 	install -d $(manprefix)/man/man8
-	install -m 0750 -s $(PROG1) $(prefix)/sbin
+	install -m 0750 $(STRIPBIN) $(PROG1) $(prefix)/sbin
 	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8
 	if [ ! -f $(sysconfprefix)/etc/dnetd.conf ]; then install -m 640 dnetd.conf $(sysconfprefix)/etc; fi

@@ -342,7 +342,7 @@ int dap_connection::read(bool block)
     }
     if (buflen == 0)
     {
-	lasterror = "Remote end closed connection";
+	lasterror = (char *)"Remote end closed connection";
 	return false;
     }
 
@@ -755,7 +755,7 @@ bool dap_connection::parse(const char *fname,
 		if (n1 >= MAX_NODE ||
 		    fname[n0] == ' ' || fname[n0] == '\n')
 		{
-		    lasterror = "File name parse error";
+		    lasterror = (char *)"File name parse error";
 		    return false;
 		}
 		node[n1++] = fname[n0++];
@@ -782,7 +782,7 @@ bool dap_connection::parse(const char *fname,
 	    {
 		if (n1 >= MAX_USER)
 		{
-		    lasterror = "File name parse error";
+		    lasterror = (char *)"File name parse error";
 		    return false;
 		}
 		accessdata.acc_user[n1++] = fname[n0++];
@@ -810,7 +810,7 @@ bool dap_connection::parse(const char *fname,
 	    {
 		if (n1 >= MAX_PASSWORD)
 		{
-		    lasterror = "File name parse error";
+		    lasterror = (char *)"File name parse error";
 		    return false;
 		}
 		accessdata.acc_pass[n1++] = fname[n0++];
@@ -838,7 +838,7 @@ bool dap_connection::parse(const char *fname,
 	    {
 		if (n1 >= MAX_ACCOUNT)
 		{
-		    lasterror = "File name parse error";
+		    lasterror = (char *)"File name parse error";
 		    return false;
 		}
 		accessdata.acc_acc[n1++] = fname[n0++];
@@ -867,7 +867,7 @@ bool dap_connection::parse(const char *fname,
     binadr = getnodebyname(node);
     if (!binadr)
     {
-	lasterror = "Unknown or invalid node name ";
+	lasterror = (char *)"Unknown or invalid node name ";
 	return false;
     }
 
@@ -960,12 +960,12 @@ bool dap_connection::exchange_config()
 }
 
 // Return the text of a connection error
-char *dap_connection::connerror(char *default_msg)
+const char *dap_connection::connerror(char *default_msg)
 {
 #ifdef DSO_CONDATA
     struct optdata_dn optdata;
     unsigned int len = sizeof(optdata);
-    char *msg;
+    const char *msg;
 
     if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
 		   &optdata, &len) == -1)

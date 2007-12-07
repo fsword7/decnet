@@ -21,7 +21,7 @@ class fal_server
  private:
     void create_access_task(dap_message *m);
     bool exchange_config();
-    char *func_name(int);
+    const char *func_name(int);
     
     dap_connection    &conn;
     fal_task          *current_task;

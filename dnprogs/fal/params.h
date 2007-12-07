@@ -15,7 +15,7 @@ class fal_params
     bool  can_do_stmlf;
     int   remote_os;
 
-    char *type_name()
+    const char *type_name()
     {
 	switch(auto_type)
 	{

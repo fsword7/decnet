@@ -24,7 +24,7 @@
 // basename() is in libc but not in my header files
 extern "C" char *basename(const char *);
 
-int unixfile::open(char *mode)
+int unixfile::open(const char *mode)
 {
 
 // if the filename was "-" then open standard in/output
@@ -50,7 +50,7 @@ int unixfile::open(char *mode)
 
 // This open routine is called when the output file is a directory (ie a
 // copy from multiple sources) so we don't need to check for stdin/out.
-int unixfile::open(char *basename, char *mode)
+int unixfile::open(const char *basename, const char *mode)
 {
     strcpy(printname, filename);
     strcat(printname, "/");
@@ -158,7 +158,7 @@ int unixfile::close()
     return status;
 }
 
-void unixfile::perror(char *msg)
+void unixfile::perror(const char *msg)
 {
     ::perror(msg);
 }
@@ -228,7 +228,7 @@ bool unixfile::iswildcard()
 
 // Return a string telling the user whether we transferred blocks or
 // records or what.
-char *unixfile::get_format_name()
+const char *unixfile::get_format_name()
 {
 
     switch (transfer_mode)
@@ -274,7 +274,7 @@ unixfile::~unixfile()
 	free(record_buffer);
 }
 
-unixfile::unixfile(char *name)
+unixfile::unixfile(const char *name)
 {
     strcpy(filename, name);
     record_buffer = NULL;

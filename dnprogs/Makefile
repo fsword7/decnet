@@ -105,7 +105,6 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	rm -f dnlogin/*.o dnlogin/dnlogin
 	dpkg-buildpackage -rfakeroot
 
 #

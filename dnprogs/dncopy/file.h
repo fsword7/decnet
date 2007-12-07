@@ -18,17 +18,17 @@ class file
     virtual ~file() {};
 
     virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags) = 0;
-    virtual int   open(char *mode) = 0;
-    virtual int   open(char *basename, char *mode) = 0;
+    virtual int   open(const char *mode) = 0;
+    virtual int   open(const char *basename, const char *mode) = 0;
     virtual int   close() = 0;
     virtual int   read(char *buf,  int len) = 0;
     virtual int   write(char *buf, int len) = 0;
     virtual int   next() = 0;
-    virtual void  perror(char *) = 0;
+    virtual void  perror(const char *) = 0;
     virtual char *get_basename(int keep_version) = 0;
     virtual char *get_printname() = 0;
     virtual char *get_printname(char *filename) = 0;
-    virtual char *get_format_name() = 0;
+    virtual const char *get_format_name() = 0;
     virtual int   get_umask() = 0;
     virtual int   set_umask(int mask) = 0;
     virtual bool  eof() = 0;

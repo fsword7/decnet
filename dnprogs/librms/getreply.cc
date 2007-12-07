@@ -41,7 +41,7 @@ int check_status(rms_conn *rc, dap_message *m)
 
     // Save this stuff so we can delete the message
     int code = sm->get_code() & 0xFF;
-    char *err = sm->get_message();
+    char *err = (char *)sm->get_message();
 
     delete m;
 

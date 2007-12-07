@@ -136,8 +136,8 @@ class dap_message
     static int          peek_message_type(dap_connection&);
 
     unsigned char get_type();
-    char *type_name();
-    static char *type_name(int);
+    const char *type_name();
+    static const char *type_name(int);
 
     // Message Types;
     static const unsigned char CONFIG  = 1;
@@ -801,7 +801,7 @@ class dap_status_message: public dap_message
     void  set_errno();
     void  set_errno(int);
     void  set_rfa(long);
-    char *get_message();
+    const char *get_message();
 
 
  private:
@@ -999,7 +999,7 @@ class dap_date_message: public dap_message
     time_t string_to_time_t(const char *);
 
 
-    static char *months[];
+    static const char *months[];
     static const int NUM_MONTHS = 12;
 };
 
@@ -1025,8 +1025,8 @@ class dap_protect_message: public dap_message
     void set_protection(mode_t);
     int  set_protection(char *);
 
-    char    *get_owner();
-    char    *get_protection(); // In VMS format
+    const char    *get_owner();
+    const char    *get_protection(); // In VMS format
     mode_t   get_mode();       // In Unix format
 
  private:

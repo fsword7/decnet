@@ -401,7 +401,7 @@ int dnetfile::dap_check_status(dap_message *m, int status)
     // Save this stuff so we can delete the message
     int code = sm->get_code() & 0xFF;
     int maccode = sm->get_code() >> 12;
-    char *err = sm->get_message();
+    const char *err = sm->get_message();
 
     if (verbose > 1)
 	DAPLOG((LOG_INFO, "dap_check_status. maccode=%d code: octal: %o (hex: %x)\n", maccode, sm->get_code(),sm->get_code()));

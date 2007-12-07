@@ -5,25 +5,25 @@ class dnetfile: public file
 public:
 
 // Is this one of my filenames?
-    static bool   isMine(char *name);
+    static bool   isMine(const char *name);
 
 // Constructor and destructor
-    dnetfile(char *name, int verbosity);
+    dnetfile(const char *name, int verbosity);
     ~dnetfile();
 
 // Stuff overriden from file.
     virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags);
-    virtual int   open(char *mode);
-    virtual int   open(char *basename, char *mode);
+    virtual int   open(const char *mode);
+    virtual int   open(const char *basename, const char *mode);
     virtual int   close();
     virtual int   read(char *buf,  int len);
     virtual int   write(char *buf, int len);
     virtual int   next();
-    virtual void  perror(char *);
+    virtual void  perror(const char *);
     virtual char *get_basename(int keep_version);
     virtual char *get_printname();
     virtual char *get_printname(char *filename);
-    virtual char *get_format_name();
+    virtual const char *get_format_name();
     virtual int   get_umask();
     virtual int   set_umask(int mask);
     virtual bool  eof();
@@ -45,7 +45,7 @@ public:
     bool  wildcard; // Is a wildcard file name
     bool  isOpen;   // Set when we have an open connection
     bool  writing;  // if FALSE then we are reading.
-    char *lasterror;
+    const char *lasterror;
     char  errstring[80];
     int   verbose;
 

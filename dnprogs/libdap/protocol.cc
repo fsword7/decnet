@@ -510,13 +510,13 @@ unsigned char dap_message::get_type()
     return msg_type;
 }
 
-char *dap_message::type_name()
+const char *dap_message::type_name()
 {
     return type_name(msg_type);
 }
 
 // Return the message type by name
-char *dap_message::type_name(int msg_type)
+const char *dap_message::type_name(int msg_type)
 {
     static char name[32];
 
@@ -1351,7 +1351,7 @@ int dap_status_message::errno_to_stscode()
     }
 }
 
-char *dap_status_message::get_message()
+const char *dap_status_message::get_message()
 {
 // MACCODEs
     switch (stscode.get_int() >> 12)
@@ -2121,8 +2121,9 @@ char *dap_date_message::make_y2k(char *dt)
     return y2kdate;
 }
 
-char *dap_date_message::months[]={"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
-				  "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
+const char *dap_date_message::months[]=
+				{"JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+				 "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
 
 //------------------------- dap_alloc_message() ------------------------------
 
@@ -2217,7 +2218,7 @@ mode_t dap_protect_message::get_mode()
     return mode;
 }
 
-char *dap_protect_message::get_protection()
+const char *dap_protect_message::get_protection()
 {
     static char protstring[60];
     int p = 0;
@@ -2257,7 +2258,7 @@ char *dap_protect_message::get_protection()
     return protstring;
 }
 
-char *dap_protect_message::get_owner()
+const char *dap_protect_message::get_owner()
 {
     return owner.get_string();
 }

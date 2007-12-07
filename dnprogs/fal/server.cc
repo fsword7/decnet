@@ -305,7 +305,7 @@ void fal_server::create_access_task(dap_message *m)
 
 
 // Return the DAP ACCESS function name
-char *fal_server::func_name(int number)
+const char *fal_server::func_name(int number)
 {
     static char num[32];
 

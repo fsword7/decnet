@@ -31,7 +31,7 @@ static enum {DAPLOG_MONO, DAPLOG_STDERR, DAPLOG_SYSLOG}
 
 static bool show_pid = false;
 
-void init_logging(char *progname, char type, bool pid)
+void init_logging(const char *progname, char type, bool pid)
 {
     switch (type)
     {
@@ -51,7 +51,7 @@ void init_logging(char *progname, char type, bool pid)
 #endif
 }
 
-static void daplog_stderr(int level, char *fmt, va_list ap)
+static void daplog_stderr(int level, const char *fmt, va_list ap)
 {
 
     if (show_pid) fprintf(stderr, "[%d] ", getpid());
@@ -63,7 +63,7 @@ static void daplog_stderr(int level, char *fmt, va_list ap)
 // This will output to the /dev/mono device (using my mono driver - see
 // web page for details) or tty13 which is usually the mono monitor
 // in a framebuffer system.
-static void daplog_mono(int level, char *fmt, va_list ap)
+static void daplog_mono(int level, const char *fmt, va_list ap)
 {
     char        outbuf[4096];
     static int  fd = 0;
@@ -80,7 +80,7 @@ static void daplog_mono(int level, char *fmt, va_list ap)
     write(fd, outbuf, strlen(outbuf));
 }
 
-void daplog(int level, char *fmt, ...)
+void daplog(int level, const char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

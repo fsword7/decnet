@@ -30,7 +30,7 @@
 #include "dnetfile.h"
 
 // Assume the file name is a DECnet name if it has two consecutive colons in it
-bool dnetfile::isMine(char *name)
+bool dnetfile::isMine(const char *name)
 {
     if (strstr(name, "::"))
 	return TRUE;
@@ -39,7 +39,7 @@ bool dnetfile::isMine(char *name)
 }
 
 // Constructor.
-dnetfile::dnetfile(char *n, int verbosity):
+dnetfile::dnetfile(const char *n, int verbosity):
     conn(verbosity)
 {
     isOpen = FALSE;
@@ -112,7 +112,7 @@ int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, 
 }
 
 // Open a file for writing
-int dnetfile::open(char *filename,char *mode)
+int dnetfile::open(const char *filename, const char *mode)
 {
     // Add the remote end's directory spec to the filename.
     strcpy(filname, name);
@@ -121,7 +121,7 @@ int dnetfile::open(char *filename,char *mode)
 }
 
 // Open a file already named
-int dnetfile::open(char *mode)
+int dnetfile::open(const char *mode)
 {
     int real_rfm, real_rat;
     int status;
@@ -295,7 +295,7 @@ int dnetfile::next()
     }
 }
 
-void dnetfile::perror(char *msg)
+void dnetfile::perror(const char *msg)
 {
     if (lasterror)
 	fprintf(stderr, "%s: %s\n", msg, lasterror);
@@ -396,7 +396,7 @@ char *dnetfile::get_printname()
 
 // Return a string telling the user whether we transferred blocks or
 // records or what.
-char *dnetfile::get_format_name()
+const char *dnetfile::get_format_name()
 {
     switch (transfer_mode)
     {

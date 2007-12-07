@@ -33,7 +33,7 @@ static bool  cont_on_error = false;
 
 // Prototypes
 static void usage(char *name, int dntype, FILE *f);
-static file *getFile(char *name, int verbosity);
+static file *getFile(const char *name, int verbosity);
 static void get_env_as_args(char **argv[], int &argc, char *env);
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
@@ -388,7 +388,7 @@ static void usage(char *name, int dntype, FILE *f)
 
 // Run through the file types and return an object that matches the
 // type of the name we were passed.
-static file *getFile(char *name, int verbosity)
+static file *getFile(const char *name, int verbosity)
 {
     if (dnetfile::isMine(name))
 	return new dnetfile(name, verbosity);

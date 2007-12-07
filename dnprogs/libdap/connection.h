@@ -83,7 +83,7 @@ class dap_connection
 		    const char *password, sockaddr_dn &sockaddr);
 
     bool error_return(char *);
-    char *connerror(char *);
+    const char *connerror(char *);
     
 /* DECnet phase IV limits */
     static const int MAX_NODE     = 6;

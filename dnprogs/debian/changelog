@@ -1,3 +1,10 @@
+ dnprogs (2.39.2) unstable; urgency=low
+
+  * Fix package building with new dpkg-shlibdeps
+    Closes: #453786
+
+ -- Patrick Caulfield <patrick@debian.org>  Fri, 07 Dec 2007 11:02:10 +0000
+
 dnprogs (2.39.1) unstable; urgency=low
 
   * Honour DEB_BUILD_OPTIONS=nostrip

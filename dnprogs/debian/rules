@@ -49,9 +49,9 @@ binary-indep: checkroot build
 	dh_movefiles  -pdnet-common
 	dh_compress  -pdnet-common
 	dh_fixperms  -pdnet-common
+	dh_makeshlibs  -pdnet-common
 	dh_shlibdeps  -pdnet-common
 	dh_gencontrol  -pdnet-common
-	dh_makeshlibs  -pdnet-common
 	dh_installdeb  -pdnet-common
 	dh_md5sums  -pdnet-common
 	dh_builddeb  -pdnet-common
@@ -84,9 +84,10 @@ binary-arch: checkroot build
 	dh_movefiles -Ndnet-common
 	dh_compress -Ndnet-common
 	dh_fixperms -Ndnet-common
+	dh_makeshlibs -Ndnet-common
 	dh_shlibdeps -Ndnet-common
 	dh_gencontrol -Ndnet-common
-	dh_makeshlibs -Ndnet-common
+
 	dh_installdeb -Ndnet-common
 	dh_md5sums -Ndnet-common
 	dh_builddeb -Ndnet-common

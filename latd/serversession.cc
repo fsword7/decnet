@@ -23,6 +23,7 @@
 #include <grp.h>
 #include <pwd.h>
 #include <termios.h>
+#include <string.h>
 #include <list>
 #include <queue>
 #include <string>

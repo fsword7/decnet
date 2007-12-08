@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <list>
 #include <map>
 #include <queue>

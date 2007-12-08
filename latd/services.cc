@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <netinet/in.h>
+#include <string.h>
 #include <list>
 #include <string>
 #include <map>

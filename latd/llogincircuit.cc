@@ -16,6 +16,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <time.h>
+#include <string.h>
 
 #include <sstream>
 #include <list>

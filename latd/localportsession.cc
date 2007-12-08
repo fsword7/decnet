@@ -18,6 +18,7 @@
 #ifdef HAVE_SYS_FILIO_H
 #include <sys/filio.h>
 #endif
+#include <string.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <fcntl.h>

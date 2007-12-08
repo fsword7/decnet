@@ -14,6 +14,7 @@
 
 #include <sys/types.h>
 #include <sys/signal.h>
+#include <string.h>
 #include <stdio.h>
 #include <syslog.h>
 #include <unistd.h>

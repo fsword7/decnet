@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2006      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2008      P.J. Caulfield          patrick@debian.org
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -204,11 +204,11 @@ int tty_write(char *buf, int len)
 		{
 			if (isgraph(buf[i]))
 			{
-				DEBUGLOG(DEBUG_FLAG_TTY2,  "%c ", buf[i]);
+				DEBUGLOG(DEBUG_FLAG_TTY2,  "%d: %c ", i, buf[i]);
 			}
 			else
 			{
-				DEBUGLOG(DEBUG_FLAG_TTY2,  "0x%02x ", (unsigned char)buf[i]);
+				DEBUGLOG(DEBUG_FLAG_TTY2,  "%d: 0x%02x ", i, (unsigned char)buf[i]);
 			}
 		}
 		DEBUGLOG(DEBUG_FLAG_TTY2, "\n");
@@ -660,6 +660,7 @@ int tty_process_terminal(char *buf, int len)
 
 		if (input_len >= max_read_len)
 		{
+			DEBUG_TTY("sending buffer, input_len=%d, max_read_len=%d\n", input_len, max_read_len);
 			send_input_buffer(SEND_FLAG_BUFFER_FULL);
 		}
 	}

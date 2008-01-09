@@ -157,9 +157,9 @@
  *              Menlo Park, CA  94025                                         *
  *              baker@usgs.gov                                                *
  *                                                                            *
- * Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver- *
- *                 sion Routines, US Geological Survey, Open-File Report no.  *
- *                 2005-XXX, nn p.                                            *
+ * Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion     *
+ *                 Routines: U.S. Geological Survey Open-File Report 2005-    *
+ *                 1424 (http://pubs.usgs.gov/of/2005/1424/).                 *
  *                                                                            *
  *                                                                            *
  *                                 Disclaimer                                 *
@@ -181,6 +181,8 @@
  *                                  (exponent is 15 bits, not 11 bits).       *
  * 19-Sep-2005  L. M. Baker      Add fixups for IEEE-to-VAX conversion        *
  *                                  faults (+-infinity, +-NaN, overflow).     *
+ *  8-Nov-2005  L. M. Baker      Move #define const if not __STDC__ from      *
+ *                                  convert_vax_data.c                        *
  *                                                                            *
  ******************************************************************************/
 
@@ -225,6 +227,11 @@
 #define to_vax_g8    to_vax_g8##_
 #define to_vax_h16   to_vax_h16##_
 
+#endif
+
+/* const is ANSI C, C++ only */
+#if !defined( __STDC__ ) && !defined( __cplusplus )
+#define const
 #endif
 
 void FORTRAN_LINKAGE from_vax_i2(  const void *inbuf, void *outbuf,

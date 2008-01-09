@@ -45,9 +45,9 @@
  *              Menlo Park, CA  94025                                         *
  *              baker@usgs.gov                                                *
  *                                                                            *
- * Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver- *
- *                 sion Routines, US Geological Survey, Open-File Report no.  *
- *                 2005-XXX, nn p.                                            *
+ * Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion     *
+ *                 Routines: U.S. Geological Survey Open-File Report 2005-    *
+ *                 1424 (http://pubs.usgs.gov/of/2005/1424/).                 *
  *                                                                            *
  *                                                                            *
  *                                 Disclaimer                                 *
@@ -109,6 +109,8 @@
  *                                  avoid conflict with GCC/BSD predefined    *
  *                                  macro named LITTLE_ENDIAN.                *
  * 12-Oct-2005  L. M. Baker      Remove unreferenced variables.               *
+ *  8-Nov-2005  L. M. Baker      Move #define const if not __STDC__ to        *
+ *                                  convert_vax_data.h                        *
  *                                                                            *
  ******************************************************************************/
 
@@ -176,11 +178,6 @@
 
 #if UCHAR_MAX != 255U || USHRT_MAX != 65535U || UINT_MAX != 4294967295U
 #error convert_vax_data.c requires 8-bit chars, 16-bit shorts, and 32-bit ints
-#endif
-
-/* const is ANSI C, C++ only */
-#if !defined( __STDC__ ) && !defined( __cplusplus )
-#define const
 #endif
 
 #if defined( MAKE_FROM_VAX_R4 ) || defined( MAKE_FROM_VAX_D8 )  || \

@@ -16,9 +16,9 @@
  *              Menlo Park, CA  94025                                         *
  *              baker@usgs.gov                                                *
  *                                                                            *
- * Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver- *
- *                 sion Routines, US Geological Survey, Open-File Report no.  *
- *                 2005-XXX, nn p.                                            *
+ * Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion     *
+ *                 Routines: U.S. Geological Survey Open-File Report 2005-    *
+ *                 1424 (http://pubs.usgs.gov/of/2005/1424/).                 *
  *                                                                            *
  *                                                                            *
  *                                 Disclaimer                                 *

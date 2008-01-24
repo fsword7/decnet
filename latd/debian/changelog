@@ -1,3 +1,10 @@
+latd (1.26.2) unstable; urgency=low
+
+  * Fix includes for gcc 4.3
+    Closes bug #454886
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 08 Dec 2007 11:09:24 +0000
+
 latd (1.26.1) unstable; urgency=low
 
   * Fix for GCC 4.3

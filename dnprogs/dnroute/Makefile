@@ -7,7 +7,7 @@ CFLAGS	+= -Inetlink/include
 all: $(DNROUTE)
 
 $(DNROUTE): get_neigh.c send_route.c routing_msg.c csum.c hash.c netlink/libnetlink.a
-	$(CC) $(CFLAGS) -o $@ $^ -L../libdnet -Lnetlink -lnetlink $(LIBDNET)
+	$(CC) $(CFLAGS) -o $@ $^ -Lnetlink -lnetlink $(LIBDNET)
 
 netlink/libnetlink.a:
 	$(MAKE) -C netlink

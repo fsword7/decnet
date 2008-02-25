@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 2005-2008 Christine Caulfield             christine.caulfield@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -149,10 +149,11 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 		// If name ends in .DIR;1 then add directory attribute
 		if (nm->get_nametype() == dap_name_message::FILENAME) {
 			if (strstr(nm->get_namespec(), ".DIR;1")) {
+				stbuf->st_mode &= ~S_IFREG;
 				stbuf->st_mode |= S_IFDIR;
 			}
 			else {
-				stbuf->st_mode &= ~S_IFDIR;
+				stbuf->st_mode |= S_IFREG;
 			}
 		}
 	}

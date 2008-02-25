@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 2005-2008 Christine Caulfield             christine.caulfield@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

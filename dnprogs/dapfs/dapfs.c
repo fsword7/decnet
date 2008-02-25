@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 2005-2008 Christine Caulfield            christine.caulfield@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
     ******************************************************************************
     */
 /* dapfs via FUSE */
-//  mount -tfuse  dapfs#'alpha1"patrick password"::' /mnt/dap
+//  mount -tfuse  dapfs#'alpha1"chrissie password"::' /mnt/dap
 
 #define _FILE_OFFSET_BITS 64
 #define FUSE_USE_VERSION 22
@@ -48,6 +48,8 @@ struct dapfs_handle
 };
 
 char prefix[BUFLEN];
+static char mountdir[BUFLEN];
+static int debug = 1;
 
 static const int RAT_DEFAULT = -1; // Use RMS defaults
 static const int RAT_FTN  = 1; // RMS RAT values from fab.h
@@ -116,6 +118,9 @@ static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
 static int dapfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi)
 {
+	if (debug&1)
+		fprintf(stderr, "dapfs_readdir: %s\n", path);
+
 	return dapfs_readdir_dap(path, buf, filler, offset, fi);
 }
 
@@ -123,6 +128,8 @@ static int dapfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int dapfs_unlink(const char *path)
 {
 	char vername[strlen(path)+3];
+	if (debug&1)
+		fprintf(stderr, "dapfs_unlink: %s\n", path);
 
 	sprintf(vername, "%s;*", path);
 	return dap_delete_file(vername);
@@ -151,6 +158,9 @@ static int dapfs_rmdir(const char *path)
 	char reply[BUFLEN];
 	int len;
 
+	if (debug&1)
+		fprintf(stderr, "dapfs_rmdir: %s\n", path);
+
 	/* Try the object first. if that fails then
 	   use DAP. This is because the VMS protection on
 	   directories can be problematic */
@@ -167,6 +177,8 @@ static int dapfs_rmdir(const char *path)
 
 static int dapfs_rename(const char *from, const char *to)
 {
+	if (debug&1)
+		fprintf(stderr, "dapfs_rename: from: %s to:%d\n", from, to);
 	return dap_rename_file(from, to);
 }
 
@@ -178,6 +190,9 @@ static int dapfs_truncate(const char *path, off_t size)
 	struct RAB rab;
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
+	if (debug&1)
+
+		fprintf(stderr, "dapfs_truncate: %s, %ld\n", path, size);
 
 	make_vms_filespec(path, vmsname, 0);
 	sprintf(fullname, "%s%s", prefix, vmsname);
@@ -210,6 +225,9 @@ static int dapfs_mkdir(const char *path, mode_t mode)
 	int len;
 	char *lastbracket;
 
+	if (debug&1)
+		fprintf(stderr, "dapfs_mkdir: %s\n", path);
+
 	make_vms_filespec(path, vmsname, 0);
 	// Ths gives is a name like '[]pjc' which we
 	// need to turn into [.pjc]
@@ -239,6 +257,9 @@ static int dapfs_statfs(const char *path, struct statfs *stbuf)
 	char reply[BUFLEN];
 	long size, free;
 
+	if (debug&1)
+		fprintf(stderr, "dapfs_stafs: %s\n", path);
+
 	len = get_object_info("STATFS", reply);
 	if (len <= 0)
 		return -errno;
@@ -264,6 +285,9 @@ static int dapfs_mknod(const char *path, mode_t mode, dev_t dev)
 	RMSHANDLE rmsh;
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
+
+	if (debug&1)
+		fprintf(stderr, "dapfs_mknod: %s\n", path);
 
 	if (!S_ISREG(mode))
 		return -ENOSYS;
@@ -321,6 +345,9 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	int got = 0;
 	struct RAB rab;
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
+
+	if (debug&1)
+		fprintf(stderr, "dapfs_read: %s\n", path);
 
 	if (!h) {
 		res = dapfs_open(path, fi);
@@ -399,6 +426,9 @@ static int dapfs_release(const char *path, struct fuse_file_info *fi)
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
 	int ret;
 
+	if (debug&1)
+		fprintf(stderr, "dapfs_release: %s\n", path);
+
 	if (!h)
 		return -EBADF;
 
@@ -413,6 +443,12 @@ static int dapfs_release(const char *path, struct fuse_file_info *fi)
 static int dapfs_getattr(const char *path, struct stat *stbuf)
 {
 	int res;
+
+	if (debug&1)
+		fprintf(stderr, "dapfs_getattr: %s\n", path);
+
+	memset(stbuf,0x0, sizeof(*stbuf));
+
 	if (strcmp(path, "/") == 0) {
 		res = stat("/", stbuf);
 	}
@@ -426,6 +462,8 @@ static int dapfs_getattr(const char *path, struct stat *stbuf)
 			res = dapfs_getattr_dap(dirname, stbuf);
 		}
 	}
+	if (debug&1)
+		fprintf(stderr, "dapfs_getattr: returning %d\n", res);
 	return  res;
 }
 
@@ -453,8 +491,9 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 		return 1;
 
-	// This is the host name ending :: (eg zarqon"patrick password"::)
+	// This is the host name ending :: (eg zarqon"chrissie password"::)
 	strcpy(prefix, argv[1]);
+	strcpy(mountdir, argv[2]);
 
 	// Make a scratch connection - also verifies the path name nice and early
 	if (dap_init()) {

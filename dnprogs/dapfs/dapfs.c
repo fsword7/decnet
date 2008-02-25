@@ -49,7 +49,7 @@ struct dapfs_handle
 
 char prefix[BUFLEN];
 static char mountdir[BUFLEN];
-static int debug = 1;
+static int debug = 0;
 
 static const int RAT_DEFAULT = -1; // Use RMS defaults
 static const int RAT_FTN  = 1; // RMS RAT values from fab.h

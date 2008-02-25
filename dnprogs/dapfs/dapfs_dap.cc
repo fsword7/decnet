@@ -78,13 +78,14 @@ int get_object_info(char *command, char *reply)
 	struct timeval tv;
 
 	memset(&accessdata, 0, sizeof(accessdata));
+	memset(&sockaddr, 0, sizeof(sockaddr));
 
 	/* This should always succeed, otherwise we would never get here */
 	if (!dummy.parse(prefix, accessdata, node, filespec))
 		return -1;
 
-	memcpy(accessdata.acc_acc, accessdata.acc_user, accessdata.acc_userl);
-	accessdata.acc_accl =accessdata.acc_userl;
+	strcpy((char *)accessdata.acc_acc, "ROOT");
+	accessdata.acc_accl = 4;
 
 	np = getnodebyname(node);
 
@@ -104,7 +105,7 @@ int get_object_info(char *command, char *reply)
 	sockaddr.sdn_family   = AF_DECnet;
 	sockaddr.sdn_flags	  = 0x00;
 	sockaddr.sdn_objnum	  = 0x00;
-	memcpy(sockaddr.sdn_objname, "dapfs", 5);
+	memcpy(sockaddr.sdn_objname, "DAPFS", 5);
 	sockaddr.sdn_objnamel = dn_htons(5);
 	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 	sockaddr.sdn_add.a_len = 2;

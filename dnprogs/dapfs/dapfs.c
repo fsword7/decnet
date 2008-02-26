@@ -47,6 +47,8 @@ struct dapfs_handle
 	int fsz;
 	/* Last known offset in the file */
 	off_t offset;
+	char *recordbuf; // For when we need to split a record
+	int  rbuf_len;
 };
 
 char prefix[BUFLEN];
@@ -73,10 +75,11 @@ static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
 {
 	int retlen = len;
 
-	/* If the file has implied carriage control then add an LF to the end of the line */
+	/* If the file has implied carriage control then add a CR/LF to the end of the line. */
 	if ((fh->rfm != RFM_STMLF) &&
-	    (fh->rat & RAT_CR || fh->rat & RAT_PRN))
+	    (fh->rat & RAT_CR || fh->rat & RAT_PRN)) {
 		buf[retlen++] = '\n';
+	}
 
 	/* Print files have a two-byte header indicating the line length. */
 	if (fh->rat & RAT_PRN)
@@ -194,7 +197,7 @@ static int dapfs_truncate(const char *path, off_t size)
 	char vmsname[VMSNAME_LEN];
 	if (debug&1)
 
-		fprintf(stderr, "dapfs_truncate: %s, %ld\n", path, size);
+		fprintf(stderr, "dapfs_truncate: %s, %lld\n", path, size);
 
 	make_vms_filespec(path, vmsname, 0);
 	sprintf(fullname, "%s%s", prefix, vmsname);
@@ -350,11 +353,12 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 {
 	int res;
 	int got = 0;
+	unsigned int loffset = 0;
 	struct RAB rab;
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
 
 	if (debug&1)
-		fprintf(stderr, "dapfs_read: %s\n", path);
+		fprintf(stderr, "dapfs_read: %s offset=%lld\n", path, offset);
 
 	if (!h) {
 		res = dapfs_open(path, fi);
@@ -365,9 +369,30 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	memset(&rab, 0, sizeof(rab));
 	if (offset && offset != h->offset) {
-		rab.rab$l_kbf = &offset;
+		if (debug&2)
+			fprintf(stderr, "dapfs_read: new offset is %lld, old was %lld\n", offset, h->offset);
+		loffset = (unsigned int)offset;
+		rab.rab$l_kbf = &loffset;
 		rab.rab$b_rac = 2;//FB$RFA;
 		rab.rab$b_ksz = sizeof(offset);
+
+		/* Throw away saved partial record */
+		free(h->recordbuf);
+		h->recordbuf = NULL;
+	}
+
+	// Add in saved record
+	if (h->recordbuf) {
+		if (debug&2)
+			fprintf(stderr, "dapfs_read: adding saved partial record %d bytes\n", h->rbuf_len);
+
+		res = convert_rms_record(h->recordbuf, h->rbuf_len, h);
+
+		memcpy(buf, h->recordbuf, res);
+		got += res;
+		h->offset += res;
+		free(h->recordbuf);
+		h->recordbuf = NULL;
 	}
 
 	/* This can be quite slow, because it reads records.
@@ -375,26 +400,49 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	*/
 	do {
 		res = rms_read(h->rmsh, buf+got, size-got, &rab);
-		if (res > 0) {
+		// if res == 0 and there is no error then we read
+		// an empty record.
+		if (res >= 0 && !rms_lasterror(h->rmsh)) {
 			res = convert_rms_record(buf+got, res, h);
 			got += res;
+			h->offset += res;
 		}
 		if (res < 0 && got) {
-			// Not enough room for a record but we read something
-			return got;
+			int recordlen = -res;
+			int remainderspace = size-got;
+
+			// Not enough room for a full record. split it.
+			// Read the partial record and return as much as the user
+			// requested. Save the remainder for the next read.
+			h->recordbuf = malloc(recordlen);
+			if (!h->recordbuf)
+				return -ENOMEM;
+
+			recordlen = rms_read(h->rmsh, h->recordbuf, recordlen, &rab);
+			memcpy(buf+got, h->recordbuf, remainderspace);
+
+			memmove(h->recordbuf, h->recordbuf + remainderspace, recordlen-remainderspace);
+			h->rbuf_len = recordlen-remainderspace;
+			h->offset += remainderspace;
+
+			if (debug&2)
+				fprintf(stderr, "dapfs_read: saving %d bytes of %d byte partial record\n", recordlen-remainderspace, recordlen);
+
+			if (debug&1)
+				fprintf(stderr, "dapfs_read: returning %d, offset = %lld\n", got+remainderspace, h->offset);
+
+			return got + remainderspace;
 		}
 
-	} while (res > 0);
+	} while (!rms_lasterror(h->rmsh));
 	if (res >= 0)
 		res = got;
 
 	if (res == -1)
 		res = -errno;
-	else
-		h->offset += res;
 
 	if (debug&1)
-		fprintf(stderr, "dapfs_read: returning %d\n", res);
+		fprintf(stderr, "dapfs_read: returning %d, offset=%lld\n", res, h->offset);
 	return res;
 }
 

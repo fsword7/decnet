@@ -60,7 +60,6 @@ void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
     char        fullname[PATH_MAX];
     int         i;
     char       *lastslash;
-    struct stat st;
 
     // Take a copy wwe can muck about with
     strcpy(fullname, unixname);

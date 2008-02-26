@@ -10,11 +10,11 @@ PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
 
 all: $(PROG1)
 
-CFLAGS=-g -I../include
+CFLAGS=-g -I../include -Wall
 LDFLAGS=-g
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
-	g++ -o$(PROG1) $(PROG1OBJS) -lrms -lfuse
+	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) -L../librms -lrms  -lfuse
 
 install:
 	install -d $(prefix)/bin

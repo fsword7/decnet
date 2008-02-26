@@ -171,6 +171,9 @@ static int dapfs_rmdir(const char *path)
 	   directories can be problematic */
 	make_vms_filespec(path, vmsname, 0);
 
+	if (vmsname[strlen(vmsname)-1] == '.')
+		vmsname[strlen(vmsname)-1] = '\0';
+
 	sprintf(fullname, "REMOVE %s.DIR;1", vmsname);
 	len = get_object_info(fullname, reply);
 	if (len == 2) // "OK"
@@ -227,20 +230,28 @@ static int dapfs_mkdir(const char *path, mode_t mode)
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
 	char reply[BUFLEN];
-	int len;
 	char *lastbracket;
+	int len;
 
 	if (debug&1)
 		fprintf(stderr, "dapfs_mkdir: %s\n", path);
 
 	make_vms_filespec(path, vmsname, 0);
-	// Ths gives is a name like '[]pjc' which we
-	// need to turn into [.pjc]
+	// for a top-level directory,
+	// Ths gives is a name like 'newdir' which we
+	// need to turn into [.newdir]
+	if (vmsname[0] != '[') {
+		memmove(vmsname+2, vmsname, strlen(vmsname)+1);
+		vmsname[0]='[';
+		vmsname[1]='.';
+	}
+	/* Replace closing ']' with '.'. eg
+	   [mydir]newdir] becomes
+	   [mydir.newdir]
+	*/
 	lastbracket = strchr(vmsname, ']');
-	if (!lastbracket)
-		return -EINVAL;
-
-	*lastbracket = '.';
+	if (lastbracket)
+		*lastbracket = '.';
 
 	/* make_vms_filespec() often leaves a trailing dot */
 	if (vmsname[strlen(vmsname)-1] == '.')

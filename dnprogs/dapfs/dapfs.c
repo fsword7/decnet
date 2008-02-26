@@ -10,10 +10,12 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    ******************************************************************************
-    */
+******************************************************************************
+*/
 /* dapfs via FUSE */
-//  mount -tfuse  dapfs#'alpha1"chrissie password"::' /mnt/dap
+//  # mount -tfuse  dapfs#'alpha1"chrissie password"::' /mnt/dap
+//    or for debugging:
+//  # ./dapfs zarqon:: /mnt/vax -odebug
 
 #define _FILE_OFFSET_BITS 64
 #define FUSE_USE_VERSION 22
@@ -178,7 +180,7 @@ static int dapfs_rmdir(const char *path)
 static int dapfs_rename(const char *from, const char *to)
 {
 	if (debug&1)
-		fprintf(stderr, "dapfs_rename: from: %s to:%d\n", from, to);
+		fprintf(stderr, "dapfs_rename: from: %s to: %s\n", from, to);
 	return dap_rename_file(from, to);
 }
 
@@ -490,6 +492,10 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2)
 		return 1;
+
+	/* This is only useful when dapfs is run directly and with -odebug */
+	if (getenv("DAPFS_DEBUG"))
+		debug = atoi(getenv("DAPFS_DEBUG"));
 
 	// This is the host name ending :: (eg zarqon"chrissie password"::)
 	strcpy(prefix, argv[1]);

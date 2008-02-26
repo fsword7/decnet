@@ -25,6 +25,7 @@
 #include <syslog.h>
 #include <dirent.h>
 #include <errno.h>
+#include <limits.h>
 #include <sys/statfs.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -447,11 +448,31 @@ int dap_rename_file(const char *from, const char *to)
 {
 	char vmsfrom[VMSNAME_LEN];
 	char vmsto[VMSNAME_LEN];
+	char dirname[BUFLEN];
 	int ret;
 	int size;
+	struct stat stbuf;
+
+	// If it's a directory then add .DIR to the name
+	if ( (ret = dapfs_getattr_dap(from, &stbuf))) {
+		strcpy(dirname, from);
+		strcat(dirname, ".dir");
+		if ( (ret = dapfs_getattr_dap(dirname, &stbuf)))
+			return ret;
+		from = dirname;
+		//TODO set prot=RWED on 'from' directory or we can't rename it!
+	}
 
 	make_vms_filespec(from, vmsfrom, 0);
 	make_vms_filespec(to, vmsto, 0);
+
+	/// TODO this does messes up directory grafts
+	if (from == dirname) {
+		if (vmsto[strlen(vmsto)-1] == '.')
+			strcat(vmsto, "DIR");
+		else
+			strcat(vmsto, ".DIR");
+	}
 
 	dap_access_message acc;
 	acc.set_accfunc(dap_access_message::RENAME);
@@ -463,9 +484,6 @@ int dap_rename_file(const char *from, const char *to)
 		return -EIO;
 	}
 
-
-// TODO Test this, We may need to split the filespec up into DIR & FILE messages,
-// at least for cross-directory renames.
 	dap_name_message nam;
 	nam.set_nametype(dap_name_message::FILESPEC);
 	nam.set_namespec(vmsto);
@@ -487,6 +505,7 @@ int dap_rename_file(const char *from, const char *to)
 		{
 			dap_status_message *sm = (dap_status_message *)m;
 			ret = -EPERM; // Default error!
+			goto end;
 		}
 		}
 	}

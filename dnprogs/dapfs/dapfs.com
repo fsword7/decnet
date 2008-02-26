@@ -38,9 +38,11 @@ $ open/read/write dapfs        sys$net
 $ read/prompt=""/time_out=5/error=out dapfs command
 $ operation=f$edit(f$element(0, " ", command),"UPCASE")
 $ dirname=f$element(1, " ", command)
+$ prot=f$element(2, " ", command)
 $!
 $ if operation .eqs. "CREATE" then $goto create_op
 $ if operation .eqs. "STATFS" then $goto statfs_op
+$ if operation .eqs. "SETPROT" then $goto setprot_op
 $ if operation .nes. "REMOVE" then $goto dir_error
 $ set file/prot=(o:rwed) 'dirname'
 $ delete/nolog 'dirname'
@@ -62,6 +64,13 @@ $!
 $ free=f$getdvi("sys$disk", "FREEBLOCKS")
 $ max=f$getdvi("sys$disk", "MAXBLOCK")
 $ write dapfs "''free', ''max'"
+$ goto out
+$!
+$setprot_op:
+$!
+$ set prot='prot' 'dirname'
+$ if $severity .ne. 1 then $goto dir_error
+$ write dapfs "OK"
 $ goto out
 $!
 $dir_error:

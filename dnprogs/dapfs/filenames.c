@@ -47,7 +47,7 @@ static void makelower(char *s)
 	for (i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
 }
 
-static void makeupper(char *s)
+void makeupper(char *s)
 {
 	unsigned int i;
 	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
@@ -88,7 +88,7 @@ void make_vms_filespec(const char *unixname, char *vmsname, int isdir)
 
     if (slashes == 1)
     {
-	    sprintf(vmsname, "[]%s", unixname+1);
+	    sprintf(vmsname, "%s", unixname+1);
 	    return;
     }
 

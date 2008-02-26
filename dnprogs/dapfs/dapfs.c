@@ -311,7 +311,9 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
 
-	syslog(LOG_DEBUG, "open %s, flags=%x\n", path, fi->flags);
+	if (debug&1)
+		fprintf(stderr, "open %s, flags=%x\n", path, fi->flags);
+
 	h = malloc(sizeof(struct dapfs_handle));
 	if (!h)
 		return -ENOMEM;
@@ -326,6 +328,9 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	if (!h->rmsh) {
 		int saved_errno = errno;
 		free(h);
+
+		if (!saved_errno) // Catch all...TODO
+			saved_errno = -ENOENT;
 		return -saved_errno;
 	}
 	/* Save RMS attributes */
@@ -353,8 +358,9 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	if (!h) {
 		res = dapfs_open(path, fi);
-		if (!res)
+		if (res)
 			return res;
+		h = (struct dapfs_handle *)fi->fh;
 	}
 
 	memset(&rab, 0, sizeof(rab));
@@ -384,8 +390,11 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	if (res == -1)
 		res = -errno;
+	else
+		h->offset += res;
 
-	h->offset += res;
+	if (debug&1)
+		fprintf(stderr, "dapfs_read: returning %d\n", res);
 	return res;
 }
 
@@ -398,7 +407,7 @@ static int dapfs_write(const char *path, const char *buf, size_t size,
 
 	if (!h) {
 		res = dapfs_open(path, fi);
-		if (!res)
+		if (res)
 			return res;
 	}
 

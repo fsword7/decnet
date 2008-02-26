@@ -85,8 +85,22 @@ int get_object_info(char *command, char *reply)
 	if (!dummy.parse(prefix, accessdata, node, filespec))
 		return -1;
 
-	strcpy((char *)accessdata.acc_acc, "ROOT");
-	accessdata.acc_accl = 4;
+
+	// Try very hard to get the local username for proxy access.
+	// This code copied from libdap for consistency
+	char *local_user = cuserid(NULL);
+	if (!local_user || local_user == (char *)0xffffffff)
+		local_user = getenv("LOGNAME");
+
+	if (!local_user) local_user = getenv("USER");
+	if (local_user)
+	{
+		strcpy((char *)accessdata.acc_acc, local_user);
+		accessdata.acc_accl = strlen((char *)accessdata.acc_acc);
+		makeupper((char *)accessdata.acc_acc);
+	}
+	else
+		accessdata.acc_acc[0] = '\0';
 
 	np = getnodebyname(node);
 
@@ -460,14 +474,27 @@ int dap_rename_file(const char *from, const char *to)
 		if ( (ret = dapfs_getattr_dap(dirname, &stbuf)))
 			return ret;
 		from = dirname;
-		//TODO set prot=RWED on 'from' directory or we can't rename it!
 	}
 
 	make_vms_filespec(from, vmsfrom, 0);
 	make_vms_filespec(to, vmsto, 0);
 
-	/// TODO this does messes up directory grafts
 	if (from == dirname) {
+
+		// Set prot=RWED on 'from' directory or we can't rename it.
+		// Don't regard this as fatal, subsequent calls will return -EPERM
+		// anyway if it's really wrong.
+		char setprot[BUFLEN];
+		char reply[BUFLEN];
+		int len;
+
+		sprintf(setprot, "SETPROT %s O:RWED", vmsfrom);
+		len = get_object_info(setprot, reply);
+		if (len != 2) // "OK"
+			syslog(LOG_WARNING, "dapfs: can't set protection on directory %s", vmsfrom);
+
+		// Fix the TO name too.
+		// TODO Odd dotting here, not sure why. just work around it for now
 		if (vmsto[strlen(vmsto)-1] == '.')
 			strcat(vmsto, "DIR");
 		else

@@ -15,3 +15,4 @@
 /* filenames.c */
 void make_vms_filespec(const char *unixname, char *vmsname, int full);
 void make_unix_filespec(char *unixname, char *vmsname);
+void makeupper(char *s);

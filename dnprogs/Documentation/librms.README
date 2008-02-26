@@ -96,7 +96,12 @@ rab->rab$b_ksz    If this is 0 then strlen will be called on the key value
 rab->rab$b_krf    Key number
 
 Returns -1 if the function failed for any reason, or a positive number 
-indicating the number of bytes read. 0 indicates end-of file.
+indicating the number of bytes read. 0 indicates end-of file only if 
+rms_lasterr() contains "EOF". if not then you have just read an empty record!
+The best way to check for an empty record is (res == 0 && !rms_lasterr()). If
+you get a return of 0 and rms_lasterr() is non-NULL then you have reached the
+end of the file.
+
 If the record just read is larger than 'maxlen' then the return value will be
 the negative value of the actual size of the record and buf will not
 be altered. You should then call rms_read() again with a buffer big enough to 

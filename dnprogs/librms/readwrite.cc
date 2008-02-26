@@ -58,6 +58,8 @@ int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
     rms_conn *rc = (rms_conn *)h;
     dap_connection *conn = (dap_connection *)rc->conn;
 
+    rc->lasterror = NULL;
+
 // If there is an outstanding record then return that if we can
     if (rc->record)
     {
@@ -90,7 +92,10 @@ int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
     dap_message *m;
     int r = rms_getreply(h, 0, NULL, &m);
     if (r == -1) return -1;
-    if (r == 047) return 0; // EOF
+    if (r == 047) {
+	rc->lasterror = "EOF";
+	return 0; // EOF
+    }
     // if r == -2 then we have a message to process.
 
     // Get record

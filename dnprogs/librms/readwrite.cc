@@ -61,7 +61,7 @@ int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)
 // If there is an outstanding record then return that if we can
     if (rc->record)
     {
-	if (maxlen <= rc->dlen)
+	if (maxlen >= rc->dlen)
 	{
 	    memcpy(buf, rc->record, rc->dlen);
 	    delete rc->record;

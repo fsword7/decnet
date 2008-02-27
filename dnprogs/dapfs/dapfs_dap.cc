@@ -420,6 +420,9 @@ int dap_delete_file(const char *path)
 
 	make_vms_filespec(path, vmsname, 0);
 
+	if (vmsname[strlen(vmsname)-1] == '.')
+		vmsname[strlen(vmsname)-1] = '\0';
+
 	dap_access_message acc;
 	acc.set_accfunc(dap_access_message::ERASE);
 	acc.set_accopt(1);

@@ -82,7 +82,7 @@ static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
 	}
 
 	/* Print files have a two-byte header indicating the line length. */
-	if (fh->rat & RAT_PRN)
+	if (fh->rat & RAT_PRN && len >= fh->fsz)
 	{
 		memmove(buf, buf + fh->fsz, retlen - fh->fsz);
 		retlen -= fh->fsz;
@@ -383,12 +383,16 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 		if (debug&2)
 			fprintf(stderr, "dapfs_read: new offset is %lld, old was %lld\n", offset, h->offset);
 		loffset = (unsigned int)offset;
-		rab.rab$l_kbf = &loffset;
-		rab.rab$b_rac = 2;//FB$RFA;
-		rab.rab$b_ksz = sizeof(offset);
+		rab.rab$l_kbf = &offset;
+		rab.rab$b_rac = 6;// Stream 2;//FB$RFA;
+		rab.rab$b_ksz = 6;// 3x words, like an RFA// sizeof(loffset);
+		rab.rab$w_usz = size;
+
+		h->offset = offset;
 
 		/* Throw away saved partial record */
-		free(h->recordbuf);
+		if (h->recordbuf)
+			free(h->recordbuf);
 		h->recordbuf = NULL;
 	}
 
@@ -411,6 +415,13 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	*/
 	do {
 		res = rms_read(h->rmsh, buf+got, size-got, &rab);
+
+		if (rms_lasterror(h->rmsh) && debug&2)
+			fprintf(stderr, "dapfs_read: res=%d, rms error: %s\n", res, rms_lasterror(h->rmsh));
+
+		if (res == -1)
+			return -EOPNOTSUPP;
+
 		// if res == 0 and there is no error then we read
 		// an empty record.
 		if (res >= 0 && !rms_lasterror(h->rmsh)) {

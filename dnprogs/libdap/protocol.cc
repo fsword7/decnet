@@ -605,7 +605,7 @@ bool dap_config_message::write(dap_connection &c)
     filesys.set_byte(0,3); // RMS-32 (hee hee!)
     filesys.write(c);
     version.set_byte(0,(unsigned char)7);
-    version.set_byte(1,(unsigned char)1);
+    version.set_byte(1,(unsigned char)2);
     version.set_byte(2,(unsigned char)0);
     version.set_byte(3,(unsigned char)5);
     version.set_byte(4,(unsigned char)0);

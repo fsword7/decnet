@@ -4,7 +4,7 @@ include ../Makefile.common
 
 PROG1=dapfs
 
-MANPAGES=dapfs.1
+MANPAGES=mount.dapfs.8
 
 PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
 
@@ -17,10 +17,10 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) -L../librms -lrms  -lfuse
 
 install:
-	install -d $(prefix)/bin
-	install -d $(manprefix)/man/man1
-	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/bin
-	install -m 0644 $(MANPAGES) $(manprefix)/man/man1
+	install -d $(prefix)/sbin
+	install -d $(manprefix)/man/man8
+	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin/mount.dapfs
+	install -m 0644 $(MANPAGES) $(manprefix)/man/man8
 
 dep depend:	
 	$(CXX) $(CXXFLAGS) -MM *.cc >.depend 2>/dev/null

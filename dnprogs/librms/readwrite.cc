@@ -49,6 +49,8 @@ static void build_control_message(rms_conn *rc, dap_control_message *ctl, struct
 		}
 		ctl->set_krf(rab->rab$b_krf);
 	}
+	if (rab->rab$w_usz)
+		ctl->set_usz(rab->rab$w_usz);
 }
 
 int rms_read(RMSHANDLE h, char *buf, int maxlen, struct RAB *rab)

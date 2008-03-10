@@ -25,18 +25,15 @@ to talk to another Linux box (though why would you want to?) as it won't work!
 To mount a dapfs filesystem, make sure the fuse module is loaded into the kernel
 and use the followng syntax:
 
-mount -tfuse dapfs#filespec <mountpoint>
+# mount -tdapfs node <mountpoint>
 
 Here are some examples:
 
-mount -tfuse dapfs#zarqon:: /mnt/vax
+# mount -tdapfs zarqon /mnt/vax
 this will use the default DECnet account on 'zarqon' or a proxy for "ROOT"
 
+mount -tdapfs ford /mnt/alpha -ousername=system,password=field
 
-mount -tfuse dapfs#'ford"patrick password"::' /mnt/alpha
-this will use the specified user account. NOTE that the password will be shown
-in the output of the 'df' command! Also note the use of quotes here, the single
-quotes are needed to protect the double quotes from the shell.
 
 
 

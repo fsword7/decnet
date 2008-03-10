@@ -13,9 +13,8 @@
 ******************************************************************************
 */
 /* dapfs via FUSE */
-//  # mount -tfuse  dapfs#'alpha1"chrissie password"::' /mnt/dap
-//    or for debugging:
-//  # ./dapfs zarqon:: /mnt/vax -odebug
+//  # mount -tdapfs alpha1 /mnt/dap
+//  # mount -tdapfs zarqon /mnt/dap -ousername=christine,password=password
 
 #define _FILE_OFFSET_BITS 64
 #define FUSE_USE_VERSION 22
@@ -567,18 +566,95 @@ static struct fuse_operations dapfs_oper = {
 	.release  = dapfs_release,
 };
 
+static void process_options(char *options)
+{
+	char *scratch = strdup(options);
+	char *t;
+	char *password = NULL;
+	char *username = NULL;
+	char *optptr;
+
+	if (!scratch)
+		return;
+
+	t = strtok(scratch, ",");
+	while (t)
+	{
+		char *option;
+
+		option = strchr(t, '=');
+		if (!option)
+			goto next_tok;
+		option++;
+
+		optptr = t + strspn(t, " ");
+		if (strncmp("username=", optptr, 9) == 0)
+			username = strdup(option);
+		if (strncmp("password=", optptr, 9) == 0)
+			password = strdup(option);
+		if (strncmp("debug=", optptr, 6) == 0)
+			debug = atoi(option);
+
+	next_tok:
+		t = strtok(NULL, ",");
+	}
+	if (!password)
+		password = "";
+	if (username)
+		sprintf(prefix, "%s\"%s %s\"", prefix, username, password);
+
+	free(scratch);
+}
+
+static void find_options(int *argc, char *argv[])
+{
+	int i;
+
+	// Find -o, and process any we find
+	for (i=0; i < *argc; i++)
+	{
+		if (strncmp(argv[i], "-o", 2) == 0)
+		{
+			process_options(argv[i] + 2);
+			argv[i] = NULL;
+		}
+	}
+
+	// Remove any NULL args. These will be ones we have parsed but
+	// mount_fuse will choke on
+	for (i=1; i < *argc; i++)
+	{
+		if (argv[i] == NULL)
+		{
+			int j;
+			for (j = i; j < *argc; j++)
+				argv[j] = argv[j+1];
+			(*argc)--;
+			i--;
+		}
+	}
+}
+
 int main(int argc, char *argv[])
 {
 	if (argc < 2)
 		return 1;
 
-	/* This is only useful when dapfs is run directly and with -odebug */
-	if (getenv("DAPFS_DEBUG"))
-		debug = atoi(getenv("DAPFS_DEBUG"));
-
-	// This is the host name ending :: (eg zarqon"chrissie password"::)
+	// This is just the host name at the moment
 	strcpy(prefix, argv[1]);
+
+	// Save the location we are mounted on.
 	strcpy(mountdir, argv[2]);
+
+	// Get username and password and other things from -o
+	find_options(&argc, argv);
+
+	// Add "::" to the hostname to get a prefix, now that the username
+	// and password have been added in, if provided.
+	strcat(prefix, "::");
+
+	if (debug&2)
+		fprintf(stderr, "prefix is now: %s\n", prefix);
 
 	// Make a scratch connection - also verifies the path name nice and early
 	if (dap_init()) {

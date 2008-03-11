@@ -12,24 +12,18 @@ PROG1OBJS = startnet.o
 PROG2OBJS = sethost.o 
 PROG4OBJS = dnping.o
 PROG5OBJS = ctermd.o
-PROG6OBJS = dnmount.o
 PROG7OBJS = rmtermd.o
 
 PROG1 = startnet
 PROG2 = sethost
 PROG4 = dnping
 PROG5 = ctermd
-PROG6 = dnmount
 PROG7 = rmtermd
 MANPAGES1 = sethost.1 dnping.1
 MANPAGES5 = decnet.conf.5
 MANPAGES8 = ctermd.8 rmtermd.8 setether.8
 
 ALLPROGS=$(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) 
-ifeq (/usr/include/linux/dap_fs.h,$(wildcard /usr/include/linux/dap_fs.h))
-ALLPROGS += $(PROG6)
-MANPAGES8 += dnmount.8
-endif
 
 all: $(ALLPROGS)
 
@@ -48,9 +42,6 @@ $(PROG4): $(PROG4OBJS) $(DEPLIBDNET)
 $(PROG5): $(PROG5OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON)
 	$(CC) -o $@ $(CFLAGS) $(PROG5OBJS) $(LIBDAEMON) $(LIBDNET) $(PTSLIBS)
 
-$(PROG6): $(PROG6OBJS) $(DEPLIBDNET)
-	$(CC) -o $@ $(CFLAGS) $(PROG6OBJS) $(LIBDNET)
-
 $(PROG7): $(PROG7OBJS) $(DEPLIBDNET) $(DEPLIBDAEMON)
 	$(CC) -o $@ $(CFLAGS) $(PROG7OBJS) $(LIBDAEMON) $(LIBDNET) $(PTSLIBS)
 
@@ -58,7 +49,7 @@ dep:
 	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
-	rm -f $(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG6) $(PROG7) \
+	rm -f $(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) \
 	*.o *.a *.so *~ .depend
 
 install:
@@ -72,7 +63,6 @@ install:
 	install -m 0755 $(STRIPBIN) $(PROG4) $(prefix)/bin
 	install -m 0755 $(STRIPBIN) $(PROG5) $(prefix)/sbin
 	install -m 0700 setether.sh $(prefix)/sbin/setether
-	if [ -f $(PROG6) ]; then install -m 0750 $(STRIPBIN) $(PROG6) $(prefix)/sbin; fi
 	install -m 0755 $(STRIPBIN) $(PROG7) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(manprefix)/man/man1
 	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5

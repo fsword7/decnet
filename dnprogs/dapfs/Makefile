@@ -17,9 +17,9 @@ $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) -L../librms -lrms  -lfuse
 
 install:
-	install -d $(prefix)/sbin
+	install -d $(rootprefix)/sbin
 	install -d $(manprefix)/man/man8
-	install -m 0755 $(STRIPBIN) $(PROG1) $(prefix)/sbin/mount.dapfs
+	install -m 0755 $(STRIPBIN) $(PROG1) $(rootprefix)/sbin/mount.dapfs
 	install -m 0644 $(MANPAGES) $(manprefix)/man/man8
 
 dep depend:	

@@ -57,7 +57,7 @@ DFLAGS=-g
 #------------------------------------------------------------------------------
 
 MAJOR_VERSION=2
-MINOR_VERSION=39
+MINOR_VERSION=40
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #
@@ -69,6 +69,7 @@ ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/ar
 # For RPM & DEB builds
 #
 ifdef DESTDIR
+rootprefix=$(DESTDIR)/
 prefix=$(DESTDIR)/usr
 libprefix=$(DESTDIR)/usr
 manprefix=$(DESTDIR)/usr/share

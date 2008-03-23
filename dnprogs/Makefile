@@ -10,7 +10,7 @@ DATE="$(shell date +'%Y%m%d')"
 
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask dnlogin mail phone dnetd libvaxdata dnroute \
-	multinet scripts
+	multinet dapfs scripts
 
 all: 	
 	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
@@ -105,7 +105,7 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	dpkg-buildpackage -rfakeroot
+	DH_COMPAT=2 dpkg-buildpackage -rfakeroot 
 
 #
 # Dummy rule for sub-directories

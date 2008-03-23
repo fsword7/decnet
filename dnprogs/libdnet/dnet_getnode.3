@@ -18,7 +18,7 @@ dnet_getnode, dnet_nextnode, dnet_endnode \- Get nodes from DECnet database
 .B dnet_getnode()
 Starts the search of the DECnet nodes database (/etc/decnet.conf). It returns
 an opaque pointer which is passed to the other two functions.
-.bt
+.br
 .B dnet_nextnode()
 returns the next node name in the list. The pointer is
 private to the library and will be overwritten at the next dnet_nextnode call.

@@ -46,13 +46,13 @@ determines how much logging the daemon functions will do. 0 means no logging,
 If this is set then, when running standalone, the daemon will fork and detach
 itself from the parent process.
 
-.bt
+.br
 .B dnet_accept()
 You MUST call this or dnetd_reject() after receiving a valid file descriptor
 from dnet_daemon. The optional data and status parameters provide extra
 information to the connecting host. See below for status values.
 
-.bt
+.br
 .B dnet_reject()
 If you wish to reject the connection for any reason the call this function 
 instead of 

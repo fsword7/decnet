@@ -40,6 +40,4 @@ fi
 
 rm -f $TMPFILE
 
-/sbin/update-modules
-
 #DEBHELPER#

@@ -45,5 +45,3 @@ TMPFILE=`tempfile`
 
 rm -f $TMPFILE
 
-/sbin/update-modules
-

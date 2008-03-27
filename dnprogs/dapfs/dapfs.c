@@ -15,6 +15,7 @@
 /* dapfs via FUSE */
 //  # mount -tdapfs alpha1 /mnt/dap
 //  # mount -tdapfs zarqon /mnt/dap -ousername=christine,password=password
+// to debug add -odebug as it's own option!
 
 #define _FILE_OFFSET_BITS 64
 #define FUSE_USE_VERSION 22
@@ -566,16 +567,17 @@ static struct fuse_operations dapfs_oper = {
 	.release  = dapfs_release,
 };
 
-static void process_options(char *options)
+static int process_options(char *options)
 {
 	char *scratch = strdup(options);
 	char *t;
 	char *password = NULL;
 	char *username = NULL;
 	char *optptr;
+	int processed = 0;
 
 	if (!scratch)
-		return;
+		return processed;
 
 	t = strtok(scratch, ",");
 	while (t)
@@ -588,12 +590,18 @@ static void process_options(char *options)
 		option++;
 
 		optptr = t + strspn(t, " ");
-		if (strncmp("username=", optptr, 9) == 0)
+		if (strncmp("username=", optptr, 9) == 0) {
 			username = strdup(option);
-		if (strncmp("password=", optptr, 9) == 0)
+			processed = 1;
+		}
+		if (strncmp("password=", optptr, 9) == 0) {
 			password = strdup(option);
-		if (strncmp("debug=", optptr, 6) == 0)
+			processed = 1;
+		}
+		if (strncmp("debuglog=", optptr, 9) == 0) {
 			debuglevel = atoi(option);
+			processed = 1;
+		}
 	next_tok:
 		t = strtok(NULL, ",");
 	}
@@ -603,6 +611,7 @@ static void process_options(char *options)
 		sprintf(prefix, "%s\"%s %s\"", prefix, username, password);
 
 	free(scratch);
+	return processed;
 }
 
 static void find_options(int *argc, char *argv[])
@@ -617,13 +626,15 @@ static void find_options(int *argc, char *argv[])
 			// Allow -o options as well as
 			//       -ooptions
 			if (strlen(argv[i]) == 2) {
-				argv[i] = NULL;
-				process_options(argv[++i]);
+				if (process_options(argv[++i])) {
+					argv[i] = NULL;
+					argv[i-1] = NULL;
+				}	
 			}
 			else {
-				process_options(argv[i] + 2);
+				if (process_options(argv[i] + 2))
+					argv[i] = NULL;
 			}
-			argv[i] = NULL;
 		}
 	}
 

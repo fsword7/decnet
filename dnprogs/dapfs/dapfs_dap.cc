@@ -40,7 +40,8 @@ extern "C" {
 #include "dapfs.h"
 }
 
-static dap_connection conn(0);
+// CC This isn't going to work!
+static dap_connection conn(debuglevel);
 
 static int dap_connect(dap_connection &c)
 {
@@ -271,7 +272,7 @@ finished:
 int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 		      off_t offset, struct fuse_file_info *fi)
 {
-	dap_connection c(0);
+	dap_connection c(debuglevel);
 	char vmsname[VMSNAME_LEN];
 	char wildname[strlen(path)+2];
 	char name[80];

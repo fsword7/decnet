@@ -17,3 +17,4 @@ extern "C" {
 
 
 extern char prefix[];
+extern int debuglevel;

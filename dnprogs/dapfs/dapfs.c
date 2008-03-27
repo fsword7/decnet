@@ -52,7 +52,7 @@ struct dapfs_handle
 
 char prefix[BUFLEN];
 static char mountdir[BUFLEN];
-static int debug = 0;
+int debuglevel = 0;
 
 static const int RAT_DEFAULT = -1; // Use RMS defaults
 static const int RAT_FTN  = 1; // RMS RAT values from fab.h
@@ -122,7 +122,7 @@ static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
 static int dapfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi)
 {
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_readdir: %s\n", path);
 
 	return dapfs_readdir_dap(path, buf, filler, offset, fi);
@@ -132,7 +132,7 @@ static int dapfs_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 static int dapfs_unlink(const char *path)
 {
 	char vername[strlen(path)+3];
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_unlink: %s\n", path);
 
 	sprintf(vername, "%s;*", path);
@@ -162,7 +162,7 @@ static int dapfs_rmdir(const char *path)
 	char reply[BUFLEN];
 	int len;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_rmdir: %s\n", path);
 
 	/* Try the object first. if that fails then
@@ -184,7 +184,7 @@ static int dapfs_rmdir(const char *path)
 
 static int dapfs_rename(const char *from, const char *to)
 {
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_rename: from: %s to: %s\n", from, to);
 	return dap_rename_file(from, to);
 }
@@ -197,7 +197,7 @@ static int dapfs_truncate(const char *path, off_t size)
 	struct RAB rab;
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
-	if (debug&1)
+	if (debuglevel&1)
 
 		fprintf(stderr, "dapfs_truncate: %s, %lld\n", path, size);
 
@@ -232,7 +232,7 @@ static int dapfs_mkdir(const char *path, mode_t mode)
 	char *lastbracket;
 	int len;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_mkdir: %s\n", path);
 
 	make_vms_filespec(path, vmsname, 0);
@@ -272,7 +272,7 @@ static int dapfs_statfs(const char *path, struct statfs *stbuf)
 	char reply[BUFLEN];
 	long size, free;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_stafs: %s\n", path);
 
 	len = get_object_info("STATFS", reply);
@@ -301,7 +301,7 @@ static int dapfs_mknod(const char *path, mode_t mode, dev_t dev)
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_mknod: %s\n", path);
 
 	if (!S_ISREG(mode))
@@ -324,7 +324,7 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	char fullname[VMSNAME_LEN];
 	char vmsname[VMSNAME_LEN];
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "open %s, flags=%x\n", path, fi->flags);
 
 	h = malloc(sizeof(struct dapfs_handle));
@@ -367,7 +367,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	struct RAB rab;
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_read: %s offset=%lld\n", path, offset);
 
 	if (!h) {
@@ -379,7 +379,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	memset(&rab, 0, sizeof(rab));
 	if (offset && offset != h->offset) {
-		if (debug&2)
+		if (debuglevel&2)
 			fprintf(stderr, "dapfs_read: new offset is %lld, old was %lld\n", offset, h->offset);
 		loffset = (unsigned int)offset;
 		rab.rab$l_kbf = &offset;
@@ -397,7 +397,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 	// Add in saved record
 	if (h->recordbuf) {
-		if (debug&2)
+		if (debuglevel&2)
 			fprintf(stderr, "dapfs_read: adding saved partial record %d bytes\n", h->rbuf_len);
 
 		res = convert_rms_record(h->recordbuf, h->rbuf_len, h);
@@ -415,7 +415,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	do {
 		res = rms_read(h->rmsh, buf+got, size-got, &rab);
 
-		if (rms_lasterror(h->rmsh) && debug&2)
+		if (rms_lasterror(h->rmsh) && debuglevel&2)
 			fprintf(stderr, "dapfs_read: res=%d, rms error: %s\n", res, rms_lasterror(h->rmsh));
 
 		if (res == -1)
@@ -446,10 +446,10 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 			h->rbuf_len = recordlen-remainderspace;
 			h->offset += remainderspace;
 
-			if (debug&2)
+			if (debuglevel&2)
 				fprintf(stderr, "dapfs_read: saving %d bytes of %d byte partial record\n", recordlen-remainderspace, recordlen);
 
-			if (debug&1)
+			if (debuglevel&1)
 				fprintf(stderr, "dapfs_read: returning %d, offset = %lld\n", got+remainderspace, h->offset);
 
 			return got + remainderspace;
@@ -462,7 +462,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	if (res == -1)
 		res = -errno;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_read: returning %d, offset=%lld\n", res, h->offset);
 	return res;
 }
@@ -506,7 +506,7 @@ static int dapfs_release(const char *path, struct fuse_file_info *fi)
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
 	int ret;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_release: %s\n", path);
 
 	if (!h)
@@ -524,7 +524,7 @@ static int dapfs_getattr(const char *path, struct stat *stbuf)
 {
 	int res;
 
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_getattr: %s\n", path);
 
 	memset(stbuf,0x0, sizeof(*stbuf));
@@ -542,7 +542,7 @@ static int dapfs_getattr(const char *path, struct stat *stbuf)
 			res = dapfs_getattr_dap(dirname, stbuf);
 		}
 	}
-	if (debug&1)
+	if (debuglevel&1)
 		fprintf(stderr, "dapfs_getattr: returning %d\n", res);
 	return  res;
 }
@@ -593,8 +593,7 @@ static void process_options(char *options)
 		if (strncmp("password=", optptr, 9) == 0)
 			password = strdup(option);
 		if (strncmp("debug=", optptr, 6) == 0)
-			debug = atoi(option);
-
+			debuglevel = atoi(option);
 	next_tok:
 		t = strtok(NULL, ",");
 	}
@@ -615,7 +614,15 @@ static void find_options(int *argc, char *argv[])
 	{
 		if (strncmp(argv[i], "-o", 2) == 0)
 		{
-			process_options(argv[i] + 2);
+			// Allow -o options as well as
+			//       -ooptions
+			if (strlen(argv[i]) == 2) {
+				argv[i] = NULL;
+				process_options(argv[++i]);
+			}
+			else {
+				process_options(argv[i] + 2);
+			}
 			argv[i] = NULL;
 		}
 	}
@@ -637,8 +644,11 @@ static void find_options(int *argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc < 2) {
+		fprintf(stderr, "Usage:\n");
+		fprintf(stderr, "   mount.dapfs <node> <mountpoint> -ousername=<user>,password=<password>\n");
 		return 1;
+	}
 
 	// This is just the host name at the moment
 	strcpy(prefix, argv[1]);
@@ -653,7 +663,7 @@ int main(int argc, char *argv[])
 	// and password have been added in, if provided.
 	strcat(prefix, "::");
 
-	if (debug&2)
+	if (debuglevel&2)
 		fprintf(stderr, "prefix is now: %s\n", prefix);
 
 	// Make a scratch connection - also verifies the path name nice and early

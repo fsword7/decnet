@@ -10,7 +10,7 @@ PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
 
 all: $(PROG1)
 
-CFLAGS=-I../include -I ../librms -Wall
+CFLAGS=-I../include -I ../librms -Wall $(DFLAGS)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) -L../librms -lrms  -lfuse

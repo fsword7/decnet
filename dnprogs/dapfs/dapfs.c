@@ -332,6 +332,7 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	if (!h)
 		return -ENOMEM;
 
+	memset(h, 0, sizeof(*h));
 	memset(&fab, 0, sizeof(struct FAB));
 	make_vms_filespec(path, vmsname, 0);
 	sprintf(fullname, "%s%s", prefix, vmsname);

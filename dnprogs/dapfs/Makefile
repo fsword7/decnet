@@ -13,7 +13,7 @@ all: $(PROG1)
 CFLAGS=-I../include -I ../librms -Wall $(DFLAGS)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
-	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) -L../librms -lrms  -lfuse
+	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) $(LIBDAP) -L../librms -lrms  -lfuse
 
 install:
 	install -d $(rootprefix)/sbin

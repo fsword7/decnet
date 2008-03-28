@@ -14,6 +14,7 @@ things with dapfs but the following will not work:
 - statfs (including the 'df' command)
 - mkdir
 - rmdir (if the protection of the VMS directory does not have Delete set)
+- chmod
 
 Other things that do not work are chmod and chown as these do not map neatly
 onto Unix principles.
@@ -35,5 +36,19 @@ this will use the default DECnet account on 'zarqon' or a proxy for "ROOT"
 mount -tdapfs ford /mnt/alpha -ousername=system,password=field
 
 
+BUGS/ANNOYANCES
 
+Many unix utilities (cat, less and others) get the file size using stat() and
+then read that number of bytes. This causes some odd behaviour with sequential
+files on dapfs that I can't do much about.
 
+The file size that dapfs returns is the actual file size on the VMS host system.
+Because VMS stores files very differently than Linux this might not match
+the size of the file when it arrives at the Linux end, it will always be
+smaller. fuse fills this space with NULs (charactar 0). Writing the file back
+will not lose information, it will be written back as STREAM file format and
+the NULs should disappear.
+
+dapfs will probably oinly work to VMS. I will accept patches to make it work 
+with other DECnet operating systems but I very much dount I will have the time
+to do it myself, sorry.

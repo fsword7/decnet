@@ -442,6 +442,9 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 				return -ENOMEM;
 
 			recordlen = rms_read(h->rmsh, h->recordbuf, recordlen, &rab);
+			if (recordlen == -1)
+				return -errno;
+
 			memcpy(buf+got, h->recordbuf, remainderspace);
 
 			memmove(h->recordbuf, h->recordbuf + remainderspace, recordlen-remainderspace);

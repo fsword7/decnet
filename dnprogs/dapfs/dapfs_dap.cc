@@ -191,6 +191,8 @@ static void add_to_stat(dap_message *m, struct stat *stbuf)
 		stbuf->st_size = am->get_size();
 		stbuf->st_blksize = am->get_bsz();
 		stbuf->st_blocks = am->get_alq();
+		/* Samba needs this */
+		stbuf->st_nlink = 1;
 	}
 	break;
 

@@ -1,4 +1,4 @@
-.TH DAPFS 8 "March 10 2008" "DECnet utilities"
+.TH DAPFS 8 "April 2 2008" "DECnet utilities"
 
 .SH NAME
 mount.dapfs \- Mount DAP filesystem over DECnet
@@ -24,9 +24,19 @@ the remote server.
 .TP
 .B username= 
 tells dapfs to use this username for the connection.
+.br
 .B password=
 tells dapfs to use this password for the connection.
-.B
+.br
+.B block
+tells dapfs to return data using block mode rather than record mode. This will
+return the whole of the internal file structure (eg with sequential files you
+could get odd line endings where the record separators live). It is most useful
+for reading binary data.
+.br
+.B record
+read data using record mode (the default). 
+.br
 .SH EXAMPLES
 .br
 # mount -tdapfs zarqon /mnt/vax

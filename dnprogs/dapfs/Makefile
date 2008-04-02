@@ -6,7 +6,7 @@ PROG1=dapfs
 
 MANPAGES=mount.dapfs.8
 
-PROG1OBJS=dapfs.o dapfs_dap.o filenames.o
+PROG1OBJS=dapfs.o dapfs_dap.o filenames.o kfifo.o
 
 all: $(PROG1)
 

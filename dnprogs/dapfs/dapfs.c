@@ -26,6 +26,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <assert.h>
 #include <syslog.h>
 #include <dirent.h>
 #include <errno.h>
@@ -35,6 +36,10 @@
 #include "dapfs.h"
 #include "dapfs_dap.h"
 #include "filenames.h"
+#include "kfifo.h"
+
+#define RMS_BUF_SIZE 65536
+
 
 struct dapfs_handle
 {
@@ -47,12 +52,13 @@ struct dapfs_handle
 	int fsz;
 	/* Last known offset in the file */
 	off_t offset;
-	char *recordbuf; // For when we need to split a record
-	int  rbuf_len;
+	// Circular buffer of data read from VMS
+	struct kfifo *kf;
 };
 
-char prefix[BUFLEN];
 static char mountdir[BUFLEN];
+static int blockmode = 0; // Default to record mode
+char prefix[BUFLEN];
 int debuglevel = 0;
 
 static const int RAT_DEFAULT = -1; // Use RMS defaults
@@ -334,10 +340,15 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 
 	memset(h, 0, sizeof(*h));
 	memset(&fab, 0, sizeof(struct FAB));
+	h->kf = kfifo_alloc(RMS_BUF_SIZE*4);
+
 	make_vms_filespec(path, vmsname, 0);
 	sprintf(fullname, "%s%s", prefix, vmsname);
 	if (fi->flags & O_CREAT)
 		fab.fab$b_rfm = RFM_STMLF;
+
+	if (blockmode)
+		fab.fab$b_fac = FAB$M_BRO;
 
 	h->rmsh = rms_open(fullname, fi->flags, &fab);
 	if (!h->rmsh) {
@@ -348,6 +359,7 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 			saved_errno = -ENOENT;
 		return -saved_errno;
 	}
+
 	/* Save RMS attributes */
 	h->org = fab.fab$b_org;
 	h->rat = fab.fab$b_rat;
@@ -360,14 +372,17 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	return 0;
 }
 
+
+
 static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)
 {
 	int res;
-	int got = 0;
+	size_t to_copy;
 	unsigned int loffset = 0;
 	struct RAB rab;
 	struct dapfs_handle *h = (struct dapfs_handle *)fi->fh;
+	char tmpbuf[RMS_BUF_SIZE];
 
 	if (debuglevel&1)
 		fprintf(stderr, "dapfs_read: %s offset=%lld\n", path, offset);
@@ -391,31 +406,28 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 
 		h->offset = offset;
 
-		/* Throw away saved partial record */
-		if (h->recordbuf)
-			free(h->recordbuf);
-		h->recordbuf = NULL;
+		// Throw away cached data.
+		kfifo_reset(h->kf);
 	}
 
-	// Add in saved record
-	if (h->recordbuf) {
-		if (debuglevel&2)
-			fprintf(stderr, "dapfs_read: adding saved partial record %d bytes\n", h->rbuf_len);
+	if (debuglevel&1)
+		fprintf(stderr, "dapfs_read: kf space available = %d, free=%d, size=%d\n", kfifo_len(h->kf), kfifo_avail(h->kf), size);
 
-		res = convert_rms_record(h->recordbuf, h->rbuf_len, h);
+	// Fill the buffer so it holds at least enough for us to return
+	// a full buffer to FUSE
+	while (kfifo_len(h->kf) < size && !rms_lasterror(h->rmsh))
+	{
+		if (debuglevel&1)
+			fprintf(stderr, "dapfs_read: size=%d, kfifo_len()=%d\n", size, kfifo_len(h->kf));
 
-		memcpy(buf, h->recordbuf, res);
-		got += res;
-		h->offset += res;
-		free(h->recordbuf);
-		h->recordbuf = NULL;
-	}
+		// -2 here allows for convert_rms_record to add delimiters
+		res = rms_read(h->rmsh, tmpbuf, kfifo_avail(h->kf) - ((blockmode==0)?2:0), &rab);
 
-	/* This can be quite slow, because it reads records.
-	   However, it's safer this way as we can make sense of sequential files
-	*/
-	do {
-		res = rms_read(h->rmsh, buf+got, size-got, &rab);
+		if (debuglevel&1 & !blockmode)
+		{
+			tmpbuf[res] = '\0';
+			fprintf(stderr, "dapfs_read: res=%d. data='%s'\n", res, tmpbuf);
+		}
 
 		if (rms_lasterror(h->rmsh) && debuglevel&2)
 			fprintf(stderr, "dapfs_read: res=%d, rms error: %s\n", res, rms_lasterror(h->rmsh));
@@ -423,46 +435,39 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 		if (res == -1)
 			return -EOPNOTSUPP;
 
-		// if res == 0 and there is no error then we read
-		// an empty record.
-		if (res >= 0 && !rms_lasterror(h->rmsh)) {
-			res = convert_rms_record(buf+got, res, h);
-			got += res;
-			h->offset += res;
+		// Not enough room in the circular buffer to read another record!
+		if (res < 0) {
+			res = 0;
+			break;
+//			assert (res >= 0); // FIXME!
 		}
-		if (res < 0 && got) {
-			int recordlen = -res;
-			int remainderspace = size-got;
 
-			// Not enough room for a full record. split it.
-			// Read the partial record and return as much as the user
-			// requested. Save the remainder for the next read.
-			h->recordbuf = malloc(recordlen);
-			if (!h->recordbuf)
-				return -ENOMEM;
+		// if res == 0 and there is no error then we read an empty record.
+		//  ... this is fine.
 
-			recordlen = rms_read(h->rmsh, h->recordbuf, recordlen, &rab);
-			if (recordlen == -1)
-				return -errno;
+		// Convert to records (if needed) and add to circular buffer.
+		if (res >= 0 && !rms_lasterror(h->rmsh)) {
+			if (!blockmode)
+				res = convert_rms_record(tmpbuf, res, h);
 
-			memcpy(buf+got, h->recordbuf, remainderspace);
-
-			memmove(h->recordbuf, h->recordbuf + remainderspace, recordlen-remainderspace);
-			h->rbuf_len = recordlen-remainderspace;
-			h->offset += remainderspace;
+			kfifo_put(h->kf, tmpbuf, res);
 
 			if (debuglevel&2)
-				fprintf(stderr, "dapfs_read: saving %d bytes of %d byte partial record\n", recordlen-remainderspace, recordlen);
-
-			if (debuglevel&1)
-				fprintf(stderr, "dapfs_read: returning %d, offset = %lld\n", got+remainderspace, h->offset);
-
-			return got + remainderspace;
+				fprintf(stderr, "dapfs_read: added record of length %d to cbuf. size=%d\n", res, kfifo_len(h->kf));
 		}
+	}
 
-	} while (!rms_lasterror(h->rmsh));
-	if (res >= 0)
-		res = got;
+	// Copy to target buffer
+	to_copy = size;
+	if (kfifo_len(h->kf) < to_copy)
+		to_copy = kfifo_len(h->kf);
+
+	kfifo_get(h->kf, buf, to_copy);
+
+	if (res >= 0) {
+		h->offset += to_copy;
+		res = to_copy;
+	}
 
 	if (res == -1)
 		res = -errno;
@@ -518,6 +523,7 @@ static int dapfs_release(const char *path, struct fuse_file_info *fi)
 		return -EBADF;
 
 	ret = rms_close(h->rmsh);
+	kfifo_free(h->kf);
 	free(h);
 	fi->fh = 0L;
 
@@ -606,6 +612,14 @@ static int process_options(char *options)
 			debuglevel = atoi(option);
 			processed = 1;
 		}
+		if (strncmp("block", optptr, 5) == 0) {
+			blockmode = 1;
+			processed = 1;
+		}
+		if (strncmp("record", optptr, 6) == 0) {
+			blockmode = 0;
+			processed = 1;
+		}
 	next_tok:
 		t = strtok(NULL, ",");
 	}
@@ -633,7 +647,7 @@ static void find_options(int *argc, char *argv[])
 				if (process_options(argv[++i])) {
 					argv[i] = NULL;
 					argv[i-1] = NULL;
-				}	
+				}
 			}
 			else {
 				if (process_options(argv[i] + 2))

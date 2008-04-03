@@ -14,7 +14,6 @@ things with dapfs but the following will not work:
 - statfs (including the 'df' command)
 - mkdir
 - rmdir (if the protection of the VMS directory does not have Delete set)
-- chmod
 
 Other things that do not work are chmod and chown as these do not map neatly
 onto Unix principles.
@@ -26,7 +25,7 @@ to talk to another Linux box (though why would you want to?) as it won't work!
 To mount a dapfs filesystem, make sure the fuse module is loaded into the kernel
 and use the followng syntax:
 
-# mount -tdapfs node <mountpoint>
+# mount -tdapfs node <mountpoint> [<options>]
 
 Here are some examples:
 
@@ -35,6 +34,16 @@ this will use the default DECnet account on 'zarqon' or a proxy for "ROOT"
 
 mount -tdapfs ford /mnt/alpha -ousername=system,password=field
 
+By default dapfs transfers files as records as this is by far the most useful
+way of doing things. If you want to get a raw file from VMS (and remember,
+this won't copy the file organisational metadata) then you can add -oblock to
+the mount command and dapfs will send the file just as it appears on VMS. 
+This is also a lot quicker than record mode too.
+
+You can't directly mount a disk using dapfs, because it connects as a user
+to VMS and everything is relative to that user's home directory 
+(.. doesn't work!). If you want to export a whole disk you will have to create
+a user that logs into [000000] !
 
 BUGS/ANNOYANCES
 
@@ -49,6 +58,6 @@ smaller. fuse fills this space with NULs (charactar 0). Writing the file back
 will not lose information, it will be written back as STREAM file format and
 the NULs should disappear.
 
-dapfs will probably oinly work to VMS. I will accept patches to make it work 
-with other DECnet operating systems but I very much dount I will have the time
+dapfs will probably only work to VMS. I will accept patches to make it work 
+with other DECnet operating systems but I very much doubt I will have the time
 to do it myself, sorry.

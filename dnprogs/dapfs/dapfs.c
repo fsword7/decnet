@@ -347,8 +347,12 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	if (fi->flags & O_CREAT)
 		fab.fab$b_rfm = RFM_STMLF;
 
-	if (blockmode)
-		fab.fab$b_fac = FAB$M_BRO;
+	/* Block transfers */
+	if (blockmode && !(fi->flags & O_CREAT))
+	{
+		fab.fab$b_fac = FAB$M_BRO | FAB$M_GET;
+		fab.fab$b_shr = FAB$M_GET;
+	}
 
 	h->rmsh = rms_open(fullname, fi->flags, &fab);
 	if (!h->rmsh) {
@@ -360,7 +364,7 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 		return -saved_errno;
 	}
 
-	/* Save RMS attributes */
+	/* Save RMS attributes of the file */
 	h->org = fab.fab$b_org;
 	h->rat = fab.fab$b_rat;
 	h->rfm = fab.fab$b_rfm;
@@ -400,8 +404,8 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 			fprintf(stderr, "dapfs_read: new offset is %lld, old was %lld\n", offset, h->offset);
 		loffset = (unsigned int)offset;
 		rab.rab$l_kbf = &offset;
-		rab.rab$b_rac = 6;// Stream 2;//FB$RFA;
-		rab.rab$b_ksz = 6;// 3x words, like an RFA// sizeof(loffset);
+		rab.rab$b_rac = 6;// Stream
+		rab.rab$b_ksz = 6;// 3x words, like an RFA
 		rab.rab$w_usz = size;
 
 		h->offset = offset;
@@ -409,6 +413,9 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 		// Throw away cached data.
 		kfifo_reset(h->kf);
 	}
+
+	if (blockmode)
+		rab.rab$b_rac = 5; // BLOCKFT
 
 	if (debuglevel&1)
 		fprintf(stderr, "dapfs_read: kf space available = %d, free=%d, size=%d\n", kfifo_len(h->kf), kfifo_avail(h->kf), size);
@@ -436,10 +443,10 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 			return -EOPNOTSUPP;
 
 		// Not enough room in the circular buffer to read another record!
+		// This can still break dapfs is the local circular buffer is too small...
 		if (res < 0) {
 			res = 0;
 			break;
-//			assert (res >= 0); // FIXME!
 		}
 
 		// if res == 0 and there is no error then we read an empty record.
@@ -450,7 +457,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 			if (!blockmode)
 				res = convert_rms_record(tmpbuf, res, h);
 
-			kfifo_put(h->kf, tmpbuf, res);
+			kfifo_put(h->kf, (unsigned char *)tmpbuf, res);
 
 			if (debuglevel&2)
 				fprintf(stderr, "dapfs_read: added record of length %d to cbuf. size=%d\n", res, kfifo_len(h->kf));
@@ -462,7 +469,7 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	if (kfifo_len(h->kf) < to_copy)
 		to_copy = kfifo_len(h->kf);
 
-	kfifo_get(h->kf, buf, to_copy);
+	kfifo_get(h->kf, (unsigned char *)buf, to_copy);
 
 	if (res >= 0) {
 		h->offset += to_copy;
@@ -595,20 +602,18 @@ static int process_options(char *options)
 		char *option;
 
 		option = strchr(t, '=');
-		if (!option)
-			goto next_tok;
 		option++;
 
 		optptr = t + strspn(t, " ");
-		if (strncmp("username=", optptr, 9) == 0) {
+		if (strncmp("username=", optptr, 9) == 0 && option) {
 			username = strdup(option);
 			processed = 1;
 		}
-		if (strncmp("password=", optptr, 9) == 0) {
+		if (strncmp("password=", optptr, 9) == 0 && option) {
 			password = strdup(option);
 			processed = 1;
 		}
-		if (strncmp("debuglog=", optptr, 9) == 0) {
+		if (strncmp("debuglog=", optptr, 9) == 0 && option) {
 			debuglevel = atoi(option);
 			processed = 1;
 		}
@@ -620,7 +625,6 @@ static int process_options(char *options)
 			blockmode = 0;
 			processed = 1;
 		}
-	next_tok:
 		t = strtok(NULL, ",");
 	}
 	if (!password)
@@ -695,6 +699,9 @@ int main(int argc, char *argv[])
 	if (debuglevel&2)
 		fprintf(stderr, "prefix is now: %s\n", prefix);
 
+	if (debuglevel&2 && blockmode)
+		fprintf(stderr, "Sending files in BLOCK mode\n");
+
 	// Make a scratch connection - also verifies the path name nice and early
 	if (dap_init()) {
 		syslog(LOG_ERR, "Cannot connect to '%s'\n", prefix);
@@ -703,4 +710,3 @@ int main(int argc, char *argv[])
 
 	return fuse_main(argc-1, argv+1, &dapfs_oper);
 }
-

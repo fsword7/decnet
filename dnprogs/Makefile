@@ -105,7 +105,7 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	DH_COMPAT=2 dpkg-buildpackage -rfakeroot 
+	DH_COMPAT=5 dpkg-buildpackage -rfakeroot 
 
 #
 # Dummy rule for sub-directories

@@ -2,7 +2,7 @@ Summary: DECnet tools and libraries
 Name: %%PACKAGENAME%%
 Version: %%VERSION%%
 Release: 1
-Vendor: Patrick Caulfield and The Linux DECnet Project team
+Vendor: Christine Caulfield
 License: GPL
 Group: Networking/Utilities
 Url:	http://linux-decnet.sourceforge.net
@@ -49,6 +49,7 @@ that use the DECnet protocol
 %%PREFIX%%/sbin/sendvmsmail
 %%PREFIX%%/sbin/vmsmaild
 %%PREFIX%%/sbin/multinet
+%%CONFPREFIX%%/sbin/mount.dapfs
 %%PREFIX%%/share/man/man1/dncopy.1.gz
 %%PREFIX%%/share/man/man1/dntype.1.gz
 %%PREFIX%%/share/man/man1/phone.1.gz
@@ -76,6 +77,7 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man8/setether.8.gz
 %%PREFIX%%/share/man/man8/decnetconf.8.gz
 %%PREFIX%%/share/man/man8/multinet.8.gz
+%%PREFIX%%/share/man/man8/mount.dapfs.8.gz
 /etc/rc.d/init.d/decnet
 /etc/decnet.proxy
 %%LIBPREFIX%%/lib/libdnet.so.1
@@ -87,6 +89,12 @@ that use the DECnet protocol
 %%LIBPREFIX%%/lib/libdap.so.%%VERSION%%
 %%LIBPREFIX%%/lib/librms.so.%%MAJOR_VERSION%%
 %%LIBPREFIX%%/lib/librms.so.%%VERSION%%
+
+%config 
+%%CONFPREFIX%%/etc/decnet.conf.sample
+%%CONFPREFIX%%/etc/dnetd.conf
+
+%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README dapfs.README libvaxdata.pdf
 
 %files devel
 %%PREFIX%%/share/man/man3/dnet_addr.3.gz
@@ -121,14 +129,7 @@ that use the DECnet protocol
 /usr/include/fabdef.h
 /usr/include/convert_vax_data.h
 
-
-
-%config %%CONFPREFIX%%/etc/decnet.conf.sample
-%%CONFPREFIX%%/etc/dnetd.conf
-
 %dir /usr/include/netdnet
-
-%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README libvaxdata.pdf
 
 %post 
 chkconfig --level 345 decnet on
@@ -139,5 +140,7 @@ ldconfig
 
 %Changelog
 
+* Fri Apr 04 2008 Christine Caulfield <Christine.Caulfield@gmail.com> 2.42
+  Another release
 * Thu May 26 2006 Patrick Caulfield <patrick@tykepenguin.com> - 2.37-1
   First release

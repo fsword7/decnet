@@ -32,6 +32,9 @@ clean:
 	rm -f debian/*~
 	rm -rf rpmbuild
 	rm -rf RPMS
+	rm -rf SOURCES
+	rm -rf SRPMS
+	rm -rf BUILD
 	rm -f .rpm*
 	rm -f build
 	rm -f core
@@ -62,8 +65,8 @@ snap:
 #
 # Make RPM package for Red Hat systems.
 #
-rpm:
-	rm -rf rpmbuild BUILD RPMS
+rpm:	
+	rm -rf rpmbuild BUILD RPMS SOURCES
 	make clean
 	echo "%_topdir `pwd`" > .rpmmacros
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
@@ -72,6 +75,8 @@ rpm:
 	find `pwd`/rpmbuild/usr/share/man/ -type f|xargs gzip -9
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
 	make dist
+	mkdir SOURCES SRPMS
+	cp /var/tmp/$(PKGNAME)-$(VERSION).tar.gz SOURCES
 	install -d rpmbuild/etc/rc.d/init.d
 	install -d rpmbuild/usr/doc
 	rm rpmbuild/usr/share/man/man1/dntype.1
@@ -97,7 +102,7 @@ rpm:
 	mkdir -p BUILD RPMS/$(ARCH)
 	cp README NEWS Documentation/*.README BUILD
 	cp libvaxdata/libvaxdata.pdf BUILD
-	rpmbuild -bb --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
+	rpmbuild -ba --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros
 
 #

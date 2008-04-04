@@ -46,6 +46,7 @@ debclean:
 # Make the distribution tar file
 #
 dist:	
+	cp debian/changelog NEWS
 	for i in $(SUBDIRS); do cd $$i; rm -f .depend; cd ..; done
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi
 	if [ ! -d ../$(PKGNAME)-$(VERSION) ]; then cd ..; ln -s $(PKGNAME) $(PKGNAME)-$(VERSION); fi
@@ -100,7 +101,8 @@ rpm:
 	    -e's@%%CONFPREFIX%%@/@g'                                    \
 	   < rpm.spec >$(PKGNAME).spec
 	mkdir -p BUILD RPMS/$(ARCH)
-	cp README NEWS Documentation/*.README BUILD
+	cp README Documentation/*.README BUILD
+	cp debian/changelog BUILD/NEWS
 	cp libvaxdata/libvaxdata.pdf BUILD
 	rpmbuild -ba --target $(ARCH) --buildroot `pwd`/rpmbuild -v --rcfile .rpmrc $(PKGNAME).spec
 	rm -f $(PKGNAME).spec .rpmrc .rpmmacros

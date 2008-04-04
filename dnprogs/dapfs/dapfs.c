@@ -40,7 +40,6 @@
 
 #define RMS_BUF_SIZE 65536
 
-
 struct dapfs_handle
 {
 	RMSHANDLE rmsh;
@@ -94,7 +93,7 @@ static int convert_rms_record(char *buf, int len, struct dapfs_handle *fh)
 		retlen -= fh->fsz;
 	}
 
-/* FORTRAN files have a leading character that indicates carriage control */
+	/* FORTRAN files have a leading character that indicates carriage control */
 	if (fh->rat & RAT_FTN)
 	{
 		switch (buf[0])
@@ -156,6 +155,7 @@ static int dapfs_chmod(const char *path, mode_t m)
 {
 	return 0;
 }
+
 static int dapfs_utime(const char *path, struct utimbuf *u)
 {
 	return 0;
@@ -375,8 +375,6 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 	h->offset = 0;
 	return 0;
 }
-
-
 
 static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 		      struct fuse_file_info *fi)

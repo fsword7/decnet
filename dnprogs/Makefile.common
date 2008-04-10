@@ -57,7 +57,7 @@ DFLAGS=-g
 #------------------------------------------------------------------------------
 
 MAJOR_VERSION=2
-MINOR_VERSION=41
+MINOR_VERSION=42
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #

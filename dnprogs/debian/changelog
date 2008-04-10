@@ -1,3 +1,11 @@
+dnprogs (2.42) unstable; urgency=low
+
+  * More work on dapfs. Fix crash when reading long files
+  * add DH_COMPAT to get rid of debian build warnings, and error (I hope)
+    Closes: #475196
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Thu, 10 Apr 2008 14:18:34 +0100
+
 dnprogs (2.41-1) unstable; urgency=low
 
   * Fix build of dapfs (again)

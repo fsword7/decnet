@@ -353,10 +353,17 @@ static int dapfs_open(const char *path, struct fuse_file_info *fi)
 		fab.fab$b_fac = FAB$M_BRO | FAB$M_GET;
 		fab.fab$b_shr = FAB$M_GET;
 	}
+	/* O_WRONLY also means CREAT (well here it does anyway) */
+	if (fi->flags & O_WRONLY)
+		fi->flags |= O_CREAT;
 
 	h->rmsh = rms_open(fullname, fi->flags, &fab);
 	if (!h->rmsh) {
 		int saved_errno = errno;
+
+		if (debuglevel)
+			fprintf(stderr, "rms_open returned NULL, errno=%d (rmserror: %s)\n", errno, rms_openerror());
+
 		free(h);
 
 		if (!saved_errno) // Catch all...TODO
@@ -387,13 +394,16 @@ static int dapfs_read(const char *path, char *buf, size_t size, off_t offset,
 	char tmpbuf[RMS_BUF_SIZE];
 
 	if (debuglevel&1)
-		fprintf(stderr, "dapfs_read: %s offset=%lld\n", path, offset);
+		fprintf(stderr, "dapfs_read (%p): %s offset=%lld\n", h->rmsh, path, offset);
 
 	if (!h) {
 		res = dapfs_open(path, fi);
 		if (res)
 			return res;
 		h = (struct dapfs_handle *)fi->fh;
+		if (debuglevel&1)
+			fprintf(stderr, "dapfs_read (%p)\n", h->rmsh);
+
 	}
 
 	memset(&rab, 0, sizeof(rab));
@@ -495,7 +505,8 @@ static int dapfs_write(const char *path, const char *buf, size_t size,
 			return res;
 	}
 
-	syslog(LOG_DEBUG, "dapfs_write. offset=%d, (%p) fh->offset=%d\n", (int)offset, h, (int)h->offset);
+	if (debuglevel)
+		fprintf(stderr, "dapfs_write (%p). offset=%d, (%p) fh->offset=%d\n", h->rmsh, (int)offset, h, (int)h->offset);
 	memset(&rab, 0, sizeof(rab));
 	if (offset && offset != h->offset) {
 		rab.rab$l_kbf = &offset;
@@ -505,13 +516,15 @@ static int dapfs_write(const char *path, const char *buf, size_t size,
 
 	res = rms_write(h->rmsh, (char *)buf, size, &rab);
 	if (res == -1) {
-		syslog(LOG_DEBUG, "rms_write returned %d, errno=%d\n", res, errno);
+		if (debuglevel)
+			fprintf(stderr, "rms_write returned %d, errno=%d (rmserror: %s)\n", res, errno, rms_lasterror(h->rmsh));
 		res = -errno;
 	}
 	else {
 		h->offset += size;
+		if (debuglevel)
+			fprintf(stderr, "rms_write returned %d, offset now=%d\n", res, (int)h->offset);
 		res = size;
-		syslog(LOG_DEBUG, "rms_write returned 0, offset (%p) now=%d\n", h, (int)h->offset);
 	}
 	return res;
 }
@@ -522,7 +535,7 @@ static int dapfs_release(const char *path, struct fuse_file_info *fi)
 	int ret;
 
 	if (debuglevel&1)
-		fprintf(stderr, "dapfs_release: %s\n", path);
+		fprintf(stderr, "dapfs_release (%p): %s \n", h->rmsh, path);
 
 	if (!h)
 		return -EBADF;

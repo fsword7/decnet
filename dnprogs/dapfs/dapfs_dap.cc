@@ -324,9 +324,8 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 
 		switch (m->get_type())
 		{
-		case dap_message::NAME:
-		{
-			// Got a new name, send the old stuff.
+		case dap_message::ACK:
+			// Got all the file info
 			if (name_pending)
 			{
 				char unixname[BUFLEN];
@@ -345,7 +344,10 @@ int dapfs_readdir_dap(const char *path, void *buf, fuse_fill_dir_t filler,
 				name_pending = false;
 				memset(&stbuf, 0, sizeof(stbuf));
 			}
+			break;
 
+		case dap_message::NAME:
+		{
 			dap_name_message *nm = (dap_name_message *)m;
 
 			if (nm->get_nametype() == dap_name_message::VOLUME)

@@ -294,21 +294,6 @@ int main(int argc, char *argv[])
 	    {
 	        case dap_message::NAME:
 		{
-		    if (name_pending)
-		    {
-			name_pending = false;
-			if (show_total) total += size;
-			print_short(filename_width,
-				    show_size,
-				    show_date,
-				    show_owner,
-				    show_protection,
-				    single_column,
-				    entries_per_line,
-				    size,
-				    name, owner, cdt,prot, &printed);
-		    }
-
 
 		    dap_name_message *nm = (dap_name_message *)m;
 
@@ -367,6 +352,20 @@ int main(int argc, char *argv[])
 
 	        case dap_message::ACK:
 		{
+		    if (name_pending)
+		    {
+			    name_pending = false;
+			    if (show_total) total += size;
+			    print_short(filename_width,
+					show_size,
+					show_date,
+					show_owner,
+					show_protection,
+					single_column,
+					entries_per_line,
+					size,
+					name, owner, cdt,prot, &printed);
+		    }
 		}
 		break;
 
@@ -474,17 +473,6 @@ bool show_full_details(char *dirname, dap_connection &conn)
 	switch (m->get_type())
 	{
 	    case dap_message::NAME:
-		if (name_pending)
-		{
-		    name_pending = false;
-		    print_long(name_msg, attrib_msg, date_msg, protect_msg);
-
-		    delete name_msg;
-		    delete protect_msg;
-		    delete attrib_msg;
-		    delete date_msg;
-		}
-
 		name_msg = (dap_name_message *)m;
 		switch (name_msg->get_nametype())
 		{
@@ -542,6 +530,16 @@ bool show_full_details(char *dirname, dap_connection &conn)
 	    break;
 
 	    case dap_message::ACK:
+		if (name_pending)
+		{
+		    name_pending = false;
+		    print_long(name_msg, attrib_msg, date_msg, protect_msg);
+
+		    delete name_msg;
+		    delete protect_msg;
+		    delete attrib_msg;
+		    delete date_msg;
+		}
 		break;
 
 	    case dap_message::ACCOMP:

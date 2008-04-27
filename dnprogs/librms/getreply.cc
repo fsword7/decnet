@@ -50,6 +50,10 @@ int check_status(rms_conn *rc, dap_message *m)
     if (code == 0225) return 0;    // Success
     if (code == 047)  return code; // EOF
     rc->lasterror = err;
+    if (code == 060)
+      errno = EBUSY;
+    else
+      errno = ENOENT; // Bad fallback.
     return -1;
 }
 

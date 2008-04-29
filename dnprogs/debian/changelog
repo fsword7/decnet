@@ -1,3 +1,12 @@
+dnprogs (2.43) unstable; urgency=low
+
+  * dapfs: fix editor access.
+  * dapfs: fix readdir so attributes don't get mixed up. fixes "find"
+  * dndir: fix readdir
+  * librms: return something(anything!) in errno when open fails.
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Tue, 29 Apr 2008 13:00:11 +0100
+
 dnprogs (2.42) unstable; urgency=low
 
   * More work on dapfs. Fix crash when reading long files

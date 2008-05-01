@@ -10,7 +10,7 @@ PROG1OBJS=dapfs.o dapfs_dap.o filenames.o kfifo.o
 
 all: $(PROG1)
 
-CFLAGS=-I../include -I ../librms -Wall $(DFLAGS)
+CFLAGS=-I../include -I ../librms -Wall $(DFLAGS) -fdollars-in-identifiers
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
 	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) $(LIBDAP) -L../librms -lrms $(LIBDNET) -lfuse

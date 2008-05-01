@@ -4,8 +4,10 @@ LIBOBJS=connection.o protocol.o vaxcrc.o logging.o
 PICOBJS=connection.po protocol.po vaxcrc.po logging.po
 
 LIBNAME=libdap
+LIB_MINOR_VERSION=43.0
+LIB_VERSION=$(MAJOR_VERSION).$(LIB_MINOR_VERSION)
 
-SHAREDLIB=$(LIBNAME).so.$(VERSION)
+SHAREDLIB=$(LIBNAME).so.$(LIB_VERSION)
 STATICLIB=$(LIBNAME).a
 
 CXXFLAGS+=-Wno-format-y2k

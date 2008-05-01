@@ -56,8 +56,9 @@ DFLAGS=-g
 # You should not need to change anything below this line
 #------------------------------------------------------------------------------
 
+#Package version
 MAJOR_VERSION=2
-MINOR_VERSION=42
+MINOR_VERSION=44
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #

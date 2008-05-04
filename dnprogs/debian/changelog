@@ -1,3 +1,11 @@
+dnprogs (2.43.2) unstable; urgency=low
+
+  * Tidy soname handling on shared libraries
+  * Fix compiling dnroute with new kernel headers
+    Closes: #479081
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun, 04 May 2008 15:44:43 +0100
+
 dnprogs (2.43.1) unstable; urgency=low
 
   * add -fdollars-in-identifiers to dapfs build, so it compiles on ARM.

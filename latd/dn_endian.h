@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998, 2003 P.J. Caulfield               patrick@debian.org
+    (c) 1998, 2003 Christine Caulfield               christine.caulfield@googlemail.com
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 
 
 #ifndef __BYTE_ORDER
-    #error "Can't determine endianness - please inform patrick@debian.org with your distribution and hardware type."
+    #error "Can't determine endianness - please inform christine.caulfield@googlemail.com with your distribution and hardware type."
 #endif
 
 #if (__BYTE_ORDER == 1234)
@@ -55,6 +55,6 @@
   #else
 
     /* it's a PDP??? */
-    #error "Unsupported endianness - please inform patrick@debian.org with your distribution and hardware type."
+    #error "Unsupported endianness - please inform christine.caulfield@googlemail.com with your distribution and hardware type."
   #endif
 #endif

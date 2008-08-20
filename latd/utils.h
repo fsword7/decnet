@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002 Patrick Caulfield                 patrick@debian.org
+    (c) 2002 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

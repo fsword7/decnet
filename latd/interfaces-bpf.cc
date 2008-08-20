@@ -2,7 +2,7 @@
     (c) 2002 Matthew Fredette                 fredette@netbsd.org
 
     Some modifications:
-    (c) 2003-2004 Patrick Caulfield           patrick@debian.org
+    (c) 2003-2004 Christine Caulfield           christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

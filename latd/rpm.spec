@@ -2,7 +2,7 @@ Summary: LAT daemon
 Name: %%PACKAGENAME%%
 Version: %%VERSION%%
 Release: 1
-Vendor: Patrick Caulfield
+Vendor: Christine Caulfield
 Group: Networking/Utilities
 License: GPL
 Source: http://download.sourceforge.net/linux-decnet/%%PACKAGENAME%%-%%VERSION%%.tar.gz

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2005 Patrick Caulfield                 patrick@debian.org
+    (c) 2001-2005 Christine Caulfield                 christine.caulfield@googlemail.com
     (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify

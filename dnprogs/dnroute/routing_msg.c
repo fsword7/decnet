@@ -27,7 +27,6 @@
 #include <net/if_arp.h>
 #include <netinet/in.h>
 #include <string.h>
-#include "ktypes.h"
 #include <linux/netfilter_decnet.h>
 #include <netdnet/dnetdb.h>
 

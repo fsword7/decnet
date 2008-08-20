@@ -24,7 +24,6 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <limits.h>
-#include "ktypes.h"
 #include <linux/netfilter_decnet.h>
 #include <netdnet/dnetdb.h>
 #include <features.h>    /* for the glibc version number */

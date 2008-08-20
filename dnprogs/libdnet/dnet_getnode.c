@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1999 P.J.Caulfield                 patrick@tykepenguin.cix.co.uk
+    (c) 1999 ChristineCaulfield                 christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

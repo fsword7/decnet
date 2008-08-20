@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2006 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2006 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -342,7 +342,7 @@ void fal_task::parse_vms_filespec(char *volume, char *directory, char *file)
     char *enddir = strchr(ptr, ']');
 
     // Don't get caught out by concatenated filespecs
-    // like dua0:[home.patrick.][test]
+    // like dua0:[home.christine.][test]
     if (enddir && enddir[1] == '[')
 	enddir=strchr(enddir+1, ']');
 

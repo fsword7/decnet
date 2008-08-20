@@ -1,7 +1,7 @@
 /******************************************************************************
     (c) 1995-2002 E.M. Serrat             emserrat@geocities.com
 
-    Conversion to dnetd (c) 1999 by Patrick Caulfield
+    Conversion to dnetd (c) 1999 by Christine Caulfield
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

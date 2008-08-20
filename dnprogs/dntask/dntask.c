@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
+    (c) 1998      Christine Caulfield          christine.caulfield@googlemail.com
                   K.   Humborg            kenn@avalon.wombat.ie
 
     This program is free software; you can redistribute it and/or modify
@@ -482,7 +482,7 @@ static void usage(FILE *f)
 
     fprintf(f, "\nExamples:\n\n");
     fprintf(f, " dntask 'myvax::'  - defaults to TASK.COM and proxy username\n");
-    fprintf(f, " dntask -i 'clustr\"patrick thecats\"::do_dcl.com'\n");
+    fprintf(f, " dntask -i 'clustr\"christine thecats\"::do_dcl.com'\n");
     fprintf(f, "\n");
 }
 

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2000 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2000 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
 
 	    ptr=strchr(input_line, '(');
 
-	    if (ptr) // probably 'vmsmail@pandh (tramp::patrick)' format
+	    if (ptr) // probably 'vmsmail@pandh (tramp::christine)' format
 	    {
 		endline=strchr(input_line, ')');
 		if (endline > ptr)
@@ -159,7 +159,7 @@ int parse_header(char **to, char **subject, char **from, char **real_from)
 		    continue;
 		}
 	    }
-	    else // maybe it is '"tramp::patrick " <vmsmail@pandh>' format
+	    else // maybe it is '"tramp::christine " <vmsmail@pandh>' format
 	    {
 		ptr=strchr(input_line, '<');
 		if (ptr)

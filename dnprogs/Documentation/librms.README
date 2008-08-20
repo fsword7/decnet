@@ -179,17 +179,17 @@ in the value itself should be doubled - or you can use single quotes:
 
 eg
 
-rms_t_find(handle, "krf=2,key=PATRICK,rop=\"rlk,kge\"");
+rms_t_find(handle, "krf=2,key=CHRISSIE,rop=\"rlk,kge\"");
 
 or
 
-rms_t_find(handle, "krf=2,key=PATRICK,rop='rlk,kge'");
+rms_t_find(handle, "krf=2,key=CHRISSIE,rop='rlk,kge'");
 
 You can also specify the values to keys as variables in a printf-type way eg:
 
 rms_t_find(handle, "krf=%d,key=%s,rop='rlk,kge'", keynum, keybuf);
 
-is functionally identical to the line above (if keynum==2 and keybuf=="PATRICK").
+is functionally identical to the line above (if keynum==2 and keybuf=="CHRISSIE").
 To specify a binary key you need to do the following incantation:
 
 rms_t_find(handle, "ksz=%d,key=%*s,kop=kge", keylen, keylen, key);

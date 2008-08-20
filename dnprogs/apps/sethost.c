@@ -3,7 +3,7 @@
 	Program:	SETHOST
 	Function:	Terminal emulation using CTERM over DECnet
 	Author:		Eduardo Marcelo Serrat
-	Modified by:    Patrick James Caulfield
+	Modified by:    Christine James Caulfield
 	                Made endian and alignment-independant
 			Paul Koning:
 			Support for other than VMS servers.

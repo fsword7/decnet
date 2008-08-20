@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
+    (c) 1998-1999      Christine Caulfield          christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -82,7 +82,7 @@ static void	dndir_usage(FILE *f)
 
     fprintf(f, "\nExamples:\n\n");
     fprintf(f, " dndir -l 'myvax::*.*'\n");
-    fprintf(f, " dndir 'cluster\"patrick thecats\"::disk$users:[cats.pics]*.jpg;'\n");
+    fprintf(f, " dndir 'cluster\"christine thecats\"::disk$users:[cats.pics]*.jpg;'\n");
     fprintf(f, "\n");
 }
 
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 
     // Default to a full wildcard if no filename is given. This will cope with
     // the situation where no directory is provided (node::) and where a
-    // directory (node::[patrick]) is provided. Logical names must end with
+    // directory (node::[christine]) is provided. Logical names must end with
     // a colon for this to happen or we will not be able to distinguish them
     // from filenames
     char lastchar('\0');

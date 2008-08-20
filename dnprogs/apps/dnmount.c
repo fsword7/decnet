@@ -67,7 +67,7 @@ usage(void)
 	printf("-h -?		Display this help\n\n");
 }
 /*-----------------------------------------------------------------------*/
-/* Patrick's Parser for VMS file specifications
+/* Christine's Parser for VMS file specifications
  * It was taken from dndir.c
  *
 */
@@ -211,7 +211,7 @@ static int parse(char *fname)
 
     /* Default to a full wildcard if no filename is given. This will cope with
        the situation where no directory is provided (node::) and where a
-       directory (node::[patrick]) is provided. Logical names must end with
+       directory (node::[christine]) is provided. Logical names must end with
        a colon for this to happen or we will not be able to distinguish it
        from a filename
 

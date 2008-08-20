@@ -14,7 +14,7 @@
 #
 # Here are some examples (commented out of course):
 #
-# ^tramp$::^test$ patrick  # Explicitly convert 'test' on tramp to 'patrick'
+# ^tramp$::^test$ chrissie # Explicitly convert 'test' on tramp to 'chrissie'
 # ^zaphod$::.*    none     # Disable proxies from zaphod (assuming you don't have
 #                          #   a user called 'none')
 # .*::.* decnet            # Like a default DECnet account

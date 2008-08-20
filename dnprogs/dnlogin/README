@@ -9,4 +9,4 @@ happens in tty.c.
 It should be easy to plug in other terminal protocols into here (eg dterm)
 if/when someone volunteers them.
 
-Patrick
+Chrissie

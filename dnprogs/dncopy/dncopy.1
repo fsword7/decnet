@@ -204,21 +204,21 @@ Copy LOGIN.COM from the VMS system "tramp" to Linux as mylogin.com
 .nf
 .br
 .PP
-    dncopy 'tramp"patrick pjc123"::login.com' mylogin.com
+    dncopy 'tramp"christine pjc123"::login.com' mylogin.com
 .br
 
 .br
 Copy all .TXT files from the VMS directory SYS$SYSDEVICE:[WP] to /tmp:
 .br
 .PP
-    dncopy 'tramp"patrick pjc123"::sys$sysdevice:[wp]*.txt' /tmp
+    dncopy 'tramp"christine pjc123"::sys$sysdevice:[wp]*.txt' /tmp
 .br
 
 .br
 Copy an executable to VMS:
 .br
 .PP
-    dncopy -mblock test.exe 'tramp"patrick pjc123"::[.BIN]'
+    dncopy -mblock test.exe 'tramp"christine pjc123"::[.BIN]'
 .br
 
 .PP
@@ -234,7 +234,7 @@ Copy a file to VMS and set its protection
 Display the contents of LOGIN.COM:
 .br
 .PP
-    dtype 'trisha"patrick -"::login.com'
+    dtype 'trisha"christine -"::login.com'
 .br
     You will then be prompted for a password
 

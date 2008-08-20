@@ -24,7 +24,7 @@ OpenVMS proxy database in that you can specify remote nodes and usernames
 either explicitly or using wildcards and then indicate which local user
 should be used for thos remote accesses. eg:
 
-^tramp$::^patrick$ patrick
+^tramp$::^christine$ christine
 
 The line above says that if I connect from my VMS machine tramp to the Linux
 machine without providing a username and password then I will be given  access
@@ -126,7 +126,7 @@ FAL understands both Unix and VMS format filenames. If a request comes in
 with VMS format filenames then the reply will also have VMS format filenames.
 Otherwise the native Unix type filenames will be emitted. The VMS format 
 filename is formed by making a volume name from the top-level directory so that
-/home/patrick/myfile.txt would appear to VMS as HOME:[PATRICK]MYFILE.TXT;1
+/home/christine/myfile.txt would appear to VMS as HOME:[CHRISTINE]MYFILE.TXT;1
 
 All VMS-format filenames are given the version number 1 and are converted to 
 upper case.
@@ -147,7 +147,7 @@ If you do a directory of the Linux machine from VMS you will usually get VMS
 format names. If you want to see the real (Unix) names then enclose the remote
 file specification in quotes and use Unix wildcards. eg:
 
-$ DIR LINUX::"/home/patrick/*.txt"
+$ DIR LINUX::"/home/christine/*.txt"
 
 FAL understands the VMS * and % wildcards (the % is converted to ?) but it 
 does NOT understand the elipsis [...] wildcard. This is because there is

@@ -1,3 +1,12 @@
+dnprogs (2.44) unstable; urgency=low
+
+  * Separate library version numbers from the package version.
+  * Fix typo in man page for sendvmsmail
+    Closes: #495513
+  * Some multinet fixes
+  * Fix copyright information
+
+
 dnprogs (2.43.2) unstable; urgency=low
 
   * Tidy soname handling on shared libraries

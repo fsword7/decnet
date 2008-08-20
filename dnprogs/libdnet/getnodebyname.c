@@ -1,6 +1,6 @@
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat          emserrat@geocities.com
-    (c) 1999      P.J. Caulfield       patrick@tykepenguin.cix.co.uk
+    (c) 1999      Christine Caulfield       christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

@@ -1,7 +1,7 @@
 /******************************************************************************
     dnet_daemon.c from libdnet_daemon
 
-    Copyright (C) 1999 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1999 Christine Caulfield       christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

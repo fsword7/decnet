@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2005 P.J. Caulfield               patrick@tykepenguin.cix.co.uk
+    (c) 1998-2005 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -378,7 +378,7 @@ static void usage(char *name, int dntype, FILE *f)
     fprintf(f, "to stop the shell from swallowing special characters such as double\n");
     fprintf(f, "quotes and dollar signs. eg:\n");
     fprintf(f, "\n");
-    fprintf(f, "%s 'mynode\"patrick password\"::sys$manager:sylogin.com'", name);
+    fprintf(f, "%s 'mynode\"christine password\"::sys$manager:sylogin.com'", name);
     if (!dntype)
     {
 	fprintf(f, " .");

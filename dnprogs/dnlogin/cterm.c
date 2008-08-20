@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2006      P.J. Caulfield          patrick@debian.org
+    (c) 2002-2006      Christine Caulfield          christine.caulfield@googlemail.com
 
     Portions based on code (c) 2000 Eduardo M Serrat
 

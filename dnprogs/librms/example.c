@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 
 	/* Look for the record with my name in it. */
 	rab.rab$b_rac = RAB$C_KEY;
-	rab.rab$l_kbf = "PATRICK";
+	rab.rab$l_kbf = "CHRISSIE";
 	
 	got = rms_read(h, b, sizeof(b), &rab);
 	if (got > 0)

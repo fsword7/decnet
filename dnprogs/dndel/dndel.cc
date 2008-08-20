@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999      P.J. Caulfield          patrick@tykepenguin.cix.co.uk
+    (c) 1998-1999      Christine Caulfield          christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ static void usage(void)
 
     printf("\nExamples:\n\n");
     printf(" dndel -l 'myvax::*.*;'\n");
-    printf(" dndel 'cluster\"patrick thecats\"::disk$users:[cats.pics]otto.jpg;'\n");
+    printf(" dndel 'cluster\"christine thecats\"::disk$users:[cats.pics]otto.jpg;'\n");
     printf("\n");
 }
 

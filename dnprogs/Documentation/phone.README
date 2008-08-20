@@ -28,5 +28,5 @@ TO fix this install like this:
 
 su root -c "PATH=$PATH; make install"
 
-Patrick
+Chrissie
 

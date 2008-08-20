@@ -142,5 +142,5 @@ ldconfig
 
 * Fri Apr 04 2008 Christine Caulfield <Christine.Caulfield@gmail.com> 2.42
   Another release
-* Thu May 26 2006 Patrick Caulfield <patrick@tykepenguin.com> - 2.37-1
+* Thu May 26 2006 Christine Caulfield <christine.caulfield@googlemail.com> - 2.37-1
   First release

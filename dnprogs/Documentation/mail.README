@@ -85,14 +85,14 @@ to restart the vmsmaild daemon.
 Sending mail from VMS to Linux
 ------------------------------
 
-This is dead easy, simply mail to host::user (eg linux::patrick) and the mail
+This is dead easy, simply mail to host::user (eg linux::christine) and the mail
 will be sent.
 
 You can also send to any SMTP accessible email address, suppose your Linux
 box is connected to the internet and is called 'linux', you can mail me from 
 VMS by using the following address:
 
-linux::"patrick@tykepenguin.com"
+linux::"christine.caulfield@googlemail.com"
 
 
 Sending mail from Linux to VMS

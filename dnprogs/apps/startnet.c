@@ -1,6 +1,6 @@
 /* (c) 1998 Eduardo Marcelo Serrat
 
-   Modifications (c) 1998 by Patrick Caulfield to set the Ethernet address
+   Modifications (c) 1998 by Christine Caulfield to set the Ethernet address
                 and  1999 to configure 2.3+ kernels
 		and  2001 to set MAC address on all, or specified interfaces 
 */

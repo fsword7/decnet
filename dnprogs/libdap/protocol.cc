@@ -1,7 +1,7 @@
 /*
     protocol.cc from libdap
 
-    Copyright (C) 1998-2001 Patrick Caulfield       patrick@tykepenguin.cix.co.uk
+    Copyright (C) 1998-2001 Christine Caulfield       christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

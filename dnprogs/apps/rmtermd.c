@@ -4,7 +4,7 @@
 
     (c) 2000 Paul Koning	ni1d@arrl.net
 
-    Based on ctermd by E.M. Serrat and Patrick Caulfield
+    Based on ctermd by E.M. Serrat and Christine Caulfield
     
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

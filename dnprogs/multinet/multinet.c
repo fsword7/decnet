@@ -1,5 +1,5 @@
-/******************************************************************************
-    (c) 2006      P.J. Caulfield          patrick@debian.org
+/**********************************************************************************
+    (c) 2006,2008     Christine Caulfield        christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -10,7 +10,7 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-    *******************************************************************************
+    ********************************************************************************
 
 
     Multinet server proxy server for Linux.
@@ -50,6 +50,7 @@ static unsigned short local_addr[2];
 static struct sockaddr_in remote_addr;
 static int got_remote_addr;
 static unsigned char remote_decnet_addr[2];
+static char *remote_host_name;
 static int got_verification;
 
 static int router_priority = 64;
@@ -61,8 +62,43 @@ static int hello_timer = 60;
 static char old_default[1024];
 static time_t last_ip_packet;
 static sig_atomic_t running;
+static sig_atomic_t reload_config;
 
 #define DUMP_MAX 1024
+
+/* Resolve the remote IP host name.
+ *  Called at startup and on receipt of SIGHUP
+ */
+static int lookup_name(void)
+{
+	struct addrinfo *ainfo;
+	struct addrinfo ahints;
+	int res;
+
+	memset(&ahints, 0, sizeof(ahints));
+	ahints.ai_socktype = SOCK_DGRAM;
+	ahints.ai_protocol = IPPROTO_UDP;
+
+	/* Lookup the nodename address */
+	if ( (res=getaddrinfo(remote_host_name, NULL, &ahints, &ainfo)) )
+	{
+		fprintf(stderr, "Can't resolve name '%s': %s\n", remote_host_name, gai_strerror(res));
+		return 2;
+	}
+
+	memcpy(&remote_addr, ainfo->ai_addr, sizeof(struct sockaddr_in));
+	remote_addr.sin_family = AF_INET;
+	remote_addr.sin_port = htons(port);
+
+	return 0;
+}
+
+static void do_sighup(int sig)
+{
+	if (verbose)
+		fprintf(stderr, "Got sighup, re-reading config\n");
+	reload_config = 1;
+}
 
 static void do_shutdown(int sig)
 {
@@ -376,7 +412,7 @@ static void read_tun(void)
 	len = read(tunfd, buf, sizeof(buf));
 	if (len <= 0) return;
 
-	/* We get local HELLOs from time to time so this shoud ensure that we're not
+	/* We get local HELLOs from time to time so this should ensure that we're not
 	   flooding the IP link with dodgy UDP continously
 	*/
 	if (time(NULL) - last_ip_packet > ip_timeout)
@@ -454,7 +490,7 @@ static int setup_tun(unsigned short addr, int make_default)
 
 
 	/* Configure the interface.
-	 * Sigh, this maybe should be sone using sysctl but that interface
+	 * Sigh, this maybe should be done using sysctl but that interface
 	 * is probably worse than poking values into /proc !
 	 */
 	sprintf(cmd, "/proc/sys/net/decnet/conf/%s/forwarding", ifr.ifr_name);
@@ -533,7 +569,7 @@ static void restore_interface(void)
 static void usage(char *cmd)
 {
 
-	printf("Usage: %s [options] <local-decnet-addr> <remote-host>\n", cmd);
+	printf("Usage: %s [options] <local-decnet-addr> <remote-IP-host>\n", cmd);
 	printf("eg     %s -D 3.2 zarqon\n\n", cmd);
 
 	printf("    -v       Verbose output\n");
@@ -554,9 +590,6 @@ int main(int argc, char *argv[])
 	unsigned int area, node;
 	unsigned short addr;
 	int make_default = 0;
-	struct addrinfo *ainfo;
-	struct addrinfo ahints;
-	int res;
 	int opt;
 
 	while ((opt=getopt(argc,argv,"vp:12m:P:t:H:D?h")) != EOF)
@@ -639,24 +672,14 @@ int main(int argc, char *argv[])
 
 	/* Check remote address is valid */
 	optind++;
+	remote_host_name = argv[optind];
 
-	memset(&ahints, 0, sizeof(ahints));
-	ahints.ai_socktype = SOCK_DGRAM;
-	ahints.ai_protocol = IPPROTO_UDP;
-
-	/* Lookup the nodename address */
-	if ( (res=getaddrinfo(argv[optind], NULL, &ahints, &ainfo)) )
-	{
-		fprintf(stderr, "Can't resolve name '%s': %s\n", argv[optind], gai_strerror(res));
+	if (!lookup_name())
 		return 2;
-	}
-
-	memcpy(&remote_addr, ainfo->ai_addr, sizeof(struct sockaddr_in));
-	remote_addr.sin_family = AF_INET;
-	remote_addr.sin_port = htons(port);
 
 	signal(SIGINT, do_shutdown);
 	signal(SIGTERM, do_shutdown);
+	signal(SIGHUP, do_sighup);
 
 	/* Initialise network ports */
 	tunfd = setup_tun(addr, make_default);
@@ -684,9 +707,16 @@ int main(int argc, char *argv[])
 		status = poll(pfds, 2, -1);
 		if (status == -1 && errno != EINTR)
 		{
-			perror("poll");
+			perror("poll error");
 			exit(1);
 		}
+
+		if (reload_config)
+		{
+			lookup_name();
+			reload_config = 0;
+		}
+
 		if (pfds[0].revents & POLLIN)
 			read_ip();
 		if (pfds[1].revents & POLLIN)

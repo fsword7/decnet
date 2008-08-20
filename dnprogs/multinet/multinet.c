@@ -674,7 +674,7 @@ int main(int argc, char *argv[])
 	optind++;
 	remote_host_name = argv[optind];
 
-	if (!lookup_name())
+	if (lookup_name())
 		return 2;
 
 	signal(SIGINT, do_shutdown);

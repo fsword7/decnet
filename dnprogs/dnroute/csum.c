@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@debian.org>
+ * Authors:     Christine Caulfield <christine.caulfield@googlemail.com>
  *
  */
 #include <stdio.h>

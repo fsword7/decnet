@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@debian.org>
+ * Authors:     Christine Caulfield <christine.caulfield@googlemail.com>
  *              based on rtmon.c by Alexey Kuznetsov, <kuznet@ms2.inr.ac.ru>
  *
  */
@@ -19,6 +19,7 @@
 #include <syslog.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/time.h>
@@ -26,6 +27,7 @@
 #include <net/if_arp.h>
 #include <netinet/in.h>
 #include <string.h>
+#include "ktypes.h"
 #include <linux/netfilter_decnet.h>
 #include <netdnet/dnetdb.h>
 

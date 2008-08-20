@@ -6,7 +6,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * Authors:     Patrick Caulfield <patrick@debian.org>
+ * Authors:     Christine Caulfield <christine.caulfield@googlemail.com>
  *
  */
 
@@ -23,6 +23,8 @@
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <limits.h>
+#include "ktypes.h"
 #include <linux/netfilter_decnet.h>
 #include <netdnet/dnetdb.h>
 #include <features.h>    /* for the glibc version number */

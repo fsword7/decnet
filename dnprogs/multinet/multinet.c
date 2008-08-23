@@ -677,6 +677,9 @@ int main(int argc, char *argv[])
 	if (lookup_name())
 		return 2;
 
+	if (!verbose)
+		daemon(0,0);
+
 	signal(SIGINT, do_shutdown);
 	signal(SIGTERM, do_shutdown);
 	signal(SIGHUP, do_sighup);

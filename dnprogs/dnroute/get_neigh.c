@@ -890,9 +890,10 @@ static void process_level2_message(unsigned char *buf, int len, int iface)
 					return;
 
 				n = dm_hash_lookup_binary(node_hash, (void*)&nodeaddr, 2);
-				add_area_routeinfo(num+start_id,
-						   (entry&0x1FF) + cost[n->interface], ((entry&0x7E00)>>9),
-						   nodeaddr);
+				if (n)
+					add_area_routeinfo(num+start_id,
+							   (entry&0x1FF) + cost[n->interface], ((entry&0x7E00)>>9),
+							   nodeaddr);
 			}
 			i+=2;
 		}

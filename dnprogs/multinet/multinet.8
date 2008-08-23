@@ -20,7 +20,7 @@ DECnet node address of the tapX interface. This need not be the same as the
 address used on other interfaces but it might be less confusing if it is.
 .br
 .B remote-host
-IP address or host name of the remote Multinet server.
+IP address or host name of the remote Multinet server. If you send a HUP signal to the process it will lookup this name again, so you don't need to restart the server if the remote node changes its IP address.
 .br
 .br
 .br

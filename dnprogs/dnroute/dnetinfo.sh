@@ -15,7 +15,7 @@ show_all()
           /etc/decnet.conf /proc/net/decnet_neigh | sort -g
 }
 
-if [ "$1" = "-n" ]
+if [ "$1" = "-l" ]
 then
   show_all
   exit 0

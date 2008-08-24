@@ -217,7 +217,7 @@ static int cterm_process_start_read(char *buf, int len)
 	if (flags & 4) tty_clear_typeahead();
 	if (flags & 0x800) tty_set_noecho();
 
-	// PJC not happy with this last clause but editors seem to need it.
+	// CC not happy with this last clause but editors seem to need it.
 	if (flags & 0x8 &&
 	    buf[ptr+term_len] != '\n' && buf[ptr+term_len+1] != '\n' && eoprompt)
 	{
@@ -348,7 +348,7 @@ static int cterm_process_write(char *buf, int len)
 
 	send_prepostfix(((flags >> 8) & 3), postfixdata); // QQ
 
-	// PJC: This broke to RSX, but was wrong -- TODO: Retest
+	// CC: This broke to RSX, but was wrong -- TODO: Retest
 	if ((flags >> 10) & 1) // S
 		send_write_complete();
 

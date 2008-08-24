@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 
 	/* Look for the record with my name in it. We don't need rac=key
 	   here because librms gives us it for free */
-	memcpy(key, "\0\0\0PJC\0", keylen);
+	memcpy(key, "\0\0\0CHRISSIE\0", keylen);
 	got = rms_t_read(h, b, sizeof(b), "ksz=%d,key=%*s,kop=kge", keylen, keylen, key);
 	if (got > 0)
 	{

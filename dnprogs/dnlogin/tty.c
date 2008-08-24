@@ -307,7 +307,7 @@ void tty_set_default_terminators()
 
 	/* All control chars except ^R ^U ^W, BS & HT */
 	/* ie 18, 21, 23, 8, 9 */
-	/* PJC: also remove ^A(1) ^E(5) ^X(29) for line-editting.. CHECK!! */
+	/* CC: also remove ^A(1) ^E(5) ^X(29) for line-editting.. CHECK!! */
 	memset(terminators, 0, sizeof(terminators));
 
 	terminators[0] = 0xDD;
@@ -490,7 +490,7 @@ int tty_process_terminal(char *buf, int len)
 		}
 
 		/* Swap LF for CR */
-		//PJC: is this right??
+		//CC: is this right??
 		if (buf[i] == '\n')
 			buf[i] = '\r';
 

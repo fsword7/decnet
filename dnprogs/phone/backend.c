@@ -435,7 +435,7 @@ static int socket_callback(int fd)
 	case PHONE_GOODBYE:
 	    cr.delete_caller(fd);
 	    break;
-	case 10: // PJC wot's this ??
+	case 10: // CC wot's this ??
 	    write(fd, "\1", 1);
 	    break;
 	case PHONE_ANSWER:

@@ -89,7 +89,7 @@ static int dump_neigh_msg(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg
     ptr1 = (unsigned char *)NFDN_RTMSG(rtm);
     len = n->nlmsg_len - sizeof(*n) - sizeof(*rtm);
 
-    printf("PJC: got rtnetlink message, len = %d\n", len);
+    printf("CC: got rtnetlink message, len = %d\n", len);
 
 #define DUMP_PACKET
 #ifdef DUMP_PACKET

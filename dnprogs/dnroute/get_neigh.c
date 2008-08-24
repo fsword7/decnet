@@ -786,7 +786,7 @@ static void process_level1_message(unsigned char *buf, int len, int iface)
 		i+=2;
 		start_id = buf[i] | buf[i+1]<<8;
 		i+=2; /* Start of entries */
-		debuglog("PJC start_id = %d, num_ids = %d pos=%d\n", start_id, num_ids, i);
+		debuglog("CC start_id = %d, num_ids = %d pos=%d\n", start_id, num_ids, i);
 
 		for (num = 0; num<num_ids; num++)
 		{
@@ -875,7 +875,7 @@ static void process_level2_message(unsigned char *buf, int len, int iface)
 		start_id = buf[i] | buf[i+1]<<8;
 		i+=2; /* Start of entries */
 
-		debuglog("PJC start_id = %d, num_ids = %d\n", start_id, num_ids);
+		debuglog("CC start_id = %d, num_ids = %d\n", start_id, num_ids);
 		for (num = 0; num<num_ids; num++)
 		{
 			entry = buf[i] | buf[i+1]<<8;

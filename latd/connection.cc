@@ -85,7 +85,7 @@ LATConnection::LATConnection(int _num, unsigned char *buf, int len,
     next_session = 1;
     highest_session = 1;
     max_window_size = msg->exqueued+1;
-    max_window_size = 1; // PJC All we can manage
+    max_window_size = 1; // All we can manage
     window_size = 0;
     lat_eco = msg->latver_eco;
     max_slots_per_packet = 4;
@@ -1303,7 +1303,7 @@ int LATConnection::got_connect_ack(unsigned char *buf)
     connecting = false;
 
     max_window_size = reply->exqueued+1;
-    max_window_size = 1; // PJC All we can manage
+    max_window_size = 1; // All we can manage
     window_size = 0;
 //    need_ack = false;
 

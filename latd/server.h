@@ -86,7 +86,7 @@ class LATServer
     bool static_rating;
     int  rating;
 
-    int alarm_mode; // For slave solicit .. PJC investigate
+    int alarm_mode; // For slave solicit .. CC investigate
 
     unsigned char local_name[256]; //  Node name
     int  interface_num[MAX_INTERFACES];

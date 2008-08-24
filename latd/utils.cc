@@ -43,7 +43,7 @@ void get_string(unsigned char *packet, int *ptr,
 }
 
 #ifdef VERBOSE_DEBUG
-void pjc_debuglog(char *fmt, ...)
+void chrissie_debuglog(char *fmt, ...)
 {
     static time_t starttime = time(NULL);
     va_list ap;
@@ -56,7 +56,7 @@ void pjc_debuglog(char *fmt, ...)
 
 
 #ifndef HAVE_OPENPTY
-int pjc_openpty(int *master, int *slave, char *a, char *b, char *d)
+int chrissie_openpty(int *master, int *slave, char *a, char *b, char *d)
 {
     char ptyname[] = "/dev/ptyCP";
     char c;

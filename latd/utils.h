@@ -43,20 +43,20 @@ int expand_issue(const char *original, int len,
 
 // RedHat 5 has a broken openpty()
 #ifdef INTERNAL_OPENPTY
-int pjc_openpty(int*,int*, char*,char*,char*);
-#define openpty pjc_openpty
+int chrissie_openpty(int*,int*, char*,char*,char*);
+#define openpty chrissie_openpty
 #endif
 
 #if defined(VERBOSE_DEBUG)
 #include <stdarg.h>
-extern void pjc_debuglog(char *,...);
+extern void chrissie_debuglog(char *,...);
 #endif
 
 #ifdef VERBOSE_DEBUG
-#define debuglog(x) pjc_debuglog x
+#define debuglog(x) chrissie_debuglog x
 
 //#include <stdarg.h>
-//extern void pjc_debuglog(char *,...);
+//extern void chrissie_debuglog(char *,...);
 #else
 #define debuglog(x)
 #endif

@@ -88,7 +88,7 @@ void LocalPort::init_port()
      {
          debuglog(("Dummy service NODE: %s\n", remnode.c_str()));
          LATServer::Instance()->add_slave_node(remnode.c_str());
- // PJC ??? wot's this ??        LATServer::Instance()->send_enq(remnode.c_str());
+ // CC ??? wot's this ??        LATServer::Instance()->send_enq(remnode.c_str());
      }
 
     if (service == "")

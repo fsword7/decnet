@@ -3,7 +3,7 @@
 # Uncomment this to send level 2 routing messages. or run with -2
 # level 2
 
-# Uncomment this to prevent dnrout from automatically setting routes for area 3
+# Uncomment this to prevent dnroute from automatically setting routes for area 3
 # manual 3
 
 # By default, all interfaces have a cost of 4, you can change that here.

@@ -13,9 +13,6 @@
  ******************************************************************************
  */
 
-#define _FILE_OFFSET_BITS 64
-#define FUSE_USE_VERSION 22
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,7 +32,7 @@ static void makelower(char *s)
 }
 
 
-static int get_object_info(char *nodename)
+static int get_node_list(char *nodename)
 {
 	struct accessdata_dn accessdata;
 	char node[BUFLEN];
@@ -44,15 +41,13 @@ static int get_object_info(char *nodename)
 	int status;
 	struct nodeent	*np;
 	struct sockaddr_dn sockaddr;
-	fd_set fds;
-	struct timeval tv;
 	char *exec_dev;
 	struct dn_naddr *exec_addr;
 	unsigned int exec_area;
 	unsigned int nodeaddr;
 	char *local_user;
 	struct nodeent *exec_node;
-	char command[] = {0x14, 0, 0xff};
+	char command[] = {0x14, 0, 0xff}; // NICE Command to fetch all known nodes
 
 	// Get exec data as that's not in the remote node list!
 	exec_addr = getnodeadd();
@@ -84,7 +79,9 @@ static int get_object_info(char *nodename)
 		accessdata.acc_accl = strlen((char *)accessdata.acc_acc);
 	}
 	else
+	{
 		accessdata.acc_acc[0] = '\0';
+	}
 
 	np = getnodebyname(nodename);
 
@@ -93,17 +90,10 @@ static int get_object_info(char *nodename)
 		return -1;
 	}
 
-	// Provide access control and proxy information
-	if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
-		       sizeof(accessdata)) < 0)
-	{
-		return -1;
-	}
-
 	/* Open up object number 0 with the name of the task */
 	sockaddr.sdn_family   = AF_DECnet;
 	sockaddr.sdn_flags	  = 0x00;
-	sockaddr.sdn_objnum	  = 0x13; // NML
+	sockaddr.sdn_objnum	  = 19; // NML_OBJECT
 	sockaddr.sdn_objnamel = 0;
 	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 	sockaddr.sdn_add.a_len = 2;
@@ -121,31 +111,23 @@ static int get_object_info(char *nodename)
 		return -1;
 	}
 
-// Wait for completion (not for ever!!)
-	FD_ZERO(&fds);
-	FD_SET(sockfd, &fds);
-	tv.tv_usec = 0;
-	tv.tv_sec = 3;
-	status = select(sockfd+1, &fds, NULL, NULL, &tv);
-	if (status <= 0)
+	do
 	{
-		close(sockfd);
-		return -1;
-	}
-
-	do {
 		status = read(sockfd, reply, BUFLEN);
 		if (reply[0] == 2)
 			continue; // Success - data to come
-		if (reply[0] == -1) {
+		if (reply[0] == -1)
+		{
 			fprintf(stderr, "error %d: %s\n", reply[1] | reply[2]<<8, reply+3);
 			break;
 		}
-		if (reply[0] == 1) {
+		if (reply[0] == 1)
+		{
 			unsigned int namelen;
 
 			// Data response
-			switch (reply[3]) {
+			switch (reply[3])
+			{
 			case 0: // node
 				nodeaddr = reply[4] | reply[5] << 8;
 				if (nodeaddr >> 10 == 0) // In exec area
@@ -161,7 +143,7 @@ static int get_object_info(char *nodename)
 				break;
 			default: // more ?
 				break;
-		}
+			}
 
 		if (reply[0] == 128)
 			break; // end of data
@@ -175,13 +157,13 @@ static int get_object_info(char *nodename)
 
 int main(int argc, char *argv[])
 {
-	if (argc < 2) {
-
+	if (argc < 2)
+	{
 		fprintf(stderr, "\nusage %s <node>\n\n", argv[0]);
 		fprintf(stderr, "  Generates a decnet.conf file from another node's\n");
 		fprintf(stderr, "  known node list\n\n");
 		return 1;
 	}
 
-	return get_object_info(argv[1]);
+	return get_node_list(argv[1]);
 }

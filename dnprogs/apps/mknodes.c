@@ -1,0 +1,187 @@
+/******************************************************************************
+    (c) 2008 Christine Caulfield             christine.caulfield@gmail.com
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+ ******************************************************************************
+ */
+
+#define _FILE_OFFSET_BITS 64
+#define FUSE_USE_VERSION 22
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <ctype.h>
+#include <sys/select.h>
+#include <sys/socket.h>
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+
+#define BUFLEN 4096
+
+static void makelower(char *s)
+{
+	int i;
+	for (i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
+}
+
+
+static int get_object_info(char *nodename)
+{
+	struct accessdata_dn accessdata;
+	char node[BUFLEN];
+	unsigned char reply[BUFLEN];
+	int sockfd;
+	int status;
+	struct nodeent	*np;
+	struct sockaddr_dn sockaddr;
+	fd_set fds;
+	struct timeval tv;
+	char *exec_dev;
+	struct dn_naddr *exec_addr;
+	unsigned int exec_area;
+	unsigned int nodeaddr;
+	char *local_user;
+	struct nodeent *exec_node;
+	char command[] = {0x14, 0, 0xff};
+
+	// Get exec data as that's not in the remote node list!
+	exec_addr = getnodeadd();
+	exec_area = exec_addr->a_addr[1]>>2;
+	nodeaddr = exec_addr->a_addr[0] | exec_addr->a_addr[1]<<8;
+	exec_dev = getexecdev();
+	exec_node = getnodebyaddr((char*)exec_addr->a_addr, 2, AF_DECnet);
+
+	// Print header
+	printf("\
+#\n\
+#               DECnet hosts file\n\
+#\n\
+#Node           Node            Name            Node    Line    Line\n\
+#Type           Address         Tag             Name    Tag     Device\n\
+#-----          -------         -----           -----   -----   ------\n");
+
+	// Print exec line
+	printf("executor\t%d.%d\t\tname\t\t%s\tline\t%s\n",
+	       nodeaddr >> 10, nodeaddr & 0x1FF, exec_node->n_name, exec_dev);
+
+	memset(&accessdata, 0, sizeof(accessdata));
+	memset(&sockaddr, 0, sizeof(sockaddr));
+
+	if (!local_user) local_user = getenv("USER");
+	if (local_user)
+	{
+		strcpy((char *)accessdata.acc_acc, local_user);
+		accessdata.acc_accl = strlen((char *)accessdata.acc_acc);
+	}
+	else
+		accessdata.acc_acc[0] = '\0';
+
+	np = getnodebyname(nodename);
+
+	if ((sockfd=socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP)) == -1)
+	{
+		return -1;
+	}
+
+	// Provide access control and proxy information
+	if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
+		       sizeof(accessdata)) < 0)
+	{
+		return -1;
+	}
+
+	/* Open up object number 0 with the name of the task */
+	sockaddr.sdn_family   = AF_DECnet;
+	sockaddr.sdn_flags	  = 0x00;
+	sockaddr.sdn_objnum	  = 0x13; // NML
+	sockaddr.sdn_objnamel = 0;
+	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
+	sockaddr.sdn_add.a_len = 2;
+
+	if (connect(sockfd, (struct sockaddr *)&sockaddr, sizeof(sockaddr)) < 0)
+	{
+		close(sockfd);
+		return -1;
+	}
+
+// Now run the command
+	if (write(sockfd, command, sizeof(command)) < (int)sizeof(command))
+	{
+		close(sockfd);
+		return -1;
+	}
+
+// Wait for completion (not for ever!!)
+	FD_ZERO(&fds);
+	FD_SET(sockfd, &fds);
+	tv.tv_usec = 0;
+	tv.tv_sec = 3;
+	status = select(sockfd+1, &fds, NULL, NULL, &tv);
+	if (status <= 0)
+	{
+		close(sockfd);
+		return -1;
+	}
+
+	do {
+		status = read(sockfd, reply, BUFLEN);
+		if (reply[0] == 2)
+			continue; // Success - data to come
+		if (reply[0] == -1) {
+			fprintf(stderr, "error %d: %s\n", reply[1] | reply[2]<<8, reply+3);
+			break;
+		}
+		if (reply[0] == 1) {
+			unsigned int namelen;
+
+			// Data response
+			switch (reply[3]) {
+			case 0: // node
+				nodeaddr = reply[4] | reply[5] << 8;
+				if (nodeaddr >> 10 == 0) // In exec area
+					nodeaddr |= exec_area << 10;
+
+				namelen = reply[6] & 0x7f; // Top bit indicates EXEC ?
+				memcpy(node, reply+7, namelen);
+				node[namelen] = 0;
+				makelower(node);
+
+				printf("node\t\t%d.%d\t\tname\t\t%s\n", nodeaddr >> 10, nodeaddr & 0x1FF, node);
+				// More info here but we don't need it for now.
+				break;
+			default: // more ?
+				break;
+		}
+
+		if (reply[0] == 128)
+			break; // end of data
+		}
+	} while (status > 0 && reply[0] != 128);
+
+	close (sockfd);
+	return status;
+}
+
+
+int main(int argc, char *argv[])
+{
+	if (argc < 2) {
+
+		fprintf(stderr, "\nusage %s <node>\n\n", argv[0]);
+		fprintf(stderr, "  Generates a decnet.conf file from another node's\n");
+		fprintf(stderr, "  known node list\n\n");
+		return 1;
+	}
+
+	return get_object_info(argv[1]);
+}

@@ -70,6 +70,7 @@ install:
 	install -m 0755 $(STRIPBIN) $(PROG5) $(prefix)/sbin
 	install -m 0700 setether.sh $(prefix)/sbin/setether
 	install -m 0755 $(STRIPBIN) $(PROG7) $(prefix)/sbin
+	install -m 0755 $(STRIPBIN) $(PROG8) $(prefix)/sbin
 	install -m 0644 $(MANPAGES1) $(manprefix)/man/man1
 	install -m 0644 $(MANPAGES5) $(manprefix)/man/man5
 	install -m 0644 $(MANPAGES8) $(manprefix)/man/man8

@@ -49,6 +49,7 @@ that use the DECnet protocol
 %%PREFIX%%/sbin/sendvmsmail
 %%PREFIX%%/sbin/vmsmaild
 %%PREFIX%%/sbin/multinet
+%%PREFIX%%/sbin/copynodes
 %%CONFPREFIX%%/sbin/mount.dapfs
 %%PREFIX%%/share/man/man1/dncopy.1.gz
 %%PREFIX%%/share/man/man1/dntype.1.gz
@@ -77,24 +78,20 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man8/setether.8.gz
 %%PREFIX%%/share/man/man8/decnetconf.8.gz
 %%PREFIX%%/share/man/man8/multinet.8.gz
+%%PREFIX%%/share/man/man8/copynodes.8.gz
 %%PREFIX%%/share/man/man8/mount.dapfs.8.gz
 /etc/rc.d/init.d/decnet
 /etc/decnet.proxy
-%%LIBPREFIX%%/lib/libdnet.so.1
-%%LIBPREFIX%%/lib/libdnet.so.%%MAJOR_VERSION%%
-%%LIBPREFIX%%/lib/libdnet.so.%%VERSION%%
-%%LIBPREFIX%%/lib/libdnet_daemon.so.%%MAJOR_VERSION%%
-%%LIBPREFIX%%/lib/libdnet_daemon.so.%%VERSION%%
-%%LIBPREFIX%%/lib/libdap.so.%%MAJOR_VERSION%%
-%%LIBPREFIX%%/lib/libdap.so.%%VERSION%%
-%%LIBPREFIX%%/lib/librms.so.%%MAJOR_VERSION%%
-%%LIBPREFIX%%/lib/librms.so.%%VERSION%%
+%%LIBPREFIX%%/lib/libdnet.so.*
+%%LIBPREFIX%%/lib/libdnet_daemon.so.*
+%%LIBPREFIX%%/lib/libdap.so.*
+%%LIBPREFIX%%/lib/librms.so.*
 
 %config 
 %%CONFPREFIX%%/etc/decnet.conf.sample
 %%CONFPREFIX%%/etc/dnetd.conf
 
-%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README dapfs.README libvaxdata.pdf
+%doc README NEWS fal.README mail.README dnetd.README phone.README librms.README dapfs.README dnroute.README libvaxdata.pdf
 
 %files devel
 %%PREFIX%%/share/man/man3/dnet_addr.3.gz

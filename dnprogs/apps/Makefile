@@ -13,17 +13,17 @@ PROG2OBJS = sethost.o
 PROG4OBJS = dnping.o
 PROG5OBJS = ctermd.o
 PROG7OBJS = rmtermd.o
-PROG8OBJS = mknodes.o
+PROG8OBJS = copynodes.o
 
 PROG1 = startnet
 PROG2 = sethost
 PROG4 = dnping
 PROG5 = ctermd
 PROG7 = rmtermd
-PROG8 = mknodes
+PROG8 = copynodes
 MANPAGES1 = sethost.1 dnping.1
 MANPAGES5 = decnet.conf.5
-MANPAGES8 = ctermd.8 rmtermd.8 setether.8 mknodes.i
+MANPAGES8 = ctermd.8 rmtermd.8 setether.8 copynodes.8
 
 ALLPROGS=$(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) $(PROG8)
 

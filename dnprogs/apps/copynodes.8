@@ -10,11 +10,11 @@ copynodes \- copy a list of nodes from a remote DEC system
 .PP
 .br
 This program will generate a decnet.conf file by contacting a remote
-DECnet host (running VMS or RSX-11) and doing the equivalent of
+DECnet host (running VMS or RSX-11 probably) and doing the equivalent of
 "NCP COPY KNOWN NODES". The resulting file can be copied over
 the existing decnet.conf file if you like.
 .br
-You do need a fully-functioning DECnet system befor using this command
+You do need a fully-functioning DECnet system before using this command
 but you don't need any nodes other than the executor defined in 
 decnet.conf. copynodes will copy the executor information already there
 into the new file.
@@ -22,7 +22,7 @@ into the new file.
 The program copies its output to standard output. It is strongly recommended
 that you review it before replacing an existing /etc/decnet.conf file.
 .br
-The node name can also be a node address if yu don't have any nodes defined in 
+The node name can also be a node address if yuu don't have any nodes defined in 
 your existing decnet.conf.
 .SH EXAMPLE
 # copynodes 3.34 > /etc/decnet.conf

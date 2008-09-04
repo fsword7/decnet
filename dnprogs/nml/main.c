@@ -95,7 +95,8 @@ int main(int argc, char *argv[])
 
     if (insock > -1)
     {
-	    dnet_accept(insock, 0, NULL, 0);
+	    unsigned char ver[] = {4,0, 0};
+	    dnet_accept(insock, 0, ver, sizeof(ver));
 	    process_request(insock, verbosity);
     }
     return 0;

@@ -90,10 +90,10 @@ static int get_node_list(char *nodename)
 		return -1;
 	}
 
-	/* Open up object number 0 with the name of the task */
+	/* Connect to network Management Listener */
 	sockaddr.sdn_family   = AF_DECnet;
-	sockaddr.sdn_flags	  = 0x00;
-	sockaddr.sdn_objnum	  = 19; // NML_OBJECT
+	sockaddr.sdn_flags    = 0x00;
+	sockaddr.sdn_objnum   = DNOBJECT_NICE;
 	sockaddr.sdn_objnamel = 0;
 	memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
 	sockaddr.sdn_add.a_len = 2;

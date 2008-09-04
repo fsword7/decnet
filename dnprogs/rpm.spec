@@ -49,7 +49,7 @@ that use the DECnet protocol
 %%PREFIX%%/sbin/sendvmsmail
 %%PREFIX%%/sbin/vmsmaild
 %%PREFIX%%/sbin/multinet
-%%PREFIX%%/sbin/copynodes
+%%PREFIX%%/sbin/dncopynodes
 %%CONFPREFIX%%/sbin/mount.dapfs
 %%PREFIX%%/share/man/man1/dncopy.1.gz
 %%PREFIX%%/share/man/man1/dntype.1.gz
@@ -78,7 +78,7 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man8/setether.8.gz
 %%PREFIX%%/share/man/man8/decnetconf.8.gz
 %%PREFIX%%/share/man/man8/multinet.8.gz
-%%PREFIX%%/share/man/man8/copynodes.8.gz
+%%PREFIX%%/share/man/man8/dncopynodes.8.gz
 %%PREFIX%%/share/man/man8/mount.dapfs.8.gz
 /etc/rc.d/init.d/decnet
 /etc/decnet.proxy

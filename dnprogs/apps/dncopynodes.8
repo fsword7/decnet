@@ -1,10 +1,10 @@
-.TH COPYNODES 8 "September 03 2008" "DECnet utilities"
+.TH DNCOPYNODES 8 "September 03 2008" "DECnet utilities"
 
 .SH NAME
-copynodes \- copy a list of nodes from a remote DEC system
+dncopynodes \- copy a list of nodes from a remote DEC system
 
 .SH SYNOPSIS
-.B copynodes <nodename>
+.B dncopynodes <nodename>
 .br
 .SH DESCRIPTION
 .PP
@@ -17,7 +17,7 @@ the existing decnet.conf file if you like.
 You do need a fully-functioning DECnet system before using this command
 but you don't need any nodes other than the executor defined in 
 decnet.conf. 
-.B copynodes 
+.B dncopynodes 
 will copy the executor information already there
 into the new file.
 .br
@@ -28,11 +28,11 @@ The node name can also be a node address if you don't have any nodes defined in
 your existing decnet.conf.
 .br
 DO NOT attempt to redirect the output of 
-.B copynodes 
+.B dncopynodes 
 directly into /etc/decnet.conf. It will fail and destroy your existing
 configuration file! Send it to a temporary file and then copy it (see EXAMPLES)
 .SH EXAMPLE
-# copynodes 3.34 > /tmp/decnet.conf
+# dncopynodes 3.34 > /tmp/decnet.conf
 .br
 # mv /tmp/decnet.conf /etc
 .SH SEE ALSO

@@ -20,10 +20,10 @@ PROG2 = sethost
 PROG4 = dnping
 PROG5 = ctermd
 PROG7 = rmtermd
-PROG8 = copynodes
+PROG8 = dncopynodes
 MANPAGES1 = sethost.1 dnping.1
 MANPAGES5 = decnet.conf.5
-MANPAGES8 = ctermd.8 rmtermd.8 setether.8 copynodes.8
+MANPAGES8 = ctermd.8 rmtermd.8 setether.8 dncopynodes.8
 
 ALLPROGS=$(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) $(PROG8)
 

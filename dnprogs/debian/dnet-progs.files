@@ -8,7 +8,7 @@
 ./usr/sbin/dnroute
 ./usr/sbin/dnetinfo
 ./usr/sbin/multinet
-./usr/sbin/copynodes
+./usr/sbin/dncopynodes
 ./sbin/mount.dapfs
 ./usr/bin/dndir
 ./usr/bin/dnsubmit
@@ -35,7 +35,7 @@
 ./usr/share/man/man8/dnroute.8
 ./usr/share/man/man8/dnetinfo.8
 ./usr/share/man/man8/multinet.8
-./usr/share/man/man8/copynodes.8
+./usr/share/man/man8/dncopynodes.8
 ./usr/share/man/man8/mount.dapfs.8
 ./usr/share/man/man5/vmsmail.conf.5
 ./usr/share/man/man1/dndel.1

@@ -16,7 +16,9 @@ the existing decnet.conf file if you like.
 .br
 You do need a fully-functioning DECnet system before using this command
 but you don't need any nodes other than the executor defined in 
-decnet.conf. copynodes will copy the executor information already there
+decnet.conf. 
+.B copynodes 
+will copy the executor information already there
 into the new file.
 .br
 The program copies its output to standard output. It is strongly recommended
@@ -24,8 +26,15 @@ that you review it before replacing an existing /etc/decnet.conf file.
 .br
 The node name can also be a node address if you don't have any nodes defined in 
 your existing decnet.conf.
+.br
+DO NOT attempt to redirect the output of 
+.B copynodes 
+directly into /etc/decnet.conf. It will fail and destroy your existing
+configuration file! Send it to a temporary file and then copy it (see EXAMPLES)
 .SH EXAMPLE
-# copynodes 3.34 > /etc/decnet.conf
+# copynodes 3.34 > /tmp/decnet.conf
+.br
+# mv /tmp/decnet.conf /etc
 .SH SEE ALSO
 .BR decnet.conf "(5), " setether "(8)"
 

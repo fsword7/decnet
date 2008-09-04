@@ -251,7 +251,7 @@ static int read_information(int sock, unsigned char *buf, int length)
 	// option & 0x07: entity type
 
 	// entity: 0=node, 1=line, 2=logging, 3=circuit, 4=module 5=area
-	dnetlog(LOG_DEBUG, "CC: option=%d. entity=%d\n", option, entity);
+	dnetlog(LOG_DEBUG, "option=%d. entity=%d\n", option, entity);
 
 	switch (option)
 	{

@@ -60,11 +60,11 @@ int main(int argc, char *argv[])
     // so we can check the version number and get help without being root.
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?vVdhu:Ufl:")) != EOF)
+    while ((opt=getopt(argc,argv,"?vVdh")) != EOF)
     {
-	switch(opt) 
+	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(argv[0], stdout);
 	    exit(0);
 
@@ -95,8 +95,10 @@ int main(int argc, char *argv[])
 
     if (insock > -1)
     {
-	    unsigned char ver[] = {4,0, 0};
+	    /* This sets NML version 4.0, which RSX-11 likes to see */
+	    char ver[] = {4, 0, 0};
 	    dnet_accept(insock, 0, ver, sizeof(ver));
+
 	    process_request(insock, verbosity);
     }
     return 0;

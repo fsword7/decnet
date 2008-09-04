@@ -94,7 +94,7 @@ static int get_node_list(char *nodename)
 
 	// Print exec line
 	printf("executor\t%d.%d\t\tname\t\t%s\tline\t%s\n",
-	       nodeaddr >> 10, nodeaddr & 0x1FF, exec_node->n_name, exec_dev);
+	       nodeaddr >> 10, nodeaddr & 0x3FF, exec_node->n_name, exec_dev);
 
 	/* Connect to network Management Listener */
 	sockaddr.sdn_family   = AF_DECnet;

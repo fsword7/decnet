@@ -33,7 +33,6 @@ dep depend:
 
 clean:
 	rm -f $(PROG1) *.o *.bak .depend
-	make -C $(UUDIR) clean
 
 
 ifeq (.depend,$(wildcard .depend))

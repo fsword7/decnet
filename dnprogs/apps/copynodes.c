@@ -133,12 +133,12 @@ static int get_node_list(char *nodename)
 				if (nodeaddr >> 10 == 0) // In exec area
 					nodeaddr |= exec_area << 10;
 
-				namelen = reply[6] & 0x7f; // Top bit indicates EXEC ?
+				namelen = reply[6] & 0x7f; // Top bit indicates EXEC
 				memcpy(node, reply+7, namelen);
 				node[namelen] = 0;
 				makelower(node);
 
-				printf("node\t\t%d.%d\t\tname\t\t%s\n", nodeaddr >> 10, nodeaddr & 0x1FF, node);
+				printf("node\t\t%d.%d\t\tname\t\t%s\n", nodeaddr >> 10, nodeaddr & 0x3FF, node);
 				// More info here but we don't need it for now.
 				break;
 			default: // more ?

@@ -1,6 +1,6 @@
 // Generic class for a file.
-#ifndef _PJC_FILE_H
-#define _PJC_FILE_H
+#ifndef _CC_FILE_H
+#define _CC_FILE_H
 
 #ifndef TRUE
 #define TRUE  1

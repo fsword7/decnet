@@ -244,7 +244,7 @@ bool fal_server::exchange_config()
 	if (verbose > 1)
 	    DAPLOG((LOG_DEBUG, "Remote OS is %d\n", params.remote_os));
 
-	// PJC Warning, dodgy logic!
+	// CC Warning, dodgy logic!
 	params.can_do_stmlf = true;
 	if (params.remote_os == dap_config_message::OS_RSX11M ||
 	    params.remote_os == dap_config_message::OS_RSX11MP)

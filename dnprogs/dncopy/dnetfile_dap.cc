@@ -281,7 +281,7 @@ int dnetfile::dap_get_record(char *rec, int reclen)
 
 	if (m->get_type() == dap_message::ACK)
 	{
-	    return 0; //PJC Why need this ??
+	    return 0; //CC Why need this ??
 	}
 
 	if (m->get_type() != dap_message::DATA)

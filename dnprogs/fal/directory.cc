@@ -266,7 +266,7 @@ bool fal_directory::send_dir_entry(char *path, int display)
 // also convert some other illegal characters to hyphens too.
 // There may need to be more here as odd characters to seem to upset VMS
 // greatly.
-// PJC: TODO - move this back into task.cc so we can do more generic
+// CC: TODO - move this back into task.cc so we can do more generic
 // 	       conversions of "illegal" filenames
 	for (i=0; i< strlen(vmsname); i++)
 	{

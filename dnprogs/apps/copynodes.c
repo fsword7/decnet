@@ -56,19 +56,6 @@ static int get_node_list(char *nodename)
 	exec_dev = getexecdev();
 	exec_node = getnodebyaddr((char*)exec_addr->a_addr, 2, AF_DECnet);
 
-	// Print header
-	printf("\
-#\n\
-#               DECnet hosts file\n\
-#\n\
-#Node           Node            Name            Node    Line    Line\n\
-#Type           Address         Tag             Name    Tag     Device\n\
-#-----          -------         -----           -----   -----   ------\n");
-
-	// Print exec line
-	printf("executor\t%d.%d\t\tname\t\t%s\tline\t%s\n",
-	       nodeaddr >> 10, nodeaddr & 0x1FF, exec_node->n_name, exec_dev);
-
 	memset(&accessdata, 0, sizeof(accessdata));
 	memset(&sockaddr, 0, sizeof(sockaddr));
 
@@ -84,11 +71,30 @@ static int get_node_list(char *nodename)
 	}
 
 	np = getnodebyname(nodename);
+	if (!np)
+	{
+		fprintf(stderr, "Cannot find node name '%s'\n", nodename);
+		return -1;
+	}
 
 	if ((sockfd=socket(AF_DECnet, SOCK_SEQPACKET, DNPROTO_NSP)) == -1)
 	{
 		return -1;
 	}
+
+
+	// Print header
+	printf("\
+#\n\
+#               DECnet hosts file\n\
+#\n\
+#Node           Node            Name            Node    Line    Line\n\
+#Type           Address         Tag             Name    Tag     Device\n\
+#-----          -------         -----           -----   -----   ------\n");
+
+	// Print exec line
+	printf("executor\t%d.%d\t\tname\t\t%s\tline\t%s\n",
+	       nodeaddr >> 10, nodeaddr & 0x1FF, exec_node->n_name, exec_dev);
 
 	/* Connect to network Management Listener */
 	sockaddr.sdn_family   = AF_DECnet;

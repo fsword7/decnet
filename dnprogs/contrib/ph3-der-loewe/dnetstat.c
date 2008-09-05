@@ -72,12 +72,14 @@ int prep_addr (char * buf, char * object) {
  return 0;
 }
 
-char * state_ktou (char * state) {
+char * state_ktou (char * state, char ** dir) {
  if ( strcmp(state, "OPEN") == 0 ) {
+  *dir = "IN";
   return "LISTEN";
  } else if ( strcmp(state, "RUN") == 0 ) {
   return "ESTABLISHED";
  } else if ( strcmp(state, "RJ") == 0 ) {
+  *dir = "OUT";
   return "REJECTED";
  } else if ( strcmp(state, "DN") == 0 ) {
   return "DISCNOTIFY";
@@ -92,6 +94,8 @@ int proc_file (FILE * fh) {
  struct dn_nse local, remote;
  char state[32], immed[32];
  char buf[1024];
+ char out[1024] = {0}, * outdir = out+57;
+ char conid[8] = {0,0,0,0,0,0,0,0}, *lid, *rid;
  char * lbuf = buf, * rbuf = buf + 512;
  char * dir = ""; // max be "UNI" or "BI", "IN", "OUT"
  int unused;
@@ -113,18 +117,37 @@ int proc_file (FILE * fh) {
                    rbuf, &unused, &unused, &unused, &unused, &unused, remote.object,
                    state, immed
                    ) == 16) {
+  lid = index(lbuf, '/') + 1;
+  rid = index(rbuf, '/') + 1;
+
+  if ( memcmp(lid, conid+4, 4) == 0 && memcmp(rid, conid, 4) == 0 && strcmp(state, "OPEN") != 0 ) {
+   if ( *out ) {
+    memcpy(outdir, "LOC", 3);
+    puts(out);
+    *out = 0;
+    continue;
+   }
+  }
+
+  if ( *out )
+   puts(out);
+
+  memcpy(conid,   lid, 4);
+  memcpy(conid+4, rid, 4);
+
+
   prep_addr(lbuf, local.object);
   prep_addr(rbuf, remote.object);
 
+  dir = "";
+
   if ( strcmp(state, "OPEN") != 0 ) {
    immed[0] = 0;
-   dir = "";
-  } else {
-   dir = "IN";
   }
 
-  printf("decnet %-24s %-24s %-3s %-12s %s\n", lbuf, rbuf, dir, state_ktou(state), immed);
+  sprintf(out, "decnet %-24s %-24s %-3s %-12s %s", lbuf, rbuf, dir, state_ktou(state, &dir), immed);
  }
+ puts(out);
 
  return 0;
 }

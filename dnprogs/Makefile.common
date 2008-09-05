@@ -66,6 +66,7 @@ VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 #
 ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
 
+TOP=..
 #
 # For RPM & DEB builds
 #
@@ -117,25 +118,25 @@ endif
 #
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
-INCLUDES=-I../libdap -I../include
+INCLUDES=-I$(TOP)/libdap -I$(TOP)/include
 CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
 CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
 
 # Conditional for shared/static libs
 ifdef LINKSTATIC
-LIBDNET=../libdnet/libdnet.a
-LIBDAEMON=../libdaemon/libdnet_daemon.a $(LIBCRYPT)
-LIBDAP=../libdap/libdap.a
-DEPLIBDNET=../libdnet/libdnet.a
-DEPLIBDAEMON=../libdaemon/libdnet_daemon.a
-DEPLIBDAP=../libdap/libdap.a
+LIBDNET=$(TOP)/libdnet/libdnet.a
+LIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a $(LIBCRYPT)
+LIBDAP=$(TOP)/libdap/libdap.a
+DEPLIBDNET=$(TOP)/libdnet/libdnet.a
+DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a
+DEPLIBDAP=$(TOP)/libdap/libdap.a
 else
-LIBDNET=-L../libdnet -ldnet
-LIBDAP=-L../libdap -ldap
-LIBDAEMON=-L../libdaemon -ldnet_daemon $(LIBCRYPT)
-DEPLIBDNET=../libdnet/libdnet.so
-DEPLIBDAEMON=../libdaemon/libdnet_daemon.so
-DEPLIBDAP=../libdap/libdap.so
+LIBDNET=-L$(TOP)/libdnet -ldnet
+LIBDAP=-L$(TOP)/libdap -ldap
+LIBDAEMON=-L$(TOP)/libdaemon -ldnet_daemon $(LIBCRYPT)
+DEPLIBDNET=$(TOP)/libdnet/libdnet.so
+DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.so
+DEPLIBDAP=$(TOP)/libdap/libdap.so
 endif
 
 ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))

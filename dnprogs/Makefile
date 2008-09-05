@@ -10,7 +10,7 @@ DATE="$(shell date +'%Y%m%d')"
 
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
 	dncopy apps dntask dnlogin mail phone dnetd libvaxdata dnroute \
-	multinet dapfs scripts
+	nml multinet dapfs scripts
 
 all: 	
 	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done

@@ -1,5 +1,6 @@
-./usr/sbin/fal
 ./usr/sbin/ctermd
+./usr/sbin/fal
+./usr/sbin/dnetnml
 ./usr/sbin/rmtermd
 ./usr/sbin/vmsmaild
 ./usr/sbin/sendvmsmail
@@ -31,6 +32,7 @@
 ./usr/share/man/man8/ctermd.8
 ./usr/share/man/man8/rmtermd.8
 ./usr/share/man/man8/fal.8
+./usr/share/man/man8/dnetnml.8
 ./usr/share/man/man8/vmsmaild.8
 ./usr/share/man/man8/dnroute.8
 ./usr/share/man/man8/dnetinfo.8

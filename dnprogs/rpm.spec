@@ -42,6 +42,7 @@ that use the DECnet protocol
 %%PREFIX%%/sbin/phoned
 %%PREFIX%%/sbin/dnetd
 %%PREFIX%%/sbin/fal
+%%PREFIX%%/sbin/dnetnml
 %%PREFIX%%/sbin/dnroute
 %%PREFIX%%/sbin/dnetinfo
 %%PREFIX%%/sbin/decnetconf
@@ -67,6 +68,7 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man5/dnetd.conf.5.gz
 %%PREFIX%%/share/man/man5/vmsmail.conf.5.gz
 %%PREFIX%%/share/man/man8/fal.8.gz
+%%PREFIX%%/share/man/man8/dnetnml.8.gz
 %%PREFIX%%/share/man/man8/dnroute.8.gz
 %%PREFIX%%/share/man/man8/dnetinfo.8.gz
 %%PREFIX%%/share/man/man8/phoned.8.gz

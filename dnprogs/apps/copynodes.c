@@ -122,7 +122,7 @@ static int get_node_list(char *nodename)
 		status = read(sockfd, reply, BUFLEN);
 		if (reply[0] == 2)
 			continue; // Success - data to come
-		if (reply[0] == -1)
+		if ((signed char)reply[0] == -1)
 		{
 			fprintf(stderr, "error %d: %s\n", reply[1] | reply[2]<<8, reply+3);
 			break;

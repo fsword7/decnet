@@ -80,9 +80,9 @@ binary-arch: checkroot build
 	dh_link -Ndnet-common
 	dh_installdebconf -Ndnet-common
 	dh_installinit  -pdnet-progs  --init-script=dnet-progs
-	dh_strip -Ndnet-common
 	dh_movefiles -Ndnet-common
 	dh_compress -Ndnet-common
+	dh_strip -Ndnet-common
 	dh_fixperms -Ndnet-common
 	dh_makeshlibs -Ndnet-common
 	dh_shlibdeps -Ndnet-common

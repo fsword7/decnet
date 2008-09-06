@@ -3,7 +3,7 @@ dnprogs (2.46) unstable; urgency=low
   * Add 'dnetnml' Network Management Listener daemon
   * Add dnetcat & dnetstat programs
     thanks to Philipp 'ph3-der-loewe' Schafft
-  * Executable are now correctly stripped
+  * Executables are now correctly stripped by dh_strip
 
  -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sat, 06 Sep 2008 13:48:58 +0100
 

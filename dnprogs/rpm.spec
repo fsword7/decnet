@@ -37,6 +37,8 @@ that use the DECnet protocol
 %%PREFIX%%/bin/dnping
 %%PREFIX%%/bin/dnlogin
 %%PREFIX%%/bin/phone
+%%PREFIX%%/bin/dnetcat
+%%PREFIX%%/bin/dnetstat
 %%PREFIX%%/sbin/ctermd
 %%PREFIX%%/sbin/rmtermd
 %%PREFIX%%/sbin/phoned
@@ -63,6 +65,8 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man1/sethost.1.gz
 %%PREFIX%%/share/man/man1/dnping.1.gz
 %%PREFIX%%/share/man/man1/dnlogin.1.gz
+%%PREFIX%%/share/man/man1/dnetcat.1.gz
+%%PREFIX%%/share/man/man1/dnetstat.1.gz
 %%PREFIX%%/share/man/man5/decnet.conf.5.gz
 %%PREFIX%%/share/man/man5/decnet.proxy.5.gz
 %%PREFIX%%/share/man/man5/dnetd.conf.5.gz

@@ -46,7 +46,7 @@ debclean:
 #
 # Make the distribution tar file
 #
-dist:	
+dist:	clean
 	cp debian/changelog NEWS
 	for i in $(SUBDIRS); do cd $$i; rm -f .depend; cd ..; done
 	if [ -L ../$(PKGNAME)-$(VERSION) ]; then rm ../$(PKGNAME)-$(VERSION); fi

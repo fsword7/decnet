@@ -133,8 +133,7 @@ static unsigned short get_router(void)
 		}
 	}
 	fclose(procfile);
-	if (verbose)
-		fprintf(stderr, "Router node is %x\n", router);
+	dnetlog(LOG_DEBUG, "Router node is %x\n", router);
 	return router;
 }
 
@@ -167,6 +166,11 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 	/* Node State */
 	if (state != NODESTATE_UNKNOWN) {
 		struct nodeent *rn;
+		struct nodeent scratch_n;
+		unsigned char scratch_na[2];
+
+	        scratch_na[0] = router_node & 0xFF;
+	        scratch_na[1] = router_node >>8;
 
 		buf[ptr++] = 0;   // Node state
 		buf[ptr++] = 0;
@@ -178,7 +182,12 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 		if (state == NODESTATE_REACHABLE) {
 			if (((n->n_addr[0] | n->n_addr[1]<<8) & 0xFC00) !=
 			    (router_node & 0xFC00)) {
-				rn = getnodebyaddr((char *)&router_node, 2, AF_DECnet);
+				rn = getnodebyaddr((char *)scratch_na, 2, AF_DECnet);
+				if (!rn) {
+				    rn = &scratch_n;
+				    scratch_n.n_addr = scratch_na;
+				    scratch_n.n_name = NULL;
+				}
 			}
 			else {
 				rn = n;
@@ -193,7 +202,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 			buf[ptr++] = rn->n_addr[1];
 
 			buf[ptr++] = 0x40;  // ASCII text
-			if (rn) {
+			if (rn && rn->n_name) {
 				makeupper(rn->n_name);
 				buf[ptr++] = strlen(rn->n_name);
 				strcpy(&buf[ptr], rn->n_name);

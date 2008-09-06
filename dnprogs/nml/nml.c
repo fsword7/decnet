@@ -47,9 +47,15 @@
 #define NODESTATE_REACHABLE   4
 #define NODESTATE_UNREACHABLE 5
 
+typedef int (*neigh_fn_t)(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg);
+
 static struct rtnl_handle talk_rth;
 static struct rtnl_handle listen_rth;
 static int first_time = 1;
+
+#define MAX_ADJACENT_NODES 1024
+static int num_adj_nodes = 0;
+static unsigned short adj_node[MAX_ADJACENT_NODES];
 
 static void makeupper(char *s)
 {
@@ -57,6 +63,17 @@ static void makeupper(char *s)
 	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
 }
 
+static int adjacent_node(struct nodeent *n)
+{
+    int i;
+    unsigned short nodeid = n->n_addr[0] | n->n_addr[1]<<8;
+
+    for (i=0; i<num_adj_nodes; i++)
+        if (adj_node[i] == nodeid)
+	    return 1;
+
+    return 0;
+}
 
 static char *if_index_to_name(int ifindex)
 {
@@ -149,8 +166,30 @@ static int send_exec(int sock)
 	return send_node(sock, exec_node, 1, dev, NODESTATE_ON);
 }
 
-/* Called for each neighbour node in the list */
-static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
+/* Save a neighbour entry in a list so we can check it when doing the 
+   KNOWN NODES display 
+ */
+static int save_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
+{
+        struct ndmsg *r = NLMSG_DATA(n);
+        struct rtattr * tb[NDA_MAX+1];
+        int sock = (int)arg;
+
+        memset(tb, 0, sizeof(tb));
+        parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof
+(*r)));
+
+        if (tb[NDA_DST])
+	{
+	    unsigned char *addr = RTA_DATA(tb[NDA_DST]);
+	    if (++num_adj_nodes < MAX_ADJACENT_NODES)
+	        adj_node[num_adj_nodes] = addr[0] | (addr[1]<<8);
+    	}
+	return 0;
+}
+
+/* Called for each neighbour node in the list - send it to the socket */
+static int send_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
 	struct ndmsg *r = NLMSG_DATA(n);
 	struct rtattr * tb[NDA_MAX+1];
@@ -187,7 +226,7 @@ static int got_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 }
 
 /* SHOW ADJACENT NODES */
-static int send_neighbour_nodes(int sock)
+static int get_neighbour_nodes(int sock, neigh_fn_t neigh_fn)
 {
 	if (first_time)
 	{
@@ -205,21 +244,26 @@ static int send_neighbour_nodes(int sock)
 	}
 
 	/* Calls got_neigh() for each adjacent node */
-	if (rtnl_dump_filter(&listen_rth, got_neigh, (void *)sock, NULL, NULL) < 0) {
+	if (rtnl_dump_filter(&listen_rth, neigh_fn, (void *)sock, NULL, NULL) < 0) {
 		syslog(LOG_ERR, "Dump terminated: %m\n");
 		return -1;
 	}
-	dnetlog(LOG_DEBUG, "end of send_neighbour_nodes\n");
+	dnetlog(LOG_DEBUG, "end of get_neighbour_nodes\n");
 	return 0;
 }
 
 /* SHOW/LIST KNOWN NODES */
-static int send_perm_nodes(int sock)
+static int send_all_nodes(int sock, unsigned char perm_only)
 {
 	void *nodelist;
 	char *nodename;
 
 	send_exec(sock);
+
+	/* Get adjacent nodes */
+	num_adj_nodes = 0;
+	if (!perm_only)
+	    get_neighbour_nodes(sock, save_neigh);
 
 	/* Now iterate the permanent database */
 	nodelist = dnet_getnode();
@@ -227,7 +271,8 @@ static int send_perm_nodes(int sock)
 	while (nodename)
 	{
 		struct nodeent *n = getnodebyname(nodename);
-		send_node(sock, n, 0, NULL, NODESTATE_UNKNOWN);
+
+		send_node(sock, n, 0, NULL, adjacent_node(n)?NODESTATE_REACHABLE:NODESTATE_UNKNOWN);
 		nodename = dnet_nextnode(nodelist);
 	}
 	dnet_endnode(nodelist);
@@ -253,17 +298,17 @@ static int read_information(int sock, unsigned char *buf, int length)
 	// entity: 0=node, 1=line, 2=logging, 3=circuit, 4=module 5=area
 	dnetlog(LOG_DEBUG, "option=%d. entity=%d\n", option, entity);
 
-	switch (option)
+	switch (option & 0x7f)
 	{
 	case 0:  // nodes summary
 	case 16: // nodes char
 	case 32: // nodes state
 		if (entity == 0xff)
-			send_perm_nodes(sock);
+			send_all_nodes(sock, option & 0x80);
 		if (entity == 0xfc)
-			send_neighbour_nodes(sock);
+			get_neighbour_nodes(sock, send_neigh);
 		if (entity == 0x00)
-			send_exec(sock); // TODO not quite right.
+			send_exec(sock);
 		break;
 	default:
 		break;

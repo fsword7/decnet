@@ -70,13 +70,13 @@ snap:
 rpm:	
 	rm -rf rpmbuild BUILD RPMS SOURCES
 	make clean
+	make dist
 	echo "%_topdir `pwd`" > .rpmmacros
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
 	make prefix=/usr RELEASE=true -j
 	make DESTDIR=`pwd`/rpmbuild RELEASE=true install
 	find `pwd`/rpmbuild/usr/share/man/ -type f|xargs gzip -9
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
-	make dist
 	mkdir SOURCES SRPMS
 	cp /var/tmp/$(PKGNAME)-$(VERSION).tar.gz SOURCES
 	install -d rpmbuild/etc/rc.d/init.d

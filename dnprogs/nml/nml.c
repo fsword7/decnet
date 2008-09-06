@@ -52,6 +52,8 @@ typedef int (*neigh_fn_t)(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg
 static struct rtnl_handle talk_rth;
 static struct rtnl_handle listen_rth;
 static int first_time = 1;
+static int verbose;
+static unsigned short router_node;
 
 #define MAX_ADJACENT_NODES 1024
 static int num_adj_nodes = 0;
@@ -97,6 +99,45 @@ static char *if_index_to_name(int ifindex)
     return buf;
 }
 
+
+/* Get the router address from /proc */
+static unsigned short get_router(void)
+{
+	char buf[256];
+	char var1[32];
+	char var2[32];
+	char var3[32];
+	char var4[32];
+	char var5[32];
+	char var6[32];
+	char var7[32];
+	char var8[32];
+	char var9[32];
+	char var10[32];
+	char var11[32];
+	unsigned short router = 0;
+	FILE *procfile = fopen("/proc/net/decnet_dev", "r");
+
+	if (!procfile)
+		return 0;
+	while (!feof(procfile))
+	{
+		fgets(buf, sizeof(buf), procfile);
+		if (sscanf(buf, "%s %s %s %s %s %s %s %s %s ethernet %s\n",
+			   var1,var2,var3,var4,var5,var6,var7,var8,var9,var11) == 10)
+		{
+			int area, node;
+			sscanf(var11, "%d.%d\n", &area, &node);
+			router = area<<10 | node;
+			break;
+		}
+	}
+	fclose(procfile);
+	if (verbose)
+		fprintf(stderr, "Router node is %x\n", router);
+	return router;
+}
+
 static int send_node(int sock, struct nodeent *n, int exec, char *device, int state)
 {
 	char buf[1024];
@@ -125,11 +166,46 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 
 	/* Node State */
 	if (state != NODESTATE_UNKNOWN) {
+		struct nodeent *rn;
+
 		buf[ptr++] = 0;   // Node state
 		buf[ptr++] = 0;
 		buf[ptr++] = 0x81; // Data type of 'state'
 		buf[ptr++] = state;
+
+		/* For reachable nodes show the next node, ie next router
+		   it itself */
+		if (state == NODESTATE_REACHABLE) {
+			if (((n->n_addr[0] | n->n_addr[1]<<8) & 0xFC00) !=
+			    (router_node & 0xFC00)) {
+				rn = getnodebyaddr((char *)&router_node, 2, AF_DECnet);
+			}
+			else {
+				rn = n;
+			}
+
+			buf[ptr++] = 0x3e;   // 830 NEXT NODE
+			buf[ptr++] = 0x03;
+
+			buf[ptr++] = 0xc2; // What's this !?
+			buf[ptr++] = 0x02; // Data type
+			buf[ptr++] = rn->n_addr[0];
+			buf[ptr++] = rn->n_addr[1];
+
+			buf[ptr++] = 0x40;  // ASCII text
+			if (rn) {
+				makeupper(rn->n_name);
+				buf[ptr++] = strlen(rn->n_name);
+				strcpy(&buf[ptr], rn->n_name);
+				ptr += strlen(rn->n_name);
+			}
+			else {
+				buf[ptr++] = 0;// No Name
+			}
+		}
 	}
+
+	/* Show exec details, name etc */
 	if (exec) {
 		struct utsname un;
 		char ident[256];
@@ -166,8 +242,8 @@ static int send_exec(int sock)
 	return send_node(sock, exec_node, 1, dev, NODESTATE_ON);
 }
 
-/* Save a neighbour entry in a list so we can check it when doing the 
-   KNOWN NODES display 
+/* Save a neighbour entry in a list so we can check it when doing the
+   KNOWN NODES display
  */
 static int save_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 {
@@ -228,6 +304,8 @@ static int send_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
 /* SHOW ADJACENT NODES */
 static int get_neighbour_nodes(int sock, neigh_fn_t neigh_fn)
 {
+	router_node = get_router();
+
 	if (first_time)
 	{
 		if (rtnl_open(&talk_rth, 0) < 0)
@@ -338,6 +416,7 @@ int process_request(int sock, int verbosity)
 	unsigned char buf[4096];
 	int status;
 
+	verbose = verbosity;
 	do
 	{
 		status = read(sock, buf, sizeof(buf));

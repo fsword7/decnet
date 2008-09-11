@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <limits.h>
 #include <stdio.h>
 #include <errno.h>
 #include <unistd.h>

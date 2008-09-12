@@ -975,7 +975,7 @@ void dnet_accept(int sockfd, short status, char *data, int len)
 	struct optdata_dn optdata;
 
 	optdata.opt_sts=status;
-	optdata.opt_optl=len;
+	optdata.opt_optl=dn_htons(len);
 	if (len && data) memcpy(optdata.opt_data, data, len);
 
 	setsockopt(sockfd, DNPROTO_NSP, DSO_CONDATA,
@@ -993,7 +993,7 @@ void dnet_reject(int sockfd, short status, char *data, int len)
 	struct optdata_dn optdata;
 
 	optdata.opt_sts=status;
-	optdata.opt_optl=len;
+	optdata.opt_optl=dn_htons(len);
 	if (data && len) memcpy(optdata.opt_data, data, len);
 	setsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
 		   &optdata, sizeof(optdata));
@@ -1015,7 +1015,7 @@ char *dnet_daemon_name(void)
 void dnet_set_optdata(char *data, int len)
 {
 #ifndef DSO_ACCEPTMODE
-    optdata.opt_optl=len;
+    optdata.opt_optl=dn_htons(len);
     optdata.opt_sts=0;
     if (len && data) memcpy(optdata.opt_data, data, len);
     have_optdata = TRUE;

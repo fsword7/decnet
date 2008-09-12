@@ -156,7 +156,8 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 	/* Device */
 	if (device) {
 		buf[ptr++] = 0x36;  //
-		buf[ptr++] = 0x3;   // CIRCUIT
+		buf[ptr++] = 0x3;   // 822=CIRCUIT
+
 		buf[ptr++] = 0x40;  // ASCII text
 		buf[ptr++] = strlen(device);
 		strcpy(&buf[ptr], device);
@@ -172,8 +173,9 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 	        scratch_na[0] = router_node & 0xFF;
 	        scratch_na[1] = router_node >>8;
 
-		buf[ptr++] = 0;   // Node state
+		buf[ptr++] = 0;   // 0=Node state
 		buf[ptr++] = 0;
+
 		buf[ptr++] = 0x81; // Data type of 'state'
 		buf[ptr++] = state;
 
@@ -193,7 +195,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 				rn = n;
 			}
 
-			buf[ptr++] = 0x3e;   // 830 NEXT NODE
+			buf[ptr++] = 0x3e;  // 830=NEXT NODE
 			buf[ptr++] = 0x03;
 
 			buf[ptr++] = 0xc2; // What's this !?
@@ -220,10 +222,11 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 		char ident[256];
 
 		uname(&un);
-		sprintf(ident, "%s V%s", IDENT_STRING, un.release);
+		sprintf(ident, "%s V%s on %s", IDENT_STRING, un.release, un.machine);
 
 		buf[ptr++] = 0x64;
-		buf[ptr++] = 0;     // Node identification
+		buf[ptr++] = 0;     // 100=Identification
+
 		buf[ptr++] = 0x40;  // ASCII text
 		buf[ptr++] = strlen(ident);
 		strcpy(&buf[ptr], ident);

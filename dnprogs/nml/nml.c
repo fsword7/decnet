@@ -59,6 +59,13 @@ static unsigned short router_node;
 static int num_adj_nodes = 0;
 static unsigned short adj_node[MAX_ADJACENT_NODES];
 
+static int num_link_nodes = 0;
+static struct link_node
+{
+	unsigned char node, area;
+	unsigned int links;
+} link_nodes[MAX_ADJACENT_NODES];
+
 static void makeupper(char *s)
 {
 	int i;
@@ -137,6 +144,21 @@ static unsigned short get_router(void)
 	return router;
 }
 
+static int get_link_count(unsigned char addr1, unsigned char addr2)
+{
+	int node = addr1 | (addr2<<8 & 0x3);
+	int area = addr2 >> 2;
+	int i;
+
+	for (i=0; i<num_link_nodes; i++) {
+		if (link_nodes[i].area == area &&
+		    link_nodes[i].node == node) {
+			return link_nodes[i].links;
+		}
+	}
+	return 0;
+}
+
 static int send_node(int sock, struct nodeent *n, int exec, char *device, int state)
 {
 	char buf[1024];
@@ -169,6 +191,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 		struct nodeent *rn;
 		struct nodeent scratch_n;
 		unsigned char scratch_na[2];
+		int links;
 
 	        scratch_na[0] = router_node & 0xFF;
 	        scratch_na[1] = router_node >>8;
@@ -176,7 +199,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 		buf[ptr++] = 0;   // 0=Node state
 		buf[ptr++] = 0;
 
-		buf[ptr++] = 0x81; // Data type of 'state'
+		buf[ptr++] = 0x81; // Data type & length of 'state'
 		buf[ptr++] = state;
 
 		/* For reachable nodes show the next node, ie next router
@@ -212,6 +235,17 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 			}
 			else {
 				buf[ptr++] = 0;// No Name
+			}
+
+			// Also show the number of active links
+			links = get_link_count(n->n_addr[0], n->n_addr[1]);
+			if (links) {
+				buf[ptr++] = 0x58; // 600=Active links
+				buf[ptr++] = 0x2;  // Unsigned decimal
+
+				buf[ptr++] = 2;    // Data length
+				buf[ptr++] = links & 0xFFFF;
+				buf[ptr++] = links >> 16;
 			}
 		}
 	}
@@ -369,6 +403,69 @@ static int send_all_nodes(int sock, unsigned char perm_only)
 	return 0;
 }
 
+/*
+ * We read /proc/net/decnet and fill in the number of links to each node
+ * that we find
+ */
+static int count_links(void)
+{
+	char buf[256];
+	char var1[32];
+	char var2[32];
+	char var3[32];
+	char var4[32];
+	char var5[32];
+	char var6[32];
+	char var7[32];
+	char var8[32];
+	char var9[32];
+	char var10[32];
+	char var11[32];
+	int i;
+	FILE *procfile = fopen("/proc/net/decnet", "r");
+
+	if (!procfile)
+		return 0;
+
+	while (!feof(procfile))
+	{
+		fgets(buf, sizeof(buf), procfile);
+		if (sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s\n",
+			   var1,var2,var3,var4,var5,var6,var7,var8, var9, var10, var11) == 11) {
+			int area, node;
+			struct link_node *lnode = NULL;
+
+			/* In case we ever do "SHOW KNOWN LINKS:
+			 * var10 is remote user, var5 is local user
+			 */
+			sscanf(var6, "%d.%d\n", &area, &node);
+
+			/* Ignore 0.0 links (listeners) and anything not in RUN state */
+			if (area == 0 || node == 0 || strcmp(var11, "RUN"))
+				continue;
+
+			for (i=0; i<num_link_nodes; i++) {
+				if (link_nodes[i].area == area &&
+				    link_nodes[i].node == node) {
+					lnode = &link_nodes[i];
+					break;
+				}
+			}
+			if (!lnode && i < MAX_ADJACENT_NODES) {
+				lnode = &link_nodes[num_link_nodes++];
+				lnode->area = area;
+				lnode->node = node;
+			}
+			if (lnode) {
+				lnode->links++;
+			}
+		}
+	}
+	fclose(procfile);
+	return 0;
+
+}
+
 static int read_information(int sock, unsigned char *buf, int length)
 {
 	unsigned char option = buf[1];
@@ -393,10 +490,14 @@ static int read_information(int sock, unsigned char *buf, int length)
 	case 0:  // nodes summary
 	case 16: // nodes char
 	case 32: // nodes state
-		if (entity == 0xff)
+		if (entity == 0xff) { // KNOWN NODES
+			count_links();
 			send_all_nodes(sock, option & 0x80);
-		if (entity == 0xfc)
+		}
+		if (entity == 0xfc) { // ADJACENT NODES
+			count_links();
 			get_neighbour_nodes(sock, send_neigh);
+		}
 		if (entity == 0x00)
 			send_exec(sock);
 		break;

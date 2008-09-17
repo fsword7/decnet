@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <syslog.h>
 #include <errno.h>
+#include <limits.h>
 #include <ctype.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -65,6 +66,25 @@ static struct link_node
 	unsigned char node, area;
 	unsigned int links;
 } link_nodes[MAX_ADJACENT_NODES];
+
+// Object definition from dnetd.conf
+#define USERNAME_LENGTH 65
+#ifndef TRUE
+#define TRUE 1
+#define FALSE 0
+#endif
+
+struct object
+{
+    char  name[USERNAME_LENGTH]; // Object name
+    unsigned int number;         // Object number
+    int  proxy;                 // Whether to use proxies
+    char  user[USERNAME_LENGTH]; // User to use if proxies not used
+    char  daemon[PATH_MAX];      // Name of daemon
+
+    struct object *next;
+};
+static struct object *object_db = NULL;
 
 static void makeupper(char *s)
 {
@@ -320,8 +340,7 @@ static int save_neigh(struct sockaddr_nl *who, struct nlmsghdr *n, void *arg)
         int sock = (int)arg;
 
         memset(tb, 0, sizeof(tb));
-        parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof
-(*r)));
+        parse_rtattr(tb, NDA_MAX, NDA_RTA(r), n->nlmsg_len - NLMSG_LENGTH(sizeof(*r)));
 
         if (tb[NDA_DST])
 	{
@@ -485,6 +504,172 @@ static int count_links(void)
 		}
 	}
 	fclose(procfile);
+	return 0;
+}
+
+/* Copied from libdnet_daemon ... bad girl */
+static int load_dnetd_conf(void)
+{
+    FILE          *f;
+    char           buf[4096];
+    int            line;
+    struct object *last_object = NULL;
+
+    f = fopen("/etc/dnetd.conf", "r");
+    if (!f)
+    {
+        DNETLOG((LOG_ERR, "Can't open dnetd.conf database: %s\n",
+                 strerror(errno)));
+	return -1;
+    }
+
+    line = 0;
+
+    while (!feof(f))
+    {
+	char tmpbuf[1024];
+	char *bufp;
+	char *comment;
+	struct object *newobj;
+	int    state = 1;
+
+	line++;
+	if (!fgets(buf, sizeof(buf), f)) break;
+
+	// Skip whitespace
+	bufp = buf;
+	while (*bufp == ' ' || *bufp == '\t') bufp++;
+
+	if (*bufp == '#') continue; // Comment
+
+	// Remove trailing LF
+	if (buf[strlen(buf)-1] == '\n') buf[strlen(buf)-1] = '\0';
+
+	// Remove any trailing comments
+	comment = strchr(bufp, '#');
+	if (comment) *comment = '\0';
+
+	if (*bufp == '\0') continue; // Empty line
+
+	// Split into fields
+	newobj = malloc(sizeof(struct object));
+	state = 1;
+	bufp = strtok(bufp, " \t");
+	while(bufp)
+	{
+	    char *nextspace = bufp+strlen(bufp);
+	    if (*nextspace == ' ' || *nextspace == '\t') *nextspace = '\0';
+	    switch (state)
+	    {
+	    case 1:
+		strcpy(newobj->name, bufp);
+		break;
+	    case 2:
+		strcpy(tmpbuf, bufp);
+		newobj->number = atoi(tmpbuf);
+		break;
+	    case 3:
+		strcpy(tmpbuf, bufp);
+		newobj->proxy = (toupper(tmpbuf[0])=='Y'?TRUE:FALSE);
+		break;
+	    case 4:
+		strcpy(newobj->user, bufp);
+		break;
+	    case 5:
+		strcpy(newobj->daemon, bufp);
+		break;
+	    default:
+		// Copy parameters
+		strcat(newobj->daemon, " ");
+		strcat(newobj->daemon, bufp);
+		break;
+	    }
+	    bufp = strtok(NULL, " \t");
+	    state++;
+	}
+
+	// Did we get all the info ?
+	if (state > 5)
+	{
+	    // Add to the list
+	    if (last_object)
+	    {
+		last_object->next = newobj;
+	    }
+	    else
+	    {
+		object_db = newobj;
+	    }
+	    last_object = newobj;
+	}
+	else
+	{
+	    DNETLOG((LOG_ERR, "Error in dnet.conf line %d, state = %d\n", line, state));
+	    free(newobj);
+	}
+    }
+    return 0;
+}
+
+static int send_objects(int sock)
+{
+	struct object *obj;
+	char buf[256];
+	char response;
+	int ptr;
+
+	if (load_dnetd_conf()) {
+		buf[0] = -3; // Privilege violation
+		write(sock, &response, 1);
+		return -1;
+	}
+
+	response = 2;
+	write(sock, &response, 1);
+
+	obj = object_db;
+	while (obj) {
+		dnetlog(LOG_DEBUG, "object %s (%d)\n", obj->name, obj->number);
+
+		ptr = 0;
+		buf[ptr++] = 1;
+
+		buf[ptr++] = 0xff; // Object Name
+		buf[ptr++] = 0xff;
+		buf[ptr++] = 0x0;
+		buf[ptr++] = strlen(obj->name);
+		strcpy(&buf[ptr], obj->name);
+		ptr+=strlen(obj->name);
+
+		buf[ptr++] = 0x01;
+		buf[ptr++] = 0x02;
+		buf[ptr++] = 0x01;
+		buf[ptr++] = obj->number;
+
+		if (obj->daemon) {
+			buf[ptr++] = 0x12;
+			buf[ptr++] = 0x02;
+			buf[ptr++] = 0x40;
+			buf[ptr++] = strlen(obj->daemon);
+			strcpy(&buf[ptr], obj->daemon);
+			ptr+=strlen(obj->daemon);
+		}
+
+		if (!obj->proxy) {
+			buf[ptr++] = 0x26;
+			buf[ptr++] = 0x02;
+			buf[ptr++] = 0x40;
+			buf[ptr++] = strlen(obj->user);
+			strcpy(&buf[ptr], obj->user);
+			ptr+=strlen(obj->user);
+		}
+		write(sock, buf, ptr);
+
+		obj = obj->next;
+	}
+
+	response = -128;
+	write(sock, &response, 1);
 	return 0;
 }
 
@@ -658,10 +843,7 @@ static void unsupported(int sock)
 	buf[0] = -1;
 	buf[1] = 0;
 	buf[2] = 0;
-	// TODO This text should be of the defined type...
-	strcpy(&buf[3], "Unrecognised command");
-
-	write(sock, buf, strlen(&buf[3])+3);
+	write(sock, buf, 3);
 }
 
 int process_request(int sock, int verbosity)
@@ -710,7 +892,16 @@ int process_request(int sock, int verbosity)
 			unsupported(sock);
 			break;
 		case 22://          System-specific function
-			send_links(sock);
+			switch (buf[3]) {
+			case 7:
+				send_links(sock);
+				break;
+			case 4:
+				send_objects(sock);
+				break;
+			default:
+				unsupported(sock);
+			}
 			break;
 		default:
 			unsupported(sock);
@@ -718,6 +909,6 @@ int process_request(int sock, int verbosity)
 		}
 
 	} while (status > 0);
-
+	close(sock);
 	return 0;
 }

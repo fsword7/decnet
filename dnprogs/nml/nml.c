@@ -40,6 +40,9 @@
 
 #define IDENT_STRING "DECnet for Linux"
 
+#define PROC_DECNET "/proc/net/decnet"
+#define PROC_DECNET_DEV "/proc/net/decnet_dev"
+
 #define NODESTATE_UNKNOWN    -1
 #define NODESTATE_ON          0
 #define NODESTATE_OFF         1
@@ -85,6 +88,7 @@ struct object
     struct object *next;
 };
 static struct object *object_db = NULL;
+
 
 static void makeupper(char *s)
 {
@@ -164,7 +168,7 @@ static unsigned short get_router(void)
 	char var10[32];
 	char var11[32];
 	unsigned short router = 0;
-	FILE *procfile = fopen("/proc/net/decnet_dev", "r");
+	FILE *procfile = fopen(PROC_DECNET_DEV, "r");
 
 	if (!procfile)
 		return 0;
@@ -186,6 +190,7 @@ static unsigned short get_router(void)
 	return router;
 }
 
+/* This assumes that count_links() has already ben called */
 static int get_link_count(unsigned char addr1, unsigned char addr2)
 {
 	int node = addr1 | (addr2<<8 & 0x3);
@@ -201,6 +206,7 @@ static int get_link_count(unsigned char addr1, unsigned char addr2)
 	return 0;
 }
 
+/* Send a single node */
 static int send_node(int sock, struct nodeent *n, int exec, char *device, int state)
 {
 	char buf[1024];
@@ -311,7 +317,7 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 	return write(sock, buf, ptr);
 }
 
-
+/* Get the bits for SHOW EXECUTOR */
 static int send_exec(int sock)
 {
 	struct dn_naddr *exec_addr;
@@ -463,7 +469,7 @@ static int count_links(void)
 	char var10[32];
 	char var11[32];
 	int i;
-	FILE *procfile = fopen("/proc/net/decnet", "r");
+	FILE *procfile = fopen(PROC_DECNET, "r");
 
 	if (!procfile)
 		return 0;
@@ -477,9 +483,6 @@ static int count_links(void)
 			int area, node;
 			struct link_node *lnode = NULL;
 
-			/* In case we ever do "SHOW KNOWN LINKS:
-			 * var10 is remote user, var5 is local user
-			 */
 			sscanf(var6, "%d.%d\n", &area, &node);
 
 			/* Ignore 0.0 links (listeners) and anything not in RUN state */
@@ -611,6 +614,7 @@ static int load_dnetd_conf(void)
     return 0;
 }
 
+/* SHOW KNOWN OBJECTS */
 static int send_objects(int sock)
 {
 	struct object *obj;
@@ -673,7 +677,7 @@ static int send_objects(int sock)
 	return 0;
 }
 
-
+/* SHOW KNOWN LINKS */
 static int send_links(int sock)
 {
 	char inbuf[256];
@@ -692,7 +696,7 @@ static int send_links(int sock)
 	int i;
 	char response;
 	int ptr = 0;
-	FILE *procfile = fopen("/proc/net/decnet", "r");
+	FILE *procfile = fopen(PROC_DECNET, "r");
 
 	if (!procfile)
 		return 0;
@@ -713,9 +717,8 @@ static int send_links(int sock)
 			unsigned char scratch_na[2];
 			struct nodeent *nent;
 
-			/* In case we ever do "SHOW KNOWN LINKS:
-			 * var10 is remote user, var5 is local user
-			 */
+			/* We're only interested in the remote node addre here, but want both
+			   link numbers */
 			sscanf(var1, "%d.%d/%x\n", &area, &node, &llink);
 			sscanf(var6, "%d.%d/%x\n", &area, &node, &rlink);
 
@@ -791,6 +794,7 @@ static int send_links(int sock)
 	return 0;
 }
 
+/* SHOW NODE Lists */
 static int read_information(int sock, unsigned char *buf, int length)
 {
 	unsigned char option = buf[1];

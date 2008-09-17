@@ -15,6 +15,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -47,6 +48,29 @@ void usage (void) {
         );
 }
 
+char * object_name(char *number) {
+	int objnum = atoi(number);
+
+	if (numeric)
+		return number;
+
+	switch(objnum) {
+	case 17: return "FAL";
+	case 18: return "HLD";
+	case 19: return "NML";
+	case 23: return "REMACP";
+	case 25: return "MIRROR";
+	case 26: return "EVL";
+	case 27: return "MAIL";
+	case 29: return "PHONE";
+	case 42: return "CTERM";
+	case 51: return "VPM";
+	case 63: return "DTR";
+	default:
+		return number;
+	}
+}
+
 int prep_addr (char * buf, char * object) {
  struct nodeent * ne;
 
@@ -67,7 +91,7 @@ int prep_addr (char * buf, char * object) {
  if ( strcmp(object, "0") == 0 && ! numeric ) {
   strcat(buf, "*");
  } else {
-  strcat(buf, object);
+	 strcat(buf, object_name(object));
  }
  return 0;
 }

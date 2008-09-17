@@ -72,6 +72,27 @@ static void makeupper(char *s)
 	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
 }
 
+/* Convert an object number to text */
+char * object_name(char *number) {
+	int objnum = atoi(number);
+
+	switch(objnum) {
+	case 17: return "FAL";
+	case 18: return "HLD";
+	case 19: return "NML";
+	case 23: return "REMACP";
+	case 25: return "MIRROR";
+	case 26: return "EVL";
+	case 27: return "MAIL";
+	case 29: return "PHONE";
+	case 42: return "CTERM";
+	case 51: return "VPM";
+	case 63: return "DTR";
+	default:
+		return number;
+	}
+}
+
 static int adjacent_node(struct nodeent *n)
 {
     int i;
@@ -129,7 +150,8 @@ static unsigned short get_router(void)
 		return 0;
 	while (!feof(procfile))
 	{
-		fgets(buf, sizeof(buf), procfile);
+		if (!fgets(buf, sizeof(buf), procfile))
+			break;
 		if (sscanf(buf, "%s %s %s %s %s %s %s %s %s ethernet %s\n",
 			   var1,var2,var3,var4,var5,var6,var7,var8,var9,var11) == 10)
 		{
@@ -429,7 +451,8 @@ static int count_links(void)
 
 	while (!feof(procfile))
 	{
-		fgets(buf, sizeof(buf), procfile);
+		if (!fgets(buf, sizeof(buf), procfile))
+			break;
 		if (sscanf(buf, "%s %s %s %s %s %s %s %s %s %s %s\n",
 			   var1,var2,var3,var4,var5,var6,var7,var8, var9, var10, var11) == 11) {
 			int area, node;
@@ -463,7 +486,124 @@ static int count_links(void)
 	}
 	fclose(procfile);
 	return 0;
+}
 
+
+static int send_links(int sock)
+{
+	char inbuf[256];
+	char buf[256];
+	char var1[32];
+	char var2[32];
+	char var3[32];
+	char var4[32];
+	char luser[32];
+	char var6[32];
+	char var7[32];
+	char var8[32];
+	char var9[32];
+	char ruser[32];
+	char state[32];
+	int i;
+	char response;
+	int ptr = 0;
+	FILE *procfile = fopen("/proc/net/decnet", "r");
+
+	if (!procfile)
+		return 0;
+
+	response = 2;
+
+	// Tell remote end we are sending the data.
+	write(sock, &response, 1);
+
+	while (!feof(procfile))
+	{
+		if (!fgets(inbuf, sizeof(inbuf), procfile))
+			break;
+		if (sscanf(inbuf, "%s %s %s %s %s %s %s %s %s %s %s\n",
+			   var1,var2,var3,var4,luser,var6,var7,var8, var9, ruser, state) == 11) {
+			int area, node;
+			int llink, rlink;
+			unsigned char scratch_na[2];
+			struct nodeent *nent;
+
+			/* In case we ever do "SHOW KNOWN LINKS:
+			 * var10 is remote user, var5 is local user
+			 */
+			sscanf(var1, "%d.%d/%x\n", &area, &node, &llink);
+			sscanf(var6, "%d.%d/%x\n", &area, &node, &rlink);
+
+			/* Ignore 0.0 links (listeners) and anything not in RUN state */
+			if (area == 0 || node == 0 || strcmp(state, "RUN"))
+				continue;
+
+			dnetlog(LOG_DEBUG, "node %d.%d links %d & %d state=%s\n", area,node, llink,rlink, state);
+
+			/* Get remote node name */
+			scratch_na[1] = area<<2 | node>>8;
+			scratch_na[0] = node & 0xFF;
+			nent = getnodebyaddr((char *)scratch_na, 2, AF_DECnet);
+
+			/* we don't really show users as such for remote connectionsm,
+			   sho make the object numbers look friendlier */
+			if (atoi(luser))
+				strcpy(luser, object_name(luser));
+			if (atoi(ruser))
+				strcpy(ruser, object_name(ruser));
+
+			ptr = 0;
+			buf[ptr++] = 1; // Here is your data miss
+
+			buf[ptr++] = 0xff;
+			buf[ptr++] = 0xff; // Local link (seems to be compulsory!
+			buf[ptr++] = 0;
+			buf[ptr++] = 0;
+			buf[ptr++] = rlink & 0xFF;
+			buf[ptr++] = rlink>>8;
+
+			buf[ptr++] = 120; // Remote link
+			buf[ptr++] = 0;
+			buf[ptr++] = 2;
+			buf[ptr++] = llink & 0xFF;
+			buf[ptr++] = llink>>8;
+
+			buf[ptr++] = 0x79; // Remote user
+			buf[ptr++] = 0;
+			buf[ptr++] = 0x40;
+			buf[ptr++] = strlen(ruser);
+			memcpy(&buf[ptr], ruser, strlen(ruser));
+			ptr += strlen(ruser);
+
+			buf[ptr++] = 131; // Local process
+			buf[ptr++] = 0;
+			buf[ptr++] = 0x40;
+			buf[ptr++] = strlen(luser);
+			memcpy(&buf[ptr], luser, strlen(luser));
+			ptr += strlen(luser);
+
+			if (nent) {
+				buf[ptr++] = 0x66; // 0x66 Remote node (addr+name)
+				buf[ptr++] = 0x00;
+				buf[ptr++] = 0xc2; // Still don't know what this is
+				buf[ptr++] = 0x02;
+				buf[ptr++] = scratch_na[0];
+				buf[ptr++] = scratch_na[1];
+				buf[ptr++] = 0x40; // Text data
+				buf[ptr++] = strlen(nent->n_name);
+				makeupper(nent->n_name);
+				memcpy(&buf[ptr], nent->n_name, strlen(nent->n_name));
+				ptr += strlen(nent->n_name);
+			}
+			write(sock, buf, ptr);
+		}
+	}
+	fclose(procfile);
+
+	// End of data.
+	response = -128;
+	write(sock, &response, 1);
+	return 0;
 }
 
 static int read_information(int sock, unsigned char *buf, int length)
@@ -570,7 +710,7 @@ int process_request(int sock, int verbosity)
 			unsupported(sock);
 			break;
 		case 22://          System-specific function
-			unsupported(sock);
+			send_links(sock);
 			break;
 		default:
 			unsupported(sock);

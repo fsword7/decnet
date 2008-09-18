@@ -266,23 +266,26 @@ static int send_node(int sock, struct nodeent *n, int exec, char *device, int st
 				rn = n;
 			}
 
-			buf[ptr++] = 0x3e;  // 830=NEXT NODE
-			buf[ptr++] = 0x03;
+			/* We might not know the router yet */
+			if (rn->n_addr[0] && rn->n_addr[1]) {
+				buf[ptr++] = 0x3e;  // 830=NEXT NODE
+				buf[ptr++] = 0x03;
 
-			buf[ptr++] = 0xc2; // What's this !?
-			buf[ptr++] = 0x02; // Data type
-			buf[ptr++] = rn->n_addr[0];
-			buf[ptr++] = rn->n_addr[1];
+				buf[ptr++] = 0xc2; // What's this !?
+				buf[ptr++] = 0x02; // Data type
+				buf[ptr++] = rn->n_addr[0];
+				buf[ptr++] = rn->n_addr[1];
 
-			buf[ptr++] = 0x40;  // ASCII text
-			if (rn && rn->n_name) {
-				makeupper(rn->n_name);
-				buf[ptr++] = strlen(rn->n_name);
-				strcpy(&buf[ptr], rn->n_name);
-				ptr += strlen(rn->n_name);
-			}
-			else {
-				buf[ptr++] = 0;// No Name
+				buf[ptr++] = 0x40;  // ASCII text
+				if (rn && rn->n_name) {
+					makeupper(rn->n_name);
+					buf[ptr++] = strlen(rn->n_name);
+					strcpy(&buf[ptr], rn->n_name);
+					ptr += strlen(rn->n_name);
+				}
+				else {
+					buf[ptr++] = 0;// No Name
+				}
 			}
 
 			// Also show the number of active links
@@ -624,7 +627,9 @@ static int send_objects(int sock)
 
 	if (load_dnetd_conf()) {
 		buf[0] = -3; // Privilege violation
-		write(sock, &response, 1);
+		buf[1] = 0; // Privilege violation
+		buf[2] = 0; // Privilege violation
+		write(sock, buf, 3);
 		return -1;
 	}
 

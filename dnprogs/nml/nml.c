@@ -627,8 +627,8 @@ static int send_objects(int sock)
 
 	if (load_dnetd_conf()) {
 		buf[0] = -3; // Privilege violation
-		buf[1] = 0; // Privilege violation
-		buf[2] = 0; // Privilege violation
+		buf[1] = 0;
+		buf[2] = 0;
 		write(sock, buf, 3);
 		return -1;
 	}
@@ -650,24 +650,24 @@ static int send_objects(int sock)
 		strcpy(&buf[ptr], obj->name);
 		ptr+=strlen(obj->name);
 
-		buf[ptr++] = 0x01;
+		buf[ptr++] = 0x01;   // 513 Object number (not in NETMAN40.txt)
 		buf[ptr++] = 0x02;
 		buf[ptr++] = 0x01;
 		buf[ptr++] = obj->number;
 
 		if (obj->daemon) {
-			buf[ptr++] = 0x12;
+			buf[ptr++] = 0x12; // 530 FILE  (not in NETMAN40.txt)
 			buf[ptr++] = 0x02;
-			buf[ptr++] = 0x40;
+			buf[ptr++] = 0x40; // ASCII text
 			buf[ptr++] = strlen(obj->daemon);
 			strcpy(&buf[ptr], obj->daemon);
 			ptr+=strlen(obj->daemon);
 		}
 
 		if (!obj->proxy) {
-			buf[ptr++] = 0x26;
+			buf[ptr++] = 0x26; // 550 username  (not in NETMAN40.txt)
 			buf[ptr++] = 0x02;
-			buf[ptr++] = 0x40;
+			buf[ptr++] = 0x40; // ASCII Text
 			buf[ptr++] = strlen(obj->user);
 			strcpy(&buf[ptr], obj->user);
 			ptr+=strlen(obj->user);

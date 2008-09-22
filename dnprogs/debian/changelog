@@ -1,3 +1,13 @@
+dnprogs (2.47) unstable; urgency=low
+
+  * Fix libdnet_daemon so that dnet_accept & dnet_reject work on
+    big-endian systems
+  * nml now shows number of active links with nodes list
+  * nml now supports "show known links" & "show known objects"
+  * dnetstat shows object names instead of numbers
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon, 22 Sep 2008 09:23:53 +0100
+
 dnprogs (2.46) unstable; urgency=low
 
   * Add 'dnetnml' Network Management Listener daemon

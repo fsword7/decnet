@@ -15,11 +15,11 @@
 */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
 #include <unistd.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -49,26 +49,24 @@ void usage (void) {
 }
 
 char * object_name(char *number) {
-	int objnum = atoi(number);
+        int objnum = atoi(number);
 
-	if (numeric)
-		return number;
+        if (numeric)
+                return number;
 
-	switch(objnum) {
-	case 17: return "FAL";
-	case 18: return "HLD";
-	case 19: return "NML";
-	case 23: return "REMACP";
-	case 25: return "MIRROR";
-	case 26: return "EVL";
-	case 27: return "MAIL";
-	case 29: return "PHONE";
-	case 42: return "CTERM";
-	case 51: return "VPM";
-	case 63: return "DTR";
-	default:
-		return number;
-	}
+        switch(objnum) {
+        case 17: return "FAL";
+        case 19: return "NML";
+        case 23: return "DTERM";
+        case 25: return "MIRROR";
+        case 26: return "EVR";
+        case 27: return "MAIL";
+        case 29: return "PHONE";
+        case 42: return "CTERM";
+        case 63: return "DTR";
+        default:
+                return number;
+        }
 }
 
 int prep_addr (char * buf, char * object) {
@@ -91,12 +89,13 @@ int prep_addr (char * buf, char * object) {
  if ( strcmp(object, "0") == 0 && ! numeric ) {
   strcat(buf, "*");
  } else {
-	 strcat(buf, object_name(object));
+  strcat(buf, object_name(object));
  }
  return 0;
 }
 
 char * state_ktou (char * state, char ** dir) {
+
  if ( strcmp(state, "OPEN") == 0 ) {
   *dir = "IN";
   return "LISTEN";
@@ -109,6 +108,29 @@ char * state_ktou (char * state, char ** dir) {
   return "DISCNOTIFY";
  } else if ( strcmp(state, "DIC") == 0 ) {
   return "DISCONNECTED";
+ } else if ( strcmp(state, "DI") == 0 ) {
+  return "DISCONNECTING";
+ } else if ( strcmp(state, "DR") == 0 ) {
+  return "DISCONREJECT";
+ } else if ( strcmp(state, "DRC") == 0 ) {
+  return "DISCONREJCOMP";
+ } else if ( strcmp(state, "CL") == 0 ) {
+  return "CLOSED";
+ } else if ( strcmp(state, "CN") == 0 ) {
+  return "CLOSEDNOTIFY";
+ } else if ( strcmp(state, "CI") == 0 ) {
+  *dir = "OUT";
+  return "CONNECTING";
+ } else if ( strcmp(state, "NR") == 0 ) {
+  return "NORES";
+ } else if ( strcmp(state, "NC") == 0 ) {
+  return "NOCOM";
+ } else if ( strcmp(state, "CC") == 0 ) {
+  return "CONCONFIRM";
+ } else if ( strcmp(state, "CD") == 0 ) {
+  return "CONDELIVERY";
+ } else if ( strcmp(state, "CR") == 0 ) {
+  return "CONNECTRECV";
  }
 
  return state;
@@ -169,7 +191,7 @@ int proc_file (FILE * fh) {
    immed[0] = 0;
   }
 
-  sprintf(out, "decnet %-24s %-24s %-3s %-12s %s", lbuf, rbuf, dir, state_ktou(state, &dir), immed);
+  sprintf(out, "decnet %-24s %-24s %-3s %-13s %s", lbuf, rbuf, dir, state_ktou(state, &dir), immed);
  }
  puts(out);
 
@@ -206,7 +228,7 @@ int main (int argc, char * argv[]) {
 //      |Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name
 //      |decnet *::29                    *::0                         LISTEN       IMMED
  printf("Active DECnet sockets (servers and established)\n");
- printf("Proto  Local Address            Foreign Address          Dir State        Accept mode\n");
+ printf("Proto  Local Address            Foreign Address          Dir State         Accept mode\n");
  proc_file(fh);
 
  fclose(fh);

@@ -38,7 +38,7 @@ struct nodeent *getnodebyname_ether(const char *name) {
 	static int  search_len    =   0;
 	FILE * conf;
 	int i;
-	struct ether_addr ea;
+	static struct ether_addr ea;
 	u_int8_t decnet_prefix[4] = {0xAA, 0x00, 0x04, 0x00};
 
 	memset((void*)&ea, 0, sizeof(ea));

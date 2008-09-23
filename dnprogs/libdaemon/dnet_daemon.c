@@ -408,7 +408,7 @@ static int fork_and_setuid(int sockfd)
 	    if ((sockaddr.sdn_objnamel && !obj->number &&
 		 (!strcmp((char *)sockaddr.sdn_objname, obj->name) ||
 		  !strcmp(obj->name, "*"))) ||
-		(sockaddr.sdn_objnum == obj->number))
+		(sockaddr.sdn_objnum == obj->number && obj->number))
 		 {
 		     thisobj = obj;
 		     break;

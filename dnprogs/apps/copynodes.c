@@ -32,7 +32,7 @@ static void makelower(char *s)
 }
 
 
-static int get_node_list(char *nodename)
+static int get_node_list(char *nodename, char *ldif_dc)
 {
 	struct accessdata_dn accessdata;
 	char node[BUFLEN];
@@ -83,10 +83,11 @@ static int get_node_list(char *nodename)
 	}
 
 
-	// Print header
-	printf("\
-#\n\
-#               DECnet hosts file\n\
+	if (!ldif_dc) {
+		// Print header
+		printf("\
+#\n						\
+#               DECnet hosts file\n		\
 #\n\
 #Node           Node            Name            Node    Line    Line\n\
 #Type           Address         Tag             Name    Tag     Device\n\
@@ -95,6 +96,7 @@ static int get_node_list(char *nodename)
 	// Print exec line
 	printf("executor\t%d.%d\t\tname\t\t%s\tline\t%s\n",
 	       nodeaddr >> 10, nodeaddr & 0x3FF, exec_node->n_name, exec_dev);
+	}
 
 	/* Connect to network Management Listener */
 	sockaddr.sdn_family   = AF_DECnet;
@@ -144,8 +146,19 @@ static int get_node_list(char *nodename)
 				node[namelen] = 0;
 				makelower(node);
 
-				printf("node\t\t%d.%d\t\tname\t\t%s\n", nodeaddr >> 10, nodeaddr & 0x3FF, node);
-				// More info here but we don't need it for now.
+				if (ldif_dc) {
+					printf("dn: cn=%s,ou=hosts,%s\n", node, ldif_dc);
+					printf("cn: %s\n", node);
+					printf("macAddress: AA:00:04:00:%02X:%02X\n", nodeaddr&0xff, nodeaddr>>8);
+					printf("objectClass: top\n");
+					printf("objectClass: ipHost\n");
+					printf("objectClass: device\n");
+					printf("objectClass: ieee802Device\n");
+					printf("\n");
+				}
+				else {
+					printf("node\t\t%d.%d\t\tname\t\t%s\n", nodeaddr >> 10, nodeaddr & 0x3FF, node);
+				}
 				break;
 			default: // more ?
 				break;
@@ -165,11 +178,14 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2)
 	{
-		fprintf(stderr, "\nusage %s <node>\n\n", argv[0]);
+		fprintf(stderr, "\nusage %s <node> [ldif <dc>]\n\n", argv[0]);
 		fprintf(stderr, "  Generates a decnet.conf file from another node's\n");
 		fprintf(stderr, "  known node list\n\n");
 		return 1;
 	}
 
-	return get_node_list(argv[1]);
+	if (argv[2])
+		return get_node_list(argv[1], argv[2]);
+	else
+		return get_node_list(argv[1], 0);
 }

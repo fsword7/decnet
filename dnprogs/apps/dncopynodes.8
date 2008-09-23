@@ -4,7 +4,7 @@
 dncopynodes \- copy a list of nodes from a remote DEC system
 
 .SH SYNOPSIS
-.B dncopynodes <nodename>
+.B dncopynodes <nodename> [ldif-dn]
 .br
 .SH DESCRIPTION
 .PP
@@ -31,8 +31,15 @@ DO NOT attempt to redirect the output of
 .B dncopynodes 
 directly into /etc/decnet.conf. It will fail and destroy your existing
 configuration file! Send it to a temporary file and then copy it (see EXAMPLES)
+.br
+.br
+.B dncopynodes 
+can also create an LDIF file suitable for importing into an LDAP database. With
+dnprogs 2.48 or later, DECnet programs can quiry this for node address information.
 .SH EXAMPLE
 # dncopynodes 3.34 > /tmp/decnet.conf
+.br
+# dncopynodes 3.34 dc=example,dc=com > /tmp/decnet.ldif
 .br
 # mv /tmp/decnet.conf /etc
 .SH SEE ALSO

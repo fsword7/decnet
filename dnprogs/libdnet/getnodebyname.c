@@ -61,7 +61,7 @@ struct nodeent *getnodebyname_ether(const char *name) {
 
 	if ( ether_hostton(name, &ea) == 0 ) {
 	    if ( memcmp(ea.ether_addr_octet, decnet_prefix, 4) == 0 ) {
-	        dp.n_addr=(unsigned char *)&ea.ether_addr_octet[5];
+	        dp.n_addr=(unsigned char *)&ea.ether_addr_octet[4];
 	        return &dp;
 	    }
 	}

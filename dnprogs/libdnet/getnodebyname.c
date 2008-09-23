@@ -25,9 +25,61 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 
+#include <netinet/ether.h>
+
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static struct nodeent	dp;
 static struct dn_naddr	*naddr;
+
+#define RESOLV_CONF "/etc/resolv.conf"
+
+struct nodeent *getnodebyname_ether(const char *name) {
+	static char search[3][32] = {{0}, {0}, {0}};
+	static int  search_len    =   0;
+	FILE * conf;
+	int i;
+	struct ether_addr ea;
+	u_int8_t decnet_prefix[4] = {0xAA, 0x00, 0x04, 0x00};
+
+	memset((void*)&ea, 0, sizeof(ea));
+
+	if ( !search_len ) {
+	    if ( (conf = fopen(RESOLV_CONF, "r")) != NULL ) {
+	        while (fgets(nodetag, 80, conf) != NULL) {
+	            if ( strncmp(nodetag, "search ", 7) == 0 ) {
+	                if ( (search_len = sscanf(nodetag, "search %s%s%s\n", search[0], search[0], search[3])) )
+	                    break;
+	            }
+	        }
+	        fclose(conf);
+	    }
+	}
+
+	dp.n_addrtype = AF_DECnet;
+	dp.n_length   = 2;
+	dp.n_name     = (char*)name;
+
+	if ( ether_hostton(name, &ea) == 0 ) {
+	    if ( memcmp(ea.ether_addr_octet, decnet_prefix, 4) == 0 ) {
+	        dp.n_addr=(unsigned char *)&ea.ether_addr_octet[5];
+	        return &dp;
+	    }
+	}
+
+	for(i = 0; i < search_len; i++) {
+	    sprintf(nodename, "%s.%s", name, search[i]);
+
+
+	    if ( ether_hostton(nodename, &ea) == 0 ) {
+	        if ( memcmp(ea.ether_addr_octet, decnet_prefix, 4) == 0 ) {
+	            dp.n_addr=(unsigned char *)&ea.ether_addr_octet[4];
+	            return &dp;
+	        }
+	    }
+	}
+
+	return NULL;
+}
 
 struct nodeent *getnodebyname(const char *name)
 {
@@ -81,6 +133,6 @@ struct nodeent *getnodebyname(const char *name)
 		}
 	}
 	fclose(dnhosts);
-	return 0;
+	return getnodebyname_ether(name);
 }
 /*--------------------------------------------------------------------------*/

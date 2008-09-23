@@ -45,7 +45,7 @@ static int get_node_list(char *nodename)
 	struct dn_naddr *exec_addr;
 	unsigned int exec_area;
 	unsigned int nodeaddr;
-	char *local_user;
+	char *local_user=NULL;
 	struct nodeent *exec_node;
 	char command[] = {0x14, 0, 0xff}; // NICE Command to fetch all known nodes
 

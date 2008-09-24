@@ -1103,7 +1103,7 @@ int main(int argc, char **argv)
 	while (running)
 	{
 		fd_set fds;
-		unsigned char buf[1024];
+		unsigned char buf[2048];
 		sigset_t ss;
 		int len;
 		int status;

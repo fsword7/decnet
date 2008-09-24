@@ -332,6 +332,14 @@ static int edit_dev_route(int function, unsigned short node, int interface)
 		char                    buf[1024];
 	} req;
 
+
+	if (verbose)
+	{
+		syslog(LOG_INFO, "%sing route to %d.%d via %s\n",
+		       function == RTM_NEWROUTE?"Add":"Remov",
+		       node>>10, node&0x3FF, if_index_to_name(interface));
+	}
+
 	if (no_routes)
 		return 0;
 
@@ -366,9 +374,6 @@ static int edit_via_route(int function, unsigned short addr, unsigned short via_
 		char                    buf[1024];
 	} req;
 
-	if (no_routes)
-		return 0;
-
 	if (verbose)
 	{
 		struct dn_naddr add;
@@ -383,6 +388,9 @@ static int edit_via_route(int function, unsigned short addr, unsigned short via_
 		       function == RTM_NEWROUTE?"Add":"Remov",
 		       addr>>10, addr&0x3FF, nodename);
 	}
+
+	if (no_routes)
+		return 0;
 
 	assert (addr>>10);
 	assert (via_node);

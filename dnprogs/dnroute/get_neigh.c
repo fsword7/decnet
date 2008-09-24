@@ -1082,6 +1082,7 @@ int main(int argc, char **argv)
 		syslog(LOG_ERR, "Unable to open packet socket for DECnet routing messages: %m\n");
 		return 1;
 	}
+	fcntl(dnet_socket, F_SETFL, fcntl(dnet_socket, F_GETFL, 0) | O_NONBLOCK);
 
 	/*
 	 * Add an entry for our area. If we are a level2 router, then it's us.

@@ -1,3 +1,16 @@
+dnprogs (2.48) unstable; urgency=low
+
+  * Fix crash caused by unitialised variable in dncopynodes.
+  * More states are now decoded by dnetstat
+  * Add LDIF output support to dncopynodes
+  * Add nss support to libdnet so you can look up DECnet nodes in
+    NIS or LDAP etc
+  * dnroute now writes a pidfile
+  * NML now also responds to "list known objects"
+  * Improve dnroute logging when -n is specified (it's now useful!)
+  * dnroute no longer ignores long routing messages
+  * Removed the occasional delay in dnetinfo
+
 dnprogs (2.47) unstable; urgency=low
 
   * Fix libdnet_daemon so that dnet_accept & dnet_reject work on

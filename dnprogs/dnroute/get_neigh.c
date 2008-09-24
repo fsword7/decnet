@@ -55,6 +55,7 @@
 
 /* Where we write our status info to */
 #define STATUS_FIFO "/var/run/dnroute.status"
+#define PIDFILE "/var/run/dnroute.pid"
 
 /* What we stick in the hash table */
 struct nodeinfo
@@ -85,6 +86,7 @@ extern char *if_index_to_name(int ifindex);
 extern int if_name_to_index(char *name);
 extern int send_level1_msg(struct routeinfo *);
 extern int send_level2_msg(struct routeinfo *);
+extern int pidfile_create(const char *pidFile, pid_t pid);
 
 int dnet_socket;
 static int debugging;
@@ -1037,6 +1039,7 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 
+		pidfile_create(PIDFILE, getpid());
 		/* Detach ourself from the calling environment */
 		devnull = open("/dev/null", O_RDWR);
 		close(0);

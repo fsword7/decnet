@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Quick & dirty shell script to query dnetd for the 
+# Quick & dirty shell script to query dnroute for the 
 # node routing status.
 #
 # If that's not available then show the current neighbour table.

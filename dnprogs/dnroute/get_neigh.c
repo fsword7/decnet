@@ -1047,7 +1047,9 @@ int main(int argc, char **argv)
 			exit(0);
 		}
 
+		/* There should only be one of us */
 		pidfile_create(PIDFILE, getpid());
+
 		/* Detach ourself from the calling environment */
 		devnull = open("/dev/null", O_RDWR);
 		close(0);

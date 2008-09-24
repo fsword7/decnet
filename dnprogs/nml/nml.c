@@ -877,6 +877,7 @@ int process_request(int sock, int verbosity)
 			dnetlog(LOG_DEBUG, "\n");
 		}
 
+		// TODO support single items, eg 'tell jeltz sho node zaphod'
 		switch (buf[0])
 		{
 		case 15://          Request down-line load
@@ -901,7 +902,7 @@ int process_request(int sock, int verbosity)
 			unsupported(sock);
 			break;
 		case 22://          System-specific function
-			switch (buf[3]) {
+			switch (buf[3] & 0x7f) {
 			case 7:
 				send_links(sock);
 				break;

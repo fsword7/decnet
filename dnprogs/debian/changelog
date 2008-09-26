@@ -10,6 +10,10 @@ dnprogs (2.48) unstable; urgency=low
   * Improve dnroute logging when -n is specified (it's now useful!)
   * dnroute no longer ignores long routing messages
   * Removed the occasional delay in dnetinfo
+  * Made getnodename() read from decnet.conf rather than the kernel
+  * dnroute -n now doesn't send routing messages
+  * dnroute now honours SYSCONF_PREFIX for dnroute.conf
+  * dnetinfo no longer shows the local area as under manual control
 
 dnprogs (2.47) unstable; urgency=low
 

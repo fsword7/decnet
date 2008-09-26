@@ -26,7 +26,7 @@ sysconfprefix=
 #                  FAL built like this will *NOT* work with most VMS commands.
 # -DNO_BLOCKING    disable sending of many messages in one block
 #
-DFLAGS=-g
+DFLAGS=-g -O0
 #DFLAGS=-O2
 
 #

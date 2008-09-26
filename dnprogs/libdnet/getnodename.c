@@ -1,5 +1,6 @@
 /*
  * (C) 1998 Steve Whitehouse
+ * (C) 2008 Christine Caulfield, copied code from getnodeadd
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,32 +19,47 @@
  */
 #include <sys/types.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
-#ifdef __NetBSD__
-#include <sys/param.h> 
-#endif
-#include <sys/sysctl.h>
 
 #include "netdnet/dn.h"
 
+static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
+
 int getnodename(char *name, size_t len)
 {
-#ifdef SDF_UICPROXY
-	int ret;
-	int ctlname[3] = { CTL_NET, NET_DECNET, NET_DECNET_NODE_NAME };
+	FILE		*dnhosts;
+	char		nodeln[80];
 
-
-	if ( (ret = sysctl(ctlname, 3, (void *)name, &len, NULL, 0)) == 0 ) {
-	    if ( !strcmp(name, "???") )
-	        return -1;
-
-	    return ret;
+	if ((dnhosts = fopen(SYSCONF_PREFIX "/etc/decnet.conf","r")) == NULL)
+	{
+		printf("getnodeadd: Can not open " SYSCONF_PREFIX "/etc/decnet.conf\n");
+		return 0;
+	}
+	while (fgets(nodeln,80,dnhosts) != NULL)
+	{
+		sscanf(nodeln,"%s%s%s%s\n",nodetag,nodeadr,nametag,nodename);
+		if (strncmp(nodetag,"#",1) != 0)
+		{
+		   if (((strcmp(nodetag,"executor") != 0) &&
+	    	       (strcmp(nodetag,"node")     != 0)) ||
+		       (strcmp(nametag,"name")     != 0))
+		   {
+		       printf("getnodeadd: Invalid decnet.conf syntax\n");
+			 fclose(dnhosts);
+		       return 0;
+		   }
+		   if (strcmp(nodetag,"executor") == 0)
+		   {
+			fclose(dnhosts);
+			strncpy(name, nodename, len);
+			return 0;
+		   }
+		   else return -1;
+		}
 	}
 
-	return ret;
-#else
+	fclose(dnhosts);
 	return -1;
-#endif
 }
-
 

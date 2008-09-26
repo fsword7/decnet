@@ -2,7 +2,7 @@ include ../Makefile.common
 
 DNROUTE=dnroute
 
-CFLAGS	+= -Inetlink/include
+CFLAGS	+= -Inetlink/include $(SYSCONF_PREFIX)
 
 all: $(DNROUTE)
 

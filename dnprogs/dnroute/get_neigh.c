@@ -126,7 +126,7 @@ static void read_conffile(void)
 {
 	char line[255];
 
-	FILE *fp = fopen("/etc/dnroute.conf", "r");
+	FILE *fp = fopen(SYSCONF_PREFIX "/etc/dnroute.conf", "r");
 	if (!fp)
 		return;
 

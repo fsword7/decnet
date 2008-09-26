@@ -216,6 +216,7 @@ static void do_show_network(void)
 				struct nodeinfo *n;
 				unsigned short area_node = area_table[i].router;
 				char *ifname = "";
+				int local = 0;
 
 				if (first)
 				{
@@ -227,6 +228,7 @@ static void do_show_network(void)
 				{
 					area_node = exec_addr->a_addr[1] << 8 | exec_addr->a_addr[0];
 					ifname = "(local)";
+					local = 1;
 				}
 
 				n = dm_hash_lookup_binary(node_hash, (void*)&area_table[i].router, 2);
@@ -239,7 +241,7 @@ static void do_show_network(void)
 					n?if_index_to_name(n->interface):ifname,
 					area_node>>10, area_node & 0x03FF,
 					ne?ne->n_name:"",
-					area_table[i].manual?"(M)":"");
+					(area_table[i].manual && !local)?"(M)":"");
 			}
 		}
 	}
@@ -730,12 +732,15 @@ static void get_neighbours(void)
 		n->scanned = 0;
 	}
 
-	/* Send messages */
-	if (send_routing)
-		send_level1_msg(node_table);
+	if (!no_routes)
+	{
+		/* Send messages */
+		if (send_routing)
+			send_level1_msg(node_table);
 
-	if (send_level2)
-		send_level2_msg(area_table);
+		if (send_level2)
+			send_level2_msg(area_table);
+	}
 }
 
 static void add_routing_neighbour(unsigned short nodeaddr, int level, int priority, int override)

@@ -29,10 +29,18 @@
 int getnodename(char *name, size_t len)
 {
 #ifdef SDF_UICPROXY
+	int ret;
 	int ctlname[3] = { CTL_NET, NET_DECNET, NET_DECNET_NODE_NAME };
 
 
-	return sysctl(ctlname, 3, (void *)name, &len, NULL, 0);
+	if ( (ret = sysctl(ctlname, 3, (void *)name, &len, NULL, 0)) == 0 ) {
+	    if ( !strcmp(name, "???") )
+	        return -1;
+
+	    return ret;
+	}
+
+	return ret;
 #else
 	return -1;
 #endif

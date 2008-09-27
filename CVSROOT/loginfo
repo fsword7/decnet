@@ -28,6 +28,5 @@
 # Send commit mails - taken from the sourceforge doc at:
 # http://sourceforge.net/docman/display_doc.php?docid=772&group_id=1
 CVSROOT $CVSROOT/CVSROOT/syncmail %{sVv} chrissie_c@users.sourceforge.net
-#DEFAULT $CVSROOT/CVSROOT/syncmail %{sVv} linux-decnet-commit@lists.sourceforge.net
-DEFAULT $CVSROOT/CVSROOT/syncmail %{sVv} chrissie_c@users.sourceforge.net
+DEFAULT $CVSROOT/CVSROOT/syncmail %{sVv} linux-decnet-commit@lists.sourceforge.net
 

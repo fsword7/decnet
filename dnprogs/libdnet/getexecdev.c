@@ -19,10 +19,12 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
+
 static  char	nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static  char	linetag[80],devicename[80];
 /*--------------------------------------------------------------------------*/
@@ -34,26 +36,28 @@ char *getexecdev(void)
 	if ((dnhosts = fopen(SYSCONF_PREFIX "/etc/decnet.conf","r")) == NULL)
 	{
 		printf("getnodebyname: Can not open " SYSCONF_PREFIX "/etc/decnet.conf\n");
-		exit(-1);
+		errno = ENOENT;
+		return NULL;
 	}
 	while (fgets(nodeln,80,dnhosts) != NULL)
 	{
 		sscanf(nodeln,"%s%s%s%s%s%s\n",nodetag,nodeadr,nametag,
 		       nodename,linetag,devicename);
-		if (strncmp(nodetag,"#",1) != 0)	
+		if (strncmp(nodetag,"#",1) != 0)
 		{
 		   if (((strcmp(nodetag,"executor") != 0) &&
 	    	       (strcmp(nodetag,"node")     != 0)) ||
 		       (strcmp(nametag,"name")     != 0))
 		   {
 		       printf("getnodebyname: Invalid decnet.conf syntax\n");
-		       exit(-1);
+		       errno = ENOENT;
+		       return NULL;
 		   }
-		   if (strcmp(linetag,"line") == 0) 
+		   if (strcmp(linetag,"line") == 0)
 		   {
 			fclose(dnhosts);
 			return devicename;
-		    } 
+		    }
 		}
 	}
 	return 0;

@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/errno.h>
 #include <unistd.h>
 
 #include "netdnet/dn.h"
@@ -55,11 +56,16 @@ int getnodename(char *name, size_t len)
 			strncpy(name, nodename, len);
 			return 0;
 		   }
-		   else return -1;
+		   else
+		   {
+			   errno = ENOENT;
+			   return -1;
+		   }
 		}
 	}
 
 	fclose(dnhosts);
+	errno = ENOENT;
 	return -1;
 }
 

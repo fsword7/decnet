@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <netdnet/dn.h>
@@ -37,31 +38,33 @@ struct	dn_naddr	*dnet_addr(char *name)
 	char		*aux;
 	long		area,node;
 
-	
+
 	if ((dnhosts = fopen(SYSCONF_PREFIX "/etc/decnet.conf","r")) == NULL)
 	{
 		printf("dnet_addr: Can not open " SYSCONF_PREFIX "/etc/decnet.conf\n");
-		return 0;
+		errno = ENOENT;
+		return NULL;
 	}
 	while (fgets(nodeln,80,dnhosts) != NULL)
 	{
 		sscanf(nodeln,"%s%s%s%s\n",nodetag,nodeadr,nametag,nodename);
-		if (strncmp(nodetag,"#",1) != 0)	
+		if (strncmp(nodetag,"#",1) != 0)
 		{
 		   if (((strcmp(nodetag,"executor") != 0) &&
 	    	       (strcmp(nodetag,"node")     != 0)) ||
 		       (strcmp(nametag,"name")     != 0))
 		   {
 		       printf("dnet_addr: Invalid decnet.conf syntax\n");
+		       errno = ENOENT;
 		       return 0;
 		   }
-		   if (strcmp(nodename,name) == 0) 
+		   if (strcmp(nodename,name) == 0)
 		   {
 			aux=nodeadr;
 			endptr=&aux;
 			area=strtol(nodeadr,endptr,0);
 			node=strtol(*endptr+1,endptr,0);
-			if ((area < 0) || (area > 63) || 
+			if ((area < 0) || (area > 63) ||
 			    (node < 0) || (node > 1023))
 			{
 				printf("dnet_addr: Invalid address %d.%d\n",
@@ -70,12 +73,13 @@ struct	dn_naddr	*dnet_addr(char *name)
 				return 0;
 			}
 			binadr.a_addr[0] = node & 0xFF;
-			binadr.a_addr[1] = (area << 2) | ((node & 0x300) >> 8); 
+			binadr.a_addr[1] = (area << 2) | ((node & 0x300) >> 8);
 			fclose(dnhosts);
 			return &binadr;
 		   }
 		}
 	}
 	fclose(dnhosts);
+	errno = ENOENT;
 	return 0;
 }

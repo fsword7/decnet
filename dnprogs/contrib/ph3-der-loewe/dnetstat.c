@@ -29,6 +29,8 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 
+#include <netdb.h>
+
 #define DNNS_FILE "/proc/net/decnet"
 
 struct dn_nse {
@@ -49,24 +51,17 @@ void usage (void) {
 }
 
 char * object_name(char *number) {
-        int objnum = atoi(number);
+ int objnum = atoi(number);
+ static char name[16];
 
-        if (numeric)
-                return number;
+ if (numeric)
+  return number;
 
-        switch(objnum) {
-        case 17: return "FAL";
-        case 19: return "NML";
-        case 23: return "DTERM";
-        case 25: return "MIRROR";
-        case 26: return "EVR";
-        case 27: return "MAIL";
-        case 29: return "PHONE";
-        case 42: return "CTERM";
-        case 63: return "DTR";
-        default:
-                return number;
-        }
+ if ( objnum )
+  if ( getobjectbynumber(objnum, name, 16) != -1 )
+   return name;
+
+ return number;
 }
 
 int prep_addr (char * buf, char * object) {

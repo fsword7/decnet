@@ -12,11 +12,11 @@ MANPAGES3=dnet_htoa.3 dnet_ntoa.3 dnet_addr.3 dnet_conn.3 \
 LIBOBJS :=dnet_htoa.o dnet_ntoa.o dnet_addr.o dnet_conn.o getnodeadd.o \
 	getnodebyname.o getnodebyaddr.o setnodeent.o getexecdev.o \
 	getnodename.o setnodename.o dnet_getnode.o dnet_pton.o dnet_ntop.o \
-	dnet_recv.o dnet_eof.o
+	dnet_recv.o dnet_eof.o getobjectbyX.o
 PICOBJS:=dnet_htoa.po dnet_ntoa.po dnet_addr.po dnet_conn.po getnodeadd.po \
 	getnodebyname.po getnodebyaddr.po setnodeent.po getexecdev.po \
 	getnodename.po setnodename.po dnet_getnode.po dnet_pton.po dnet_ntop.po\
-	dnet_recv.po dnet_eof.po
+	dnet_recv.po dnet_eof.po getobjectbyX.po
 
 LIBNAME=libdnet
 LIB_MINOR_VERSION=43.1

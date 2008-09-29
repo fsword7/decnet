@@ -27,6 +27,10 @@ extern  struct  dn_naddr *getnodeadd(void);
 extern  struct  nodeent  *getnodebyaddr(const char *addr, int len, int type);
 extern  struct  nodeent  *getnodebyname(const char *name);
 
+extern  int               getobjectbyname(char * name);
+extern  int               getobjectbynumber(int number, char * name, size_t name_len);
+extern  int               dnet_checkobjectnumber(int num);
+
 extern  char             *getexecdev(void);
 extern  void              setnodeent(int);
 extern  void             *dnet_getnode(void);
@@ -65,6 +69,18 @@ extern void  dnetlog(int level, char *fmt, ...);
 #define DNOBJECT_PHONE	29	/* DECnet phone utility */
 #define DNOBJECT_CTERM	42	/* DECnet command terminals */
 #define DNOBJECT_DTR	63	/* DECnet test receiver */
+
+/* Config for dnet_checkobjectnumber()/getobjectbyname()/getobjectbynumber() */
+#define DNOBJ_SEARCH_ENV "DECNET_OBJPROTO"
+#define DNOBJ_SEARCH_DEF "decnet"
+
+#define DNOBJ_HINUM_ENV "DECNET_OBJHINUM"
+#define DNOBJ_HINUM_DEF "error"
+
+#define DNOBJHINUM_ERROR          -1
+#define DNOBJHINUM_ZERO            0
+#define DNOBJHINUM_RETURN          1
+#define DNOBJHINUM_ALWAYSZERO      2
 
 /* Connect/Reject codes. These are my symbolic names, not DEC's */
 #define DNSTAT_REJECTED         0 /* Rejected by object */

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2005 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -852,7 +852,7 @@ void LATConnection::circuit_timer(void)
     send_ack = false;
 
     //  Send a pending data message (if we can)
-    if (!pending_data.empty() && window_size < max_window_size)
+    if (!pending_data.empty() && window_size <= max_window_size)
     {
         // Send the top message
         pending_msg &msg(pending_data.front());

@@ -19,7 +19,7 @@ extern char *found_connerror(void);
 extern int found_getsockfd(void);
 extern int found_write(char *buf, int len);
 extern int found_read(void);
-extern int found_setup_link(char *node, int object, int (*processor)(char *, int));
+extern int found_setup_link(char *node, int object, int (*processor)(char *, int), int connect_timeout);
 extern int found_common_write(char *buf, int len);
 
 /* cterm/dterm routines */

@@ -238,12 +238,14 @@ int found_read()
 }
 
 /* Open the DECnet connection */
-int found_setup_link(char *node, int object, int (*processor)(char *, int))
+int found_setup_link(char *node, int object, int (*processor)(char *, int), 
+		     int connect_timeout)
 {
 	struct nodeent *np;
 	struct sockaddr_dn sockaddr;
 	struct accessdata_dn accessdata;
 	char *local_user;
+	struct timeval timeout = {connect_timeout,0};
 
 	if ( (np=getnodebyname(node)) == NULL)
 	{
@@ -257,6 +259,9 @@ int found_setup_link(char *node, int object, int (*processor)(char *, int))
 		perror("socket");
 		return -1;
 	}
+
+	if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)))
+		perror("setting snd timeout");
 
         /* Send the logged in userID for niceness sake */
 	memset(&accessdata, 0, sizeof(accessdata));
@@ -302,8 +307,8 @@ char *found_connerror()
 	unsigned int len = sizeof(optdata);
 	char *msg;
 
-	if (getsockopt(sockfd, DNPROTO_NSP, DSO_CONDATA,
-		       &optdata, &len) == -1)
+	if (errno == ETIMEDOUT ||
+	    getsockopt(sockfd, DNPROTO_NSP, DSO_CONDATA, &optdata, &len) == -1)
 	{
 		return strerror(saved_errno);
 	}

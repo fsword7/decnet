@@ -113,6 +113,7 @@ static void usage(char *prog, FILE * f)
 	fprintf(f, "  -? -h        display this help message\n");
 	fprintf(f, "  -V           show version number\n");
 	fprintf(f, "  -e <char>    set exit char\n");
+	fprintf(f, "  -T <secs>    Connect timeout (default 20 seconds)\n");
 	fprintf(f, "  -d <mask>    debug information\n");
 
 	fprintf(f, "\n");
@@ -122,11 +123,12 @@ static void usage(char *prog, FILE * f)
 int main(int argc, char *argv[])
 {
 	int opt;
+	int connect_timeout = 20;
 
 	// Deal with command-line arguments.
 	opterr = 0;
 	optind = 0;
-	while ((opt = getopt(argc, argv, "?Vhd:te:")) != EOF)
+	while ((opt = getopt(argc, argv, "?Vhd:te:T:")) != EOF)
 	{
 		switch (opt)
 		{
@@ -147,6 +149,10 @@ int main(int argc, char *argv[])
 			set_exit_char(optarg);
 			break;
 
+		case 'T':
+			connect_timeout = atoi(optarg);
+			break;
+
 		case 'd':
 			debug = atoi(optarg);
 			break;
@@ -162,7 +168,7 @@ int main(int argc, char *argv[])
 	send_input = cterm_send_input;
 	send_oob = cterm_send_oob;
 	rahead_change = cterm_rahead_change;
-	if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network) == 0)
+	if (found_setup_link(argv[optind], DNOBJECT_CTERM, cterm_process_network, connect_timeout) == 0)
 	{
 		if (tty_setup("/dev/fd/0", 1) == -1)
 			if (tty_setup("/proc/self/fd/0", 1)) {

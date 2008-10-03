@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999      Christine Caulfield          christine.caulfield@googlemail.com
+    (c) 1998-2008      Christine Caulfield          christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -74,6 +74,7 @@ static void	dndir_usage(FILE *f)
     fprintf(f, "  -n           don't show header. Useful for shell scripts\n");
     fprintf(f, "  -c           Force single-column output on ttys (default for files)\n");
     fprintf(f, "  -t           Show total bytes/blocks\n");
+    fprintf(f, "  -T <secs>    Set connection timeout (default 20 seconds)\n");
     fprintf(f, "  -w <size>    width of multi-column output\n");
     fprintf(f, "  -f <size>    maximum width of filename field\n");
     fprintf(f, "  -? -h        display this help message\n");
@@ -106,6 +107,7 @@ int main(int argc, char *argv[])
     int     printed;
     int     just_shown_header = 0;
     int     verbosity = 0;
+    int     connect_timeout = 20;
     unsigned long total = 0;
     unsigned int  filename_width = 18;
 
@@ -143,7 +145,7 @@ int main(int argc, char *argv[])
 // Get command-line options
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hvVvcepndlostbw:f:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hvVvcepndlostbw:f:T:")) != EOF)
     {
 	switch(opt)
 	{
@@ -218,6 +220,10 @@ int main(int argc, char *argv[])
 	    term_width=atoi(optarg);
 	    break;
 
+	case 'T':
+	    connect_timeout=atoi(optarg);
+	    break;
+
 	case 'f':
 	    filename_width=atoi(optarg);
 	    break;
@@ -244,6 +250,7 @@ int main(int argc, char *argv[])
 
     dap_connection conn(verbosity);
     char dirname[256] = {'\0'};
+    conn.set_connect_timeout(connect_timeout);
     if (!conn.connect(argv[optind], dap_connection::FAL_OBJECT, dirname))
     {
 	fprintf(stderr, "%s\n", conn.get_error());

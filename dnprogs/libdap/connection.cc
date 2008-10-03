@@ -1,7 +1,7 @@
 /******************************************************************************
     connection.cc from libdap
 
-    Copyright (C) 1998-1999 Christine Caulfield       christine.caulfield@googlemail.com
+    Copyright (C) 1998-2008 Christine Caulfield       christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public

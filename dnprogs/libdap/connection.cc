@@ -90,6 +90,7 @@ void dap_connection::initialise(int verbosity)
     lasterror   = errstring;
     errstring[0]= '\0';
     closed      = false;
+    connect_timeout = 20;
 
 #ifdef NO_BLOCKING
     blocking_allowed = false; // More useful for debugging
@@ -277,6 +278,10 @@ bool dap_connection::do_connect(const char *node, const char *user,
 	lasterror = errstring;
 	return false;
     }
+
+    // Set connect timeout
+    struct timeval timeout = {connect_timeout, 0};
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
     if (::connect(sockfd, (struct sockaddr *)&s,
 		  sizeof(sockaddr)) < 0)
@@ -543,6 +548,12 @@ void dap_connection::set_blocksize(int bs)
 int dap_connection::get_blocksize()
 {
     return blocksize;
+}
+
+// You (obviously) must call this before connecting
+void dap_connection::set_connect_timeout(int seconds)
+{
+    connect_timeout = seconds;
 }
 
 //

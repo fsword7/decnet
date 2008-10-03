@@ -47,6 +47,7 @@ class dap_connection
     int  get_remote_os() { return remote_os; };
     bool exchange_config();
     void clear_output_buffer();
+    void set_connect_timeout(int seconds);
     
 // Static utility functions
     static void makelower(char *s);
@@ -70,6 +71,7 @@ class dap_connection
     int    last_msg_start;
     int    end_of_msg;
     int    remote_os;
+    int    connect_timeout;
     struct nodeent *binadr;
     
     char *lasterror;

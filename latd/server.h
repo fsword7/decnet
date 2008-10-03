@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2002 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -203,8 +203,8 @@ class LATServer
     class serviceinfo
     {
     public:
-	serviceinfo(std::string n, int r, bool s, std::string i = std::string(""), int mc=0, char* comm="",
-		    uid_t uid=0, gid_t gid=0):
+            serviceinfo(std::string n, int r, bool s, std::string i = std::string((char*)""), int mc=0, char* comm="",
+			uid_t uid=0, gid_t gid=0):
 	    name(n),
 	    id(i),
 	    command(std::string(comm)),
@@ -234,10 +234,10 @@ class LATServer
 	void inc_connections() {cur_connections++;}
 	void dec_connections() {cur_connections--;}
 
-	const bool operator==(serviceinfo &si)  { return (si == name);}
-	const bool operator==(const std::string &nm) { return (nm == name);}
-	const bool operator!=(serviceinfo &si)  { return (si != name);}
-	const bool operator!=(const std::string &nm) { return (nm != name);}
+	bool operator==(serviceinfo &si)  { return (si == name);}
+	bool operator==(const std::string &nm) { return (nm == name);}
+	bool operator!=(serviceinfo &si)  { return (si != name);}
+	bool operator!=(const std::string &nm) { return (nm != name);}
 
     private:
 	std::string name;

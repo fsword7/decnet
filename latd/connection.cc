@@ -331,7 +331,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							   slotcmd->remote_session,
 							   newsessionnum,
 							   (*master_conn)->eightbitclean);
-			    if (newsession->new_session(remnode, "","",
+			    if (newsession->new_session(remnode, (char*)"", (char*)"",
 							credits) == -1)
 			    {
 				newsession->send_disabled_message();
@@ -392,7 +392,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 							   cmd, uid, gid,
 							   slotcmd->remote_session,
 							   newsessionnum, false);
-			    if (newsession->new_session(remnode, "", (char *)portname,
+			    if (newsession->new_session(remnode, (char*)"", (char *)portname,
 							credits) == -1)
 			    {
 				newsession->send_disabled_message();
@@ -1197,7 +1197,7 @@ void LATConnection::got_status(unsigned char *node, LAT_StatusEntry *entry)
 	s->show_status(node, entry);
     }
 
-// TODO: mark this session (connection?) as waiting for connect so 
+// TODO: mark this session (connection?) as waiting for connect so
 // that, if the user quits, we can tell the server. (TODODO: what message ??)
 }
 
@@ -1382,13 +1382,14 @@ int LATConnection::pending_msg::send(int interface, unsigned char *macaddr)
     return LATServer::Instance()->send_message(buf, len, interface, macaddr);
 }
 
-int LATConnection::num_clients()
+unsigned int LATConnection::num_clients()
 {
     unsigned int i;
-    int num = 0;
+    unsigned int num = 0;
 
     for (i=1; i<=highest_session; i++)
-	if (sessions[i]) num++;
+	if (sessions[i])
+		num++;
 
     return num;
 }

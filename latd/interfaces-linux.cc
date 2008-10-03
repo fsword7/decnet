@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2002-2004 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2002-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -152,7 +152,8 @@ int LinuxInterfaces::find_interface(char *name)
     int sock = socket(PF_PACKET, SOCK_RAW, 0);
 
     // Default "1st" interface
-    if (!name) name = "eth0";
+    if (!name)
+	    name = (char *)"eth0";
 
     ifr.ifr_ifindex = iindex;
 

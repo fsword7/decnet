@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2006 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2001-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -334,7 +334,7 @@ static bool open_socket(bool quiet)
     int cmd;
 
     // Send our version
-    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
+    send_msg(latcp_socket, LATCP_VERSION, (char *)VERSION, strlen(VERSION)+1);
     read_reply(latcp_socket, cmd, result, len); // Read version number back
 
     delete[] result;

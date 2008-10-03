@@ -56,7 +56,7 @@ class LATConnection
     int get_connection_id() { return num;}
     void got_status(unsigned char *node, LAT_StatusEntry *entry);
     bool node_is(const char *node) { return strcmp(node, (char *)remnode)==0;}
-    int  num_clients();
+    unsigned int  num_clients();
     const char *get_servicename() { return (const char *)servicename; }
 
  private:

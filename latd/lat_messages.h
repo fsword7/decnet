@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,6 +18,6 @@ class lat_messages
 {
 
  public:
-    static char *session_disconnect_msg(int);
-    static char *connection_disconnect_msg(int);   
+    static const char *session_disconnect_msg(int);
+    static const char *connection_disconnect_msg(int);
 };

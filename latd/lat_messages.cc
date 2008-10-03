@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,7 +14,7 @@
 
 #include "lat_messages.h"
 
-char *lat_messages::session_disconnect_msg(int code)
+const char *lat_messages::session_disconnect_msg(int code)
 {
     switch (code)
     {
@@ -23,7 +23,7 @@ char *lat_messages::session_disconnect_msg(int code)
 	break;
     case 0x1: return "User requested disconnect";
 	break;
-    case 0x2: return "System shutdown in progress";	
+    case 0x2: return "System shutdown in progress";
 	break;
     case 0x3: return "Invalid slot received";
 	break;
@@ -54,7 +54,7 @@ char *lat_messages::session_disconnect_msg(int code)
     }
 }
 
-char *lat_messages::connection_disconnect_msg(int code)
+const char *lat_messages::connection_disconnect_msg(int code)
 {
     switch(code)
     {

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2004 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
     (c) 2003 Dmitri Popov
 
     This program is free software; you can redistribute it and/or modify
@@ -793,19 +793,19 @@ void start_latd(int argc, char *argv[])
     // Otherwise look in some well-known places
     else if (!stat("/usr/sbin/latd", &st))
     {
-	latd_bin = "/usr/sbin/latd";
-	latd_path = "/usr/sbin";
+	    latd_bin = (char *)"/usr/sbin/latd";
+	    latd_path = (char *)"/usr/sbin";
     }
     else if (!stat("/usr/local/sbin/latd", &st))
     {
-	latd_bin = "/usr/local/sbin/latd";
-	latd_path = "/usr/local/sbin";
+	    latd_bin = (char *)"/usr/local/sbin/latd";
+	    latd_path = (char *)"/usr/local/sbin";
     }
 
     // Did we find it?
     if (latd_bin)
     {
-	char *newargv[argc+1];
+        char *newargv[argc+1];
 	char *newenv[4];
 	int   i;
 	char  latcp_bin[PATH_MAX];
@@ -829,8 +829,8 @@ void start_latd(int argc, char *argv[])
 
 	newargv[0] = latd_bin;
 	newargv[1] = NULL;
-	newenv[0] = "PATH=/bin:/usr/bin:/sbin:/usr/sbin";
-	newenv[1] = "LATCP_STARTED=true"; // Tell latd it was started by us.
+	newenv[0] = (char *)"PATH=/bin:/usr/bin:/sbin:/usr/sbin";
+	newenv[1] = (char*)"LATCP_STARTED=true"; // Tell latd it was started by us.
 	newenv[2] = latcp_env;
 	newenv[3] = NULL;
 
@@ -872,8 +872,8 @@ void start_latd(int argc, char *argv[])
 		    switch ( (shell_pid=fork()) )
 		    {
 		    case 0: // Child
-			newargv[0] = "/bin/sh";
-			newargv[1] = "/etc/latd.conf";
+			newargv[0] = (char *)"/bin/sh";
+			newargv[1] = (char *)"/etc/latd.conf";
 			newargv[2] = NULL;
 			execve("/bin/sh", newargv, newenv);
 			perror("exec of /bin/sh failed");
@@ -972,7 +972,7 @@ bool open_socket(bool quiet)
     int cmd;
 
     // Send our version
-    send_msg(latcp_socket, LATCP_VERSION, VERSION, strlen(VERSION)+1);
+    send_msg(latcp_socket, LATCP_VERSION, (char*)VERSION, strlen(VERSION)+1);
 
     if (!read_reply(latcp_socket, cmd, result, len)) // Read version number back
 	delete[] result;

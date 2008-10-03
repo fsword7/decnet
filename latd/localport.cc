@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2004 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2001-2008 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -183,7 +183,7 @@ void LocalPort::disconnect_session(int reason)
     // the PTY
     if (reason >= 1)
     {
-	char *msg = lat_messages::session_disconnect_msg(reason);
+	const char *msg = lat_messages::session_disconnect_msg(reason);
 	write(master_fd, msg, strlen(msg));
 	write(master_fd, "\n", 1);
     }

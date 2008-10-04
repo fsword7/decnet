@@ -74,7 +74,7 @@ static void	dndir_usage(FILE *f)
     fprintf(f, "  -n           don't show header. Useful for shell scripts\n");
     fprintf(f, "  -c           Force single-column output on ttys (default for files)\n");
     fprintf(f, "  -t           Show total bytes/blocks\n");
-    fprintf(f, "  -T <secs>    Set connection timeout (default 20 seconds)\n");
+    fprintf(f, "  -T <secs>    Set connection timeout (default 60 seconds)\n");
     fprintf(f, "  -w <size>    width of multi-column output\n");
     fprintf(f, "  -f <size>    maximum width of filename field\n");
     fprintf(f, "  -? -h        display this help message\n");
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
     int     printed;
     int     just_shown_header = 0;
     int     verbosity = 0;
-    int     connect_timeout = 20;
+    int     connect_timeout = 60;
     unsigned long total = 0;
     unsigned int  filename_width = 18;
 

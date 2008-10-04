@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     int   show_stats = 0;
     int   printfile = 0;
     int   flags = 0;
-    int   connect_timeout = 20;
+    int   connect_timeout = 60;
     char  opt;
     char  protection[255]={'\0'};
     struct timeval start_tv;
@@ -365,7 +365,7 @@ static void usage(char *name, int dntype, FILE *f)
         fprintf(f, "  -l        (r)ignore interlocks on remote file\n");
 	fprintf(f, "  -P        (s)print file to SYS$PRINT\n");
 	fprintf(f, "  -D        (s)delete file on close. Only really useful with -P\n");
-	fprintf(f, "  -T <secs>    connect timeout in seconds (default 20)\n");
+	fprintf(f, "  -T <secs>    connect timeout in seconds (default 60)\n");
         fprintf(f, "  -V           show version number\n");
         fprintf(f, "\n");
         fprintf(f, " (s) - only useful when sending files to VMS\n");

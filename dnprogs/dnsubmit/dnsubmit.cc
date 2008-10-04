@@ -47,7 +47,7 @@ static void usage(FILE *f, bool dnprint)
 
     fprintf(f,"\nOptions:\n");
     fprintf(f,"  -? -h        display this help message\n");
-    fprintf(f,"  -T <secs>    Connect timeout (Default 20)\n");
+    fprintf(f,"  -T <secs>    connect timeout (default 60)\n");
     fprintf(f,"  -v           increase verbosity\n");
     fprintf(f,"  -V           show version number\n");
 
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
     int	    opt,retval;
     int     verbose = 0;
     bool    dnprint = false;
-    int     connect_timeout = 20;
+    int     connect_timeout = 60;
 
     // Work out the command name
     if (strstr(argv[0], "dnprint"))

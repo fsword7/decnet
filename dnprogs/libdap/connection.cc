@@ -90,7 +90,7 @@ void dap_connection::initialise(int verbosity)
     lasterror   = errstring;
     errstring[0]= '\0';
     closed      = false;
-    connect_timeout = 20;
+    connect_timeout = 60;
 
 #ifdef NO_BLOCKING
     blocking_allowed = false; // More useful for debugging

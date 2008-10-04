@@ -113,7 +113,7 @@ static void usage(char *prog, FILE * f)
 	fprintf(f, "  -? -h        display this help message\n");
 	fprintf(f, "  -V           show version number\n");
 	fprintf(f, "  -e <char>    set exit char\n");
-	fprintf(f, "  -T <secs>    Connect timeout (default 20 seconds)\n");
+	fprintf(f, "  -T <secs>    connect timeout (default 60 seconds)\n");
 	fprintf(f, "  -d <mask>    debug information\n");
 
 	fprintf(f, "\n");
@@ -123,7 +123,7 @@ static void usage(char *prog, FILE * f)
 int main(int argc, char *argv[])
 {
 	int opt;
-	int connect_timeout = 20;
+	int connect_timeout = 60;
 
 	// Deal with command-line arguments.
 	opterr = 0;

@@ -32,7 +32,7 @@ static  struct	nodeent		*np;
 static  char			node[20];
 static  int			sockfd;
 static  int                     timeout = 60;
-static  int                     connect_timeout = 20;
+static  int                     connect_timeout = 60;
 
 struct	sockaddr_dn		sockaddr;
 struct	accessdata_dn		accessdata;
@@ -486,7 +486,7 @@ static void usage(FILE *f)
     fprintf(f, "\nOptions:\n");
     fprintf(f, "  -i           Interact with the command procedure\n");
     fprintf(f, "  -t           Timeout (in seconds) for interactive command procedure input\n");
-    fprintf(f, "  -T           Connect timeout (in seconds)\n");
+    fprintf(f, "  -T <secs>    Connect timeout (default 60 seconds)\n");
     fprintf(f, "  -b           Treat received data as binary data\n");
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -V           show version number\n");

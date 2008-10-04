@@ -39,7 +39,7 @@ static void usage(void)
     printf("\nOptions:\n");
     printf("  -i           interactive - prompt before deleting\n");
     printf("  -v           verbose - display files that have been deleted\n");
-    printf("  -T <secs>    connect timeout (default 20)\n");
+    printf("  -T <secs>    connect timeout (default 60)\n");
     printf("  -? -h        display this help message\n");
     printf("  -V           show version number\n");
 
@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
     bool    interactive = false;
     int     verbose = 0;
     int     two_links = 0;
-    int     connect_timeout = 20;
+    int     connect_timeout = 60;
 
     if (argc < 2)
     {

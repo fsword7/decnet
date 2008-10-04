@@ -1,5 +1,6 @@
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat          emserrat@geocities.com
+    (c) 2008 Christine Caulfield       christine.caulfield@googlemail.com
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -161,6 +162,7 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 	char hname[DN_MAXNODEL + 1];
 	struct accessdata_dn access;
 	int s;
+	struct timeval timeout = {60, 0};
 
 	errno = EINVAL;
 	if (!host || !objname)
@@ -228,6 +230,8 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 		if (setsockopt(s, DNPROTO_NSP, DSO_CONDATA, opt_out, opt_outl) < 0)
 			goto out_err;
 	}
+
+	setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
 	if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) < 0)
 		goto out_err;

@@ -14,6 +14,7 @@
     GNU General Public License for more details.
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -21,6 +22,8 @@
 
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
+
+#define DNETD_FILE SYSCONF_PREFIX "/etc/dnetd.conf"
 
 static char * _dnet_objhinum_string   = NULL;
 static int    _dnet_objhinum_handling = DNOBJHINUM_ERROR;
@@ -195,12 +198,70 @@ char * getobjectbynumber_static(int num) {
  return NULL;
 }
 
+int getobjectbyname_dnetd(char * name) {
+ FILE * dnd;
+ int    found = -1;
+ int    ret;
+ int    curr;
+ char   line[1024], cname[16], rest[1024];
+
+ cname[15] = 0; // work around bugy *scanf()s
+
+ if ( (dnd = fopen(DNETD_FILE, "r")) == NULL ) {
+  return -1;
+ }
+
+ while (fgets(line, 1024, dnd) != NULL) {
+  if ( sscanf(line, "%15s %i %1024s\n", cname, &curr, rest) == 3 ) {
+   if ( *cname != '#' && strcasecmp(name, cname) == 0 ) {
+    found = curr;
+    break;
+   }
+  }
+ }
+
+ fclose(dnd);
+
+ if ( found == -1 )
+  errno = ENOENT;
+
+ return found;
+}
+
+char * getobjectbynumber_dnetd(int num) {
+ FILE * dnd;
+ int    curr;
+ static char   cname[16]; // this is not thread safe
+ char   line[1024], rest[1024];
+
+ cname[15] = 0; // work around bugy *scanf()s
+
+ if ( (dnd = fopen(DNETD_FILE, "r")) == NULL ) {
+  return NULL;
+ }
+
+ while (fgets(line, 1024, dnd) != NULL) {
+  if ( sscanf(line, "%15s %i %1024s\n", cname, &curr, rest) == 3 ) {
+   if ( *cname != '#' && num == curr ) {
+    fclose(dnd);
+    return cname;
+   }
+  }
+ }
+
+ fclose(dnd);
+
+ errno = ENOENT;
+ return NULL;
+}
+
 int getobjectbyname(char * name) {
  int num;
  int old_errno = errno;
 
  if ( (num = getobjectbyname_nis(name)) == -1 )
-  num = getobjectbyname_static(name);
+  if ( (num = getobjectbyname_dnetd(name)) == -1 )
+   num = getobjectbyname_static(name);
 
  if ( num != -1 )
   errno = old_errno;
@@ -223,7 +284,8 @@ int getobjectbynumber(int number, char * name, size_t name_len) {
  }
 
  if ( (rname = getobjectbynumber_nis(number)) == NULL )
-  rname = getobjectbynumber_static(number);
+  if ( (rname = getobjectbynumber_dnetd(number)) == NULL )
+   rname = getobjectbynumber_static(number);
 
  if ( rname == NULL ) {
   errno = ENOENT;

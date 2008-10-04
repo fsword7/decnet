@@ -53,7 +53,7 @@ void task_server(int newsock, int verbosity, int secure)
     char tryname[PATH_MAX];
     char *taskdir;
     struct stat st;
-    int len = sizeof(sockaddr);
+    socklen_t len = sizeof(sockaddr);
     int i;
 
     /* Get the object that was wanted */
@@ -61,7 +61,7 @@ void task_server(int newsock, int verbosity, int secure)
     if (sockaddr.sdn_objnamel)
     {
 
-	strncpy(name,sockaddr.sdn_objname, dn_ntohs(sockaddr.sdn_objnamel));
+	strncpy(name, (char*)sockaddr.sdn_objname, dn_ntohs(sockaddr.sdn_objnamel));
 	name[dn_ntohs(sockaddr.sdn_objnamel)] = '\0';
     }
     else

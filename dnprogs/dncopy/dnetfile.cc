@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2002 Christine Caulfield               christine.caulfield@googlemail.com
+    (c) 1998-2008 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ void dnetfile::set_protection(char *vmsprot)
 	protection = vmsprot;
 }
 
-int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags)
+int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags, int timeout)
 {
 // If there was a parse error in the file name then fail here
     if (lasterror)
@@ -91,6 +91,7 @@ int dnetfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, 
 	return -1;
     }
 
+    conn.set_connect_timeout(timeout);
 
     strcpy(user, (char *)accessdata.acc_user);
     strcpy(password, (char *)accessdata.acc_pass);

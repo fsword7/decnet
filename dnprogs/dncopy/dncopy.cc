@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2005 Christine Caulfield               christine.caulfield@googlemail.com
+    (c) 1998-2008 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ static void get_env_as_args(char **argv[], int &argc, char *env);
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose, 
-		       int &flags, char *protection);
+		       int &remove_cr, int &show_stats, int &verbose,
+		       int &flags, char *protection, int &connect_timeout);
 
 // Start here:
 int main(int argc, char *argv[])
@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
     int   show_stats = 0;
     int   printfile = 0;
     int   flags = 0;
+    int   connect_timeout = 20;
     char  opt;
     char  protection[255]={'\0'};
     struct timeval start_tv;
@@ -87,14 +88,14 @@ int main(int argc, char *argv[])
 	do_options(env_argc, env_argv,
 		   rfm, rat,org,
 		   interactive, keep_version, user_bufsize,
-		   remove_cr, show_stats, verbose, flags, protection);
+		   remove_cr, show_stats, verbose, flags, protection, connect_timeout);
 
 
 // Parse the command-line options
     do_options(argc, argv,
 	       rfm, rat,org,
 	       interactive, keep_version, user_bufsize,
-	       remove_cr, show_stats, verbose, flags, protection);
+	       remove_cr, show_stats, verbose, flags, protection, connect_timeout);
 
     // Work out the buffer size. The default for block transfers is 512
     // bytes unless the user specified otherwise.
@@ -155,7 +156,7 @@ int main(int argc, char *argv[])
     }
 
     // Set up the network links if necessary
-    if (out->setup_link(bufsize, rfm, rat, org, flags))
+    if (out->setup_link(bufsize, rfm, rat, org, flags, connect_timeout))
     {
 	out->perror("Error setting up output link");
 	return 1;
@@ -180,7 +181,7 @@ int main(int argc, char *argv[])
 	    }
 	}
 
-	if (in->setup_link(bufsize, rfm, rat, org, flags))
+	if (in->setup_link(bufsize, rfm, rat, org, flags, connect_timeout))
 	{
 	    in->perror("Error setting up input link");
 	    return 1;
@@ -364,6 +365,7 @@ static void usage(char *name, int dntype, FILE *f)
         fprintf(f, "  -l        (r)ignore interlocks on remote file\n");
 	fprintf(f, "  -P        (s)print file to SYS$PRINT\n");
 	fprintf(f, "  -D        (s)delete file on close. Only really useful with -P\n");
+	fprintf(f, "  -T <secs>    connect timeout in seconds (default 20)\n");
         fprintf(f, "  -V           show version number\n");
         fprintf(f, "\n");
         fprintf(f, " (s) - only useful when sending files to VMS\n");
@@ -444,13 +446,13 @@ static void get_env_as_args(char **argv[], int &argc, char *env)
 static void do_options(int argc, char *argv[],
 		       int &rfm, int &rat, int &org,
 		       int &interactive, int &keep_version, int &user_bufsize,
-		       int &remove_cr, int &show_stats, int &verbose, 
-		       int &flags, char *protection)
+		       int &remove_cr, int &show_stats, int &verbose,
+		       int &flags, char *protection, int &connect_timeout)
 {
     int opt;
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:PDE")) != EOF)
+    while ((opt=getopt(argc,argv,"?Vvhdr:a:b:kislm:p:PDET:")) != EOF)
     {
 	switch(opt) {
 	case 'h':
@@ -471,6 +473,10 @@ static void do_options(int argc, char *argv[],
 
 	case 'E':
 	    cont_on_error = true;
+	    break;
+
+	case 'T':
+	    connect_timeout = atoi(optarg);
 	    break;
 
 	case 'r':

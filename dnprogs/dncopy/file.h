@@ -17,7 +17,7 @@ class file
     file();
     virtual ~file() {};
 
-    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags) = 0;
+    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags, int timeout) = 0;
     virtual int   open(const char *mode) = 0;
     virtual int   open(const char *basename, const char *mode) = 0;
     virtual int   close() = 0;

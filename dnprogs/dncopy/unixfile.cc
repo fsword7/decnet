@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2003 Christine Caulfield               christine.caulfield@googlemail.com
+    (c) 1998-2008 Christine Caulfield               christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -171,7 +171,7 @@ bool unixfile::isdirectory()
     return S_ISDIR(s.st_mode);
 }
 
-int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags)
+int unixfile::setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags, int timeout)
 {
 // Save these for later
     user_rfm = rfm;

@@ -6,8 +6,8 @@ class unixfile: public file
     unixfile();
     ~unixfile();
 
-    virtual int setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags);
-    
+    virtual int setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags, int timeout);
+
     virtual int   open(const char *mode);
     virtual int   open(const char *basename, const char *mode);
     virtual int   close();
@@ -24,7 +24,7 @@ class unixfile: public file
     virtual bool  eof();
     virtual bool  isdirectory();
     virtual bool  iswildcard();
-    virtual int   max_buffersize(int biggest);    
+    virtual int   max_buffersize(int biggest);
 
  protected:
     char   filename[MAX_PATH+1];

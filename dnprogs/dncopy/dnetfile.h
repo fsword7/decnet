@@ -12,7 +12,7 @@ public:
     ~dnetfile();
 
 // Stuff overriden from file.
-    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags);
+    virtual int   setup_link(unsigned int bufsize, int rfm, int rat, int xfer_mode, int flags, int timeout);
     virtual int   open(const char *mode);
     virtual int   open(const char *basename, const char *mode);
     virtual int   close();

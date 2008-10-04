@@ -281,7 +281,7 @@ static void do_answer(int reject)
     int  in_fd;
     int  out_fd;
     struct sockaddr_dn out_sockaddr;
-    int  len_out_sockaddr = sizeof(struct sockaddr_dn);
+    unsigned int  len_out_sockaddr = sizeof(struct sockaddr_dn);
     int  len;
     int  i;
     int  found=FALSE;

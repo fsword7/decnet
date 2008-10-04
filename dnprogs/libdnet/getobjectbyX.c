@@ -40,8 +40,8 @@ struct {
  { 23, "REMACP"}, // alias! (nml.c)
  { 25, "MIRROR"},
  { 26, "EVR"   },
- { 27, "MAIL"  },
- { 27, "MAIL11"}, // alias!
+ { 27, "MAIL11"},
+ { 27, "MAIL"  }, // alias!
  { 29, "PHONE" },
  { 42, "CTERM" },
  { 51, "VPM"   },

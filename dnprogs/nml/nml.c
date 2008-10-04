@@ -572,7 +572,16 @@ static int load_dnetd_conf(void)
 		break;
 	    case 2:
 		strcpy(tmpbuf, bufp);
-		newobj->number = atoi(tmpbuf);
+		if ( strcmp(tmpbuf, "*") == 0 ) {
+		    if ( strcmp(newobj->name, "*") == 0 ) {
+			newobj->number = 0;
+		    } else {
+			newobj->number = getobjectbyname(newobj->name);
+		    }
+		} else {
+		    newobj->number = atoi(tmpbuf);
+		}
+
 		break;
 	    case 3:
 		strcpy(tmpbuf, bufp);

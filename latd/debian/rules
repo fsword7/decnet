@@ -15,7 +15,7 @@ clean:
 	-rm -f build
 	-make clean
 	-rm -f `find . -name "*~"`
-	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ` debian/files* core
+	-rm -rf debian/latd `find debian/* -type d ! -name CVS ` debian/files* core
 	-rm -f debian/*substvars
 	-rm -rf BUILD RPMS .deps
 	-rm -f config.status
@@ -29,17 +29,17 @@ binary-indep: checkroot build
 
 binary-arch: checkroot build
 	$(checkdir)
-	install -d debian/tmp/etc
-	install -d debian/tmp/usr/share
-	make install DESTDIR=`pwd`/debian/tmp
-	mv debian/tmp/etc/latd.conf.sample debian/tmp/etc/latd.conf
+	install -d debian/latd/etc
+	install -d debian/latd/usr/share
+	make install DESTDIR=`pwd`/debian/latd
+	cp latd.conf.sample debian/latd/etc/latd.conf
 	dh_installdirs
 	dh_installchangelogs
 	dh_installdocs
 	dh_link
 	dh_installinit
 	dh_strip
-	dh_movefiles
+	dh_movefiles -platd --sourcedir=debian/latd
 	dh_compress
 	dh_fixperms
 	dh_shlibdeps

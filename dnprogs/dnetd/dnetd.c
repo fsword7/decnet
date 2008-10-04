@@ -265,19 +265,14 @@ int main(int argc, char *argv[])
 	}
 
 	// Choose a numbered object
-	switch (sockaddr.sdn_objnum)
-	{
-	case DNOBJECT_MIRROR:
+	if ( sockaddr.sdn_objnum == getobjectbyname("MIRROR") ) {
 	    if (verbosity >1)
 		DNETLOG((LOG_INFO, "Doing mirror\n"));
 	    mirror(fd);
-	    break;
-
-	default:
+	} else {
 	    DNETLOG((LOG_ERR, "Don't know how to handle object %d\n",
 		    sockaddr.sdn_objnum));
 	    dnet_reject(fd, DNSTAT_OBJECT, NULL, 0);
-	    break;
 	}
     }
     return 0;

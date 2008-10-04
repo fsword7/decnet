@@ -715,7 +715,7 @@ int dial_remote(char *remuser)
     if (isdigit(node[0]))
     {
 	struct nodeent *np2;
-	if ( (np2=getnodebyaddr(np->n_addr, 2, AF_DECnet)) != NULL)
+	if ( (np2=getnodebyaddr((char*)np->n_addr, 2, AF_DECnet)) != NULL)
 	{
 	    strcpy(node, np2->n_name);
 	}

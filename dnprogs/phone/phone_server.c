@@ -395,7 +395,7 @@ void accept_decnet(int entry)
 {
     int newsock;
     struct sockaddr_dn sockaddr;
-    int len=sizeof(sockaddr);
+    socklen_t len=sizeof(sockaddr);
     
     if ( (newsock=accept(fdarray[entry].fd, (struct sockaddr *)&sockaddr, &len)) < 0)
     {
@@ -412,7 +412,7 @@ void accept_unix(int entry)
 {
     int newsock;
     struct sockaddr_un sockaddr;
-    int len=sizeof(sockaddr);
+    socklen_t len=sizeof(sockaddr);
     
     if ( (newsock=accept(fdarray[entry].fd, (struct sockaddr *)&sockaddr, &len)) < 0)
     {

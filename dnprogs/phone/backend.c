@@ -657,6 +657,7 @@ int dial_remote(char *remuser)
     int    i,len;
     struct nodeent      *np;
     struct sockaddr_dn   sockaddr;
+    struct timeval timeout = {60, 0};
 
     colons = strstr(remuser, "::");
     if (!colons || strlen(colons) < 3)
@@ -695,6 +696,8 @@ int dial_remote(char *remuser)
     sockaddr.sdn_objnamel  = 0x00;
     sockaddr.sdn_add.a_len = 0x02;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
+
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
     if (connect(sockfd, (struct sockaddr *)&sockaddr,
 		sizeof(sockaddr)) < 0)
@@ -852,6 +855,7 @@ static void do_directory(char *node)
     int    i,len, status;
     struct nodeent      *np;
     struct sockaddr_dn   sockaddr;
+    struct timeval timeout = {60, 0};
 
     // colons are optional but we don't want them
     colon = strstr(node, ":");
@@ -876,6 +880,8 @@ static void do_directory(char *node)
     sockaddr.sdn_objnamel  = 0x00;
     sockaddr.sdn_add.a_len = 0x02;
     memcpy(sockaddr.sdn_add.a_addr, np->n_addr,2);
+
+    setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 
     if (connect(sockfd, (struct sockaddr *)&sockaddr,
 		sizeof(sockaddr)) < 0)

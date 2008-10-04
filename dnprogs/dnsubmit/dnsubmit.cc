@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1998-1999      Christine Caulfield          christine.caulfield@googlemail.com
-    
+    (c) 1998-2008      Christine Caulfield          christine.caulfield@googlemail.com
+
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
@@ -47,9 +47,10 @@ static void usage(FILE *f, bool dnprint)
 
     fprintf(f,"\nOptions:\n");
     fprintf(f,"  -? -h        display this help message\n");
+    fprintf(f,"  -T <secs>    Connect timeout (Default 20)\n");
     fprintf(f,"  -v           increase verbosity\n");
     fprintf(f,"  -V           show version number\n");
-			    
+
     fprintf(f,"\nExample:\n\n");
     if (dnprint)
     {
@@ -124,13 +125,14 @@ int main(int argc, char *argv[])
     int	    opt,retval;
     int     verbose = 0;
     bool    dnprint = false;
+    int     connect_timeout = 20;
 
     // Work out the command name
     if (strstr(argv[0], "dnprint"))
     {
 	dnprint = true;
     }
-    
+
     if (argc < 2)
     {
 	usage(stderr, dnprint);
@@ -140,20 +142,24 @@ int main(int argc, char *argv[])
 /* Get command-line options */
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hvV")) != EOF)
+    while ((opt=getopt(argc,argv,"?hvVT:")) != EOF)
     {
 	switch(opt)
 	{
-	case 'h': 
+	case 'h':
 	    usage(stdout, dnprint);
 	    exit(1);
-	    
+
 	case '?':
 	    usage(stderr, dnprint);
 	    exit(1);
 
 	case 'v':
 	    verbose++;
+	    break;
+
+	case 'T':
+	    connect_timeout = atoi(optarg);
 	    break;
 
 	case 'V':
@@ -165,12 +171,14 @@ int main(int argc, char *argv[])
     if (optind >= argc)
     {
 	usage(stderr, dnprint);
-	exit(2);   
+	exit(2);
     }
 
     init_logging("dnsubmit", 'e', false);
-	
+
     dap_connection conn(verbose);
+    conn.set_connect_timeout(connect_timeout);
+
     char dirname[256] = {'\0'};
     if (!conn.connect(argv[optind], dap_connection::FAL_OBJECT, dirname))
     {
@@ -205,7 +213,7 @@ int main(int argc, char *argv[])
 
 	retval = read_reply(conn);
     }
-    
+
     conn.close();
     return 0;
 }

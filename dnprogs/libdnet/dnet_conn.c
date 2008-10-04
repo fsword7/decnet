@@ -108,7 +108,7 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 		int len = strlen(uname);
 
 		if (len <= DN_MAXOBJL) {
-			strncpy(sdn->sdn_objname, uname, len);
+			strncpy((char*)sdn->sdn_objname, uname, len);
 			sdn->sdn_objnamel = dn_htons(len);
 			return 0;
 		}
@@ -118,9 +118,9 @@ static int set_object_proxy(struct sockaddr_dn *sdn)
 	 * So if we can't have a user name, we turn the UID into ascii
 	 * and use that instead.
 	 */
-	sprintf(sdn->sdn_objname, "%d", uid);
+	sprintf((char*)sdn->sdn_objname, "%d", uid);
 	sdn->sdn_objnum = 0;
-	sdn->sdn_objnamel = dn_htons(strlen(sdn->sdn_objname));
+	sdn->sdn_objnamel = dn_htons(strlen((char*)sdn->sdn_objname));
 	return 0;
 }
 
@@ -136,7 +136,7 @@ static int set_object_name(struct sockaddr_dn *sdn, char *name)
 	len = strlen(name);
 	if (len > DN_MAXOBJL)
 		return -1;
-	strncpy(sdn->sdn_objname, name, len);
+	strncpy((char*)sdn->sdn_objname, name, len);
 	sdn->sdn_objnamel = dn_htons(len);
 	return 0;
 }
@@ -237,7 +237,7 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 		goto out_err;
 
 	if (opt_in && opt_inl) {
-		if (getsockopt(s, DNPROTO_NSP, DSO_CONDATA, opt_in, opt_inl) < 0)
+		if (getsockopt(s, DNPROTO_NSP, DSO_CONDATA, opt_in, (socklen_t*)opt_inl) < 0)
 			goto out_err;
 	}
 

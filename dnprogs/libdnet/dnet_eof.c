@@ -11,7 +11,7 @@ int dnet_eof(int s)
 {
 #ifdef DSO_LINKINFO
     struct linkinfo_dn li;
-    int len=4;
+    socklen_t len=4;
 
     if (getsockopt(s, DNPROTO_NSP, DSO_LINKINFO, &li, &len) == -1)
 	return -1;

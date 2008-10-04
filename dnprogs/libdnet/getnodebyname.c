@@ -93,9 +93,9 @@ struct nodeent *getnodebyname(const char *name)
 	    static struct dn_naddr addr;
 	    addr.a_addr[0] = n & 0xFF;
 	    addr.a_addr[1] = (a << 2) | ((n & 0x300) >> 8);
-	    dp.n_addr = (char *)&addr.a_addr;
+	    dp.n_addr = (unsigned char *)&addr.a_addr;
 	    dp.n_length=2;
-	    dp.n_name=(unsigned char *)name;  /* No point looking this up for a real name */
+	    dp.n_name=(char *)name;  /* No point looking this up for a real name */
 	    dp.n_addrtype=AF_DECnet;
 
 	    return &dp;

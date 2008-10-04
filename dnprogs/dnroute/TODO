@@ -1,2 +1,0 @@
-- Check outgoing routing messages are still correct
-- Cope with the node having more than one address (needs libdnet support!)

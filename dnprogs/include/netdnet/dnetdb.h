@@ -61,15 +61,15 @@ extern void  dnetlog(int level, char *fmt, ...);
 /*
  * Define DECnet object numerically.
  */
-#define DNOBJECT_FAL	17	/* file access listener */
-#define DNOBJECT_NICE	19	/* NICE */
-#define DNOBJECT_DTERM	23	/* DECnet remote terminals */
-#define DNOBJECT_MIRROR	25	/* DECnet mirror */
-#define DNOBJECT_EVR	26	/* DECnet event receiver */
-#define DNOBJECT_MAIL11	27	/* mail service */
-#define DNOBJECT_PHONE	29	/* DECnet phone utility */
-#define DNOBJECT_CTERM	42	/* DECnet command terminals */
-#define DNOBJECT_DTR	63	/* DECnet test receiver */
+#define DNOBJECT_FAL	(getobjectbyname("FAL"))	/* file access listener */
+#define DNOBJECT_NICE	(getobjectbyname("NICE"))	/* NICE */
+#define DNOBJECT_DTERM	(getobjectbyname("DTERM"))	/* DECnet remote terminals */
+#define DNOBJECT_MIRROR	(getobjectbyname("MIRROR"))	/* DECnet mirror */
+#define DNOBJECT_EVR	(getobjectbyname("EVR"))	/* DECnet event receiver */
+#define DNOBJECT_MAIL11	(getobjectbyname("MAIL11"))	/* mail service */
+#define DNOBJECT_PHONE	(getobjectbyname("PHONE"))	/* DECnet phone utility */
+#define DNOBJECT_CTERM	(getobjectbyname("CTERM"))	/* DECnet command terminals */
+#define DNOBJECT_DTR	(getobjectbyname("DTR"))	/* DECnet test receiver */
 
 /* Config for dnet_checkobjectnumber()/getobjectbyname()/getobjectbynumber() */
 #define DNOBJ_SEARCH_ENV "DECNET_OBJPROTO"

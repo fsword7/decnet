@@ -33,15 +33,18 @@ struct {
  char * name;
 } _dnet_objdb[] = {
  { 17, "FAL"   },
+ { 18, "HLD"   },
  { 19, "NML"   },
  { 19, "NICE"  }, // alias!
  { 23, "DTERM" },
+ { 23, "REMACP"}, // alias! (nml.c)
  { 25, "MIRROR"},
  { 26, "EVR"   },
  { 27, "MAIL"  },
  { 27, "MAIL11"}, // alias!
  { 29, "PHONE" },
  { 42, "CTERM" },
+ { 51, "VPM"   },
  { 63, "DTR"   },
  { -1, NULL}      // END OF LIST
 };

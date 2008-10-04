@@ -770,7 +770,7 @@ bool bind_name(int sockfd, char *object)
     bind_sockaddr.sdn_flags	= 0;
     bind_sockaddr.sdn_objnum	= 0;
     bind_sockaddr.sdn_objnamel	= dn_htons(strlen(object));
-    strcpy(bind_sockaddr.sdn_objname, object);
+    strcpy((char *)bind_sockaddr.sdn_objname, object);
 
     status = bind(sockfd,  (struct sockaddr *)&bind_sockaddr,
 			sizeof(bind_sockaddr));

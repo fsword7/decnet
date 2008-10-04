@@ -3,6 +3,7 @@ latd (1.28) unstable; urgency=low
   * Fix a typing delay bug.
   * Get rid of some compile-time warnings.
   * Fix a missing header with newer compilers
+  * Fix debian build so it works with DH_COMPAT=5
 
  -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sat, 04 Oct 2008 13:04:51 +0100
 

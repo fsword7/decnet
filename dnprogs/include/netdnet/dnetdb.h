@@ -27,6 +27,7 @@ extern  struct  dn_naddr *getnodeadd(void);
 extern  struct  nodeent  *getnodebyaddr(const char *addr, int len, int type);
 extern  struct  nodeent  *getnodebyname(const char *name);
 
+extern  int               dnet_setobjhinum_handling(int handling, int min);
 extern  int               getobjectbyname(char * name);
 extern  int               getobjectbynumber(int number, char * name, size_t name_len);
 extern  int               dnet_checkobjectnumber(int num);
@@ -77,9 +78,10 @@ extern void  dnetlog(int level, char *fmt, ...);
 #define DNOBJ_HINUM_ENV "DECNET_OBJHINUM"
 #define DNOBJ_HINUM_DEF "error"
 
+#define DNOBJHINUM_RESET          -128
 #define DNOBJHINUM_ERROR          -1
-#define DNOBJHINUM_ZERO            0
-#define DNOBJHINUM_RETURN          1
+#define DNOBJHINUM_RETURN          0
+#define DNOBJHINUM_ZERO            1
 #define DNOBJHINUM_ALWAYSZERO      2
 
 /* Connect/Reject codes. These are my symbolic names, not DEC's */

@@ -43,6 +43,24 @@ struct {
  { -1, NULL}      // END OF LIST
 };
 
+int dnet_setobjhinum_handling (int handling, int min) {
+ if ( handling == DNOBJHINUM_RESET ) {
+  _dnet_objhinum_string = NULL;
+  dnet_checkobjectnumber(256);
+  return 0;
+ }
+
+ if ( min ) {
+  dnet_checkobjectnumber(256);
+  if ( _dnet_objhinum_handling > handling )
+   return 1;
+ }
+
+ _dnet_objhinum_handling = handling;
+
+ return 0;
+}
+
 int dnet_checkobjectnumber (int num) {
 
  if ( _dnet_objhinum_string == NULL ) {
@@ -53,13 +71,13 @@ int dnet_checkobjectnumber (int num) {
    _dnet_objhinum_string = DNOBJ_HINUM_DEF;
 
   if ( !strcasecmp(_dnet_objhinum_string, "error") ) {
-   _dnet_objhinum_handling = DNOBJHINUM_ERROR; // error case
+   dnet_setobjhinum_handling(DNOBJHINUM_ERROR, 0); // error case
   } else if ( !strcasecmp(_dnet_objhinum_string, "zero") ) {
-   _dnet_objhinum_handling = DNOBJHINUM_ZERO; // return as object number 0
+   dnet_setobjhinum_handling(DNOBJHINUM_ZERO, 0); // return as object number 0
   } else if ( !strcasecmp(_dnet_objhinum_string, "return") ) {
-   _dnet_objhinum_handling = DNOBJHINUM_RETURN; // return as object number unchanged
+   dnet_setobjhinum_handling(DNOBJHINUM_RETURN, 0); // return as object number unchanged
   } else if ( !strcasecmp(_dnet_objhinum_string, "alwayszero") ) {
-   _dnet_objhinum_handling = DNOBJHINUM_ALWAYSZERO; // specal case to prevent app from using numbered objects
+   dnet_setobjhinum_handling(DNOBJHINUM_ALWAYSZERO, 0); // specal case to prevent app from using numbered objects
   }
  }
 

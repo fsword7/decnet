@@ -1,6 +1,6 @@
 /******************************************************************************
-    (c) 1998      Christine Caulfield          christine.caulfield@googlemail.com
-                  K.   Humborg            kenn@avalon.wombat.ie
+    (c) 1998,2008   Christine Caulfield     christine.caulfield@googlemail.com
+                    K.   Humborg            kenn@avalon.wombat.ie
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ static  struct	nodeent		*np;
 static  char			node[20];
 static  int			sockfd;
 static  int                     timeout = 60;
+static  int                     connect_timeout = 20;
 
 struct	sockaddr_dn		sockaddr;
 struct	accessdata_dn		accessdata;
@@ -159,6 +160,8 @@ void print_output(void)
  */
 int setup_link(void)
 {
+    struct timeval timeout = {connect_timeout,0};
+
     if ( (np=getnodebyname(node)) == NULL)
     {
 	printf("Unknown node name %s\n",node);
@@ -183,6 +186,9 @@ int setup_link(void)
     {
 	strcpy(filename, "TASK");
     }
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)))
+	    perror("Error setting snd timeout");
 
     // Provide access control and proxy information
     if (setsockopt(sockfd,DNPROTO_NSP,SO_CONACCESS,&accessdata,
@@ -234,7 +240,7 @@ int main(int argc, char *argv[])
 /* Get command-line options */
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hVibt:")) != EOF)
+    while ((opt=getopt(argc,argv,"?hVibt:T:")) != EOF)
     {
 	switch(opt)
 	{
@@ -252,6 +258,10 @@ int main(int argc, char *argv[])
 
 	case 't':
 	    timeout = atoi(optarg);
+	    break;
+
+	case 'T':
+	    connect_timeout = atoi(optarg);
 	    break;
 
 	case 'V':
@@ -476,6 +486,7 @@ static void usage(FILE *f)
     fprintf(f, "\nOptions:\n");
     fprintf(f, "  -i           Interact with the command procedure\n");
     fprintf(f, "  -t           Timeout (in seconds) for interactive command procedure input\n");
+    fprintf(f, "  -T           Connect timeout (in seconds)\n");
     fprintf(f, "  -b           Treat received data as binary data\n");
     fprintf(f, "  -? -h        display this help message\n");
     fprintf(f, "  -V           show version number\n");
@@ -494,7 +505,7 @@ static char *connerror(int sockfd)
     unsigned int len = sizeof(optdata);
     char *msg;
 
-    if (getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
+    if (errno == ETIMEDOUT || getsockopt(sockfd, DNPROTO_NSP, DSO_DISDATA,
 		   &optdata, &len) == -1)
     {
 	return strerror(errno);

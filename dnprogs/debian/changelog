@@ -14,7 +14,7 @@ dnprogs (2.48) unstable; urgency=low
   * dnroute -n now doesn't send routing messages
   * dnroute now honours SYSCONF_PREFIX for dnroute.conf
   * dnetinfo no longer shows the local area as under manual control
-  * Add connect timeout to libdap and dnlogin
+  * Add connect timeout to most programs
 
 dnprogs (2.47) unstable; urgency=low
 

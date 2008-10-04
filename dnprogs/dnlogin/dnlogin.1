@@ -32,6 +32,10 @@ control character by preceding it with a circumflex eg (^A means control-A) or a
 a number in decimal (default), octal (starting with a zero), or hexadecimal (preceded
 by 0x or 0X).
 .TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
 .I \-h \-?
 Displays help for using the command.
 .TP

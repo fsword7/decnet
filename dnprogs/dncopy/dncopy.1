@@ -160,6 +160,10 @@ Delete the file when it is closed. This is only really useful in conjunction
 with 
 .I -P.
 .TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
 .I \-E
 Ignore errors opening output files. This is handy if you are sending a lot
 of Unix files to VMS, some of which have illegal filenames (eg ~ backup files).

@@ -60,6 +60,10 @@ Long format - shows all of the above (including the file size in bytes)
 Show the total number of blocks in all the files listed. Note that this works even
 if you did not ask for the size to be displayed.
 .TP
+.I "\-T connect timeout"
+Specifies the maximum amount of time the command will wait to establish a connection
+with the remote node. a 0 here will cause it to wait forever. The default is 60 seconds
+.TP
 .I "\-e"
 Show (nearly) everything about the file. Like DIR/FULL
 .TP

@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-1999      Christine Caulfield          christine.caulfield@googlemail.com
+    (c) 1998-2008      Christine Caulfield          christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ static void usage(void)
     printf("\nOptions:\n");
     printf("  -i           interactive - prompt before deleting\n");
     printf("  -v           verbose - display files that have been deleted\n");
+    printf("  -T <secs>    connect timeout (default 20)\n");
     printf("  -? -h        display this help message\n");
     printf("  -V           show version number\n");
 
@@ -222,7 +223,7 @@ int main(int argc, char *argv[])
     bool    interactive = false;
     int     verbose = 0;
     int     two_links = 0;
-
+    int     connect_timeout = 20;
 
     if (argc < 2)
     {
@@ -233,7 +234,7 @@ int main(int argc, char *argv[])
 /* Get command-line options */
     opterr = 0;
     optind = 0;
-    while ((opt=getopt(argc,argv,"?hvVi")) != EOF)
+    while ((opt=getopt(argc,argv,"?hvViT:")) != EOF)
     {
 	switch(opt)
 	{
@@ -245,6 +246,10 @@ int main(int argc, char *argv[])
 	case 'i':
 	    interactive = true;
 	    two_links++;
+	    break;
+
+	case 'T':
+	    connect_timeout = atoi(optarg);
 	    break;
 
 	case 'v':
@@ -262,6 +267,9 @@ int main(int argc, char *argv[])
 
     dap_connection dir_conn(verbose);
     dap_connection del_conn(verbose);
+
+    dir_conn.set_connect_timeout(connect_timeout);
+    del_conn.set_connect_timeout(connect_timeout);
 
     /* We open one link to get the file names and (if interactive or verbose)
        another to do the actual deletion.

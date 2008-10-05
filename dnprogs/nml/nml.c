@@ -96,27 +96,6 @@ static void makeupper(char *s)
 	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
 }
 
-/* Convert an object number to text */
-char * object_name(char *number) {
-	int objnum = atoi(number);
-
-	switch(objnum) {
-	case 17: return "FAL";
-	case 18: return "HLD";
-	case 19: return "NML";
-	case 23: return "REMACP";
-	case 25: return "MIRROR";
-	case 26: return "EVL";
-	case 27: return "MAIL";
-	case 29: return "PHONE";
-	case 42: return "CTERM";
-	case 51: return "VPM";
-	case 63: return "DTR";
-	default:
-		return number;
-	}
-}
-
 static int adjacent_node(struct nodeent *n)
 {
     int i;
@@ -636,8 +615,8 @@ static int send_objects(int sock)
 
 	if (load_dnetd_conf()) {
 		buf[0] = -3; // Privilege violation
-		buf[1] = 0;
-		buf[2] = 0;
+		buf[1] = 0; // Privilege violation
+		buf[2] = 0; // Privilege violation
 		write(sock, buf, 3);
 		return -1;
 	}
@@ -730,9 +709,10 @@ static int send_links(int sock)
 			int llink, rlink;
 			unsigned char scratch_na[2];
 			struct nodeent *nent;
+			int objnum;
 
-			/* We're only interested in the remote node addre here, but want both
-			   link numbers */
+			/* We're only interested in the remote node address here
+		           but want both link numbers */
 			sscanf(var1, "%d.%d/%x\n", &area, &node, &llink);
 			sscanf(var6, "%d.%d/%x\n", &area, &node, &rlink);
 
@@ -747,12 +727,15 @@ static int send_links(int sock)
 			scratch_na[0] = node & 0xFF;
 			nent = getnodebyaddr((char *)scratch_na, 2, AF_DECnet);
 
-			/* we don't really show users as such for remote connectionsm,
-			   sho make the object numbers look friendlier */
-			if (atoi(luser))
-				strcpy(luser, object_name(luser));
-			if (atoi(ruser))
-				strcpy(ruser, object_name(ruser));
+			/* We don't really show users as such for remote connections,
+			   so make the object numbers look friendlier */
+			objnum = atoi(luser);
+			if (objnum)
+				getobjectbynumber(objnum, luser, sizeof(luser));
+
+			objnum = atoi(ruser);
+			if (objnum)
+				getobjectbynumber(objnum, ruser, sizeof(ruser));
 
 			ptr = 0;
 			buf[ptr++] = 1; // Here is your data miss

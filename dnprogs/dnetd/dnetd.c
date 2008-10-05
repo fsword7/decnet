@@ -237,6 +237,9 @@ int main(int argc, char *argv[])
     // be able to do MIRROR
     dnet_set_optdata(condata, sizeof(condata));
 
+    // set handling of hinum objects (needed for use with NIS)
+    dnet_setobjhinum_handling(DNOBJHINUM_ZERO, 1);
+
     fd = dnet_daemon(0, NULL, verbosity, debug?0:1);
     if (fd > -1)
     {

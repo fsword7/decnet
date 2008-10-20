@@ -71,6 +71,13 @@ case $1 in
      echo "$CCT" > /proc/sys/net/decnet/default_device
      $prefix/sbin/setether $NODE $CCT $extra_interfaces 
 
+     for i in $CCT $extra_interfaces
+     do
+       ip link set dev $i allmulticast on
+     done
+
+
+
      for i in $daemons
      do
        $startcmd $prefix/sbin/$i

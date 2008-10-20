@@ -143,7 +143,7 @@ void set_exit_char(char *string)
       newchar = toupper(string[1]) - '@';
   }
   else
-      newchar = strtol(string, NULL, 0); /* Just a number 
+      newchar = strtol(string, NULL, 0); /* Just a number */
 
   /* Make sure it's reasonable */
   if (newchar > 0 && newchar < 256) exit_char = newchar;

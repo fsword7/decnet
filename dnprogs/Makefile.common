@@ -89,11 +89,11 @@ endif
 #
 # Look for optional files (who needs autoconf!)
 #
-ifeq (/usr/lib/libcrypt.a,$(wildcard /usr/lib/libcrypt.a))
+ifneq ($(wildcard /lib/libcrypt.*),)
 LIBCRYPT=-lcrypt
 endif
-
-ifeq (/usr/lib/libcrypt.so,$(wildcard /usr/lib/libcrypt.so))
+ 
+ifneq ($(wildcard /usr/lib/libcrypt.*),)
 LIBCRYPT=-lcrypt
 endif
 

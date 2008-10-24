@@ -196,7 +196,7 @@ int main (int argc, char * argv[]) {
   k = argv[i];
   if ( strcmp(k, "-n") == 0 ) {
    numeric  = 1;
-  } else if ( strcmp(k, "--dneigh") == 0 ) {
+  } else if ( strcmp(k, "--dneigh") == 0 || strcmp(k, "-l") == 0 ) {
    dnetinfo = -1;
   } else if ( strcmp(k, "--dnetinfo") == 0 ) {
    dnetinfo =  1;

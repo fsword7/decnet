@@ -87,6 +87,7 @@ struct nodeent *getnodebyaddr(const char *inaddr, int len, int family)
 		   }
 		   if (strcmp(nodeadr,asc_addr) == 0) 
 		   {
+			fclose(dnhosts);
 			memcpy(laddr,addr,len);
 			dp.n_addr=(unsigned char *)&laddr;
 			dp.n_length=2;		

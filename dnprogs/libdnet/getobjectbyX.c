@@ -169,7 +169,9 @@ char * getobjectbynumber_nis(int num) {
   cur = next;
 
   if ( (se = getservbyport(num, proto)) != NULL ) {
-   return se->s_name;
+   if ( strcmp(proto, se->s_proto) == 0 ) /* check if we got what we requested,
+                                             may help on buggy libcs */
+    return se->s_name;
   }
  }
 

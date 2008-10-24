@@ -8,6 +8,7 @@
 ./usr/sbin/dnetd
 ./usr/sbin/dnroute
 ./usr/sbin/dnetinfo
+./usr/sbin/dneigh
 ./usr/sbin/multinet
 ./usr/sbin/dncopynodes
 ./sbin/mount.dapfs
@@ -38,6 +39,7 @@
 ./usr/share/man/man8/vmsmaild.8
 ./usr/share/man/man8/dnroute.8
 ./usr/share/man/man8/dnetinfo.8
+./usr/share/man/man8/dneigh.8
 ./usr/share/man/man8/multinet.8
 ./usr/share/man/man8/dncopynodes.8
 ./usr/share/man/man8/mount.dapfs.8

@@ -6,15 +6,18 @@ dnprogs (2.48) unstable; urgency=low
   * Add nss support to libdnet so you can look up DECnet nodes & objects in
     NIS or LDAP etc
   * Made getnodename() read from decnet.conf rather than the kernel
+  * Fix fd leak in getnodebyaddr
   * dnroute no longer ignores long routing messages
   * dnroute now writes a pidfile
   * Improve dnroute logging when -n is specified (it's now useful!)
   * dnroute -n now doesn't send routing messages
   * dnroute now honours SYSCONF_PREFIX for dnroute.conf
   * dnetinfo no longer shows the local area as under manual control
-  * Removed the occasional delay in dnetinfo
+  * Replaced dnetinfo with a program
   * NML now also responds to "list known objects"
   * Add connect timeout to most programs
+  * Don't build dapfs if FUSE is not installed (Larry Baker)
+  * Look for libcrypt in /lib and /usr/lib (Larry Baker)
 
 dnprogs (2.47) unstable; urgency=low
 

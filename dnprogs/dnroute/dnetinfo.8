@@ -9,11 +9,12 @@ dnetinfo \- DECnet Routing Information
 .B dnetinfo
 is a shell script that queries the dnroute daemon for it's current routes.
 The output is very similar to the "SHOW NET/OLD" command on VMS.
-
+.br
+If dnroute is not running, or you don't have enough privilges to contact it
+then it will neatly format the local neighbour table.
 .SH OPTIONS
 .TP
-.I "\-l"
-Displays only local neighbour information. This is the default if dnroute is
-not running.
+.I "\-n"
+Don't resolve node numbers into names.
 .SH SEE ALSO
-.BR dnroute "(8), " ip "(8)"
+.BR dnroute "(8)," ip "(8)"

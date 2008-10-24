@@ -47,6 +47,7 @@ that use the DECnet protocol
 %%PREFIX%%/sbin/dnetnml
 %%PREFIX%%/sbin/dnroute
 %%PREFIX%%/sbin/dnetinfo
+%%PREFIX%%/sbin/dneigh
 %%PREFIX%%/sbin/decnetconf
 %%PREFIX%%/sbin/setether
 %%PREFIX%%/sbin/sendvmsmail
@@ -75,6 +76,7 @@ that use the DECnet protocol
 %%PREFIX%%/share/man/man8/dnetnml.8.gz
 %%PREFIX%%/share/man/man8/dnroute.8.gz
 %%PREFIX%%/share/man/man8/dnetinfo.8.gz
+%%PREFIX%%/share/man/man8/dneigh.8.gz
 %%PREFIX%%/share/man/man8/phoned.8.gz
 %%PREFIX%%/share/man/man8/dnetd.8.gz
 %%PREFIX%%/share/man/man8/ctermd.8.gz

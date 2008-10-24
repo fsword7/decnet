@@ -91,12 +91,14 @@ rpm:
 	rm rpmbuild/usr/share/man/man3/dnet_reject.3
 	rm rpmbuild/usr/share/man/man3/dnet_endnode.3
 	rm rpmbuild/usr/share/man/man3/dnet_nextnode.3
+	rm rpmbuild/usr/share/man/man8/dneigh.8
 	ln -s dncopy.1.gz rpmbuild/usr/share/man/man1/dntype.1.gz
 	ln -s dnsubmit.1.gz rpmbuild/usr/share/man/man1/dnprint.1.gz
 	ln -s dnet_daemon.3.gz rpmbuild/usr/share/man/man3/dnet_accept.3.gz
 	ln -s dnet_daemon.3.gz rpmbuild/usr/share/man/man3/dnet_reject.3.gz
 	ln -s dnet_getnode.3.gz rpmbuild/usr/share/man/man3/dnet_endnode.3.gz
 	ln -s dnet_getnode.3.gz rpmbuild/usr/share/man/man3/dnet_nextnode.3.gz
+	ln -s dnetinfo.8.gz rpmbuild/usr/share/man/man8/dneigh.8.gz
 	sed -e's@/usr/local@/usr@g' < scripts/decnet.sh >rpmbuild/etc/rc.d/init.d/decnet
 	sed -e's/%%PACKAGENAME%%/$(PKGNAME)/g'                          \
 	    -e's/%%VERSION%%/$(VERSION)/g'                              \

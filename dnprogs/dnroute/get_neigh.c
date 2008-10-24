@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/time.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -54,7 +55,7 @@
 #endif
 
 /* Where we write our status info to */
-#define STATUS_FIFO "/var/run/dnroute.status"
+#define STATUS_SOCKET "/var/run/dnroute.status"
 #define PIDFILE "/var/run/dnroute.pid"
 
 /* What we stick in the hash table */
@@ -89,6 +90,7 @@ extern int send_level2_msg(struct routeinfo *);
 extern int pidfile_create(const char *pidFile, pid_t pid);
 
 int dnet_socket;
+static int info_socket;
 static int debugging;
 static int verbose;
 static int send_routing;
@@ -194,12 +196,20 @@ static void read_conffile(void)
 /* Send network status down the FIFO */
 static void do_show_network(void)
 {
-	FILE *fp=fopen(STATUS_FIFO, "w");
+	FILE *fp;
 	int i;
 	int first = 1;
 	unsigned char dn_addr[2];
 	struct nodeent *ne;
+	struct sockaddr saddr;
+	socklen_t addrlen;
+	int new_fd;
 
+	new_fd = accept(info_socket, &saddr, &addrlen);
+	if (new_fd < 0)
+		return;
+
+	fp=fdopen(new_fd, "w");
 	if (!fp)
 	{
 		debuglog("Can't send status to FIFO\n");
@@ -971,6 +981,7 @@ int main(int argc, char **argv)
 	struct timespec ts;
 	int no_daemon=0;
 	mode_t oldmode;
+	struct sockaddr_un sockaddr;
 
 	/* Initialise the node hash table */
 	node_hash = dm_hash_create(1024);
@@ -1072,12 +1083,31 @@ int main(int argc, char **argv)
 	signal(SIGPIPE, SIG_IGN);
 
 	oldmode = umask(0);
-	unlink(STATUS_FIFO);
-	mkfifo(STATUS_FIFO, 0600);
+	chmod(STATUS_SOCKET, 0660);
 	umask(oldmode);
 
 	signal(SIGUSR1, usr1_sig);
 	signal(SIGALRM, alarm_sig);
+
+	/* Socket for sending "SHOW NETWORK" information */
+	unlink(STATUS_SOCKET);
+	info_socket = socket(AF_UNIX, SOCK_STREAM, PF_UNIX);
+	if (info_socket < 0)
+	{
+		syslog(LOG_ERR, "Unable to open Unix socket for information output: %m\n");
+		return 1;
+	}
+	fcntl(info_socket, F_SETFL, fcntl(info_socket, F_GETFL, 0) | O_NONBLOCK);
+
+	strcpy(sockaddr.sun_path, STATUS_SOCKET);
+	sockaddr.sun_family = AF_UNIX;
+	if (bind(info_socket, (struct sockaddr *)&sockaddr, sizeof(sockaddr)))
+	{
+		syslog(LOG_ERR, "Unable to bind Unix socket for information output: %m\n");
+		return 1;
+	}
+	/* Wait for connections */
+	listen(info_socket, 5);
 
 	/* Socket for listening for routing messages
 	   and sending our own */
@@ -1087,6 +1117,7 @@ int main(int argc, char **argv)
 		syslog(LOG_ERR, "Unable to open packet socket for DECnet routing messages: %m\n");
 		return 1;
 	}
+
 	fcntl(dnet_socket, F_SETFL, fcntl(dnet_socket, F_GETFL, 0) | O_NONBLOCK);
 
 	/*
@@ -1118,13 +1149,14 @@ int main(int argc, char **argv)
 
 		FD_ZERO(&fds);
 		FD_SET(dnet_socket, &fds);
+		FD_SET(info_socket, &fds);
 		sigfillset(&ss);
 		sigdelset(&ss, SIGUSR1);
 		sigdelset(&ss, SIGALRM);
 		sigdelset(&ss, SIGTERM);
 		sigdelset(&ss, SIGINT);
 
-		status = pselect(dnet_socket+1, &fds, NULL, NULL, NULL, &ss);
+		status = pselect(FD_SETSIZE, &fds, NULL, NULL, NULL, &ss);
 
 		if (running)
 		{
@@ -1139,21 +1171,20 @@ int main(int argc, char **argv)
 					syslog(LOG_ERR, "Error reading DECnet messages: %m\n");
 			}
 
+			if (FD_ISSET(info_socket, &fds))
+			{
+				do_show_network();
+			}
+
 			/* Things that interrupt our sleep */
 			if (alarm_rang)
 			{
 				get_neighbours();
 				alarm_rang = 0;
 			}
-
-			if (show_network)
-			{
-				do_show_network();
-				show_network = 0;
-			}
 		}
 	}
-
-	unlink(STATUS_FIFO);
+	close(dnet_socket);
+	close(info_socket);
 	exit(0);
 }

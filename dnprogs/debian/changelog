@@ -19,6 +19,8 @@ dnprogs (2.48) unstable; urgency=low
   * Don't build dapfs if FUSE is not installed (Larry Baker)
   * Look for libcrypt in /lib and /usr/lib (Larry Baker)
 
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon, 27 Oct 2008 09:48:13 +0000
+
 dnprogs (2.47) unstable; urgency=low
 
   * Fix libdnet_daemon so that dnet_accept & dnet_reject work on
@@ -36,7 +38,7 @@ dnprogs (2.46) unstable; urgency=low
     thanks to Philipp 'ph3-der-loewe' Schafft
   * Executables are now correctly stripped by dh_strip
 
- -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sat, 06 Sep 2008 13:48:58 +0100
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun, 07 Sep 2008 13:48:58 +0100
 
 dnprogs (2.45) unstable; urgency=low
 

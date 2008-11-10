@@ -693,8 +693,7 @@ static void load_dnetd_conf(void)
 		}
 		break;
 	    case 3:
-		strcpy(tmpbuf, bufp);
-		newobj->proxy = (toupper(tmpbuf[0])=='Y'?TRUE:FALSE);
+		newobj->proxy = (toupper(bufp[0])=='Y'?TRUE:FALSE);
 		break;
 	    case 4:
 		strcpy(newobj->user, bufp);

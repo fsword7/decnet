@@ -76,6 +76,7 @@ struct object
     bool  proxy;                 // Whether to use proxies
     char  user[USERNAME_LENGTH]; // User to use if proxies not used
     char  daemon[PATH_MAX];      // Name of daemon
+    int   auto_accept;           // Auto Accept incoming connections
 
     struct object *next;
 };
@@ -694,6 +695,22 @@ static void load_dnetd_conf(void)
 		break;
 	    case 3:
 		newobj->proxy = (toupper(bufp[0])=='Y'?TRUE:FALSE);
+		newobj->auto_accept = 0;
+		if ( bufp[1] == ',' && bufp[2] != ' ' && bufp[2] != '\t' ) {
+		    switch (toupper(bufp[2])) {
+			case 'Y':
+			case 'A':
+			    newobj->auto_accept =  1;
+			    break;
+			case 'R':
+			    newobj->auto_accept = -1;
+			    break;
+			case 'N':
+			default:
+			    newobj->auto_accept =  0;
+			    break;
+		    }
+		}
 		break;
 	    case 4:
 		strcpy(newobj->user, bufp);
@@ -939,13 +956,27 @@ int dnet_daemon(int object, char *named_object,
     {
 	int fork_fail = 0;
 	int newone;
+	int ret;
 
 	// Wait for a new connection.
 	newone = waitfor(sockfd);
 	if (newone > -1)
 	{
 	    if (!object_db) load_dnetd_conf();
-	    switch (fork_and_setuid(newone))
+	    ret = fork_and_setuid(newone);
+
+	    if (object_db) {
+		switch (thisobj->auto_accept) {
+		    case  1:
+			dnet_accept(newone, 0, NULL, 0);
+			break;
+		    case -1:
+			dnet_reject(newone, DNSTAT_REJECTED, NULL, 0);
+			continue;
+		}
+	    }
+
+	    switch (ret)
 	    {
 	    case -1:
 		if (++fork_fail > MAX_FORKS)

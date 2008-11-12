@@ -908,12 +908,12 @@ int dap_connection::send_crc(unsigned short crc)
 // A couple of general utility methods:
 void dap_connection::makelower(char *s)
 {
-    for (unsigned int i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
+    for (unsigned int i=0; s[i]; i++) s[i] = tolower(s[i]);
 }
 
 void dap_connection::makeupper(char *s)
 {
-    for (unsigned int i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
+    for (unsigned int i=0; s[i]; i++) s[i] = toupper(s[i]);
 }
 
 // Always returns false. Sets the error string to strerror(errno)

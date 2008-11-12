@@ -93,7 +93,7 @@ static struct object *object_db = NULL;
 static void makeupper(char *s)
 {
 	int i;
-	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
+	for (i=0; s[i]; i++) s[i] = toupper(s[i]);
 }
 
 static int adjacent_node(struct nodeent *n)

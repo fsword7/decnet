@@ -294,7 +294,7 @@ static void set_val(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)
 
 static void makelower(char *s)
 {
-    for (unsigned int i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
+    for (unsigned int i=0; s[i]; i++) s[i] = tolower(s[i]);
 }
 
 static void set_facshr(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab)

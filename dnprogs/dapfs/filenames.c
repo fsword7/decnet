@@ -44,13 +44,13 @@ const char *sysdisk_name = "SYS$SYSDEVICE";
 static void makelower(char *s)
 {
 	unsigned int i;
-	for (i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
+	for (i=0; s[i]; i++) s[i] = tolower(s[i]);
 }
 
 void makeupper(char *s)
 {
 	unsigned int i;
-	for (i=0; i<strlen(s); i++) s[i] = toupper(s[i]);
+	for (i=0; s[i]; i++) s[i] = toupper(s[i]);
 }
 
 // Convert a Unix-style filename to a VMS-style name

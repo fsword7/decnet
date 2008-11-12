@@ -119,7 +119,7 @@ void sigterm(int s)
 static void makelower(char *s)
 {
     unsigned int i;
-    for (i=0; i<strlen(s); i++) s[i] = tolower(s[i]);
+    for (i=0; s[i]; i++) s[i] = tolower(s[i]);
 }
 
 

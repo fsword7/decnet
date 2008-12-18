@@ -1,3 +1,10 @@
+dnprogs (2.48.1) unstable; urgency=low
+
+  * Add Swedish debconf translation
+    Closes: #508755
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon, 27 Oct 2008 09:48:13 +0000
+	
 dnprogs (2.48) unstable; urgency=low
 
   * Fix crash caused by unitialised variable in dncopynodes.

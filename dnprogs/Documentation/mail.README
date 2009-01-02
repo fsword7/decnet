@@ -113,7 +113,7 @@ if you are on another machine then the format is similar:
 
 vmsmail@linux (node::user)
 or
-node::user <vmsmail>
+node::user <vmsmail@linux>
 
 Note that if you have changed the vmsmail user in /etc/vmsmail.conf then you
 will also need to change the username 'vmsmail' in the mail address.

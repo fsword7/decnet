@@ -411,6 +411,7 @@ int send_smail(int sock,
 	    fprintf(mailpipe, "Mime-Version: 1.0\n");
 	    fprintf(mailpipe, "Content-Type: application/octet-stream\n");
 	    fprintf(mailpipe, "Content-Transfer-Encoding: base64\n");
+	    fprintf(mailpipe, "Content-Disposition: inline\n");
 	}
 	fprintf(mailpipe, "X-VMSmail: %s\n", full_user);
 

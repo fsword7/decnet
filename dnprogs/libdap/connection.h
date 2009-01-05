@@ -81,6 +81,7 @@ class dap_connection
 
     void create_socket();
     void initialise(int);
+    bool set_socket_buffer_size();
     bool do_connect(const char *node, const char *user,
 		    const char *password, sockaddr_dn &sockaddr);
 

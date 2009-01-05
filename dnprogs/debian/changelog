@@ -1,3 +1,11 @@
+
+dnprogs (2.49) unstable; urgency=low
+
+  * Increase kernel socket buffer size in libdap so it matches the block
+    size we are using.
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon,  6 Jan 2009 09:02:02 +0000
+
 dnprogs (2.48.1) unstable; urgency=low
 
   * Add Swedish debconf translation

@@ -119,6 +119,24 @@ void dap_connection::close()
     }
 }
 
+bool dap_connection::set_socket_buffer_size()
+{
+    // Make sure the kernel buffer is large enough for our blocks
+    if (setsockopt(sockfd, SOL_SOCKET, SO_SNDBUF, &blocksize, sizeof(blocksize)) < 0)
+    {
+        sprintf(errstring, "setsockopt (SNDBUF) failed: %s", strerror(errno));
+	lasterror = errstring;
+	return false;
+    }
+    if (setsockopt(sockfd, SOL_SOCKET, SO_RCVBUF, &blocksize, sizeof(blocksize)) < 0)
+    {
+        sprintf(errstring, "setsockopt (RCVBUF) failed: %s", strerror(errno));
+	lasterror = errstring;
+	return false;
+    }
+    return true;
+}
+
 // Create a DECnet socket
 void dap_connection::create_socket()
 {
@@ -274,10 +292,13 @@ bool dap_connection::do_connect(const char *node, const char *user,
     if (setsockopt(sockfd, DNPROTO_NSP, SO_CONACCESS, &accessdata,
 		   sizeof(accessdata)) < 0)
     {
-        sprintf(errstring, "setsockopt failed: %s", strerror(errno));
+        sprintf(errstring, "setsockopt (CONACCESS) failed: %s", strerror(errno));
 	lasterror = errstring;
 	return false;
     }
+
+    if (!set_socket_buffer_size())
+        return false;
 
     // Set connect timeout
     struct timeval timeout = {connect_timeout, 0};
@@ -543,6 +564,7 @@ int  dap_connection::check_length(int needed)
 void dap_connection::set_blocksize(int bs)
 {
     blocksize = bs;
+    set_socket_buffer_size();
 }
 
 int dap_connection::get_blocksize()
@@ -569,6 +591,8 @@ dap_connection *dap_connection::waitfor()
     // Set up the listing context
     if (!listening)
     {
+        set_socket_buffer_size();
+
 	status = listen(sockfd, 5);
 	if (status)
 	{

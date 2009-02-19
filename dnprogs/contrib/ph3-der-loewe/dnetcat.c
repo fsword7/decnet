@@ -168,7 +168,7 @@ int main (int argc, char * argv[]) {
  if ( verbose ) {
   if ( listening ) {
    // listening on [any] 1234 ...
-   fprintf(stderr, "stening on [any] %i (%s) ...\n", objnum, object);
+   fprintf(stderr, "listening on [any] %i (%s) ...\n", objnum, object);
   }
  }
 

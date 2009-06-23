@@ -18,7 +18,7 @@ class LATConnection
  public:
 
     typedef enum {REPLY, DATA, CONTINUATION} send_type;
-    static const unsigned int MAX_SESSIONS = 4;
+    static const unsigned int MAX_SESSIONS = 254;
 
     LATConnection(int _num, unsigned char *buf, int len,
 		  int _interface,

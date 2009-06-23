@@ -15,11 +15,11 @@ LAT implementation for Linux
 %%PREFIX%%/sbin/latd
 %%PREFIX%%/sbin/moprc
 %%PREFIX%%/bin/llogin
-%%PREFIX%%/man/man1/llogin.1
-%%PREFIX%%/man/man5/latd.conf.5
-%%PREFIX%%/man/man8/latcp.8
-%%PREFIX%%/man/man8/moprc.8
-%%PREFIX%%/man/man8/latd.8
+%%PREFIX%%/share/man/man1/llogin.1
+%%PREFIX%%/share/man/man5/latd.conf.5
+%%PREFIX%%/share/man/man8/latcp.8
+%%PREFIX%%/share/man/man8/moprc.8
+%%PREFIX%%/share/man/man8/latd.8
 /etc/latd.conf.sample
 /etc/rc.d/init.d/lat
 /etc/rc.d/rc3.d/S79lat

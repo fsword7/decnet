@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2003 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2009 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@ class LATConnection
 
     typedef enum {REPLY, DATA, CONTINUATION} send_type;
     static const unsigned int MAX_SESSIONS = 254;
+    static const unsigned int MAX_REPLIES = 254;
 
     LATConnection(int _num, unsigned char *buf, int len,
 		  int _interface,

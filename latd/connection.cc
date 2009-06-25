@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2000-2008 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2000-2009 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -142,8 +142,8 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
     LATSession *newsession;
     LAT_SessionCmd *msg = (LAT_SessionCmd *)buf;
     int num_replies = 0;
-    LAT_SlotCmd *reply[4];
-    char replybuf[4][256];
+    LAT_SlotCmd *reply[MAX_REPLIES];
+    char replybuf[MAX_REPLIES][256];
     bool replyhere = false;
 
     debuglog(("process_session_cmd: %d slots, %d bytes\n",
@@ -151,7 +151,7 @@ bool LATConnection::process_session_cmd(unsigned char *buf, int len,
 
     /* Clear out the reply slots and initialise pointers */
     memset(replybuf, 0, sizeof(replybuf));
-    for (int ri=0; ri<4; ri++)
+    for (unsigned int ri=0; ri<MAX_REPLIES; ri++)
 	reply[ri] = (LAT_SlotCmd *)replybuf[ri];
 
 #ifdef REALLY_VERBOSE_DEBUGLOG

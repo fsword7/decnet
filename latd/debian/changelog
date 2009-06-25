@@ -1,3 +1,12 @@
+latd (1.29) unstable; urgency=low
+
+  * Set MAX_CONNECTIONS back up to 254 from a debugging number of 4!
+  * Increase the maximum number of replies which could cause crashes
+    on busy systems.
+    Fix from Hristo Grigorov, LUKOIL Technolodgy Services.
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Wed, 25 Jun 2009 10:24:32 +0100
+	
 latd (1.28) unstable; urgency=low
 
   * Fix a typing delay bug.

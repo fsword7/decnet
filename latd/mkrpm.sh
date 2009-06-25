@@ -33,8 +33,7 @@ sed -e"s/%%PACKAGENAME%%/${PACKAGE}/g"                          \
     -e"s/%%VERSION%%/${VERSION}/g"                              \
     -e"s@%%PREFIX%%@/usr@g"                                     \
    < rpm.spec >${PACKAGE}.spec
-mkdir BUILD
-install README NEWS lat.html BUILD
+install README NEWS lat.html ~/rpmbuild/BUILD
 mkdir -p RPMS
 rpmbuild -bb --target ${ARCH} --buildroot `pwd`/rpmbuild --rcfile .rpmrc -v \
     ${PACKAGE}.spec

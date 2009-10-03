@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 1998-2008 Christine Caulfield               christine.caulfield@googlemail.com
+    (c) 1998-2009 Christine Caulfield         christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "unixfile.h"
 
 // basename() is in libc but not in my header files
-extern "C" char *basename(const char *);
+//extern "C" char *basename(const char *);
 
 int unixfile::open(const char *mode)
 {

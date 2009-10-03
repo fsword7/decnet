@@ -1,4 +1,17 @@
+dnprogs (2.50) unstable; urgency=low
 
+
+  * Fix check for /etc/default/decnet before sourcing it
+  * Fix LSB sections of Deban init scripts
+  * Don't suggest linux-kernel-2.4
+  * Rename libdap to libdnet-dap
+  * Include Debian Russian po-debconf translation
+    Closes: #548760
+  * Remove definition of basename
+    Closes: #548043
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sat,  3 Oct 2009 14:03:23 +0000
+  
 dnprogs (2.49) unstable; urgency=low
 
   * Increase kernel socket buffer size in libdap so it matches the block

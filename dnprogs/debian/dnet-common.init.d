@@ -7,7 +7,7 @@
 # This script MUST be run before TCP/IP is started.
 #
 ### BEGIN INIT INFO
-# Provides:          decnet
+# Provides:          dnet-common decnet
 # Required-Start:    $network
 # Required-Stop:     $network
 # Default-Start:     2 3 4 5
@@ -37,7 +37,7 @@ FLAGS="start 39 S .  stop 11 1 ."
 [ ! -f /sbin/setether ] && exit 0
 
 
-. /etc/default/decnet
+[ -f /etc/default/decnet ] && . /etc/default/decnet
 
 interfaces="$DNET_INTERFACES"
 
@@ -91,7 +91,6 @@ case $1 in
 
      echo -n "Starting DECnet..."
      $setether
-     echo "$ADDR" > /proc/sys/net/decnet/node_address
      set_routing $ROUTING
      echo "done."
      ;;

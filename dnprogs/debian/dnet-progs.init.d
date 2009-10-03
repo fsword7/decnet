@@ -7,7 +7,7 @@
 # --------------------------------------------------------------------------
 #
 ### BEGIN INIT INFO
-# Provides:          decnet-progs
+# Provides:          dnet-progs
 # Required-Start:    $network
 # Required-Stop:     $network
 # Default-Start:     2 3 4 5
@@ -20,7 +20,7 @@
 # Daemons to start are defined in /etc/default/decnet
 #
 
-. /etc/default/decnet
+[ -f /etc/default/decnet ] && . /etc/default/decnet
 
 # Don't issue any messages if DECnet is not configured as
 # dnet-common will have taken care of those.

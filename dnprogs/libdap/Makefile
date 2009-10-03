@@ -3,8 +3,8 @@ include ../Makefile.common
 LIBOBJS=connection.o protocol.o vaxcrc.o logging.o
 PICOBJS=connection.po protocol.po vaxcrc.po logging.po
 
-LIBNAME=libdap
-LIB_MINOR_VERSION=45.0
+LIBNAME=libdnet-dap
+LIB_MINOR_VERSION=46.0
 LIB_VERSION=$(MAJOR_VERSION).$(LIB_MINOR_VERSION)
 
 SHAREDLIB=$(LIBNAME).so.$(LIB_VERSION)

@@ -58,7 +58,7 @@ DFLAGS=-g -O0
 
 #Package version
 MAJOR_VERSION=2
-MINOR_VERSION=49
+MINOR_VERSION=50
 VERSION=$(MAJOR_VERSION).$(MINOR_VERSION)
 
 #
@@ -126,17 +126,17 @@ CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uniniti
 ifdef LINKSTATIC
 LIBDNET=$(TOP)/libdnet/libdnet.a
 LIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a $(LIBCRYPT)
-LIBDAP=$(TOP)/libdap/libdap.a
+LIBDAP=$(TOP)/libdap/libdnet-dap.a
 DEPLIBDNET=$(TOP)/libdnet/libdnet.a
 DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.a
-DEPLIBDAP=$(TOP)/libdap/libdap.a
+DEPLIBDAP=$(TOP)/libdap/libdnet-dap.a
 else
 LIBDNET=-L$(TOP)/libdnet -ldnet
-LIBDAP=-L$(TOP)/libdap -ldap
+LIBDAP=-L$(TOP)/libdap -ldnet-dap
 LIBDAEMON=-L$(TOP)/libdaemon -ldnet_daemon $(LIBCRYPT)
 DEPLIBDNET=$(TOP)/libdnet/libdnet.so
 DEPLIBDAEMON=$(TOP)/libdaemon/libdnet_daemon.so
-DEPLIBDAP=$(TOP)/libdap/libdap.so
+DEPLIBDAP=$(TOP)/libdap/libdnet-dap.so
 endif
 
 ifneq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))

@@ -8,8 +8,8 @@
 ./usr/lib/libdnet.so
 ./usr/lib/libdnet_daemon.a
 ./usr/lib/libdnet_daemon.so
-./usr/lib/libdap.a
-./usr/lib/libdap.so
+./usr/lib/libdnet-dap.a
+./usr/lib/libdnet-dap.so
 ./usr/lib/librms.a
 ./usr/lib/librms.so
 ./usr/lib/libvaxdata.a

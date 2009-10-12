@@ -1,5 +1,10 @@
-dnprogs (2.50) unstable; urgency=low
+dnprogs (2.50.1) unstable; urgency=low
 
+  * Remove dncopynodes binary from tarball
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon, 12 Oct 2009 10:12:34 +0000
+
+dnprogs (2.50) unstable; urgency=low
 
   * Fix check for /etc/default/decnet before sourcing it
   * Fix LSB sections of Deban init scripts

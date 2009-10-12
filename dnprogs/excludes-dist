@@ -30,6 +30,7 @@
 */apps/startnet
 */apps/dnping
 */apps/dnmount
+*/apps/dncopynodes
 */dncopy/dncopy
 */dncopy/dntype
 */dnlogin/dnlogin

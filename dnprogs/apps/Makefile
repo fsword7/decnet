@@ -55,7 +55,7 @@ dep:
 	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
-	rm -f $(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) \
+	rm -f $(PROG1) $(PROG2) $(PROG4) $(PROG5) $(PROG7) $(PROG8) \
 	*.o *.a *.so *~ .depend
 
 install:

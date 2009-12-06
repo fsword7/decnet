@@ -40,7 +40,7 @@
 #endif
 #include <netinet/in.h>
 
-#include <string>
+#include <cstdlib>
 
 #include "utils.h"
 #define _LATD_INTERFACES_IMPL

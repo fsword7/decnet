@@ -21,6 +21,9 @@
 
 // See linux-interface.cc for example implementation.
 
+#include <cstring>
+#include <iostream>
+
 class LATinterfaces
 {
  protected:

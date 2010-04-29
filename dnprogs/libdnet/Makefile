@@ -19,7 +19,7 @@ PICOBJS:=dnet_htoa.po dnet_ntoa.po dnet_addr.po dnet_conn.po getnodeadd.po \
 	dnet_recv.po dnet_eof.po getobjectbyX.po
 
 LIBNAME=libdnet
-LIB_MINOR_VERSION=43.1
+LIB_MINOR_VERSION=43.2
 LIB_VERSION=$(MAJOR_VERSION).$(LIB_MINOR_VERSION)
 
 SHAREDLIB=$(LIBNAME).so.$(LIB_VERSION)

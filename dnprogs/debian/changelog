@@ -1,3 +1,12 @@
+dnprogs (2.51) unstable; urgency=low
+
+  * Fix some strict-aliasing warnings
+    Closes: #576373
+  * Fix some lintian errors (thanks to ph3-der-loewe)
+  * Don't print errors if decnet.conf doesn't exist
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Thu, 29 Apr 2010 09:29:40 +0100
+
 dnprogs (2.50.1) unstable; urgency=low
 
   * Remove dncopynodes binary from tarball

@@ -8,8 +8,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          dnet-progs
-# Required-Start:    $network
-# Required-Stop:     $network
+# Required-Start:    $network $local_fs $remote_fs
+# Required-Stop:     $network $local_fs $remote_fs
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Starts DECnet daemons
@@ -22,9 +22,11 @@
 
 [ -f /etc/default/decnet ] && . /etc/default/decnet
 
+ADDR="`grep executor /etc/decnet.conf 2> /dev/null | cut -f2`"
+
 # Don't issue any messages if DECnet is not configured as
 # dnet-common will have taken care of those.
-if [ ! -f /etc/decnet.conf -o ! -f /proc/net/decnet ]
+if [ ! -f /etc/decnet.conf -o ! -f /proc/net/decnet -o ! -n "$ADDR" ]
 then
   exit 0
 fi

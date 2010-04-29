@@ -41,7 +41,7 @@ FLAGS="start 39 S .  stop 11 1 ."
 
 interfaces="$DNET_INTERFACES"
 
-ADDR="`grep executor /etc/decnet.conf | cut -f2`"
+ADDR="`grep executor /etc/decnet.conf 2>/dev/null | cut -f2`"
 
 setether="/sbin/setether $ADDR $interfaces"
 
@@ -72,7 +72,7 @@ fi
 
 case $1 in
    start)
-     if [ ! -f /etc/decnet.conf ]
+     if [ ! \( -f /etc/decnet.conf -a -n "$ADDR" \) ]
      then
        echo "DECnet not started as it is not configured."
        exit 0

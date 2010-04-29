@@ -23,6 +23,7 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 #include <ctype.h>
+#include <string.h>
 #include "dn_endian.h"
 
 
@@ -46,10 +47,15 @@ static __inline__ int do_digit(char *str, u_int16_t *addr, u_int16_t scale, size
 
 static const char *dnet_ntop1(const struct dn_naddr *dna, char *str, size_t len)
 {
-	u_int16_t addr = dn_ntohs(*(u_int16_t *)dna->a_addr);
-	u_int16_t area = addr >> 10;
+	u_int16_t addr1;
+	u_int16_t addr;
+	u_int16_t area;
 	size_t pos = 0;
 	int started = 0;
+
+	memcpy(&addr1, dna->a_addr, sizeof(u_int16_t));
+	addr = dn_ntohs(addr1);
+	area = addr >> 10;
 
 	if (dna->a_len != 2)
 		return NULL;

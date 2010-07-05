@@ -47,11 +47,11 @@ static int mainloop(void)
 		struct timeval tv;
 		int res;
 		int sockfd = found_getsockfd();
+		fd_set in_set;
 
 		tv.tv_usec = 0;
 		tv.tv_sec = char_timeout;
 
-		fd_set in_set;
 		FD_ZERO(&in_set);
 		FD_SET(termfd, &in_set);
 		FD_SET(sockfd, &in_set);

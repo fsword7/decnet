@@ -37,8 +37,8 @@ Description: DECnet user programs and daemons
 
 Package: libdnet
 Architecture: any
-Depends: ${shlibs:Depends}
-Recommends: dnet-common(>=${binary:Version}), ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: dnet-common(>=${binary:Version})
 Priority: extra
 Section: libs
 Description: DECnet Libraries

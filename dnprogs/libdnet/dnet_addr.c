@@ -19,7 +19,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <string.h>
 #include <stdlib.h>
 #include <netdnet/dn.h>

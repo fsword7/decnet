@@ -29,7 +29,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/poll.h>
-#include <sys/errno.h>
+#include <errno.h>
 #include <sys/signal.h>
 #include <sys/signal.h>
 #include <sys/signal.h>

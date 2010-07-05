@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -168,7 +169,13 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 	if (!host || !objname)
 		return -1;
 
+#ifdef ESOCKTNOSUPPORT
 	errno = ESOCKTNOSUPPORT;
+#elif defined(EPROTONOSUPPORT)
+	errno = EPROTONOSUPPORT;
+#else
+	errno = ENOSYS;
+#endif
 	if (type != SOCK_SEQPACKET && type != SOCK_STREAM)
 		return -1;
 

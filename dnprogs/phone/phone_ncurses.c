@@ -307,7 +307,11 @@ int ncurses_run(char *init_cmd)
 		    sigwinch_happened = 0;
 	    }
 
+#ifdef ERESTART
 	    if (errno != EINTR && errno != ERESTART)
+#else
+	    if (errno != EINTR)
+#endif
 	    {
 	        perror("Error in select");
 		end_message="An error occurred in select()";

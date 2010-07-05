@@ -31,6 +31,11 @@
 #include "dn_endian.h"
 #include "dnlogin.h"
 
+// If we don't have MSG_NOSIGNAL, ignore it for now
+// TODO: is this correct to just ignore it?
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
 
 /* Foundation services messages */
 #define FOUND_MSG_BIND        1

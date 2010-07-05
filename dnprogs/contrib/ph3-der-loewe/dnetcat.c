@@ -22,6 +22,11 @@
 
 #include <signal.h>
 
+// to support old standards:
+#include <sys/time.h>
+#include <sys/types.h>
+
+// currrent standard:
 #include <sys/select.h>
 
 #include <sys/socket.h>

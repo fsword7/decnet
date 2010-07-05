@@ -30,7 +30,7 @@
 
 int setnodename(const char *name, size_t len)
 {
-#ifdef SDF_UICPROXY
+#if defined(SDF_UICPROXY) && defined(CTL_NET) && defined(NET_DECNET) && defined(NET_DECNET_NODE_NAME)
 	int ctlname[3] = { CTL_NET, NET_DECNET, NET_DECNET_NODE_NAME };
 	size_t nospace = 0;
 

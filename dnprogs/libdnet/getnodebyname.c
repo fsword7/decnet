@@ -25,7 +25,12 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 
+#ifdef __NetBSD__
+#include <net/if.h>
+#include <net/if_ether.h>
+#else
 #include <netinet/ether.h>
+#endif
 
 static char             nodetag[80],nametag[80],nodeadr[80],nodename[80];
 static struct nodeent	dp;

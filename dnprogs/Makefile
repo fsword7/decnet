@@ -18,13 +18,13 @@ SUBDIRS+=dapfs
 endif
 
 all: 	
-	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i $@ ; done
 
 install:
-	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i $@ ; done
 
 dep depend:	
-	@set -e; for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@set -e; for i in $(SUBDIRS); do $(MAKE) -C $$i $@ ; done
 
 tags:	
 	etags */*.cc */*.c
@@ -43,7 +43,7 @@ clean:
 	rm -f .rpm*
 	rm -f build
 	rm -f core
-	@for i in $(SUBDIRS); do make -C $$i $@ ; done
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i $@ ; done
 
 debclean:
 	debian/rules clean
@@ -73,12 +73,12 @@ snap:
 #
 rpm:	
 	rm -rf rpmbuild BUILD RPMS SOURCES
-	make clean
-	make dist
+	$(MAKE) clean
+	$(MAKE) dist
 	echo "%_topdir `pwd`" > .rpmmacros
 	echo "`rpm --showrc|grep \^macrofiles`:`pwd`/.rpmmacros" >.rpmrc
-	make prefix=/usr RELEASE=true -j
-	make DESTDIR=`pwd`/rpmbuild RELEASE=true install
+	$(MAKE) prefix=/usr RELEASE=true -j
+	$(MAKE) DESTDIR=`pwd`/rpmbuild RELEASE=true install
 	find `pwd`/rpmbuild/usr/share/man/ -type f|xargs gzip -9
 	ln -sf libdnet.so.2 rpmbuild/usr/lib/libdnet.so.1
 	mkdir SOURCES SRPMS

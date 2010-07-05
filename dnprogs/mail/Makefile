@@ -21,7 +21,7 @@ CFLAGS+=-fdollars-in-identifiers
 all: $(UULIB) $(PROG1) $(PROG2)
 
 $(UULIB): 
-	make -C $(UUDIR)
+	$(MAKE) -C $(UUDIR)
 
 .c.o:
 	$(CC) $(CFLAGS) $(SYSCONF_PREFIX) -c -o $@ $<
@@ -46,7 +46,7 @@ dep depend:
 
 clean:
 	rm -f $(PROG1) $(PROG2) *.o *.bak .depend
-	make -C $(UUDIR) clean
+	$(MAKE) -C $(UUDIR) clean
 
 
 ifeq (.depend,$(wildcard .depend))

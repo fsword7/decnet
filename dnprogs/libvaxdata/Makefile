@@ -3,10 +3,10 @@ include ../Makefile.common
 ARCH=$(shell uname -m)
 
 all:
-	cd linux; make -f makefile.gcc
+	cd linux; $(MAKE) -f makefile.gcc
 
 clean:
-	cd linux; make -f makefile.gcc clean
+	cd linux; $(MAKE) -f makefile.gcc clean
 
 install:
 	install -d $(prefix)/include

@@ -271,7 +271,12 @@ bool dap_connection::do_connect(const char *node, const char *user,
     memcpy(s.sdn_add.a_addr, binadr->n_addr, sizeof(s.sdn_add.a_addr));
 
     // Try very hard to get the local username for proxy access
+#ifdef __FreeBSD__
+// FIXME: FreeBSD does not export prototype even if correct header is included
+    char *local_user = NULL;
+#else
     char *local_user = cuserid(NULL);
+#endif
     if (!local_user || local_user == (char *)0xffffffff)
 	local_user = getenv("LOGNAME");
 

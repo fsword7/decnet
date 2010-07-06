@@ -15,7 +15,7 @@
  */
 /* Header file to cope with endian issues */
 
-#ifdef __NetBSD__
+#if defined(__NetBSD__) || defined(__FreeBSD__)
 #include <machine/endian.h>
 #define __BYTE_ORDER BYTE_ORDER
 #endif

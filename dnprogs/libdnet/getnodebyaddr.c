@@ -27,6 +27,9 @@
 #ifdef __NetBSD__
 #include <net/if.h>
 #include <net/if_ether.h>
+#elif defined(__FreeBSD__)
+#include <net/ethernet.h>
+#define ether_addr_octet octet
 #else
 #include <netinet/ether.h>
 #endif

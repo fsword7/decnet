@@ -60,7 +60,10 @@
 /* #undef HAVE_IO_H */
 
 /* Define if you have the <malloc.h> header file.  */
-#define HAVE_MALLOC_H 1
+/* NOTE: no one does still have a malloc.h,
+ *       only GNU/Linux ships one for compatibility
+ *       -- ph3-der-loewe, 2010-07-06              */
+/* #undef HAVE_MALLOC_H */
 
 /* Define if you have the <memory.h> header file.  */
 #define HAVE_MEMORY_H 1

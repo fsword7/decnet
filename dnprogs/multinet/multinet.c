@@ -40,8 +40,14 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+
+#ifdef __NetBSD__
+#include <net/if.h>
+#include <net/if_tun.h>
+#else
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#endif
 
 static int verbose;
 static int ipfd;

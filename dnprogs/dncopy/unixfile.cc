@@ -141,7 +141,7 @@ int unixfile::write(char *buf, int len)
 bool unixfile::eof()
 {
 // Don't know why this is necessary
-#ifdef __NetBSD__
+#if defined(__NetBSD__) || defined(__FreeBSD__)
     return feof(stream);
 #else
     return ::feof(stream);

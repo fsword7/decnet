@@ -1,3 +1,11 @@
+dnprogs (2.52) UNRELEASED; urgency=low
+
+  * Done some porting to NetBSD and FreeBSD, not yet complet
+    Closes: #588185
+  * fixed some lintian errors
+
+ -- nobody <nobody@nobody.localhost>  Thu, 06 Jul 2010 18:26:48 +0200
+
 dnprogs (2.51) unstable; urgency=low
 
   * Fix some strict-aliasing warnings

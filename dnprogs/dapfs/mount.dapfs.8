@@ -12,7 +12,7 @@ This tool is part of the DECnet programs (dnprogs) suite.
 .br
 mount.dapfs mounts a DAP filesystem on (probably) a VMS server
 as a directory on a Linux system. It is invoked by the mount command
-when usig the -t dapfs switch. dapfs use the FUSE (Filesystem in USEr space)
+when usig the \-t dapfs switch. dapfs use the FUSE (Filesystem in USEr space)
 system.
 .br
 The node name specified must exist in /etc/decnet.conf or be a node address. 
@@ -39,12 +39,12 @@ read data using record mode (the default).
 .br
 .SH EXAMPLES
 .br
-# mount -tdapfs zarqon /mnt/vax
+# mount \-tdapfs zarqon /mnt/vax
 .br
 Mounts the default DECnet account on node ZARQON onto the Linux filesystem /mnt/vax
 .br
 
-# mount -tdapfs alpha1 /mnt/alpha -ousername=SYSTEM,password=field
+# mount \-tdapfs alpha1 /mnt/alpha \-ousername=SYSTEM,password=field
 .br
 Mounts the home directory for the user SYSTEM on node ALPHA1, using the password "field" on /mnt/alpha.
 

@@ -6,11 +6,11 @@ dnetcat \- opens a DECnet connection
 
 .SH SYNOPSIS
 
-dnetcat {-h|--help}
+dnetcat {\-h|\-\-help}
 
-dnetcat [-v] [-z] node[::|[::] ]object
+dnetcat [\-v] [\-z] node[::|[::] ]object
 
-dnetcat [-v] [-f] -l object
+dnetcat [\-v] [\-f] \-l object
 
 .SH "DESCRIPTION"
 \fBdnetcat\fR is a \fBnetcat\fR(1) like tool that opens a DECnet connection and
@@ -33,7 +33,7 @@ Prints a small help.
 .SH EXAMPLES
 This program can be used as 'ProxyCommand' for \fBssh\fR(1).
 You may use it via command line like this:
- ssh -o 'ProxyCommand dnetcat %h ssh' [...] mynode
+ ssh \-o 'ProxyCommand dnetcat %h ssh' [...] mynode
 
 or you may use it in your \fB~/.ssh/config\fR like this:
  Host *::

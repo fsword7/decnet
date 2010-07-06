@@ -8,7 +8,7 @@ dntask \- Execute VMS command procedures
 .br
 Options:
 .br
-[\-biVh] [-t timeout]
+[\-biVh] [\-t timeout]
 .SH DESCRIPTION
 .PP
 dntask runs command procedures on a remote VMS system.
@@ -48,11 +48,11 @@ commands like BACKUP in the task and backup to your Linux box.
 .I "\-i"
 Interact with the command procedure. The command procedure must be written
 to be interactive by reading from and writing to SYS$NET. Specifying 
-.B -i
+.B \-i
 for a non-interactive command procedure will cause 
 .B dntask
 to time-out waiting for input. Not specifying 
-.B -i
+.B \-i
 for an interactive command procedure will cause it to exit prematurely at
 the VMS end.
 .TP
@@ -99,10 +99,10 @@ The "write" command near the end is essential.
   dntask 'myvax::show_system'
 
 .br
-  dndir -i 'tramp"christine pjc123"::interactive'
+  dndir \-i 'tramp"christine pjc123"::interactive'
 
 .br
-  dndir -i 'tramp"christine -"::interactive'
+  dndir \-i 'tramp"christine \-"::interactive'
 
 Specifying "-" in the password field will prompt for the password.
 

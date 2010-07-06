@@ -16,9 +16,9 @@ deletes files held on VMS systems. The filename parameter may specify a single
 file or a wildcard (remember to use VMS wildcards).
 
 If you specify 
-.B -i
+.B \-i
 or
-.B -v
+.B \-v
 then dndel will open two connections to the VMS machine (much as VMS itself 
 does). Otherwise it will attempt to use a single connection. One side-effect
 of this is that the deletion process will fail at the first file that cannot
@@ -43,7 +43,7 @@ Show the version of the tools package that dndel comes from.
 
 .SH EXAMPLES
 
-  dndel -i 'myvax::oldfile;*'
+  dndel \-i 'myvax::oldfile;*'
 
 .br
   dndel 'tramp"christine pjc123"::interactive'

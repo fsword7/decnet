@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
     insock = dnet_daemon(DNOBJECT_MIRROR, NULL, 0, 1);
 
     // Make sure we got a valid socket 
-    if (insock > -1)
+    if (insock > \-1)
     {
         int readnum;
         char condata[] = {0x00, 0x20}; // Actually 4096 as a LE word
@@ -145,7 +145,7 @@ int main(int argc, char *argv[])
 }
 
 To compile:
-gcc mirror.c -omirror -ldnet -ldnet_daemon -lcrypt
+gcc mirror.c \-omirror \-ldnet \-ldnet_daemon \-lcrypt
 
 .fi
 

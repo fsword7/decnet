@@ -13,12 +13,12 @@ dnet_eof \- Is DECnet socket at End of File ?
 
 .B dnet_eof
 returns 0 if the socket is not at end-of-file.
-It will return -1 otherwise, errno will be set accordingly. errno will be
+It will return \-1 otherwise, errno will be set accordingly. errno will be
 set to ENOTCONN if the socket is at EOF.
 .br
 .B dnet_eof
 is only supported on Linux 2.4.0 or later. On earlier kernels it will
-always return -1 and errno will be set to EINVAL.
+always return \-1 and errno will be set to EINVAL.
 
 .SH EXAMPLE
 Here is a primitive server example that just prints out anything sent to it
@@ -37,7 +37,7 @@ int main(int argc, char **argv)
    // Wait for something to happen (or check to see if it already has)
     insock = dnet_daemon(0, "GROT", 0, 0);
  
-    if (insock > -1)
+    if (insock > \-1)
     {
         dnet_accept(insock, 0, 0, NULL);
         while (!dnet_eof(insock)) 

@@ -56,14 +56,14 @@ Filenames are changed to lower case when copied from VMS to Linux.
 .br
 The environment DNCOPY_OPTIONS may be used to provide a default set of
 options for copying files. If (for example) you wanted to normally send
-files as blocks rather than records you could set DNCOPY_OPTIONS="-mblock".
+files as blocks rather than records you could set DNCOPY_OPTIONS="\-mblock".
 Then, to send a file as records you would need to type
-.B dncopy -mrecord myfile.txt vmsbox::
+.B dncopy \-mrecord myfile.txt vmsbox::
 instead.
 .br
 Options in DNCOPY_OPTIONS may be overridden by options typed on the
 command-line except where there is no negating option available (see
-.B -k -d -i
+.B \-k \-d \-i
 ). If you put these options in DNCOPY_OPTIONS then to remove them you will
 have to override the whole environment variable eg:
 .br
@@ -77,8 +77,8 @@ it takes all the same options as dncopy. It is merely a convenience.
 .SH OPTIONS
 .TP
 .I "\-v"
-Verbose operation. The more -v options are present the more verbose dncopy
-will become. One -v is roughly equivalent to the /LOG qualifier on the DCL
+Verbose operation. The more \-v options are present the more verbose dncopy
+will become. One \-v is roughly equivalent to the /LOG qualifier on the DCL
 copy command. More than one is really just useful for debugging.
 .TP
 .I "\-i"
@@ -98,7 +98,7 @@ creating a NETSERVER process is not included.
 .I "\-k"
 Keep version numbers on files copied from VMS systems. By default dncopy will
 strip the version number from files because they have no meaning in Linux.
-if you specify -k on the command line then the VMS file will be created with
+if you specify \-k on the command line then the VMS file will be created with
 exactly the same name as it had on the VMS system. To access these files under
 Linux you will need to enclose them in quotes. eg less "vmsfile.txt;1".
 .TP
@@ -110,10 +110,10 @@ is the default. Normally
 is what you want but
 .B block
 is used for sending binary files to the VMS system. Note that if you
-use -mblock to pull files from VMS you may not be able to make sense of
+use \-mblock to pull files from VMS you may not be able to make sense of
 the file on Linux because dncopy will also pull all the VMS internal
 structuring of the file as well as the data. Unless you really know what
-you are doing -mblock is only really useful for sending files.
+you are doing \-mblock is only really useful for sending files.
 .TP
 .I "\-a {none|ftn|cr|prn}"
 Sets the carriage control attributes for files copied to a VMS system. The
@@ -136,7 +136,7 @@ may be useful for block-structures files and data files.
 .I \-b N
 Set the block size for transfers. The default is high enough for all record
 structured files. if you are sending a file with
-.B -mblock
+.B \-mblock
 then you should use this to set the block size of the file to be created at
 the VMS end. When sending block files the default changes to 512 as this is
 typically what you would want (I hope).
@@ -158,7 +158,7 @@ Queue the file for printing to SYS$PRINT when it arrives at the VMS end.
 .I "\-D"
 Delete the file when it is closed. This is only really useful in conjunction
 with 
-.I -P.
+.I \-P.
 .TP
 .I "\-T connect timeout"
 Specifies the maximum amount of time the command will wait to establish a connection
@@ -184,19 +184,19 @@ eg:
 .br
 bash or ksh:
 .br
-$ DNCOPY_OPTIONS="-mblock -anone -b1024" ; export DNCOPY_OPTIONS
+$ DNCOPY_OPTIONS="\-mblock \-anone \-b1024" ; export DNCOPY_OPTIONS
 .br
 
 .br
 csh or tcsh:
 .br
-$ setenv DNCOPY_OPTIONS "-mblock -anone -b1024"
+$ setenv DNCOPY_OPTIONS "\-mblock \-anone \-b1024"
 .br
 
 .br
 makes dncopy send files as 1024 byte blocks with no carriage control. You can
 override these options by specifying replacements on the command-line as usual.
-Be aware that some options have no converse (eg -i -k -d -v) so if you put
+Be aware that some options have no converse (eg \-i \-k \-d \-v) so if you put
 these in DNCOPY_OPTIONS you cannot disable them without deassigning the
 variable.
 .br
@@ -222,7 +222,7 @@ Copy all .TXT files from the VMS directory SYS$SYSDEVICE:[WP] to /tmp:
 Copy an executable to VMS:
 .br
 .PP
-    dncopy -mblock test.exe 'tramp"christine pjc123"::[.BIN]'
+    dncopy \-mblock test.exe 'tramp"christine pjc123"::[.BIN]'
 .br
 
 .PP
@@ -230,7 +230,7 @@ Copy an executable to VMS:
 Copy a file to VMS and set its protection
 .br
 .PP
-    dncopy secret.dat  marsha:: -p (s:, o:rwed, g:re, w:)'
+    dncopy secret.dat  marsha:: \-p (s:, o:rwed, g:re, w:)'
 .br
 .br
 .PP
@@ -238,7 +238,7 @@ Copy a file to VMS and set its protection
 Display the contents of LOGIN.COM:
 .br
 .PP
-    dtype 'trisha"christine -"::login.com'
+    dtype 'trisha"christine \-"::login.com'
 .br
     You will then be prompted for a password
 
@@ -246,9 +246,9 @@ Display the contents of LOGIN.COM:
 .SH HELPFUL HINTS
 For fetching files the defaults should serve for most purposes. Most VMS files
 are record orientated and
-.B -mrecord
+.B \-mrecord
 is the default transfer mode. It is rare you will need to fetch files using
-.B -mblock
+.B \-mblock
 because you will get all the record control information downloaded too and
 that probably isn't any use to you.
 .br
@@ -265,14 +265,14 @@ or
 .B VAR.
 Carriage control can also be specified if you want to be that picky.
 
-Binary files may often need to be sent -mblock to be useful at the VMS end,
+Binary files may often need to be sent \-mblock to be useful at the VMS end,
 You will probably want to specify a block size with the
-.B -b
+.B \-b
 option. The default is 512 which is fairly useful but if you are sending
 (say) a saveset 8192 or 32256 may be required. Trial-and-error may
 be the only way in some cases unless you know the file contents very well.
 If you really don't know what to do, just send it
-.B -mblock
+.B \-mblock
 and use the set file/attr command to massage it on the VMS end until you are
 happy with it. (If you are using VMS earlier than 6.1 then you will need
 the freeware FILE utility to do this)

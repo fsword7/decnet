@@ -1,10 +1,10 @@
-dnprogs (2.52) UNRELEASED; urgency=low
+dnprogs (2.52) unstable; urgency=low
 
-  * Done some porting to NetBSD and FreeBSD, not yet complet
+  * Done some porting to NetBSD and FreeBSD, not yet complete
     Closes: #588185
   * fixed some lintian errors
 
- -- nobody <nobody@nobody.localhost>  Thu, 06 Jul 2010 18:26:48 +0200
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Thu, 08 Jul 2010 09:48:24 +0100
 
 dnprogs (2.51) unstable; urgency=low
 

@@ -24,6 +24,12 @@ LIB_VERSION=$(MAJOR_VERSION).$(LIB_MINOR_VERSION)
 
 SHAREDLIB=$(LIBNAME).so.$(LIB_VERSION)
 
+ifeq ($(OSNAME),FreeBSD)
+COMPLIB=-lcompat
+else
+COMPLIB=
+endif
+
 all:  libdnet.a $(SHAREDLIB)
 
 dep:
@@ -32,7 +38,7 @@ libdnet.a: ${LIBOBJS}
 	${AR} ${ARFLAGS} libdnet.a ${LIBOBJS}
   
 $(SHAREDLIB): ${PICOBJS}
-	${CC} ${LDFLAGS} -shared -o $@ ${PICOBJS} -Wl,-soname=libdnet.so.$(MAJOR_VERSION)
+	${CC} ${LDFLAGS} -shared -o $@ ${PICOBJS} -Wl,-soname=libdnet.so.$(MAJOR_VERSION) $(COMPLIB)
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 

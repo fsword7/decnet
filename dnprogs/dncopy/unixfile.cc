@@ -21,6 +21,10 @@
 #include "file.h"
 #include "unixfile.h"
 
+#ifdef __FreeBSD__
+#include <libgen.h>
+#endif
+
 // basename() is in libc but not in my header files
 //extern "C" char *basename(const char *);
 

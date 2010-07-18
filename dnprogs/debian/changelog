@@ -1,3 +1,10 @@
+dnprogs (2.53) unstable; urgency=low
+
+  * Done some more porting to FreeBSD, corrected Build-Depends for hurd-i386
+    Closes: #588185
+
+ -- Philipp Schafft <lion@lion.leolix.org>  Sun, 18 Jul 2010 20:53:56 +0200
+
 dnprogs (2.52) unstable; urgency=low
 
   * Done some porting to NetBSD and FreeBSD, not yet complete

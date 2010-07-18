@@ -8,13 +8,19 @@ include Makefile.common
 PKGNAME=dnprogs
 DATE="$(shell date +'%Y%m%d')"
 
+SUBDIRS_LINUX=apps phone dnroute nml multinet
+
 SUBDIRS=include libdnet libdaemon libdap librms fal dndir dnsubmit dndel \
-	dncopy apps dntask dnlogin mail phone dnetd libvaxdata dnroute \
-	nml multinet scripts \
-	contrib/ph3-der-loewe
+	dncopy dntask dnlogin mail dnetd libvaxdata \
+	scripts \
+	contrib/ph3-der-loewe \
+
+ifeq ($(OSNAME),Linux)
+SUBDIRS+= $(SUBDIRS_LINUX)
+endif
 
 ifneq ($(wildcard /usr/include/fuse.h),)
-SUBDIRS+=dapfs
+SUBDIRS+= dapfs
 endif
 
 all: 	

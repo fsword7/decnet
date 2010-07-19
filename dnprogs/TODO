@@ -1,7 +1,7 @@
 BUGS
 ----
 
-fal
+fal:
   Reports of problems with FAL on DECnet/E. Need to test with new 
   RSX-friendly code.
 
@@ -15,3 +15,7 @@ phone:
     thinks you just typed "dir" cos it ignores argv[2]
 
   Don't think it works to non-VMS machines
+
+libdnet:
+  Need a better function doing dnet_conn(), maybe we should provide one
+  opening a listen socket, too.

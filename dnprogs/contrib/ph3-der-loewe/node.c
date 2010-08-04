@@ -35,7 +35,6 @@ void usage (void) {
         );
 }
 
-#ifdef HAVE_LIBDNET
 int main (int argc, char * argv[]) {
  int i;
  int verbose   = 0;
@@ -105,11 +104,5 @@ int main (int argc, char * argv[]) {
 
  return 0;
 }
-#else
-int main (void) {
- fprintf(stderr, "Error: no DECnet support compiled in\n");
- return 1;
-}
-#endif
 
 //ll

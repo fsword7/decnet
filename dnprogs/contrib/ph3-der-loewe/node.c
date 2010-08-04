@@ -1,7 +1,7 @@
 //node.c:
 
 /*
-    copyright 2008 Philipp 'ph3-der-loewe' Schafft <lion@lion.leolix.org>
+    copyright 2008-2010 Philipp 'ph3-der-loewe' Schafft <lion@lion.leolix.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by

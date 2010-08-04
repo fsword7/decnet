@@ -14,11 +14,11 @@
     GNU General Public License for more details.
 */
 
-#include "lib.h"
-
-#include <signal.h>
-
-#include <sys/select.h>
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
 
 char * progname = NULL;
 

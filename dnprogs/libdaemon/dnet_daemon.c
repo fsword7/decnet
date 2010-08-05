@@ -969,6 +969,13 @@ int dnet_daemon(int object, char *named_object,
 	    // check /etc/nodes.{allow,deny} if connection is allowed
 	    namelen = sizeof(remotesa);
 
+	    if (getsockname(newone, (struct sockaddr *)&sa, &namelen) == -1) {
+		dnet_reject(newone, DNSTAT_FAILED, NULL, 0);
+		DNETLOG((LOG_ALERT, "Can not read local sockname\n"));
+	    }
+
+	    namelen = sizeof(remotesa);
+
 	    if ( getpeername(newone, (struct sockaddr *) &remotesa, &namelen) == -1 ) {
 		dnet_reject(newone, DNSTAT_FAILED, NULL, 0);
 		DNETLOG((LOG_ALERT, "Can not read peers sockname\n"));

@@ -1019,7 +1019,7 @@ int dnet_daemon(int object, char *named_object,
 		continue;
 
 	    case 0: // child
-		if (object_db) {
+		if (object_db && thisobj != NULL) {
 		    // check if we are going to do auto accept or reject.
 		    switch (thisobj->auto_accept) {
 			case  1:

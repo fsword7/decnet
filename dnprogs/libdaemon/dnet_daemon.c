@@ -992,18 +992,6 @@ int dnet_daemon(int object, char *named_object,
 	    // load dnetd's object databse if we don't have it already loaded.
 	    if (!object_db) load_dnetd_conf();
 
-	    if (object_db) {
-		// check if we are going to do auto accept or reject.
-		switch (thisobj->auto_accept) {
-		    case  1:
-			dnet_accept(newone, 0, NULL, 0);
-			break;
-		    case -1:
-			dnet_reject(newone, DNSTAT_REJECTED, NULL, 0);
-			continue;
-		}
-	    }
-
 	    ret = fork_and_setuid(newone);
 
 	    switch (ret)
@@ -1021,6 +1009,18 @@ int dnet_daemon(int object, char *named_object,
 		continue;
 
 	    case 0: // child
+		if (object_db) {
+		    // check if we are going to do auto accept or reject.
+		    switch (thisobj->auto_accept) {
+			case  1:
+			    dnet_accept(newone, 0, NULL, 0);
+			    break;
+			case -1:
+			    dnet_reject(newone, DNSTAT_REJECTED, NULL, 0);
+			    exit(101);
+			    break;
+		    }
+		}
 		return newone;
 		break;
 

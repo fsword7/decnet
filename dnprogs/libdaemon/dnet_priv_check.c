@@ -17,3 +17,118 @@
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#include <netdnet/dn.h>
+#include <netdnet/dnetdb.h>
+
+#define LINELEN       1024
+#define LISTDELM      " \t,"
+
+int dnet_priv_check(const char * file, const char * proc,
+                    const struct sockaddr_dn * local, const struct sockaddr_dn * remote) {
+    FILE           * fh;
+    char             line[LINELEN];
+    char           * clients;
+    int              match;
+    char           * c;
+    char             nodeaddr[12];
+    struct nodeent * ne;
+
+    sprintf(nodeaddr, "%i.%i", remote->sdn_add.a_addr[1] >> 2,
+                               remote->sdn_add.a_addr[0] +
+                               ((remote->sdn_add.a_addr[1] & 0x3) << 8));
+
+    if ( (fh = fopen(file, "r")) == NULL )
+	return -1;
+
+    // walk thru the file and search for matches
+    // if a match is found we return directly from within this loop.
+    while (fgets(line, LINELEN, fh) != NULL) {
+	// skip comments.
+	if ( line[0] == '#' )
+	    continue;
+
+	// split into service/daemon and clients part
+	if ( (clients = strchr(line, ':')) == NULL )
+	    continue;
+
+	*clients = 0;
+	clients++;
+
+	// clean up lion endings
+	c = &clients[strlen(clients) - 1];
+	if ( *c == '\n' )
+	    *c = 0;
+
+	match = 0; // reset match to 'no match found'
+
+	// now walk thru the list of services/daemons/objects and
+	// see if we have a match here.
+	c = strtok(line, LISTDELM);
+	while (c != NULL) {
+	    if ( !strcmp(c, "ALL") ) {      // ALL matches all services
+		match = 1;
+	    } else if ( *c == '$' ) {       // match local object
+		c++;
+		if ( *c == '#' ) {          // if this starts with '#' we mach object number
+		   if ( atoi(c) == local->sdn_objnum )
+			match = 1; 
+		} else {
+		    if ( *c == '=' )        // new format start with '=' for object name.
+			c++;                // but we continue if we don't find this to be
+                                            // compatible with old format.
+		    if ( local->sdn_objnamel &&
+		         !strncmp(c, (char *)local->sdn_objname, local->sdn_objnamel) )
+			match = 1;
+		}
+	    } else if (!strcmp(c, proc)) {  // match process/service/... name
+		match = 1;
+	    }
+
+	    if ( match ) break; // end this loop if we have a match
+
+	    c = strtok(NULL, LISTDELM); // get next element
+	}
+
+	if ( !match ) // continue with outer loop if we have no match
+	    continue;
+
+	// we now have a object match, search for a remode node match
+
+	match = 0; // reset match so we can use it for remote node matching
+
+	// now walk thru the list of clients:
+	c = strtok(clients, LISTDELM);
+	while (c != NULL) {
+	    if ( !strcmp(c, "ALL") ) {            // test for wildcard
+		match = 1;
+	    } else if ( !strcmp(c, nodeaddr) ) {  // test for numerical node address
+		match = 1;
+	    } else if ( isalpha(*c) ) {           // test for node name
+		if ( (ne = getnodebyname(c)) != NULL )
+		    if ( *(int16_t*)ne->n_addr == *(int16_t*)remote->sdn_add.a_addr )
+			match = 1;
+	    }
+
+	    // do we have a match?
+	    if (match) {
+		// do cleanup and return.
+		fclose(fh);
+		return 1;
+	    }
+
+	    // get next client
+	    c = strtok(NULL, LISTDELM);
+	}
+    }
+    // no match was found.
+
+    // cleanup
+    fclose(fh);
+    return 0;
+}

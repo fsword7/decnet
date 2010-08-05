@@ -39,9 +39,10 @@ int dnet_priv_check(const char * file, const char * proc,
     char             nodeaddr[12];
     struct nodeent * ne;
 
-    sprintf(nodeaddr, "%i.%i", remote->sdn_add.a_addr[1] >> 2,
+    snprintf(nodeaddr, sizeof(nodeaddr), "%i.%i", remote->sdn_add.a_addr[1] >> 2,
                                remote->sdn_add.a_addr[0] +
                                ((remote->sdn_add.a_addr[1] & 0x3) << 8));
+    nodeaddr[sizeof(nodeaddr)-1] = 0;
 
     if ( (fh = fopen(file, "r")) == NULL )
 	return -1;

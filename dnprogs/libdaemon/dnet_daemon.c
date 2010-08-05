@@ -54,6 +54,9 @@ typedef int bool;
 #define NODE_LENGTH 20
 #define USERNAME_LENGTH 65
 
+#define ALLOW_FILE      SYSCONF_PREFIX "/etc/nodes.allow"
+#define DENY_FILE       SYSCONF_PREFIX "/etc/nodes.deny"
+
 // Structure of an item in the DECnet proxy database
 // These lengths are generous to allow for regular expressions
 struct proxy
@@ -974,15 +977,15 @@ int dnet_daemon(int object, char *named_object,
 
 	    // first we check if we do not have a allow match, if we have we can continue.
 	    // if we don't have one we need to check the deny list.
-	    if ( dnet_priv_check(SYSCONF_PREFIX "/etc/nodes.allow", proc, &sa, &remotesa) != 1 ) {
+	    if ( dnet_priv_check(ALLOW_FILE, proc, &sa, &remotesa) != 1 ) {
 		// check deny list.
 		// if we have a nodes.deny file we continue, if we don't we ignore it.
 		// we check for file existance not readability here to avoid
 		// errors by wrong file permittions and such.
-		if ( access(SYSCONF_PREFIX "/etc/nodes.deny", F_OK) == 0 ) {
+		if ( access(DENY_FILE, F_OK) == 0 ) {
 		    // check the file itself. We do not reject in case of no match (0).
 		    // in case of match (1) or error (-1) we reject.
-		    if ( dnet_priv_check(SYSCONF_PREFIX "/etc/nodes.allow", proc, &sa, &remotesa) != 0 ) {
+		    if ( dnet_priv_check(DENY_FILE, proc, &sa, &remotesa) != 0 ) {
 			dnet_reject(newone, DNSTAT_ACCCONTROL, NULL, 0);
 			continue;
 		    }

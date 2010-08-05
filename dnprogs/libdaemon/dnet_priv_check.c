@@ -77,8 +77,14 @@ int dnet_priv_check(const char * file, const char * proc,
 	    } else if ( *c == '$' ) {       // match local object
 		c++;
 		if ( *c == '#' ) {          // if this starts with '#' we mach object number
-		   if ( atoi(c) == local->sdn_objnum )
-			match = 1; 
+		   c++;
+		   if ( isalpha(*c) ) {
+			if ( getobjectbyname(c) == local->sdn_objnum )
+			    match = 1; 
+		   } else {
+			if ( atoi(c) == local->sdn_objnum )
+			    match = 1; 
+		   }
 		} else {
 		    if ( *c == '=' )        // new format start with '=' for object name.
 			c++;                // but we continue if we don't find this to be

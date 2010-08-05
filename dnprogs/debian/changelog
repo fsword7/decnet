@@ -3,8 +3,9 @@ dnprogs (2.53) unstable; urgency=low
   * Done some more porting to FreeBSD, corrected Build-Depends for hurd-i386
     Closes: #588185
   * Added new tool node(1) - Node name lookup tool
+  * Added support to libdnet_daemon to read /etc/nodes.{allow,deny} 
 
- -- Philipp Schafft <lion@lion.leolix.org>  Wed,  4 Aug 2010 18:59:46 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Thu,  5 Aug 2010 19:20:01 +0200
 
 dnprogs (2.52) unstable; urgency=low
 

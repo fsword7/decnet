@@ -836,7 +836,7 @@ bool bind_wild(int sockfd)
 int dnet_daemon(int object, char *named_object,
 		int verbosity, bool do_fork)
 {
-    struct sockaddr_dn  sa;
+    struct sockaddr_dn  sa, remotesa;
     unsigned int        namelen = sizeof(struct sockaddr_dn);
     bool                bind_status  = FALSE;
     pid_t               pid;
@@ -845,6 +845,7 @@ int dnet_daemon(int object, char *named_object,
     int                 i;
     struct              sigaction siga;
     sigset_t            ss;
+    const char        * proc = "(NONE)";
 
     memset(&sa, 0, sizeof(sa));
 
@@ -962,10 +963,37 @@ int dnet_daemon(int object, char *named_object,
 	newone = waitfor(sockfd);
 	if (newone > -1)
 	{
+	    // check /etc/nodes.{allow,deny} if connection is allowed
+	    namelen = sizeof(remotesa);
+
+	    if ( getpeername(newone, (struct sockaddr *) &remotesa, &namelen) == -1 ) {
+		dnet_reject(newone, DNSTAT_FAILED, NULL, 0);
+		DNETLOG((LOG_ALERT, "Can not read peers sockname\n"));
+		continue;
+	    }
+
+	    // first we check if we do not have a allow match, if we have we can continue.
+	    // if we don't have one we need to check the deny list.
+	    if ( dnet_priv_check(SYSCONF_PREFIX "/etc/nodes.allow", proc, &sa, &remotesa) != 1 ) {
+		// check deny list.
+		// if we have a nodes.deny file we continue, if we don't we ignore it.
+		// we check for file existance not readability here to avoid
+		// errors by wrong file permittions and such.
+		if ( access(SYSCONF_PREFIX "/etc/nodes.deny", F_OK) == 0 ) {
+		    // check the file itself. We do not reject in case of no match (0).
+		    // in case of match (1) or error (-1) we reject.
+		    if ( dnet_priv_check(SYSCONF_PREFIX "/etc/nodes.allow", proc, &sa, &remotesa) != 0 ) {
+			dnet_reject(newone, DNSTAT_ACCCONTROL, NULL, 0);
+			continue;
+		    }
+		}
+	    }
+
+	    // load dnetd's object databse if we don't have it already loaded.
 	    if (!object_db) load_dnetd_conf();
-	    ret = fork_and_setuid(newone);
 
 	    if (object_db) {
+		// check if we are going to do auto accept or reject.
 		switch (thisobj->auto_accept) {
 		    case  1:
 			dnet_accept(newone, 0, NULL, 0);
@@ -975,6 +1003,8 @@ int dnet_daemon(int object, char *named_object,
 			continue;
 		}
 	    }
+
+	    ret = fork_and_setuid(newone);
 
 	    switch (ret)
 	    {

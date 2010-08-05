@@ -1,7 +1,7 @@
 include ../Makefile.common
 
-LIBOBJS=dnet_daemon.o dnetlog.o
-PICOBJS=dnet_daemon.po dnetlog.po
+LIBOBJS=dnet_daemon.o dnetlog.o dnet_priv_check.o
+PICOBJS=dnet_daemon.po dnetlog.po dnet_priv_check.po
 MANPAGES3=dnet_daemon.3
 
 LIBNAME=libdnet_daemon

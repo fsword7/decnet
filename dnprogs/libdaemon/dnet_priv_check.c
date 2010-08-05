@@ -87,7 +87,7 @@ int dnet_priv_check(const char * file, const char * proc,
 		         !strncmp(c, (char *)local->sdn_objname, local->sdn_objnamel) )
 			match = 1;
 		}
-	    } else if (!strcmp(c, proc)) {  // match process/service/... name
+	    } else if (proc != NULL && !strcmp(c, proc)) {  // match process/service/... name
 		match = 1;
 	    }
 

@@ -848,7 +848,7 @@ int dnet_daemon(int object, char *named_object,
     int                 i;
     struct              sigaction siga;
     sigset_t            ss;
-    const char        * proc = "(NONE)";
+    const char        * proc = NULL;
 
     memset(&sa, 0, sizeof(sa));
 

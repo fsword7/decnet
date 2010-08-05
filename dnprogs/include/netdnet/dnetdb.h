@@ -55,6 +55,9 @@ extern void  init_daemon_logging(char *, char);
 extern void  dnetlog(int level, char *fmt, ...);
 #define DNETLOG(x) dnetlog x
 
+int dnet_priv_check(const char * file, const char * proc,
+                    const struct sockaddr_dn * local, const struct sockaddr_dn * remote);
+
 /* Used by dnet_ntop/dnet_pton */
 #define DNET_ADDRSTRLEN  8
     

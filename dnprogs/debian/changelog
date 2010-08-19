@@ -6,8 +6,9 @@ dnprogs (2.53) unstable; urgency=low
   * Added support to libdnet_daemon to read /etc/nodes.{allow,deny}
   * Fixed DoS bug in dnet_daemon()
     Closes: #592015 
+  * Update libvaxdata to version 1.2, fixes double conversions
 
- -- Philipp Schafft <lion@lion.leolix.org>  Sat,  7 Aug 2010 00:25:57 +0200
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Thu, 19 Jul 2010 10:19:32 +0100
 
 dnprogs (2.52) unstable; urgency=low
 

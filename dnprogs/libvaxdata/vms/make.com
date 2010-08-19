@@ -4,7 +4,7 @@ $!                                                                             !
 $! Make.com - Make library of functions for reading and writing VAX format     !
 $!            data for OpenVMS using DEC/Compaq/HP VAX C or DEC C (CC).        !
 $!                                                                             !
-$! DCL command syntax: @Make [ all | libvaxdata | clean ]                      !
+$! DCL command syntax: @Make [ all | libvaxdata | test | clean ]               !
 $!                                                                             !
 $!                                                                             !
 $! Author:      Lawrence M. Baker                                              !
@@ -13,9 +13,9 @@ $!              345 Middlefield Road  MS977                                    !
 $!              Menlo Park, CA  94025                                          !
 $!              baker@usgs.gov                                                 !
 $!                                                                             !
-$! Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver-  !
-$!                 sion Routines, US Geological Survey, Open-File Report no.   !
-$!                 2005-XXX, nn p.                                             !
+$! Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion      !
+$!                 Routines: U.S. Geological Survey Open-File Report 2005-     !
+$!                 1424, v1.1 (http://pubs.usgs.gov/of/2005/1424/).            !
 $!                                                                             !
 $!                                                                             !
 $!                                 Disclaimer                                  !
@@ -29,17 +29,20 @@ $!                                                                             !
 $!                                                                             !
 $! Modification History:                                                       !
 $!                                                                             !
-$! 12-Oct-2005  L. M. Baker      Original version (from make.libvfbb).         !
+$!  2-Sep-2005  L. M. Baker      Original version (from make.libvfbb).         !
+$! 30-Jan-2010  L. M. Baker      Add test program.                             !
 $!                                                                             !
 $!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 $!
 $ lib_name = "LibVAXData"
-$ args = "||all|libvaxdata|clean|"
+$ args = "|all|libvaxdata|test|clean|"
+$
 $ P1 = F$Edit( P1, "TRIM,LOWERCASE" )
+$ If ( P1 .eqs. "" ) Then $ P1 = "all"
 $ If ( F$Locate( "|''P1'|", args ) .eq. F$Length( args ) )
 $ Then
 $    Write Sys$Error -
-        "DCL command syntax: @Make [ all | libvaxdata | clean ]"
+        "DCL command syntax: @Make [ all | libvaxdata | test | clean ]"
 $    Goto EXIT
 $ EndIf
 $!
@@ -57,7 +60,7 @@ $!
 $ Set Verify
 $ Set Default [.'arch']
 $ junk = 'F$Verify( 0 )'
-$ If ( P1 .nes. "" ) Then $ Goto 'P1'
+$ Goto 'P1'
 $!
 $ALL:
 $LIBVAXDATA:
@@ -82,7 +85,7 @@ $ junk = 'F$Verify( 0 )'
 $!
 $ If ( arch .eqs. "VAX" )
 $ Then
-$    blocks  = 18
+$    blocks  = 47
 $    modules = 13
 $ Else
 $    blocks  = 97
@@ -144,13 +147,25 @@ $ Delete From_VAX_I2.obj;*  , From_VAX_I4.obj;*  , From_VAX_R4.obj;*  , -
 $    junk = 'F$Verify( 0 )'
 $ EndIf
 $!
+$ If ( P1 .nes. "all" ) Then $ Goto DONE
+$!
+$TEST:
+$!
+$ Set NoOn
+$ Set Verify
+$ CC /Float=IEEE_Float [--.Src]Test
+$ Link Test, 'lib_name'/Library
+$ Delete Test.obj;*
+$ junk = 'F$Verify( 0 )'
+$ Set On
+$!
 $ Goto DONE
 $!
 $CLEAN:
 $!
 $ Set NoOn
 $ Set Verify
-$ Delete 'lib_name'.olb;*
+$ Delete 'lib_name'.olb;*   , Test.exe;*         , Test.obj;*
 $ Delete From_VAX_I2.obj;*  , From_VAX_I4.obj;*  , From_VAX_R4.obj;*  , -
          From_VAX_D8.obj;*  , From_VAX_G8.obj;*  , From_VAX_H16.obj;* , -
          To_VAX_I2.obj;*    , To_VAX_I4.obj;*    , To_VAX_R4.obj;*    , -

@@ -6,7 +6,7 @@
 # Shell command syntax: make -f makefile.linux \                               #
 #                            [ CC="c_compiler" ] \                             #
 #                            [ CFLAGS="c_compiler_flags" ] \                   #
-#                            [ all | libvaxdata | clean ]                      #
+#                            [ all | libvaxdata | test | clean ]               #
 #                                                                              #
 #                                                                              #
 # Author:      Lawrence M. Baker                                               #
@@ -15,9 +15,9 @@
 #              Menlo Park, CA  94025                                           #
 #              baker@usgs.gov                                                  #
 #                                                                              #
-# Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver-   #
-#                 sion Routines, US Geological Survey, Open-File Report no.    #
-#                 2005-XXX, nn p.                                              #
+# Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion       #
+#                 Routines: U.S. Geological Survey Open-File Report 2005-1424, #
+#                 v1.1 (http://pubs.usgs.gov/of/2005/1424/).                   #
 #                                                                              #
 #                                                                              #
 #                                 Disclaimer                                   #
@@ -33,7 +33,7 @@
 #                                                                              #
 #  2-Sep-2005  L. M. Baker      Original version (from make.libvfbb).          #
 #  5-Oct-2005  L. M. Baker      Use custom compile rule for is_little_endian.  #
-#  2-Aug-2006  P. J. Caulfield  Remove -c from ar command.                     #
+# 30-Jan-2010  L. M. Baker      Add test program.                              #
 #                                                                              #
 ################################################################################
 
@@ -46,6 +46,11 @@
 # -O3 (highest level of optimization) -ansi (strict ANSI)
 #CC     = icc
 #CFLAGS = -O3 -ansi
+
+# PathScale C
+# -O3 (highest level of optimization) -std=c89 (strict ANSI)
+#CC     = pathcc
+#CFLAGS = -O3 -std=c89
 
 # Portland Group C
 # -O3 (highest level of optimization) -Xa (strict ANSI)
@@ -69,7 +74,7 @@ OBJS = from_vax_i2.o       from_vax_i2_.o      from_vax_i4.o       \
 
 VPATH = ../../src
 
-all:		$(LIB_NAME)
+all:	$(LIB_NAME) test
 
 $(LIB_NAME):
 	test -d $(ARCH) || mkdir $(ARCH)
@@ -80,7 +85,7 @@ $(LIB_NAME):
 	cd $(ARCH) ; $(RM) $(OBJS)
 
 $(LIB_NAME).a:	$(OBJS)
-	ar -r  $(LIB_NAME).a $(OBJS)
+	ar -r -c $(LIB_NAME).a $(OBJS)
 	ranlib $(LIB_NAME).a
 
 is_little_endian.o:	is_little_endian.c
@@ -89,5 +94,8 @@ is_little_endian.o:	is_little_endian.c
 is_little_endian_.o:	is_little_endian_.c
 	$(CC) -c -o $@ $?
 
+test:
+	cd $(ARCH) ; $(CC) -o test ../../src/test.c -L. -lvaxdata
+
 clean:
-	cd $(ARCH) ; $(RM) -f $(LIB_NAME).a $(OBJS)
+	cd $(ARCH) ; $(RM) -f $(LIB_NAME).a test test.o $(OBJS)

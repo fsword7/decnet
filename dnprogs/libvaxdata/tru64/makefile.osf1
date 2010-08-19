@@ -6,7 +6,7 @@
 # Shell command syntax: make -f makefile.osf1 \                                #
 #                            [ CC="c_compiler" ] \                             #
 #                            [ CFLAGS="c_compiler_flags" ] \                   #
-#                            [ all | libvaxdata | clean ]                      #
+#                            [ all | libvaxdata | test | clean ]               #
 #                                                                              #
 #                                                                              #
 # Author:      Lawrence M. Baker                                               #
@@ -15,9 +15,9 @@
 #              Menlo Park, CA  94025                                           #
 #              baker@usgs.gov                                                  #
 #                                                                              #
-# Citation:    Baker, Lawrence M., 2005, libvaxdata: VAX Data Format Conver-   #
-#                 sion Routines, US Geological Survey, Open-File Report no.    #
-#                 2005-XXX, nn p.                                              #
+# Citation:    Baker, L.M., 2005, libvaxdata: VAX Data Format Conversion       #
+#                 Routines: U.S. Geological Survey Open-File Report 2005-1424, #
+#                 v1.1 (http://pubs.usgs.gov/of/2005/1424/).                   #
 #                                                                              #
 #                                                                              #
 #                                 Disclaimer                                   #
@@ -32,7 +32,8 @@
 # Modification History:                                                        #
 #                                                                              #
 #  2-Sep-2005  L. M. Baker      Original version (from make.libvfbb).          #
-# 12-Oct-2005  L. M. Baker      Use custom compile rule for is_little_endian.  #
+#  6-Oct-2005  L. M. Baker      Use custom compile rule for is_little_endian.  #
+# 30-Jan-2010  L. M. Baker      Add test program.                              #
 #                                                                              #
 ################################################################################
 
@@ -63,7 +64,7 @@ OBJS = from_vax_i2.o       from_vax_i2_.o      from_vax_i4.o       \
 
 VPATH = ../../src
 
-all:		$(LIB_NAME)
+all:	$(LIB_NAME) test
 
 $(LIB_NAME):
 	test -d $(ARCH) || mkdir $(ARCH)
@@ -83,5 +84,8 @@ is_little_endian.o:
 is_little_endian_.o:
 	$(CC) -c -o $@ $?
 
+test:
+	cd $(ARCH) ; $(CC) -o test ../../src/test.c -L. -lvaxdata
+
 clean:
-	cd $(ARCH) ; $(RM) -f $(LIB_NAME).a $(OBJS)
+	cd $(ARCH) ; $(RM) -f $(LIB_NAME).a test test.o $(OBJS)

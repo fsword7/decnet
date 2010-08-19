@@ -74,7 +74,8 @@
  * from  VAX  0.1m hidden-bit normalization to IEEE 1.m hidden-bit normaliza- *
  * tion and (2) adjust the bias from VAX format to IEEE  format.   True  zero *
  * [s=e=m=0]  and  dirty  zero  [s=e=0, m<>0] are special cases which must be *
- * recognized and handled separately.                                         *
+ * recognized and handled separately.  Both VAX zeros are converted  to  IEEE *
+ * +zero [s=e=m=0].                                                           *
  *                                                                            *
  * Numbers  whose  absolute value is too small to represent in the normalized *
  * IEEE format illustrated above are converted to subnormal form [e=0,  m>0]: *
@@ -94,9 +95,10 @@
  * point format by  adding  (1+VAX_bias-IEEE_bias)  to  the  exponent  field. *
  * +zero [s=e=m=0], -zero [s=1, e=m=0], infinities [s=X, e=all-1's, m=0], and *
  * NaNs [s=X, e=all-1's, m<>0] are special cases which must be recognized and *
- * handled  separately.   Infinities  and NaNs cause a SIGFPE exception to be *
- * raised.  The result returned has the largest VAX exponent [e=all-1's]  and *
- * zero mantissa [m=0] with the same sign as the original.                    *
+ * handled  separately.   Both  IEEE  zeros  are  converted  to VAX true zero *
+ * [s=e=m=0].  Infinities and NaNs cause a SIGFPE  exception  to  be  raised. *
+ * The  result  returned  has  the  largest VAX exponent [e=all-1's] and zero *
+ * mantissa [m=0] with the same sign as the original.                         *
  *                                                                            *
  * Numbers  whose  absolute value is too small to represent in the normalized *
  * VAX format illustrated above are set  to  0.0  (silent  underflow).   (VAX *
@@ -182,12 +184,13 @@
  * 19-Sep-2005  L. M. Baker      Add fixups for IEEE-to-VAX conversion        *
  *                                  faults (+-infinity, +-NaN, overflow).     *
  *  8-Nov-2005  L. M. Baker      Move #define const if not __STDC__ from      *
- *                                  convert_vax_data.c                        *
+ *                                  convert_vax_data.c.                       *
+ * 27-Jan-2010  L. M. Baker      Change guard to #ifndef _CONVERT_VAX_DATA_H. *
  *                                                                            *
  ******************************************************************************/
 
-#ifndef _CONVERT_VAX_DATA
-#define _CONVERT_VAX_DATA
+#ifndef _CONVERT_VAX_DATA_H
+#define _CONVERT_VAX_DATA_H
 
 #ifndef FORTRAN_LINKAGE
 #define FORTRAN_LINKAGE
@@ -260,4 +263,4 @@ void FORTRAN_LINKAGE to_vax_g8(    const void *inbuf, void *outbuf,
 void FORTRAN_LINKAGE to_vax_h16(   const void *inbuf, void *outbuf,
                                    const int *count );
 
-#endif /* #ifndef _CONVERT_VAX_DATA */
+#endif /* _CONVERT_VAX_DATA_H */

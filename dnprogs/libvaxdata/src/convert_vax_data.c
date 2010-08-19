@@ -91,7 +91,7 @@
  *                                  Compaq's Tru64 UNIX).                     *
  *                               Add __alpha to the list of predefined macros *
  *                                  that set IS_LITTLE_ENDIAN to 1.           *
- *  5-Feb-2001  L. M. Baker      Add prototypes for all functions (Matlab's   *
+ *  5-Feb-2001  L. M. Baker      Add prototypes for all functions (MatLab's   *
  *                                  MrC command on Macintosh requires them).  *
  *  9-Mar-2001  L. M. Baker      #include "convert_vax_data.h".               *
  * 12-Aug-2005  L. M. Baker      Add conditionals for GNU C and Portland      *
@@ -110,7 +110,15 @@
  *                                  macro named LITTLE_ENDIAN.                *
  * 12-Oct-2005  L. M. Baker      Remove unreferenced variables.               *
  *  8-Nov-2005  L. M. Baker      Move #define const if not __STDC__ to        *
- *                                  convert_vax_data.h                        *
+ *                                  convert_vax_data.h.                       *
+ * 28-Jan-2010  L. M. Baker      Correct output order for d8/g8/h16 conver-   *
+ *                                  sions on little endian machines (thanks   *
+ *                                  to Neil Six at Raytheon).                 *
+ *                               Correct typo (VAX_D_EXPONENT_BIAS should be  *
+ *                                  VAX_G_EXPONENT_BIAS) in to_vax_g8().      *
+ *                               Correct exponent positioning in to_vax_d8(). *
+ * 15-Apr-2010  L. M. Baker      Correct f4/g8/h16 conversions to IEEE sub-   *
+ *                                  normal form (thanks again to Neil Six).   *
  *                                                                            *
  ******************************************************************************/
 
@@ -151,12 +159,12 @@
 
 #endif
 
-#if !defined( MAKE_FROM_VAX_I2 ) && !defined( MAKE_FROM_VAX_I4 )  && \
-    !defined( MAKE_FROM_VAX_R4 ) && !defined( MAKE_FROM_VAX_D8 )  && \
-    !defined( MAKE_FROM_VAX_G8 ) && !defined( MAKE_FROM_VAX_H16 ) && \
-    !defined( MAKE_TO_VAX_I2 )   && !defined( MAKE_TO_VAX_I4 )    && \
-    !defined( MAKE_TO_VAX_R4 )   && !defined( MAKE_TO_VAX_D8 )    && \
-    !defined( MAKE_TO_VAX_G8 )   && !defined( MAKE_TO_VAX_H16 )
+#if !defined( MAKE_FROM_VAX_I2  ) && !defined( MAKE_FROM_VAX_I4  ) && \
+    !defined( MAKE_FROM_VAX_R4  ) && !defined( MAKE_FROM_VAX_D8  ) && \
+    !defined( MAKE_FROM_VAX_G8  ) && !defined( MAKE_FROM_VAX_H16 ) && \
+    !defined( MAKE_TO_VAX_I2    ) && !defined( MAKE_TO_VAX_I4    ) && \
+    !defined( MAKE_TO_VAX_R4    ) && !defined( MAKE_TO_VAX_D8    ) && \
+    !defined( MAKE_TO_VAX_G8    ) && !defined( MAKE_TO_VAX_H16   )
 
 #define MAKE_FROM_VAX_I2
 #define MAKE_FROM_VAX_I4
@@ -180,14 +188,14 @@
 #error convert_vax_data.c requires 8-bit chars, 16-bit shorts, and 32-bit ints
 #endif
 
-#if defined( MAKE_FROM_VAX_R4 ) || defined( MAKE_FROM_VAX_D8 )  || \
-    defined( MAKE_FROM_VAX_G8 ) || defined( MAKE_FROM_VAX_H16 ) || \
-    defined( MAKE_TO_VAX_R4 )   || defined( MAKE_TO_VAX_D8 )    || \
-    defined( MAKE_TO_VAX_G8 )   || defined( MAKE_TO_VAX_H16 )
+#if defined( MAKE_FROM_VAX_R4  ) || defined( MAKE_FROM_VAX_D8  ) || \
+    defined( MAKE_FROM_VAX_G8  ) || defined( MAKE_FROM_VAX_H16 ) || \
+    defined( MAKE_TO_VAX_R4    ) || defined( MAKE_TO_VAX_D8    ) || \
+    defined( MAKE_TO_VAX_G8    ) || defined( MAKE_TO_VAX_H16   )
 #include <signal.h>             /* SIGFPE, raise() */
 #endif
 
-/* FLoating point data format invariants */
+/* Floating point data format invariants */
 
 #define SIGN_BIT             0x80000000
 
@@ -375,13 +383,13 @@ void FORTRAN_LINKAGE from_vax_r4( const void *inbuf, void *outbuf,
 
 #if IS_LITTLE_ENDIAN
    register const unsigned short *in;   /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    const unsigned char *in;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
    register unsigned int *out;          /* Microsoft C: up to 2 register vars */
-   unsigned int part1;
+   unsigned int vaxpart1;
    int n;
    int e;
 
@@ -394,21 +402,23 @@ void FORTRAN_LINKAGE from_vax_r4( const void *inbuf, void *outbuf,
    out = (unsigned int *) outbuf;
 
    for ( n = *count; n > 0; n-- ) {
+
 #if IS_LITTLE_ENDIAN
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part1     = part.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart1     = vaxpart.l;
 #else
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part1     = part.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart1     = vaxpart.l;
 #endif
-      if ( ( e = ( part1 & VAX_F_EXPONENT_MASK ) ) == 0 ) {
+
+      if ( ( e = ( vaxpart1 & VAX_F_EXPONENT_MASK ) ) == 0 ) {
                                   /* If the biased VAX exponent is zero [e=0] */
 
-         if ( ( part1 & SIGN_BIT ) == SIGN_BIT ) {       /* If negative [s=1] */
+         if ( ( vaxpart1 & SIGN_BIT ) == SIGN_BIT ) {    /* If negative [s=1] */
             raise( SIGFPE );/* VAX reserved operand fault; fixup to IEEE zero */
          }
            /* Set VAX dirty [m<>0] or true [m=0] zero to IEEE +zero [s=e=m=0] */
@@ -424,16 +434,25 @@ void FORTRAN_LINKAGE from_vax_r4( const void *inbuf, void *outbuf,
          /* If the resulting biased IEEE exponent is less than  or  equal  to */
          /* zero, the converted IEEE S_float must use subnormal form.         */
 
-         if ( ( e - EXPONENT_ADJUSTMENT ) > 0 ) {
+         if ( ( e -= EXPONENT_ADJUSTMENT ) > 0 ) {
                                             /* Use IEEE normalized form [e>0] */
 
             /* Both mantissas are 23 bits; adjust the exponent field in place */
-            *out++ = part1 - IN_PLACE_EXPONENT_ADJUSTMENT;
+            *out++ = vaxpart1 - IN_PLACE_EXPONENT_ADJUSTMENT;
 
          } else {                       /* Use IEEE subnormal form [e=0, m>0] */
 
-            *out++ = ( part1 & SIGN_BIT ) |
-                     ( ( HIDDEN_BIT | ( part1 & MANTISSA_MASK ) ) >>
+            /* In IEEE subnormal form, even though the biased exponent is 0   */
+            /* [e=0], the effective biased exponent is 1.  The mantissa must  */
+            /* be shifted right by the number of bits, n, required to adjust  */
+            /* the biased exponent from its current value, e, to 1.  I.e.,    */
+            /* e + n = 1, thus n = 1 - e.  n is guaranteed to be at least 1   */
+            /* [e<=0], which guarantees that the hidden 1.m bit from the ori- */
+            /* ginal mantissa will become visible, and the resulting subnor-  */
+            /* mal mantissa will correctly be of the form 0.m.                */
+
+            *out++ = ( vaxpart1 & SIGN_BIT ) |
+                     ( ( HIDDEN_BIT | ( vaxpart1 & MANTISSA_MASK ) ) >>
                        ( 1 - e ) );
 
          }
@@ -475,13 +494,13 @@ void FORTRAN_LINKAGE from_vax_d8( const void *inbuf, void *outbuf,
 
 #if IS_LITTLE_ENDIAN
    register const unsigned short *in;   /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    const unsigned char *in;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
    register unsigned int *out;          /* Microsoft C: up to 2 register vars */
-   unsigned int part1, part2;
+   unsigned int vaxpart1, vaxpart2, ieeepart1, ieeepart2;
    int n;
 
 
@@ -493,29 +512,31 @@ void FORTRAN_LINKAGE from_vax_d8( const void *inbuf, void *outbuf,
    out = (unsigned int *) outbuf;
 
    for ( n = *count; n > 0; n-- ) {
+
 #if IS_LITTLE_ENDIAN
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part1     = part.l;
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part2     = part.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart2     = vaxpart.l;
 #else
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part1     = part.l;
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part2     = part.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart2     = vaxpart.l;
 #endif
-      if ( ( part1 & VAX_D_EXPONENT_MASK ) == 0 ) {
+
+      if ( ( vaxpart1 & VAX_D_EXPONENT_MASK ) == 0 ) {
                                   /* If the biased VAX exponent is zero [e=0] */
 
-         if ( ( part1 & SIGN_BIT ) == SIGN_BIT ) {       /* If negative [s=1] */
+         if ( ( vaxpart1 & SIGN_BIT ) == SIGN_BIT ) {    /* If negative [s=1] */
             raise( SIGFPE );/* VAX reserved operand fault; fixup to IEEE zero */
          }
            /* Set VAX dirty [m<>0] or true [m=0] zero to IEEE +zero [s=e=m=0] */
@@ -529,11 +550,19 @@ void FORTRAN_LINKAGE from_vax_d8( const void *inbuf, void *outbuf,
 
          /* Use  IEEE normalized form [e>0]; truncate the mantissa from 55 to */
          /* 52 bits, then adjust the exponent field in place                  */
-         *out++ = ( ( part1 & SIGN_BIT ) |
-                    ( ( part1 & ~SIGN_BIT ) >> EXPONENT_RIGHT_SHIFT ) ) -
-                  IN_PLACE_EXPONENT_ADJUSTMENT;
-         *out++ = ( part1 << ( 32 - EXPONENT_RIGHT_SHIFT ) ) |
-                  ( part2 >>        EXPONENT_RIGHT_SHIFT );
+         ieeepart1 = ( ( vaxpart1 & SIGN_BIT ) |
+                     ( ( vaxpart1 & ~SIGN_BIT ) >> EXPONENT_RIGHT_SHIFT ) ) -
+                     IN_PLACE_EXPONENT_ADJUSTMENT;
+         ieeepart2 = ( vaxpart1 << ( 32 - EXPONENT_RIGHT_SHIFT ) ) |
+                     ( vaxpart2 >>        EXPONENT_RIGHT_SHIFT );
+
+#if IS_LITTLE_ENDIAN
+         *out++ = ieeepart2;
+         *out++ = ieeepart1;
+#else
+         *out++ = ieeepart1;
+         *out++ = ieeepart2;
+#endif
 
       }
    }
@@ -574,13 +603,13 @@ void FORTRAN_LINKAGE from_vax_g8( const void *inbuf, void *outbuf,
 
 #if IS_LITTLE_ENDIAN
    register const unsigned short *in;   /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    const unsigned char *in;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
    register unsigned int *out;          /* Microsoft C: up to 2 register vars */
-   unsigned int part1, part2;
+   unsigned int vaxpart1, vaxpart2, ieeepart1, ieeepart2;
    int n;
    int e;
 
@@ -593,29 +622,31 @@ void FORTRAN_LINKAGE from_vax_g8( const void *inbuf, void *outbuf,
    out = (unsigned int *) outbuf;
 
    for ( n = *count; n > 0; n-- ) {
+
 #if IS_LITTLE_ENDIAN
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part1     = part.l;
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part2     = part.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart2     = vaxpart.l;
 #else
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part1     = part.l;
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part2     = part.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart2     = vaxpart.l;
 #endif
-      if ( ( e = ( part1 & VAX_G_EXPONENT_MASK ) ) == 0 ) {
+
+      if ( ( e = ( vaxpart1 & VAX_G_EXPONENT_MASK ) ) == 0 ) {
                                   /* If the biased VAX exponent is zero [e=0] */
 
-         if ( ( part1 & SIGN_BIT ) == SIGN_BIT ) {       /* If negative [s=1] */
+         if ( ( vaxpart1 & SIGN_BIT ) == SIGN_BIT ) {    /* If negative [s=1] */
             raise( SIGFPE );/* VAX reserved operand fault; fixup to IEEE zero */
          }
            /* Set VAX dirty [m<>0] or true [m=0] zero to IEEE +zero [s=e=m=0] */
@@ -632,22 +663,41 @@ void FORTRAN_LINKAGE from_vax_g8( const void *inbuf, void *outbuf,
          /* If the resulting biased IEEE exponent is less than  or  equal  to */
          /* zero, the converted IEEE T_float must use subnormal form.         */
 
-         if ( ( e - EXPONENT_ADJUSTMENT ) > 0 ) {
+         if ( ( e -= EXPONENT_ADJUSTMENT ) > 0 ) {
                                             /* Use IEEE normalized form [e>0] */
 
             /* Both mantissas are 52 bits; adjust the exponent field in place */
-            *out++ = part1 - IN_PLACE_EXPONENT_ADJUSTMENT;
-            *out++ = part2;
+            ieeepart1 = vaxpart1 - IN_PLACE_EXPONENT_ADJUSTMENT;
+            ieeepart2 = vaxpart2;
 
          } else {                       /* Use IEEE subnormal form [e=0, m>0] */
 
-            part1  = ( part1 & ( SIGN_BIT | MANTISSA_MASK ) ) | HIDDEN_BIT;
-            *out++ = ( part1 & SIGN_BIT ) |
-                     ( ( part1 & ( HIDDEN_BIT | MANTISSA_MASK ) ) >>
-                       ( 1 - e ) );
-            *out++ = ( part1 << ( 31 + e ) ) | ( part2 >> ( 1 - e ) );
+            /* In IEEE subnormal form, even though the biased exponent is 0   */
+            /* [e=0], the effective biased exponent is 1.  The mantissa must  */
+            /* be shifted right by the number of bits, n, required to adjust  */
+            /* the biased exponent from its current value, e, to 1.  I.e.,    */
+            /* e + n = 1, thus n = 1 - e.  n is guaranteed to be at least 1   */
+            /* [e<=0], which guarantees that the hidden 1.m bit from the ori- */
+            /* ginal mantissa will become visible, and the resulting subnor-  */
+            /* mal mantissa will correctly be of the form 0.m.                */
+
+            vaxpart1  = ( vaxpart1 & ( SIGN_BIT | MANTISSA_MASK ) ) |
+                        HIDDEN_BIT;
+            ieeepart1 = ( vaxpart1 & SIGN_BIT ) |
+                        ( ( vaxpart1 & ( HIDDEN_BIT | MANTISSA_MASK ) ) >>
+                          ( 1 - e ) );
+            ieeepart2 = ( vaxpart1 << ( 31 + e ) ) | ( vaxpart2 >> ( 1 - e ) );
 
          }
+
+#if IS_LITTLE_ENDIAN
+         *out++ = ieeepart2;
+         *out++ = ieeepart1;
+#else
+         *out++ = ieeepart1;
+         *out++ = ieeepart2;
+#endif
+
       }
    }
 
@@ -689,13 +739,14 @@ void FORTRAN_LINKAGE from_vax_h16( const void *inbuf, void *outbuf,
 
 #if IS_LITTLE_ENDIAN
    register const unsigned short *in;   /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    const unsigned char *in;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
    register unsigned int *out;          /* Microsoft C: up to 2 register vars */
-   unsigned int part1, part2, part3, part4;
+   unsigned int vaxpart1, vaxpart2, vaxpart3, vaxpart4,
+                ieeepart1, ieeepart2, ieeepart3, ieeepart4;
    int n;
    int e;
 
@@ -708,45 +759,47 @@ void FORTRAN_LINKAGE from_vax_h16( const void *inbuf, void *outbuf,
    out = (unsigned int *) outbuf;
 
    for ( n = *count; n > 0; n-- ) {
+
 #if IS_LITTLE_ENDIAN
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part1     = part.l;
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part2     = part.l;
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part3     = part.l;
-      part.i[1] = *in++;
-      part.i[0] = *in++;
-      part4     = part.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart2     = vaxpart.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart3     = vaxpart.l;
+      vaxpart.i[1] = *in++;
+      vaxpart.i[0] = *in++;
+      vaxpart4     = vaxpart.l;
 #else
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part1     = part.l;
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part2     = part.l;
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part3     = part.l;
-      part.c[1] = *in++;
-      part.c[0] = *in++;
-      part.c[3] = *in++;
-      part.c[2] = *in++;
-      part4     = part.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart1     = vaxpart.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart2     = vaxpart.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart3     = vaxpart.l;
+      vaxpart.c[1] = *in++;
+      vaxpart.c[0] = *in++;
+      vaxpart.c[3] = *in++;
+      vaxpart.c[2] = *in++;
+      vaxpart4     = vaxpart.l;
 #endif
-      if ( ( e = ( part1 & VAX_H_EXPONENT_MASK ) ) == 0 ) {
+
+      if ( ( e = ( vaxpart1 & VAX_H_EXPONENT_MASK ) ) == 0 ) {
                                   /* If the biased VAX exponent is zero [e=0] */
 
-         if ( ( part1 & SIGN_BIT ) == SIGN_BIT ) {       /* If negative [s=1] */
+         if ( ( vaxpart1 & SIGN_BIT ) == SIGN_BIT ) {    /* If negative [s=1] */
             raise( SIGFPE );/* VAX reserved operand fault; fixup to IEEE zero */
          }
            /* Set VAX dirty [m<>0] or true [m=0] zero to IEEE +zero [s=e=m=0] */
@@ -758,33 +811,56 @@ void FORTRAN_LINKAGE from_vax_h16( const void *inbuf, void *outbuf,
       } else {                  /* The biased VAX exponent is non-zero [e<>0] */
 
          e >>= MANTISSA_SIZE;               /* Obtain the biased VAX exponent */
-         
+
          /* The  biased  VAX  exponent  has to be adjusted to account for the */
          /* right shift of the IEEE mantissa binary point and the  difference */
          /* between  the biases in their "excess n" exponent representations. */
          /* If the resulting biased IEEE exponent is less than  or  equal  to */
          /* zero, the converted IEEE X_float must use subnormal form.         */
 
-         if ( ( e - EXPONENT_ADJUSTMENT ) > 0 ) {
+         if ( ( e -= EXPONENT_ADJUSTMENT ) > 0 ) {
                                             /* Use IEEE normalized form [e>0] */
 
            /* Both mantissas are 112 bits; adjust the exponent field in place */
-            *out++ = part1 - IN_PLACE_EXPONENT_ADJUSTMENT;
-            *out++ = part2;
-            *out++ = part3;
-            *out++ = part4;
+            ieeepart1 = vaxpart1 - IN_PLACE_EXPONENT_ADJUSTMENT;
+            ieeepart2 = vaxpart2;
+            ieeepart3 = vaxpart3;
+            ieeepart4 = vaxpart4;
 
          } else {                       /* Use IEEE subnormal form [e=0, m>0] */
 
-            part1  = ( part1 & ( SIGN_BIT | MANTISSA_MASK ) ) | HIDDEN_BIT;
-            *out++ = ( part1 & SIGN_BIT ) |
-                     ( ( part1 & ( HIDDEN_BIT | MANTISSA_MASK ) ) >>
-                       ( 1 - e ) );
-            *out++ = ( part1 << ( 31 + e ) ) | ( part2 >> ( 1 - e ) );
-            *out++ = ( part2 << ( 31 + e ) ) | ( part3 >> ( 1 - e ) );
-            *out++ = ( part3 << ( 31 + e ) ) | ( part4 >> ( 1 - e ) );
+            /* In IEEE subnormal form, even though the biased exponent is 0   */
+            /* [e=0], the effective biased exponent is 1.  The mantissa must  */
+            /* be shifted right by the number of bits, n, required to adjust  */
+            /* the biased exponent from its current value, e, to 1.  I.e.,    */
+            /* e + n = 1, thus n = 1 - e.  n is guaranteed to be at least 1   */
+            /* [e<=0], which guarantees that the hidden 1.m bit from the ori- */
+            /* ginal mantissa will become visible, and the resulting subnor-  */
+            /* mal mantissa will correctly be of the form 0.m.                */
+
+            vaxpart1  = ( vaxpart1 & ( SIGN_BIT | MANTISSA_MASK ) ) |
+                        HIDDEN_BIT;
+            ieeepart1 = ( vaxpart1 & SIGN_BIT ) |
+                        ( ( vaxpart1 & ( HIDDEN_BIT | MANTISSA_MASK ) ) >>
+                          ( 1 - e ) );
+            ieeepart2 = ( vaxpart1 << ( 31 + e ) ) | ( vaxpart2 >> ( 1 - e ) );
+            ieeepart3 = ( vaxpart2 << ( 31 + e ) ) | ( vaxpart3 >> ( 1 - e ) );
+            ieeepart4 = ( vaxpart3 << ( 31 + e ) ) | ( vaxpart4 >> ( 1 - e ) );
 
          }
+
+#if IS_LITTLE_ENDIAN
+         *out++ = ieeepart4;
+         *out++ = ieeepart3;
+         *out++ = ieeepart2;
+         *out++ = ieeepart1;
+#else
+         *out++ = ieeepart1;
+         *out++ = ieeepart2;
+         *out++ = ieeepart3;
+         *out++ = ieeepart4;
+#endif
+
       }
    }
 
@@ -916,12 +992,12 @@ void FORTRAN_LINKAGE to_vax_r4( const void *inbuf, void *outbuf,
    register const unsigned int *in;     /* Microsoft C: up to 2 register vars */
 #if IS_LITTLE_ENDIAN
    register unsigned short *out;        /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    unsigned char *out;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
-   unsigned int part1;
+   unsigned int ieeepart1;
    unsigned int m;
    int n;
    int e;
@@ -935,59 +1011,61 @@ void FORTRAN_LINKAGE to_vax_r4( const void *inbuf, void *outbuf,
 #endif
 
    for ( n = *count; n > 0; n-- ) {
-      part1 = *in++;
-      if ( ( part1 & ~SIGN_BIT ) == 0 ) {
+      ieeepart1 = *in++;
+      if ( ( ieeepart1 & ~SIGN_BIT ) == 0 ) {
 
-         part.l = 0;         /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
+         vaxpart.l = 0;      /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
 
-      } else if ( ( e = ( part1 & IEEE_S_EXPONENT_MASK ) ) ==
+      } else if ( ( e = ( ieeepart1 & IEEE_S_EXPONENT_MASK ) ) ==
                   IEEE_S_EXPONENT_MASK ) {
 
        /* VAX's have no equivalents for IEEE +-Infinity and +-NaN [e=all-1's] */
          raise( SIGFPE );
                /* Fixup to VAX +-extrema [e=all-1's] with zero mantissa [m=0] */
-         part.l = ( part1 & SIGN_BIT ) | VAX_F_EXPONENT_MASK;
+         vaxpart.l = ( ieeepart1 & SIGN_BIT ) | VAX_F_EXPONENT_MASK;
 
       } else {
 
          e >>= MANTISSA_SIZE;              /* Obtain the biased IEEE exponent */
-         m = part1 & MANTISSA_MASK;               /* Obtain the IEEE mantissa */
+         m = ieeepart1 & MANTISSA_MASK;           /* Obtain the IEEE mantissa */
 
          if ( e == 0 ) {                          /* Denormalized [e=0, m<>0] */
             m <<= 1; /* Adjust representation from 2**(1-bias) to 2**(e-bias) */
             while ( ( m & HIDDEN_BIT ) == 0 ) {
                m <<= 1;
-               e -= 1;                                     /* Adjust exponent */
+               e  -= 1;                                    /* Adjust exponent */
             }
             m &= MANTISSA_MASK;         /* Adjust mantissa to hidden-bit form */
          }
 
          if ( ( e += EXPONENT_ADJUSTMENT ) <= 0 ) {
 
-            part.l = 0;                                   /* Silent underflow */
+            vaxpart.l = 0;                                /* Silent underflow */
 
          } else if ( e > ( 2 * VAX_F_EXPONENT_BIAS - 1 ) ) {
 
             raise( SIGFPE );/* Overflow; fixup to VAX +-extrema [e=m=all-1's] */
-            part.l = ( part1 & SIGN_BIT ) | ~SIGN_BIT;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ~SIGN_BIT;
 
          } else {
 
                     /* VAX normalized form [e>0] (both mantissas are 23 bits) */
-            part.l = ( part1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
 
          }
 
       }
+
 #if IS_LITTLE_ENDIAN
-      *out++ = part.i[1];
-      *out++ = part.i[0];
+      *out++ = vaxpart.i[1];
+      *out++ = vaxpart.i[0];
 #else
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
+      *out++ = vaxpart.c[1];
+      *out++ = vaxpart.c[0];
+      *out++ = vaxpart.c[3];
+      *out++ = vaxpart.c[2];
 #endif
+
    }
 
 }
@@ -1017,12 +1095,12 @@ void FORTRAN_LINKAGE to_vax_d8( const void *inbuf, void *outbuf,
    register const unsigned int *in;     /* Microsoft C: up to 2 register vars */
 #if IS_LITTLE_ENDIAN
    register unsigned short *out;        /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    unsigned char *out;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
-   unsigned int part1, part2;
+   unsigned int ieeepart1, vaxpart2;
    unsigned int m;
    int n;
    int e;
@@ -1036,79 +1114,88 @@ void FORTRAN_LINKAGE to_vax_d8( const void *inbuf, void *outbuf,
 #endif
 
    for ( n = *count; n > 0; n-- ) {
-      part1 = *in++;
-      part2 = *in++;
-      if ( ( ( part1 & ~SIGN_BIT ) | part2 ) == 0 ) {
 
-         part.l = 0;         /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
-      /* part2  = 0; */                              /* part2 is already zero */
+#if IS_LITTLE_ENDIAN
+      vaxpart2  = *in++;
+      ieeepart1 = *in++;
+#else
+      ieeepart1 = *in++;
+      vaxpart2  = *in++;
+#endif
 
-      } else if ( ( e = ( part1 & IEEE_T_EXPONENT_MASK ) ) ==
+      if ( ( ( ieeepart1 & ~SIGN_BIT ) | vaxpart2 ) == 0 ) {
+
+         vaxpart.l = 0;      /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
+      /* vaxpart2  = 0; */                        /* vaxpart2 is already zero */
+
+      } else if ( ( e = ( ieeepart1 & IEEE_T_EXPONENT_MASK ) ) ==
                   IEEE_T_EXPONENT_MASK ) {
 
        /* VAX's have no equivalents for IEEE +-Infinity and +-NaN [e=all-1's] */
          raise( SIGFPE );
                /* Fixup to VAX +-extrema [e=all-1's] with zero mantissa [m=0] */
-         part.l = ( part1 & SIGN_BIT ) | VAX_D_EXPONENT_MASK;
-         part2  = 0;
+         vaxpart.l = ( ieeepart1 & SIGN_BIT ) | VAX_D_EXPONENT_MASK;
+         vaxpart2  = 0;
          
       } else {
 
          e >>= IEEE_T_MANTISSA_SIZE;       /* Obtain the biased IEEE exponent */
-         m = part1 & IEEE_T_MANTISSA_MASK;        /* Obtain the IEEE mantissa */
+         m = ieeepart1 & IEEE_T_MANTISSA_MASK;    /* Obtain the IEEE mantissa */
 
          if ( e == 0 ) {                          /* Denormalized [e=0, m<>0] */
                      /* Adjust representation from 2**(1-bias) to 2**(e-bias) */
-            m = ( m << 1 ) | ( part2 >> 31 );
-            part2 <<= 1;
+            m = ( m << 1 ) | ( vaxpart2 >> 31 );
+            vaxpart2 <<= 1;
             while ( ( m & IEEE_T_HIDDEN_BIT ) == 0 ) {
-               m = ( m << 1 ) | ( part2 >> 31 );
-               part2 <<= 1;
-               e -= 1;                                     /* Adjust exponent */
+               m = ( m << 1 ) | ( vaxpart2 >> 31 );
+               vaxpart2 <<= 1;
+               e         -= 1;                             /* Adjust exponent */
             }
             m &= IEEE_T_MANTISSA_MASK;  /* Adjust mantissa to hidden-bit form */
          }
 
          if ( ( e += EXPONENT_ADJUSTMENT ) <= 0 ) {
 
-            part.l = 0;                                   /* Silent underflow */
-            part2  = 0;
+            vaxpart.l = 0;                                /* Silent underflow */
+            vaxpart2  = 0;
 
          } else if ( e > ( 2 * VAX_D_EXPONENT_BIAS - 1 ) ) {
 
             raise( SIGFPE );/* Overflow; fixup to VAX +-extrema [e=m=all-1's] */
-            part.l = ( part1 & SIGN_BIT ) | ~SIGN_BIT;
-            part2  = ~0;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ~SIGN_BIT;
+            vaxpart2  = ~0;
 
          } else {
 
            /* VAX normalized form [e>0]; zero pad mantissa from 52 to 55 bits */
-            part.l = ( part1 & SIGN_BIT ) |
-                     ( e << ( VAX_D_MANTISSA_SIZE + EXPONENT_LEFT_SHIFT ) ) |
-                     ( m     <<        EXPONENT_LEFT_SHIFT ) |
-                     ( part2 >> ( 32 - EXPONENT_LEFT_SHIFT ) );
-            part2 <<= EXPONENT_LEFT_SHIFT;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) |
+                        ( e        <<        VAX_D_MANTISSA_SIZE ) |
+                        ( m        <<        EXPONENT_LEFT_SHIFT ) |
+                        ( vaxpart2 >> ( 32 - EXPONENT_LEFT_SHIFT ) );
+            vaxpart2 <<= EXPONENT_LEFT_SHIFT;
 
          }
 
       }
+
 #if IS_LITTLE_ENDIAN
-      *out++ = part.i[1];
-      *out++ = part.i[0];
-      part.l = part2;
-      *out++ = part.i[1];
-      *out++ = part.i[0];
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
 #else
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
-      part.l = part2;
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
 #endif
+
    }
 
 }
@@ -1140,12 +1227,12 @@ void FORTRAN_LINKAGE to_vax_g8( const void *inbuf, void *outbuf,
    register const unsigned int *in;     /* Microsoft C: up to 2 register vars */
 #if IS_LITTLE_ENDIAN
    register unsigned short *out;        /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    unsigned char *out;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
-   unsigned int part1, part2;
+   unsigned int ieeepart1, vaxpart2;
    unsigned int m;
    int n;
    int e;
@@ -1159,76 +1246,85 @@ void FORTRAN_LINKAGE to_vax_g8( const void *inbuf, void *outbuf,
 #endif
 
    for ( n = *count; n > 0; n-- ) {
-      part1 = *in++;
-      part2 = *in++;
-      if ( ( ( part1 & ~SIGN_BIT ) | part2 ) == 0 ) {
 
-         part.l = 0;         /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
-      /* part2  = 0; */                              /* part2 is already zero */
+#if IS_LITTLE_ENDIAN
+      vaxpart2  = *in++;
+      ieeepart1 = *in++;
+#else
+      ieeepart1 = *in++;
+      vaxpart2  = *in++;
+#endif
 
-      } else if ( ( e = ( part1 & IEEE_T_EXPONENT_MASK ) ) ==
+      if ( ( ( ieeepart1 & ~SIGN_BIT ) | vaxpart2 ) == 0 ) {
+
+         vaxpart.l = 0;      /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
+      /* vaxpart2  = 0; */                        /* vaxpart2 is already zero */
+
+      } else if ( ( e = ( ieeepart1 & IEEE_T_EXPONENT_MASK ) ) ==
                   IEEE_T_EXPONENT_MASK ) {
 
        /* VAX's have no equivalents for IEEE +-Infinity and +-NaN [e=all-1's] */
          raise( SIGFPE );
                /* Fixup to VAX +-extrema [e=all-1's] with zero mantissa [m=0] */
-         part.l = ( part1 & SIGN_BIT ) | VAX_G_EXPONENT_MASK;
-         part2  = 0;
+         vaxpart.l = ( ieeepart1 & SIGN_BIT ) | VAX_G_EXPONENT_MASK;
+         vaxpart2  = 0;
          
       } else {
 
          e >>= MANTISSA_SIZE;              /* Obtain the biased IEEE exponent */
-         m = part1 & MANTISSA_MASK;               /* Obtain the IEEE mantissa */
+         m = ieeepart1 & MANTISSA_MASK;           /* Obtain the IEEE mantissa */
 
          if ( e == 0 ) {                          /* Denormalized [e=0, m<>0] */
                      /* Adjust representation from 2**(1-bias) to 2**(e-bias) */
-            m = ( m << 1 ) | ( part2 >> 31 );
-            part2 <<= 1;
+            m = ( m << 1 ) | ( vaxpart2 >> 31 );
+            vaxpart2 <<= 1;
             while ( ( m & HIDDEN_BIT ) == 0 ) {
-               m = ( m << 1 ) | ( part2 >> 31 );
-               part2 <<= 1;
-               e -= 1;                                     /* Adjust exponent */
+               m = ( m << 1 ) | ( vaxpart2 >> 31 );
+               vaxpart2 <<= 1;
+               e         -= 1;                             /* Adjust exponent */
             }
             m &= MANTISSA_MASK;         /* Adjust mantissa to hidden-bit form */
          }
 
          if ( ( e += EXPONENT_ADJUSTMENT ) <= 0 ) {
 
-            part.l = 0;                                   /* Silent underflow */
-            part2  = 0;
+            vaxpart.l = 0;                                /* Silent underflow */
+            vaxpart2  = 0;
 
-         } else if ( e > ( 2 * VAX_D_EXPONENT_BIAS - 1 ) ) {
+         } else if ( e > ( 2 * VAX_G_EXPONENT_BIAS - 1 ) ) {
 
             raise( SIGFPE );/* Overflow; fixup to VAX +-extrema [e=m=all-1's] */
-            part.l = ( part1 & SIGN_BIT ) | ~SIGN_BIT;
-            part2  = ~0;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ~SIGN_BIT;
+            vaxpart2  = ~0;
 
          } else {
 
                     /* VAX normalized form [e>0] (both mantissas are 52 bits) */
-            part.l = ( part1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
-                                                  /* part2 is already correct */
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
+                                               /* vaxpart2 is already correct */
 
          }
 
       }
+
 #if IS_LITTLE_ENDIAN
-      *out++ = part.i[1];
-      *out++ = part.i[0];
-      part.l = part2;
-      *out++ = part.i[1];
-      *out++ = part.i[0];
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
 #else
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
-      part.l = part2;
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
 #endif
+
    }
 
 }
@@ -1262,12 +1358,12 @@ void FORTRAN_LINKAGE to_vax_h16( const void *inbuf, void *outbuf,
    register const unsigned int *in;     /* Microsoft C: up to 2 register vars */
 #if IS_LITTLE_ENDIAN
    register unsigned short *out;        /* Microsoft C: up to 2 register vars */
-   union { unsigned short i[2]; unsigned int l; } part;
+   union { unsigned short i[2]; unsigned int l; } vaxpart;
 #else
    unsigned char *out;
-   union { unsigned char c[4]; unsigned int l; } part;
+   union { unsigned char c[4]; unsigned int l; } vaxpart;
 #endif
-   unsigned int part1, part2, part3, part4;
+   unsigned int ieeepart1, vaxpart2, vaxpart3, vaxpart4;
    unsigned int m;
    int n;
    int e;
@@ -1281,104 +1377,116 @@ void FORTRAN_LINKAGE to_vax_h16( const void *inbuf, void *outbuf,
 #endif
 
    for ( n = *count; n > 0; n-- ) {
-      part1 = *in++;
-      part2 = *in++;
-      part3 = *in++;
-      part4 = *in++;
-      if ( ( ( part1 & ~SIGN_BIT ) | part2 | part3 | part4 ) == 0 ) {
 
-         part.l = 0;         /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
-      /* part2  = 0; */           /* part2, part3, and part4 are already zero */
-      /* part3  = 0; */
-      /* part4  = 0; */
+#if IS_LITTLE_ENDIAN
+      vaxpart4  = *in++;
+      vaxpart3  = *in++;
+      vaxpart2  = *in++;
+      ieeepart1 = *in++;
+#else
+      ieeepart1 = *in++;
+      vaxpart2  = *in++;
+      vaxpart3  = *in++;
+      vaxpart4  = *in++;
+#endif
 
-      } else if ( ( e = ( part1 & IEEE_X_EXPONENT_MASK ) ) ==
+      if ( ( ( ieeepart1 & ~SIGN_BIT ) | vaxpart2 | vaxpart3 | vaxpart4 ) == 0
+         ) {
+
+         vaxpart.l = 0;      /* Set IEEE +-zero [e=m=0] to VAX zero [s=e=m=0] */
+      /* vaxpart2  = 0;     vaxpart2, vaxpart3, and vaxpart4 are already zero */
+      /* vaxpart3  = 0; */
+      /* vaxpart4  = 0; */
+
+      } else if ( ( e = ( ieeepart1 & IEEE_X_EXPONENT_MASK ) ) ==
                   IEEE_X_EXPONENT_MASK ) {
 
        /* VAX's have no equivalents for IEEE +-Infinity and +-NaN [e=all-1's] */
          raise( SIGFPE );
                /* Fixup to VAX +-extrema [e=all-1's] with zero mantissa [m=0] */
-         part.l = ( part1 & SIGN_BIT ) | VAX_H_EXPONENT_MASK;
-         part2  = 0;
-         part3  = 0;
-         part4  = 0;
+         vaxpart.l = ( ieeepart1 & SIGN_BIT ) | VAX_H_EXPONENT_MASK;
+         vaxpart2  = 0;
+         vaxpart3  = 0;
+         vaxpart4  = 0;
          
       } else {
 
          e >>= MANTISSA_SIZE;              /* Obtain the biased IEEE exponent */
-         m = part1 & MANTISSA_MASK;               /* Obtain the IEEE mantissa */
+         m = ieeepart1 & MANTISSA_MASK;           /* Obtain the IEEE mantissa */
 
          if ( e == 0 ) {                          /* Denormalized [e=0, m<>0] */
                      /* Adjust representation from 2**(1-bias) to 2**(e-bias) */
-            m = ( m << 1 ) | ( part2 >> 31 );
-            part2 <<= 1;
+            m = ( m << 1 ) | ( vaxpart2 >> 31 );
+            vaxpart2 <<= 1;
             while ( ( m & HIDDEN_BIT ) == 0 ) {
-               m = ( m << 1 ) | ( part2 >> 31 );
-               part2 = ( part2 << 1 ) | ( part3 >> 31 );
-               part3 = ( part3 << 1 ) | ( part4 >> 31 );
-               part4 <<= 1;
-               e -= 1;                                     /* Adjust exponent */
+               m = ( m << 1 ) | ( vaxpart2 >> 31 );
+               vaxpart2 = ( vaxpart2 << 1 ) | ( vaxpart3 >> 31 );
+               vaxpart3 = ( vaxpart3 << 1 ) | ( vaxpart4 >> 31 );
+               vaxpart4 <<= 1;
+               e         -= 1;                             /* Adjust exponent */
             }
             m &= MANTISSA_MASK;         /* Adjust mantissa to hidden-bit form */
          }
 
          if ( ( e += EXPONENT_ADJUSTMENT ) <= 0 ) {
 
-            part.l = 0;                                   /* Silent underflow */
-            part2  = 0;
-            part3  = 0;
-            part4  = 0;
+            vaxpart.l = 0;                                /* Silent underflow */
+            vaxpart2  = 0;
+            vaxpart3  = 0;
+            vaxpart4  = 0;
 
          } else if ( e > ( 2 * VAX_H_EXPONENT_BIAS - 1 ) ) {
 
             raise( SIGFPE );/* Overflow; fixup to VAX +-extrema [e=m=all-1's] */
-            part.l = ( part1 & SIGN_BIT ) | ~SIGN_BIT;
-            part2  = ~0;
-            part3  = ~0;
-            part4  = ~0;
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ~SIGN_BIT;
+            vaxpart2  = ~0;
+            vaxpart3  = ~0;
+            vaxpart4  = ~0;
 
          } else {
 
                    /* VAX normalized form [e>0] (both mantissas are 112 bits) */
-            part.l = ( part1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
-                               /* part2, part3, and part4 are already correct */
+            vaxpart.l = ( ieeepart1 & SIGN_BIT ) | ( e << MANTISSA_SIZE ) | m;
+                      /* vaxpart2, vaxpart3, and vaxpart4 are already correct */
 
          }
 
       }
+
 #if IS_LITTLE_ENDIAN
-      *out++ = part.i[1];
-      *out++ = part.i[0];
-      part.l = part2;
-      *out++ = part.i[1];
-      *out++ = part.i[0];
-      part.l = part3;
-      *out++ = part.i[1];
-      *out++ = part.i[0];
-      part.l = part4;
-      *out++ = part.i[1];
-      *out++ = part.i[0];
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
+      vaxpart.l = vaxpart3;
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
+      vaxpart.l = vaxpart4;
+      *out++    = vaxpart.i[1];
+      *out++    = vaxpart.i[0];
 #else
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
-      part.l = part2;
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
-      part.l = part3;
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
-      part.l = part4;
-      *out++ = part.c[1];
-      *out++ = part.c[0];
-      *out++ = part.c[3];
-      *out++ = part.c[2];
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
+      vaxpart.l = vaxpart2;
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
+      vaxpart.l = vaxpart3;
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
+      vaxpart.l = vaxpart4;
+      *out++    = vaxpart.c[1];
+      *out++    = vaxpart.c[0];
+      *out++    = vaxpart.c[3];
+      *out++    = vaxpart.c[2];
 #endif
+
    }
 
 }

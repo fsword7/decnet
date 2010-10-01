@@ -1,3 +1,10 @@
+dnprogs (2.54) unstable; urgency=low
+
+  * Don't build libvaxdata test program by default.
+    Closes: #598752
+ 
+ -- Christine Caulfield <chrissie@debian.org>  Fri, 1 Oct 2010 20:44:09 +0100
+
 dnprogs (2.53) unstable; urgency=low
 
   * Done some more porting to FreeBSD, corrected Build-Depends for hurd-i386

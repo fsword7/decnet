@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2005-2008 Christine Caulfield            christine.caulfield@gmail.com
+    (c) 2005-2010 Christine Caulfield            christine.caulfield@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 // to debug add -odebug as it's own option!
 
 #define _FILE_OFFSET_BITS 64
-#define FUSE_USE_VERSION 22
+#define FUSE_USE_VERSION 25
 
 #include <fuse.h>
 #include <stdio.h>

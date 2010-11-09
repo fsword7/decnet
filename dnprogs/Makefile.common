@@ -97,8 +97,16 @@ endif
 ifneq ($(wildcard /lib/libcrypt.*),)
 LIBCRYPT=-lcrypt
 endif
+
+ifneq ($(wildcard /lib64/libcrypt.*),)
+LIBCRYPT=-lcrypt
+endif
  
 ifneq ($(wildcard /usr/lib/libcrypt.*),)
+LIBCRYPT=-lcrypt
+endif
+
+ifneq ($(wildcard /usr/lib64/libcrypt.*),)
 LIBCRYPT=-lcrypt
 endif
 

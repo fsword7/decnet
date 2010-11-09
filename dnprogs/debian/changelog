@@ -1,13 +1,15 @@
+dnprogs (2.56) UNRELEASED; urgency=low
+
+  * Search for libgcrypt in 64bit library paths, too. (thanks to Kamil) 
+
+ -- Philipp Schafft <lion@lion.leolix.org>  Tue,  9 Nov 2010 12:35:17 +0100
+
 dnprogs (2.55) unstable; urgency=low
 
-  [ Chrissie Caulfield ]
   * Build against version 25 of FUSE
     Closes: #598831
 
-  [ Philipp Schafft ]
-  * Search for libgcrypt in 64bit library paths, too. (thanks to Kamil)
-
- -- Philipp Schafft <lion@lion.leolix.org>  Tue,  9 Nov 2010 12:32:10 +0100
+ -- Chrissie Caulfield <chrissie@debian.org>  Tue, 5 Oct 2010 09:23:12 +0100
 
 dnprogs (2.54) unstable; urgency=low
 

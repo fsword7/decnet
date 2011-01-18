@@ -44,18 +44,18 @@ Type: select
 Choices: configure now, configure later, skip and leave config as it is
 Default: skip and leave config as it is
 _Description: Configure DECnet now:
- You can configure your system as DECnet node now or later.
- If you already have set up your system to use DECnet you can
- skip this and leave config as it is.
+ You can configure your system as a DECnet node now or later.
+ If you have already set up your system to use DECnet you can
+ skip this and leave the configuration as it is.
  .
  If you choose to configure now this will set up your system.
- This requires to change the MAC address of your network cards.
- This may work directly or require reboot.
+ This operation needs to change the MAC address of your network cards,
+ it may work directly or it may require a reboot.
  Please close all open connections such as ssh sessions and downloads
  before you continue.
  .
- If you choose to configure later you can configure
+ If you opt to configure later you can run this configure step again
  with: dpkg-reconfigure dnet-common
  .
- If unsure select to configure later and contact your
+ If you are unsure, select 'configure later' and contact your
  system administrator.

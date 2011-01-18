@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: dnprogs 2.38\n"
-"Report-Msgid-Bugs-To: patrick@debian.org\n"
-"POT-Creation-Date: 2006-12-07 11:43+0000\n"
+"Report-Msgid-Bugs-To: chrissie@debian.org\n"
+"POT-Creation-Date: 2011-01-18 15:38+0100\n"
 "PO-Revision-Date: 2006-12-20 21:38+0000\n"
 "Last-Translator: Vincent Zweije <zweije@xs4all.nl>\n"
 "Language-Team: Debian-Dutch <debian-l10n-dutch@lists.debian.org>\n"
@@ -19,8 +19,7 @@ msgstr ""
 #. Description
 #: ../dnet-common.templates:1001
 msgid "DECnet node name:"
-msgstr ""
-"DECnet-knoopnaam:"
+msgstr "DECnet-knoopnaam:"
 
 #. Type: string
 #. Description
@@ -42,8 +41,7 @@ msgstr ""
 #. Description
 #: ../dnet-common.templates:2001
 msgid "DECnet node address:"
-msgstr ""
-"DECnet-knoopadres:"
+msgstr "DECnet-knoopadres:"
 
 #. Type: string
 #. Description
@@ -54,8 +52,8 @@ msgid ""
 "and the second is the node within that area."
 msgstr ""
 "Alle knopen op een DECnet-netwerk hebben een knoopadres. Dit bestaat uit "
-"twee getallen, gescheiden door een punt (b.v. 3.45) waarbij het eerste "
-"getal het gebied aangeeft en het tweede de knoop in dat gebied."
+"twee getallen, gescheiden door een punt (b.v. 3.45) waarbij het eerste getal "
+"het gebied aangeeft en het tweede de knoop in dat gebied."
 
 #. Type: string
 #. Description
@@ -71,8 +69,7 @@ msgstr ""
 #. Description
 #: ../dnet-common.templates:3001
 msgid "DECnet startup changes your ethernet hardware address"
-msgstr ""
-"Het opstarten van DECnet wijzigt uw ethernet-hardwareadres"
+msgstr "Het opstarten van DECnet wijzigt uw ethernet-hardwareadres"
 
 #. Type: note
 #. Description
@@ -123,3 +120,44 @@ msgid ""
 msgstr ""
 "U dient tevens de namen en adressen van de DECnet knopen waarmee u wilt "
 "communiceren aan /etc/decnet.conf toe te voegen."
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid "Configure DECnet now:"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"You can configure your system as a DECnet node now or later. If you have "
+"already set up your system to use DECnet you can skip this and leave the "
+"configuration as it is."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you choose to configure now this will set up your system. This operation "
+"needs to change the MAC address of your network cards, it may work directly "
+"or it may require a reboot. Please close all open connections such as ssh "
+"sessions and downloads before you continue."
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you opt to configure later you can run this configure step again with: "
+"dpkg-reconfigure dnet-common"
+msgstr ""
+
+#. Type: select
+#. Description
+#: ../dnet-common.templates:4001
+msgid ""
+"If you are unsure, select 'configure later' and contact your system "
+"administrator."
+msgstr ""

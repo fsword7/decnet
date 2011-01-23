@@ -1,8 +1,12 @@
 dnprogs (2.56) UNRELEASED; urgency=low
 
-  * Search for libgcrypt in 64bit library paths, too. (thanks to Kamil) 
+  * Search for libgcrypt in 64bit library paths, too. (thanks to Kamil)
+  * Package dnet-common now asks if network interfaces should be configrued
+    for DECnet (Closes: #608807)
+    Updated translations Debconf templates:
+    - Russian translation (Closes: #610642)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Tue,  9 Nov 2010 12:35:17 +0100
+ -- Philipp Schafft <lion@lion.leolix.org>  Sun, 23 Jan 2011 01:01:48 +0100
 
 dnprogs (2.55) unstable; urgency=low
 

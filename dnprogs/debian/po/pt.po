@@ -5,10 +5,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: dnsprogs_2.38.1\n"
+"Project-Id-Version: dnsprogs_2.56\n"
 "Report-Msgid-Bugs-To: chrissie@debian.org\n"
 "POT-Creation-Date: 2011-01-18 15:38+0100\n"
-"PO-Revision-Date: 2007-02-05 22:08+0100\n"
+"PO-Revision-Date: 2011-01-21 22:10+0100\n"
 "Last-Translator: Pedro Ribeiro <p.m42.ribeiro@gmail.com>\n"
 "Language-Team: Portuguese <traduz@debianpt.org>\n"
 "MIME-Version: 1.0\n"
@@ -84,7 +84,7 @@ msgid ""
 "addresses are changed."
 msgstr ""
 "O programa \"setether\" neste pacote irá mudar o endereço de hardware (MAC) "
-"de todas as placas ethernet no seu sistema (por omissão) para corresponder "
+"de todas as placas ethernet no seu sistema (por predefinição) para corresponder "
 "ao endereço de nó DECnet. Isto é essencial para a operação da rede DECnet e "
 "como tal não é opcional. No entanto, se têm mais de uma placa ethernet pode "
 "querer editar /etc/default/decnet para alterar a lista de placas que terão "
@@ -126,7 +126,7 @@ msgstr ""
 #. Description
 #: ../dnet-common.templates:4001
 msgid "Configure DECnet now:"
-msgstr ""
+msgstr "Configurar DECnet agora:"
 
 #. Type: select
 #. Description
@@ -136,6 +136,9 @@ msgid ""
 "already set up your system to use DECnet you can skip this and leave the "
 "configuration as it is."
 msgstr ""
+"Pode configurar o seu sistema como um nó DECnet agora ou mais tarde. Se já "
+"configurou o seu sistema para usar DECnet pode saltar este passo e deixar a "
+"configuração como está."
 
 #. Type: select
 #. Description
@@ -146,6 +149,10 @@ msgid ""
 "or it may require a reboot. Please close all open connections such as ssh "
 "sessions and downloads before you continue."
 msgstr ""
+"Se escolher configurar agora, irá configurar o seu sistema. Esta operação "
+"necessita de alterar o endereço MAC das suas placas de rede, pode funcionar "
+"directamente ou pode necessitar de um reboot. Por favor feche todas as "
+"ligações abertas tal como sessões ssh e downloads antes de continuar."
 
 #. Type: select
 #. Description
@@ -154,6 +161,8 @@ msgid ""
 "If you opt to configure later you can run this configure step again with: "
 "dpkg-reconfigure dnet-common"
 msgstr ""
+"Se optar por configurar mais tarde pode correr esta configuração novamente "
+"com: dpkg-reconfigure dnet-common"
 
 #. Type: select
 #. Description
@@ -162,3 +171,5 @@ msgid ""
 "If you are unsure, select 'configure later' and contact your system "
 "administrator."
 msgstr ""
+"Se não tem a certeza, escolha 'configurar mais tarde' e contacte o seu "
+"administrador de sistema."

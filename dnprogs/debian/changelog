@@ -5,6 +5,11 @@ dnprogs (2.56) UNRELEASED; urgency=low
     for DECnet (Closes: #608807)
     Updated translations Debconf templates:
     - Russian translation (Closes: #610642)
+    - Portuguese translation (Closes: #611034)
+    - Swedish translation (Closes: #611296)
+    - Czech translation (Closes: #611430)
+    - Japanese translation (Closes: #611448)
+    - Spanish translation (Closes: #611547)
 
  -- Philipp Schafft <lion@lion.leolix.org>  Sun, 23 Jan 2011 01:01:48 +0100
 

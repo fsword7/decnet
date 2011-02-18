@@ -74,6 +74,7 @@ binary-arch: checkroot build
 	cp Documentation/*README debian/tmp/usr/share/doc/libdnet-dev
 	cp libvaxdata/*pdf debian/tmp/usr/share/doc/libdnet-dev
 	make install DESTDIR=`pwd`/debian/tmp MAKEDEB=true RELEASE=true
+	dh_lintian -a
 	dh_installdirs -Ndnet-common
 	dh_installchangelogs -Ndnet-common
 	dh_installdocs -Ndnet-common

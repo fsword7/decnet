@@ -7,6 +7,9 @@ extern "C"
 {
 #endif
 
+// forward declaration. This is in <netdnet/dn.h>.
+struct sockaddr_dn;
+
 struct	nodeent	{
 	char	*n_name;		/* name of node */
 	unsigned short n_addrtype;	/* node address type */

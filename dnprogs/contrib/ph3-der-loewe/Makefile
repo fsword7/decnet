@@ -34,7 +34,7 @@ dep depend:
 	$(CC) $(CFLAGS) -MM *.c >.depend 2>/dev/null
 
 clean:
-	rm -f $(PROG1) $(PROG2) *.o *.bak .depend
+	rm -f $(PROG1) $(PROG2) $(PROG3) *.o *.bak .depend
 
 
 ifeq (.depend,$(wildcard .depend))

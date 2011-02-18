@@ -9,8 +9,6 @@ Standards-Version: 3.5.6
 Package: dnet-common
 Architecture: all
 Depends: debconf(>=0.5.00) | debconf-2.0, debianutils(>=1.13), module-init-tools | modutils, ${misc:Depends}
-Priority: extra
-Section: net
 Conflicts: dnprogs
 Suggests: iproute
 Description: Base package for Linux DECnet
@@ -27,8 +25,6 @@ Description: Base package for Linux DECnet
 Package: dnet-progs
 Architecture: any
 Depends: dnet-common(>=${binary:Version}), libdnet(>=${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
-Priority: extra
-Section: net
 Description: DECnet user programs and daemons
  These tools are the application layer interface for DECnet on Linux systems.
  They provide file/terminal access facilities between OpenVMS and Linux and
@@ -40,7 +36,6 @@ Package: libdnet
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: dnet-common(>=${binary:Version})
-Priority: extra
 Section: libs
 Description: DECnet Libraries
  This package contains the libraries necessary for a functioning DECnet
@@ -59,7 +54,6 @@ Description: DECnet Libraries
 Package: libdnet-dev
 Architecture: any
 Depends: libdnet(>=${binary:Version}), ${misc:Depends}
-Priority: extra
 Section: libdevel
 Description: DECnet development libraries & Headers
  Theses are the development libraries for Linux DECnet. This package contains

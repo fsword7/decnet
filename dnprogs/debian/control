@@ -33,6 +33,7 @@ Description: DECnet user programs and daemons
  to SMTP gateway.
 
 Package: libdnet
+Priority: optional
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Recommends: dnet-common(>=${binary:Version})

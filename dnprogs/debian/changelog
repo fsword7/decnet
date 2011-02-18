@@ -12,9 +12,11 @@ dnprogs (2.56) UNRELEASED; urgency=low
     - Spanish translation (Closes: #611547)
   * Build against version 25 of FUSE
     Closes: #598831
-  * Fixed some lintian warnings (typos and such). 
+  * Fixed some lintian warnings (typos and such).
+  * Raised priority of package libdnet from extra to optional
+    to comply policy manual section 2.5 "Priorities".
 
- -- Philipp Schafft <lion@lion.leolix.org>  Thu, 17 Feb 2011 14:01:26 +0100
+ -- Philipp Schafft <lion@lion.leolix.org>  Fri, 18 Feb 2011 15:00:41 +0100
 
 dnprogs (2.55) unstable; urgency=low
 

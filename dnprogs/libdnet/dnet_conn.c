@@ -1,6 +1,7 @@
 /******************************************************************************
     (c) 1995-1998 E.M. Serrat          emserrat@geocities.com
     (c) 2008 Christine Caulfield       christine.caulfield@googlemail.com
+    (c) 2011 Philipp Schafft           lion@lion.leolix.org
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -187,7 +188,7 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 	memset(&saddr, 0, sizeof(struct sockaddr_dn));
 	saddr.sdn_family = AF_DECnet;
 
-	if (dnet_pton(AF_DECnet, hname, &saddr.sdn_nodeaddr) != 1) {
+	if (dnet_pton(AF_DECnet, hname, &saddr.sdn_add) != 1) {
 		/*
 		 * FIXME: This isn't thread safe.
 		 */

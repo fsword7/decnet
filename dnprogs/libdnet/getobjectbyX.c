@@ -28,7 +28,7 @@
 static char * _dnet_objhinum_string   = NULL;
 static int    _dnet_objhinum_handling = DNOBJHINUM_ERROR;
 
-struct {
+static struct {
  int    num;
  char * name;
 } _dnet_objdb[] = {
@@ -107,7 +107,7 @@ int dnet_checkobjectnumber (int num) {
  }
 }
 
-int getobjectbyname_nis(char * name) {
+static int getobjectbyname_nis(char * name) {
  char           * cur, *next;
  char             proto[16];
  struct servent * se;
@@ -141,7 +141,7 @@ int getobjectbyname_nis(char * name) {
  return -1;
 }
 
-char * getobjectbynumber_nis(int num) {
+static char * getobjectbynumber_nis(int num) {
  char           * cur, *next;
  char             proto[16];
  struct servent * se;
@@ -179,7 +179,7 @@ char * getobjectbynumber_nis(int num) {
  return NULL;
 }
 
-int getobjectbyname_static(char * name) {
+static int getobjectbyname_static(char * name) {
  int i;
 
  for (i = 0; _dnet_objdb[i].num != -1; i++) {
@@ -191,7 +191,7 @@ int getobjectbyname_static(char * name) {
  return -1;
 }
 
-char * getobjectbynumber_static(int num) {
+static char * getobjectbynumber_static(int num) {
  int i;
 
  for (i = 0; _dnet_objdb[i].num != -1; i++) {
@@ -203,7 +203,7 @@ char * getobjectbynumber_static(int num) {
  return NULL;
 }
 
-int getobjectbyname_dnetd(char * name) {
+static int getobjectbyname_dnetd(char * name) {
  FILE * dnd;
  int    found = -1;
  int    ret;
@@ -233,7 +233,7 @@ int getobjectbyname_dnetd(char * name) {
  return found;
 }
 
-char * getobjectbynumber_dnetd(int num) {
+static char * getobjectbynumber_dnetd(int num) {
  FILE * dnd;
  int    curr;
  static char   cname[16]; // this is not thread safe

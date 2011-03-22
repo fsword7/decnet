@@ -1,3 +1,7 @@
+dnprogs (2.57) unstable; urgency=low
+
+  * Use /dev/pts PTYs on 64 bit systems (fix makefile bug)
+
 dnprogs (2.56) unstable; urgency=low
 
   * Search for libgcrypt in 64bit library paths, too. (thanks to Kamil)

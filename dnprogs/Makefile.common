@@ -124,6 +124,11 @@ ifeq (/usr/lib/libutil.so,$(wildcard /usr/lib/libutil.so))
 PTSDEFS=-DDNETUSE_DEVPTS
 PTSLIBS=-lutil
 endif
+
+ifeq (/usr/lib64/libutil.so,$(wildcard /usr/lib64/libutil.so))
+PTSDEFS=-DDNETUSE_DEVPTS
+PTSLIBS=-lutil
+endif
 endif
 
 #

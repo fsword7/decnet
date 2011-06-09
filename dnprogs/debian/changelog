@@ -1,6 +1,11 @@
-dnprogs (2.57) unstable; urgency=low
+dnprogs (2.57) UNRELEASED; urgency=low
 
   * Use /dev/pts PTYs on 64 bit systems (fix makefile bug)
+  * Updated translations Debconf templates:
+    - German translation (Closes: #615268)
+    - French translation (Closes: #615039)
+
+ -- Philipp Schafft <lion@lion.leolix.org>  Thu,  9 Jun 2011 10:03:11 +0200
 
 dnprogs (2.56) unstable; urgency=low
 

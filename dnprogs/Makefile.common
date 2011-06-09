@@ -110,6 +110,10 @@ ifneq ($(wildcard /usr/lib64/libcrypt.*),)
 LIBCRYPT=-lcrypt
 endif
 
+ifneq ($(wildcard /usr/lib/x86_64-linux-gnu/libcrypt.*),)
+LIBCRYPT=-lcrypt
+endif
+
 ifeq (/usr/include/shadow.h,$(wildcard /usr/include/shadow.h))
 SHADOWDEFS=-DSHADOW_PWD
 endif

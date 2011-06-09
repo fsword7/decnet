@@ -1829,7 +1829,7 @@ const char *dap_status_message::get_message()
 	case 0320: return "index not initialized.";
 	case 0321: return "illegal file attributes (corrupt file header).";
 	case 0322: return "index bucket fill size > bucket size in XAB.";
-	case 0323: return "key name buffer not readable or writeable in XAB.";
+	case 0323: return "key name buffer not readable or writable in XAB.";
 	case 0324: return "index bucket will not hold two keys  for  key  of reference.";
 	case 0325: return "multi-buffer count invalid (negative value).";
 	case 0326: return "network operation failed at remote node.";

@@ -4,9 +4,10 @@ dnprogs (2.57) UNRELEASED; urgency=low
   * Updated translations Debconf templates:
     - German translation (Closes: #615268)
     - French translation (Closes: #615039)
-  * Look in yet another place for libcrypt (Closes: #629664) 
+  * Look in yet another place for libcrypt (Closes: #629664)
+  * "ethernet" was capitalized in extended description (Closes: #636798)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Thu,  9 Jun 2011 11:33:52 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Fri, 19 Aug 2011 03:49:45 +0200
 
 dnprogs (2.56) unstable; urgency=low
 

@@ -6,13 +6,16 @@ build:
 	make prefix=/usr RELEASE=true
 	touch build
 
+build-arch: build
+build-indep: build
+
 clean:
 	$(checkdir)
-	-rm -f build
+	rm -f build
 	-make clean
-	-rm -f `find . -name "*~"`
-	-rm -rf debian/tmp `find debian/* -type d ! -name CVS ! -name po` debian/files* core
-	-rm -f debian/*substvars
+	rm -f `find . -name "*~"`
+	rm -rf debian/tmp `find debian/* -type d ! -name CVS ! -name po` debian/files* core
+	rm -f debian/*substvars
 	dh_clean -k
 
 binary-indep: checkroot build
@@ -102,6 +105,6 @@ binary: binary-indep binary-arch
 
 checkroot:
 	$(checkdir)
-	test root = "`whoami`"
+	dh_testroot
 
 .PHONY: binary binary-arch binary-indep clean checkroot

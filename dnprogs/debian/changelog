@@ -7,8 +7,9 @@ dnprogs (2.57) UNRELEASED; urgency=low
     - Danish translation (Closes: #633984) (added)
   * Look in yet another place for libcrypt (Closes: #629664)
   * "ethernet" was capitalized in extended description (Closes: #636798)
+  * Fixed some lintian warnings.
 
- -- Philipp Schafft <lion@lion.leolix.org>  Fri, 19 Aug 2011 03:52:43 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Fri, 19 Aug 2011 22:11:31 +0200
 
 dnprogs (2.56) unstable; urgency=low
 

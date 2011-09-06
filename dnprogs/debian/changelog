@@ -1,5 +1,6 @@
 dnprogs (2.57) UNRELEASED; urgency=low
 
+  [ Philipp Schafft ]
   * Use /dev/pts PTYs on 64 bit systems (fix makefile bug)
   * Updated translations Debconf templates:
     - German translation (Closes: #615268)
@@ -10,7 +11,11 @@ dnprogs (2.57) UNRELEASED; urgency=low
   * "ethernet" was capitalized in extended description (Closes: #636798)
   * Fixed some lintian warnings.
 
- -- Philipp Schafft <lion@lion.leolix.org>  Tue,  6 Sep 2011 20:21:31 +0200
+  [ Chrissie Caulfield ]
+  * Undone removal of modutils configuration file as this is an untested
+    change.
+
+ -- Philipp Schafft <lion@lion.leolix.org>  Tue,  6 Sep 2011 20:24:25 +0200
 
 dnprogs (2.56.1+nmu1) unstable; urgency=low
 

@@ -5,11 +5,33 @@ dnprogs (2.57) UNRELEASED; urgency=low
     - German translation (Closes: #615268)
     - French translation (Closes: #615039)
     - Danish translation (Closes: #633984) (added)
-  * Look in yet another place for libcrypt (Closes: #629664)
+  * Look in yet another place for libcrypt (better fix than from NMUs)
+    (Closes: #629664)
   * "ethernet" was capitalized in extended description (Closes: #636798)
   * Fixed some lintian warnings.
 
  -- Philipp Schafft <lion@lion.leolix.org>  Fri, 19 Aug 2011 22:11:31 +0200
+
+dnprogs (2.56.1+nmu1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * libdnet: Only suggest dnet-common package (Closes: #608807)
+  * dnet-common: Do not change MAC addresses unless user chooses to
+    configure DECnet (Closes: #637179)
+  * dnet-common: Restore ability to configure DECnet name and address
+    through debconf
+  * dnet-common: Remove obsolete modutils configuration file
+
+ -- Ben Hutchings <ben@decadent.org.uk>  Thu, 25 Aug 2011 14:26:12 +0100
+
+dnprogs (2.56.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Add patch from Ubuntu to fix FTBFS with libcrypt moved to the
+    multiarch path.
+
+ -- Aurelien Jarno <aurel32@debian.org>  Tue, 09 Aug 2011 11:58:06 +0200
+
 
 dnprogs (2.56) unstable; urgency=low
 
@@ -29,7 +51,7 @@ dnprogs (2.56) unstable; urgency=low
   * Raised priority of package libdnet from extra to optional
     to comply policy manual section 2.5 "Priorities".
 
- -- Philipp Schafft <lion@lion.leolix.org>  Fri, 18 Feb 2011 17:09:11 +0100
+ -- Chrissie Caulfield <chrissie@debian.org>  Tue, 22 Feb 2011 10:38:23 +0000
 
 dnprogs (2.55) unstable; urgency=low
 

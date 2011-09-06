@@ -1,2 +1,2 @@
 # nam is a VMS given name for the object. We can not change it.
-libdnet: spelling-error-in-binary usr/lib/libdnet-dap.so.2.46.0 nam name
+libdnet: spelling-error-in-binary ./usr/lib/libdnet-dap.so.2.46.0 nam name

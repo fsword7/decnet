@@ -10,7 +10,7 @@ dnprogs (2.57) UNRELEASED; urgency=low
   * "ethernet" was capitalized in extended description (Closes: #636798)
   * Fixed some lintian warnings.
 
- -- Philipp Schafft <lion@lion.leolix.org>  Fri, 19 Aug 2011 22:11:31 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Tue,  6 Sep 2011 20:21:31 +0200
 
 dnprogs (2.56.1+nmu1) unstable; urgency=low
 
@@ -128,7 +128,7 @@ dnprogs (2.48.1) unstable; urgency=low
     Closes: #508755
 
  -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon, 27 Oct 2008 09:48:13 +0000
-	
+
 dnprogs (2.48) unstable; urgency=low
 
   * Fix crash caused by unitialised variable in dncopynodes.

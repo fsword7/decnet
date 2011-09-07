@@ -33,16 +33,4 @@ fi
 
 rm -f $TMPFILE
 
-# Update /etc/modutils/decnet (V2.2 format)
-
-INTERFACE=`cat /etc/decnet.conf|grep executor|awk '{print $6}'`
-COMMAADDR=`echo $addr|tr '.' ','`
-TMPFILE=`tempfile`
-
-#head -1 /etc/modutils/decnet > $TMPFILE
-#echo "options decnet node=$COMMAADDR device=$INTERFACE" >> $TMPFILE
-#cp $TMPFILE /etc/modutils/decnet
-
-rm -f $TMPFILE
-
 #DEBHELPER#

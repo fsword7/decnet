@@ -1,4 +1,5 @@
 #!/usr/bin/make -f
+DH_ALWAYS_EXCLUDE=CVS
 
 build:
 	$(checkdir)

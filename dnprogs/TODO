@@ -19,3 +19,18 @@ phone:
 libdnet:
   Need a better function doing dnet_conn(), maybe we should provide one
   opening a listen socket, too.
+
+ph3-der-loewe's private list:
+  Add ckport database.
+
+  Remove/Merge debian/templates (into debian/dnet-common.templates).
+
+  Make setting up of MAC address at runtime more easy.
+   - ARP spoof to send new MAC addresses to other hosts on the network.
+   - Maybe find a nice way to get stuff with DHCP working better.
+   - Write old MAC address to logfile (at install time) so it can be reconstructed
+     later. See DEB#635604 (some cards are broken).
+
+  Upgrade libdnet-dev from extra to optional.
+
+  Merge and update debian/*.copyright.

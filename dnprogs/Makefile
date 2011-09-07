@@ -125,7 +125,7 @@ rpm:
 #
 deb:
 	rm -f Documentation/*~ Documentation/*.bak
-	dpkg-buildpackage -rfakeroot 
+	dpkg-buildpackage -ICVS -rfakeroot 
 #
 # Dummy rule for sub-directories
 #

@@ -1,9 +1,9 @@
 dnprogs (2.57) UNRELEASED; urgency=low
 
   [ Chrissie Caulfield ]
-  * Undone removal of modutils configuration file as this is an untested
-    change.
+  * Completed removal of modutils configuration file code
   * Fix presence of CVS directories in tarball
+  * updated 'clean' target
 
   [ Philipp Schafft ]
   * Use /dev/pts PTYs on 64 bit systems (fix makefile bug)

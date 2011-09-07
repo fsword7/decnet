@@ -7,30 +7,4 @@ then
   exit 0
 fi
 
-. /usr/share/debconf/confmodule
-
-# Get the node name and address
-db_get dnprogs/nodename
-name=$RET
-db_get dnprogs/nodeaddr
-addr=$RET
-
-db_stop
-
-# Update /etc/decnet.conf
-
-TMPFILE=`tempfile`
-
-cat /etc/decnet.conf | awk -v NAME=$name -vADDR=$addr '
-{ if ($1 == "executor") { printf("executor\t%s\t\tname\t\t%s\tline\teth0\n", ADDR, NAME) ;} else { print $0; } }' > $TMPFILE
-
-cp /etc/decnet.conf /etc/decnet.conf.old
-cp $TMPFILE /etc/decnet.conf
-if [ $? -ne 0 ]
-then
-  cp /etc/decnet.conf.old /etc/decnet.conf
-fi
-
-rm -f $TMPFILE
-
 #DEBHELPER#

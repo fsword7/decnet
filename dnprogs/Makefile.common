@@ -94,25 +94,6 @@ endif
 #
 # Look for optional files (who needs autoconf!)
 #
-ifneq ($(wildcard /lib/libcrypt.*),)
-LIBCRYPT=-lcrypt
-endif
-
-ifneq ($(wildcard /lib64/libcrypt.*),)
-LIBCRYPT=-lcrypt
-endif
- 
-ifneq ($(wildcard /usr/lib/libcrypt.*),)
-LIBCRYPT=-lcrypt
-endif
-
-ifneq ($(wildcard /usr/lib64/libcrypt.*),)
-LIBCRYPT=-lcrypt
-endif
-
-ifneq ($(wildcard /usr/lib/x86_64-linux-gnu/libcrypt.*),)
-LIBCRYPT=-lcrypt
-endif
 
 ifeq (/usr/include/shadow.h,$(wildcard /usr/include/shadow.h))
 SHADOWDEFS=-DSHADOW_PWD
@@ -138,6 +119,11 @@ endif
 #
 # Miscellaneous compilation flags
 #
+# We assume there is a libcrypt that has the crypt() call in it. This has
+# been true on Linux for ages now.
+LIBCRYPT=-lcrypt
+
+
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 INCLUDES=-I$(TOP)/libdap -I$(TOP)/include

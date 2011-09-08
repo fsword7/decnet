@@ -10,7 +10,7 @@ fi
 
 . /usr/share/debconf/confmodule
 
-db_get dnet-dnet-common/configure-action
+db_get dnet-common/configure-action
 configure_action=$RET
 
 # Get the node name and address

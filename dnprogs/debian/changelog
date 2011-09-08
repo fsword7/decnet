@@ -1,4 +1,4 @@
-dnprogs (2.57) UNRELEASED; urgency=low
+dnprogs (2.57) unstable; urgency=medium
 
   [ Chrissie Caulfield ]
   * Completed removal of modutils configuration file code
@@ -13,7 +13,7 @@ dnprogs (2.57) UNRELEASED; urgency=low
     - Danish translation (Closes: #633984) (added)
     - Slovak translation (Closes: #639629) (added)
   * Look in yet another place for libcrypt (better fix than from NMUs)
-    (Closes: #629664)
+  * Added a comment about the detecting of libcrypt. (See: #629664)
   * "ethernet" was capitalized in extended description (Closes: #636798)
   * Fixed some lintian warnings (mainly new rules targets).
   * dnet-common: Do not configure DECnet unless the user requested it.
@@ -22,7 +22,7 @@ dnprogs (2.57) UNRELEASED; urgency=low
     the last NMU. (Closes: #640861)
   * Upgraded libdnet's suggest to dnet-common to recommend again (Closes: #608807)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Thu,  8 Sep 2011 15:59:55 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Thu,  8 Sep 2011 16:05:47 +0200
 
 dnprogs (2.56.1+nmu1) unstable; urgency=low
 

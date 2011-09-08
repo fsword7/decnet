@@ -18,9 +18,9 @@ dnprogs (2.57) UNRELEASED; urgency=low
   * Fixed some lintian warnings (mainly new rules targets).
   * dnet-common: Do not configure DECnet unless the user requested it.
     (Removed the bad workaround done by NMU) (See: #637179)
-  * Upgraded libdnet's suggest to dnet-common to recommend again (See: #608807)
+  * Upgraded libdnet's suggest to dnet-common to recommend again (Closes: #608807)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Thu,  8 Sep 2011 02:29:08 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Thu,  8 Sep 2011 11:51:53 +0200
 
 dnprogs (2.56.1+nmu1) unstable; urgency=low
 

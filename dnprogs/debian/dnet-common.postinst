@@ -22,7 +22,7 @@ addr=$RET
 db_stop
 
 # Update /etc/decnet.conf
-if [ "$RET" = 'configure now' ]
+if [ "$configure_action" = 'configure now' ]
 then
   if [ ! -f /etc/decnet.conf ] 
   then

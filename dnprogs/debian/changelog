@@ -22,7 +22,7 @@ dnprogs (2.57) unstable; urgency=medium
     the last NMU. (Closes: #640861)
   * Upgraded libdnet's suggest to dnet-common to recommend again (Closes: #608807)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Thu,  8 Sep 2011 16:05:47 +0200
+ -- Chrissie Caulfield <chrissie@debian.org>  Thu,  8 Sep 2011 16:05:47 +0200
 
 dnprogs (2.56.1+nmu1) unstable; urgency=low
 

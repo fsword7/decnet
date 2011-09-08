@@ -10,7 +10,7 @@ Package: dnet-common
 Architecture: all
 Depends: debconf(>=0.5.00) | debconf-2.0, debianutils(>=1.13), module-init-tools, ${misc:Depends}
 Conflicts: dnprogs
-Suggests: iproute [linux-any]
+Suggests: iproute
 Description: Base package for Linux DECnet
  This is the base package for Linux DECnet. It contains the necessary
  configuration files and a script to set up the MAC address of your

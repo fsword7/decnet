@@ -8,7 +8,8 @@ Standards-Version: 3.5.6
 
 Package: dnet-common
 Architecture: all
-Depends: debconf(>=0.5.00) | debconf-2.0, debianutils(>=1.13), module-init-tools, ${misc:Depends}
+Pre-Depends: debconf(>=0.5.00) | debconf-2.0
+Depends: debianutils(>=1.13), module-init-tools, ${misc:Depends}
 Conflicts: dnprogs
 Suggests: iproute
 Description: Base package for Linux DECnet
@@ -24,7 +25,7 @@ Description: Base package for Linux DECnet
 
 Package: dnet-progs
 Architecture: any
-Depends: dnet-common(>=${binary:Version}), libdnet(>=${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
+Depends: dnet-common(>=${source:Version}), libdnet(>=${binary:Version}), ${shlibs:Depends}, ${misc:Depends}
 Description: DECnet user programs and daemons
  These tools are the application layer interface for DECnet on Linux systems.
  They provide file/terminal access facilities between OpenVMS and Linux and

@@ -1,3 +1,9 @@
+dnprogs (2.58) UNRELEASED; urgency=low
+
+  * Fixed changelog entry of last release to have correct line length. 
+
+ -- Philipp Schafft <lion@lion.leolix.org>  Tue, 27 Sep 2011 13:38:23 +0200
+
 dnprogs (2.57) unstable; urgency=medium
 
   [ Chrissie Caulfield ]
@@ -18,9 +24,10 @@ dnprogs (2.57) unstable; urgency=medium
   * Fixed some lintian warnings (mainly new rules targets).
   * dnet-common: Do not configure DECnet unless the user requested it.
     (Removed the bad workaround done by NMU) (See: #637179)
-  * dnet-common: Added preinst script to clean up the broken config files from
-    the last NMU. (Closes: #640861)
-  * Upgraded libdnet's suggest to dnet-common to recommend again (Closes: #608807)
+  * dnet-common: Added preinst script to clean up the broken config files
+    from the last NMU. (Closes: #640861)
+  * Upgraded libdnet's suggest to dnet-common to recommend again
+    (Closes: #608807)
 
  -- Chrissie Caulfield <chrissie@debian.org>  Thu,  8 Sep 2011 16:05:47 +0200
 

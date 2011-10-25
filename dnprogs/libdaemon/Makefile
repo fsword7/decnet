@@ -18,7 +18,7 @@ $(STATICLIB): $(LIBOBJS)
 	ar -rv $@ $^
 
 $(SHAREDLIB): $(PICOBJS)
-	$(CC) $(CFLAGS) -shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $(LIBCRYPT) -L../libdnet/ -ldnet $^
+	$(CC) $(CFLAGS) -shared -o $@ -Wl,-soname=$(LIBNAME).so.$(MAJOR_VERSION) $^ $(LIBCRYPT) -L../libdnet/ -ldnet
 	ln -sf $(SHAREDLIB) $(LIBNAME).so.$(MAJOR_VERSION)
 	ln -sf $(LIBNAME).so.$(MAJOR_VERSION) $(LIBNAME).so
 

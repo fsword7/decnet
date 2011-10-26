@@ -772,7 +772,7 @@ void print_long
 	    printf(", World:");
 	    break;
 	}
-	if (p) printf(p);
+	if (p) printf("%s", p);
 	p=strtok(NULL, ",");
     }
     printf("\n\n");

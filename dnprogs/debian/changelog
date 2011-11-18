@@ -6,9 +6,10 @@ dnprogs (2.58) UNRELEASED; urgency=low
     - Corrected versioned dependency in dnprogs on dnet-common.
   * Updated linkage of libdnet_daemon and libdap. (See: #646353)
   * Fixed compile warning in dndir when using -Werror=format-security
-    Closes: #646613
+    (Closes: #646613)
+  * Fixed typo in debian/dnet-common.config
 
- -- Philipp Schafft <lion@lion.leolix.org>  Tue, 25 Oct 2011 16:36:20 +0200
+ -- Philipp Schafft <lion@lion.leolix.org>  Fri, 18 Nov 2011 20:31:59 +0100
 
 dnprogs (2.57) unstable; urgency=medium
 

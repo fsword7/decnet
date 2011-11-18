@@ -336,7 +336,7 @@ bool fal_open::process_message(dap_message *m)
         {
 	    dap_status_message *sm = (dap_status_message *)m;
 
-	    if (sm->get_code() & 0x0FFF != 0x10)
+	    if ((sm->get_code() & 0x0FFF) != 0x10)
 	    {
 		DAPLOG((LOG_WARNING, "Error in receiving data: %s",
 			sm->get_message() ));

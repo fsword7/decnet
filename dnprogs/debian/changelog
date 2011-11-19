@@ -9,9 +9,10 @@ dnprogs (2.58) UNRELEASED; urgency=low
   * Fixed compile warning in dndir when using -Werror=format-security
     (Closes: #646613)
   * Fixed typo in debian/dnet-common.config
-  * 
+  * Do not try to install files into packages on FreeBSD which are
+    not build on FreeBSD.
 
- -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 15:03:19 +0100
+ -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 18:17:59 +0100
 
 dnprogs (2.57) unstable; urgency=medium
 

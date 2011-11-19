@@ -85,7 +85,12 @@ binary-arch: checkroot build
 	dh_link -Ndnet-common
 	dh_installdebconf -Ndnet-common
 	dh_installinit  -pdnet-progs  --init-script=dnet-progs
-	dh_movefiles -Ndnet-common
+	dh_movefiles -Ndnet-common -Ndnet-progs
+ifneq (,$(filter kfreebsd-i386 kfreebsd-amd64, $(DEB_BUILD_ARCH)))
+	dh_movefiles -pdnet-progs `cat dnet-progs.files.linux`
+else
+	dh_movefiles -pdnet-progs
+endif
 	dh_compress -Ndnet-common
 	dh_strip -Ndnet-common
 	dh_fixperms -Ndnet-common

@@ -31,7 +31,7 @@ extern  struct  nodeent  *getnodebyaddr(const char *addr, int len, int type);
 extern  struct  nodeent  *getnodebyname(const char *name);
 
 extern  int               dnet_setobjhinum_handling(int handling, int min);
-extern  int               getobjectbyname(char * name);
+extern  int               getobjectbyname(const char * name);
 extern  int               getobjectbynumber(int number, char * name, size_t name_len);
 extern  int               dnet_checkobjectnumber(int num);
 

@@ -29,8 +29,8 @@ static char * _dnet_objhinum_string   = NULL;
 static int    _dnet_objhinum_handling = DNOBJHINUM_ERROR;
 
 static struct {
- int    num;
- char * name;
+ int          num;
+ const char * name;
 } _dnet_objdb[] = {
  { 17, "FAL"   },
  { 18, "HLD"   },
@@ -107,7 +107,7 @@ int dnet_checkobjectnumber (int num) {
  }
 }
 
-static int getobjectbyname_nis(char * name) {
+static int getobjectbyname_nis(const char * name) {
  char           * cur, *next;
  char             proto[16];
  struct servent * se;
@@ -141,7 +141,7 @@ static int getobjectbyname_nis(char * name) {
  return -1;
 }
 
-static char * getobjectbynumber_nis(int num) {
+static const char * getobjectbynumber_nis(int num) {
  char           * cur, *next;
  char             proto[16];
  struct servent * se;
@@ -179,7 +179,7 @@ static char * getobjectbynumber_nis(int num) {
  return NULL;
 }
 
-static int getobjectbyname_static(char * name) {
+static int getobjectbyname_static(const char * name) {
  int i;
 
  for (i = 0; _dnet_objdb[i].num != -1; i++) {
@@ -191,7 +191,7 @@ static int getobjectbyname_static(char * name) {
  return -1;
 }
 
-static char * getobjectbynumber_static(int num) {
+static const char * getobjectbynumber_static(int num) {
  int i;
 
  for (i = 0; _dnet_objdb[i].num != -1; i++) {
@@ -203,7 +203,7 @@ static char * getobjectbynumber_static(int num) {
  return NULL;
 }
 
-static int getobjectbyname_dnetd(char * name) {
+static int getobjectbyname_dnetd(const char * name) {
  FILE * dnd;
  int    found = -1;
  int    ret;
@@ -233,7 +233,7 @@ static int getobjectbyname_dnetd(char * name) {
  return found;
 }
 
-static char * getobjectbynumber_dnetd(int num) {
+static const char * getobjectbynumber_dnetd(int num) {
  FILE * dnd;
  int    curr;
  static char   cname[16]; // this is not thread safe
@@ -260,7 +260,7 @@ static char * getobjectbynumber_dnetd(int num) {
  return NULL;
 }
 
-int getobjectbyname(char * name) {
+int getobjectbyname(const char * name) {
  int num;
  int old_errno = errno;
 
@@ -276,7 +276,7 @@ int getobjectbyname(char * name) {
 
 int getobjectbynumber(int number, char * name, size_t name_len) {
  int num;
- char * rname = NULL;
+ const char * rname = NULL;
  int old_errno = errno;
 
  if ( (num = dnet_checkobjectnumber(number)) == -1 ) { // errno is set correctly after this call

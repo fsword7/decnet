@@ -38,6 +38,7 @@ int dnet_priv_check(const char * file, const char * proc,
     char           * c;
     char             nodeaddr[12];
     struct nodeent * ne;
+    char           * tokptr = NULL;
 
     snprintf(nodeaddr, sizeof(nodeaddr), "%i.%i", remote->sdn_add.a_addr[1] >> 2,
                                remote->sdn_add.a_addr[0] +
@@ -70,7 +71,7 @@ int dnet_priv_check(const char * file, const char * proc,
 
 	// now walk thru the list of services/daemons/objects and
 	// see if we have a match here.
-	c = strtok(line, LISTDELM);
+	c = strtok_r(line, LISTDELM, &tokptr);
 	while (c != NULL) {
 	    if ( !strcmp(c, "ALL") ) {      // ALL matches all services
 		match = 1;
@@ -99,7 +100,7 @@ int dnet_priv_check(const char * file, const char * proc,
 
 	    if ( match ) break; // end this loop if we have a match
 
-	    c = strtok(NULL, LISTDELM); // get next element
+	    c = strtok_r(NULL, LISTDELM, &tokptr); // get next element
 	}
 
 	if ( !match ) // continue with outer loop if we have no match
@@ -110,7 +111,7 @@ int dnet_priv_check(const char * file, const char * proc,
 	match = 0; // reset match so we can use it for remote node matching
 
 	// now walk thru the list of clients:
-	c = strtok(clients, LISTDELM);
+	c = strtok_r(clients, LISTDELM, &tokptr);
 	while (c != NULL) {
 	    if ( !strcmp(c, "ALL") ) {            // test for wildcard
 		match = 1;
@@ -130,7 +131,7 @@ int dnet_priv_check(const char * file, const char * proc,
 	    }
 
 	    // get next client
-	    c = strtok(NULL, LISTDELM);
+	    c = strtok_r(NULL, LISTDELM, &tokptr);
 	}
     }
     // no match was found.

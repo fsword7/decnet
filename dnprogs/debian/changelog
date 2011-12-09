@@ -11,6 +11,7 @@ dnprogs (2.58) UNRELEASED; urgency=low
   * Fixed typo in debian/dnet-common.config
   * Do not try to install files into packages on FreeBSD which are
     not build on FreeBSD.
+  * Link dapfs with libpthread for new libfuse compatibility
 
  -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 18:17:59 +0100
 

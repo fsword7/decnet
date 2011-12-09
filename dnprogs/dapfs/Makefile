@@ -13,7 +13,7 @@ all: $(PROG1)
 CFLAGS=-I../include -I ../librms -Wall $(DFLAGS) -fdollars-in-identifiers
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
-	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) $(LIBDAP) -L../librms -lrms $(LIBDNET) -lfuse
+	g++ -o$(PROG1) $(LDFLAGS) $(PROG1OBJS) $(LIBDAP) -L../librms -lrms $(LIBDNET) -lfuse -lpthread
 
 install:
 	install -d $(rootprefix)/sbin

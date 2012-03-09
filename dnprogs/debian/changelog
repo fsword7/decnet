@@ -15,6 +15,7 @@ dnprogs (2.58) UNRELEASED; urgency=low
   * Updated nl.po (Closes: #652349)
   * Added pl.po (Closes: #661894)
   * Added it.po (Closes: #663135)
+  * Change module-init-tools dependancy to kmod (Closes: #662684)
 
  -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 18:17:59 +0100
 

@@ -14,6 +14,7 @@ dnprogs (2.58) UNRELEASED; urgency=low
   * Link dapfs with libpthread for new libfuse compatibility
   * Updated nl.po (Closes: #652349)
   * Added pl.po (Closes: #661894)
+  * Added it.po (Closes: #663135)
 
  -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 18:17:59 +0100
 

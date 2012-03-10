@@ -1,7 +1,7 @@
 # Vietnamese translation for dnprogs.
 # Copyright © 2006 Free Software Foundation, Inc.
 # Clytie Siddall <clytie@riverland.net.au>, 2005-2006.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: dnprogs 2.29.1\n"
@@ -10,6 +10,7 @@ msgstr ""
 "PO-Revision-Date: 2006-12-09 14:05+1030\n"
 "Last-Translator: Clytie Siddall <clytie@riverland.net.au>\n"
 "Language-Team: Vietnamese <vi-VN@googlegroups.com>\n"
+"Language: vi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"

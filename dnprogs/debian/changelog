@@ -1,4 +1,4 @@
-dnprogs (2.58) UNRELEASED; urgency=low
+dnprogs (2.58) unstable; urgency=medium
 
   * Fixed lintian warnings:
     - Fixed changelog entry of last release to have correct line length.
@@ -17,7 +17,7 @@ dnprogs (2.58) UNRELEASED; urgency=low
   * Added it.po (Closes: #663135)
   * Change module-init-tools dependancy to kmod (Closes: #662684)
 
- -- Philipp Schafft <lion@lion.leolix.org>  Sat, 19 Nov 2011 18:17:59 +0100
+ -- Chrissie Caulfield <chrissie@debian.org>  Sat, 10 Mar 2012 10:32:08 +0000
 
 dnprogs (2.57) unstable; urgency=medium
 

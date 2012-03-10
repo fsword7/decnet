@@ -51,7 +51,7 @@ static void set_rop(RMSHANDLE h, int entry, char *string, RAB *rab, FAB *fab);
 
 struct types
 {
-    char  *key;
+    const char  *key;
     size_t offset;
     enum {RAB, FAB} rabfab;
     enum {BYTE, WORD, LONG, PTR} type;

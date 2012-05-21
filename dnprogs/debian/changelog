@@ -1,3 +1,17 @@
+dnprogs (2.60) unstable; urgency=low
+
+  * Fixed stuff
+
+ -- Chrissie Caulfield <chrissie@debian.org>  Mon, 21 May 2012 12:37:52 +0100
+
+dnprogs (2.59+nmu1) unstable; urgency=low
+
+  * NMU
+  * Reduce libdnet's recommends on dnet-common to suggests again.
+    Closes: #655740. Adapted patch from Jonathan Nieder.
+
+ -- Steve McIntyre <93sam@debian.org>  Fri, 18 May 2012 13:29:53 +0100
+
 dnprogs (2.59) unstable; urgency=low
 
   * Changed package dnet-common from arch all to any and

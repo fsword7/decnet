@@ -11,7 +11,7 @@ PROG1OBJS=dndir.o
 all: $(PROG1)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
-	$(CXX) -o $@ $(PROG1OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $(PROG1OBJS) $(LIBS)
 
 install:
 	install -d $(prefix)/bin

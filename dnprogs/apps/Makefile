@@ -4,7 +4,6 @@
 include ../Makefile.common
 CC        = gcc
 INCDIR	  = -I.
-LDFLAGS   = 
 CFLAGS   += -D_SVID_SOURCE
 #------------------------------------------------------------------------------
 

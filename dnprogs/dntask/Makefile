@@ -11,7 +11,7 @@ PROG1OBJS=dntask.o
 all: $(PROG1)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBDNET)
-	$(CC) -o $@ $(PROG1OBJS) $(LIBDNET)
+	$(CC) $(CFLAGS) -o $@ $(PROG1OBJS) $(LIBDNET)
 
 install:
 	install -d $(prefix)/bin

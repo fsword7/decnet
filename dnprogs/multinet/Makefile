@@ -1,7 +1,5 @@
 include ../Makefile.common
 
-CFLAGS=-Wall -g
-
 all:	multinet
 
 multinet: multinet.c	

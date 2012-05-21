@@ -3,7 +3,6 @@
 #--------------------------------------------------------------------------
 include ../Makefile.common
 CC=gcc
-LDFLAGS=-O
 AR=ar
 ARFLAGS=rcs
 MANPAGES3=dnet_htoa.3 dnet_ntoa.3 dnet_addr.3 dnet_conn.3 \

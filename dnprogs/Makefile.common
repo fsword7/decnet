@@ -83,6 +83,13 @@ manprefix=$(DESTDIR)/usr/share
 sysconfprefix=$(DESTDIR)
 endif
 
+ifdef BUILDING_DEB
+CPPFLAGS=$(shell dpkg-buildflags --get CPPFLAGS)
+CFLAGS=$(shell dpkg-buildflags --get CFLAGS) $(CPPFLAGS)
+CXXFLAGS=$(shell dpkg-buildflags --get CXXFLAGS) $(CPPFLAGS)
+LDFLAGS=$(shell dpkg-buildflags --get LDFLAGS)
+endif
+
 #
 # Also for making binary distributions
 #
@@ -127,8 +134,8 @@ LIBCRYPT=-lcrypt
 CC=gcc
 CDEFS+=-D_XOPEN_SOURCE -D_BSD_SOURCE -D_GNU_SOURCE -D_SVID_SOURCE -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 INCLUDES=-I$(TOP)/libdap -I$(TOP)/include
-CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
-CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS)
+CXXFLAGS+=-pipe -fdollars-in-identifiers -fsigned-char -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
+CFLAGS  +=-pipe -fsigned-char -Wstrict-prototypes -Wall -Wno-unused -Wno-uninitialized $(INCLUDES) -DVERSION=\"$(VERSION)\" $(CDEFS) $(SHADOWDEFS) $(PTSDEFS) $(DFLAGS) $(LDFLAGS)
 
 # Conditional for shared/static libs
 ifdef LINKSTATIC

@@ -12,7 +12,7 @@ PROG1OBJS=dnsubmit.o
 all: $(PROG1) $(PROG2)
 
 $(PROG1): $(PROG1OBJS) $(DEPLIBS)
-	$(CXX) -o $@ $(PROG1OBJS) $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $(PROG1OBJS) $(LIBS)
 
 $(PROG2): $(PROG1)
 	ln -sf $< $@

@@ -1,4 +1,4 @@
-# Top level Makefile for DECnet programs
+
 
 include Makefile.common
 

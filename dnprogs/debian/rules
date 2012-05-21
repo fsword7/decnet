@@ -1,9 +1,7 @@
 #!/usr/bin/make -f
-
 build:
 	$(checkdir)
-
-	make prefix=/usr RELEASE=true
+	make prefix=/usr RELEASE=true BUILDING_DEB=true
 	touch build
 
 build-arch: build
@@ -12,7 +10,7 @@ build-indep: build
 clean:
 	$(checkdir)
 	rm -f build
-	-make clean
+	make clean
 	rm -f `find . -name "*~"`
 	rm -rf debian/tmp `find debian/* -type d ! -name CVS ! -name po` debian/files* core
 	rm -f debian/*substvars

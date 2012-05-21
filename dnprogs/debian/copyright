@@ -1,0 +1,12 @@
+This is the Debian package of DECnet programs, libraries and utilities. 
+It is mostly maintained by
+
+Christine Caulfield <chrissie@debian.org>
+Philipp Shafft <lion@lion.leolix.org>
+
+Programs in the package are released under the GNU General Public Licence:
+/usr/share/common-licenses/GPL
+
+
+Libraries in the package are released under the GNU Lesser General Publice Licence:
+/usr/share/common-licenses/LGPL

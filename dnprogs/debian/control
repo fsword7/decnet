@@ -37,7 +37,7 @@ Package: libdnet
 Priority: optional
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Recommends: dnet-common(>=${binary:Version})
+Suggests: dnet-common(>=${binary:Version})
 Section: libs
 Description: DECnet Libraries
  This package contains the libraries necessary for a functioning DECnet
@@ -48,6 +48,9 @@ Description: DECnet Libraries
  libdap         - DAP (Data Access Protocol) C++ classes
  librms         - High level library for programmatic access VMS files
                   from Linux.
+ .
+ To do useful work with DECnet you will also need the dnet-common
+ package.
  .
  If you're looking for libdnet, the "dumb" networking library from
  libdnet.sf.net by Dug Song then you should install libdumbnet instead.

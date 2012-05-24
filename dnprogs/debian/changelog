@@ -4,6 +4,14 @@ dnprogs (2.60) unstable; urgency=low
 
  -- Chrissie Caulfield <chrissie@debian.org>  Mon, 21 May 2012 12:37:52 +0100
 
+dnprogs (2.59+nmu2) unstable; urgency=medium
+
+  * NMU
+  * dnprogs binaries are Linux-only, so state that. Move dnet-common back
+    to binary-all. Closes: #665886
+
+ -- Steve McIntyre <93sam@debian.org>  Mon, 21 May 2012 17:43:14 +0100
+
 dnprogs (2.59+nmu1) unstable; urgency=low
 
   * NMU

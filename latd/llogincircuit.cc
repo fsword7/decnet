@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2002 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2001-2013 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,6 +92,11 @@ bool LLOGINCircuit::do_command()
 	else
 	{
 	    char error[1024];
+	    // Truncate cmdbuf at an arbitrary point to make sure it fits into error[], otherwise it's a
+	    // potential security problem. Debian bug #699625
+	    if (len > 900)
+		    len = 900;
+	    cmdbuf[len] = '\0';
 	    debuglog(("Connect from invalid llogin version %s\n", cmdbuf));
 	    sprintf(error, "llogin version %s does not match latd version " VERSION, cmdbuf);
 	    send_reply(LATCP_ERRORMSG, error, -1);
@@ -156,4 +161,3 @@ bool LLOGINCircuit::do_command()
     delete[] cmdbuf;
     return retval;
 }
-

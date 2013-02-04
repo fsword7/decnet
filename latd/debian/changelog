@@ -1,3 +1,10 @@
+latd (1.31) unstable; urgency=low
+
+  * Don't crash if we are fed a malicious version number.
+    Closes: #699625
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun,  6 Dec 2013 11:32:08 +0000
+
 latd (1.30) unstable; urgency=low
 
   * Make it compile on Debian GNU/KFreeBSD (patch by Cyril Brulebois)

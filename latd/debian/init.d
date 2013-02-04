@@ -4,8 +4,8 @@
 #
 ### BEGIN INIT INFO
 # Provides:          latd
-# Required-Start:    $network
-# Required-Stop:     $network
+# Required-Start:    $network $remote_fs
+# Required-Stop:     $network $remote_fs
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Start the LAT daemon

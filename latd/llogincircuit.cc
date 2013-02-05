@@ -92,13 +92,8 @@ bool LLOGINCircuit::do_command()
 	else
 	{
 	    char error[1024];
-	    // Truncate cmdbuf at an arbitrary point to make sure it fits into error[], otherwise it's a
-	    // potential security problem. Debian bug #699625
-	    if (len > 900)
-		    len = 900;
-	    cmdbuf[len] = '\0';
 	    debuglog(("Connect from invalid llogin version %s\n", cmdbuf));
-	    sprintf(error, "llogin version %s does not match latd version " VERSION, cmdbuf);
+	    snprintf(error, sizeof(error), "llogin version %s does not match latd version " VERSION, cmdbuf);
 	    send_reply(LATCP_ERRORMSG, error, -1);
 	    retval = false;
 	}
@@ -161,3 +156,4 @@ bool LLOGINCircuit::do_command()
     delete[] cmdbuf;
     return retval;
 }
+

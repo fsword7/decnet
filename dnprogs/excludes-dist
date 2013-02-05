@@ -10,7 +10,6 @@
 */excludes-backup
 */TAGS
 *tgz
-*/test*
 */sedt.rem
 */debian-changelog
 */LOG*

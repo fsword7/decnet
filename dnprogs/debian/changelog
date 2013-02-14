@@ -2,6 +2,13 @@ dnprogs (2.61) unstable; urgency=low
 
   * Include libvaxdata/src/test.c in the distribution tarball
 
+dnprogs (2.60+x32) unreleased; urgency=low
+
+  * Switch from using deprecated sysctl(2) to writing to /proc/sys.  This
+    fixes a build failure on x32.
+
+ -- Daniel Schepler <schepler@debian.org>  Tue, 12 Feb 2013 12:21:31 -0800
+
 dnprogs (2.60) unstable; urgency=low
 
   * Fixed lots of Debian things that caused lintian problems and 

@@ -19,28 +19,28 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #ifdef __NetBSD__
 #include <sys/param.h>
 #endif
-#include <sys/sysctl.h>
 
 #include "netdnet/dn.h"
 
 
 int setnodename(const char *name, size_t len)
 {
-#if defined(SDF_UICPROXY) && defined(CTL_NET) && defined(NET_DECNET) && defined(NET_DECNET_NODE_NAME)
-	int ctlname[3] = { CTL_NET, NET_DECNET, NET_DECNET_NODE_NAME };
-	size_t nospace = 0;
-
-	if (len > 6)
+	FILE* procfile = fopen("/proc/sys/net/decnet/nodename", "w");
+	if (procfile == NULL)
 		return -1;
-
-	return sysctl(ctlname, 3, NULL, &nospace, (void *)name, len);
-#else
-	return -1;
-#endif
+	if (fwrite(name, 1, len, procfile) != len)
+	{
+		fclose(procfile);
+		return -1;
+	}
+	if (fclose(procfile) == EOF)
+		return -1;
+	return 0;
 }
 
 

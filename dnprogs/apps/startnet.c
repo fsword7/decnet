@@ -12,8 +12,6 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
-#include <sys/sysctl.h>
-#include <linux/sysctl.h>
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 #include <netinet/in.h>

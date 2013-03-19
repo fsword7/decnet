@@ -1,6 +1,7 @@
 dnprogs (2.61) unstable; urgency=low
 
   * Include libvaxdata/src/test.c in the distribution tarball
+  * Fix password length in DAP connections. It was incorrectly set at 12 rather than 40
 
 dnprogs (2.60+x32) unreleased; urgency=low
 

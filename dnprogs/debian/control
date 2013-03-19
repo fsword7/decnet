@@ -2,7 +2,6 @@ Source: dnprogs
 Section: net
 Priority: extra
 Maintainer: Chrissie Caulfield <chrissie@debian.org>
-Uploaders: Philipp Schafft <lion@lion.leolix.org>
 Build-Depends: debhelper(>= 5), libncurses5-dev, libfuse-dev [!hurd-i386]
 Standards-Version: 3.9.3
 

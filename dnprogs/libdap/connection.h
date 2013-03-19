@@ -91,8 +91,8 @@ class dap_connection
 /* DECnet phase IV limits */
     static const int MAX_NODE     = 6;
     static const int MAX_USER     = 12;
-    static const int MAX_PASSWORD = 12;
-    static const int MAX_ACCOUNT  = 12;
+    static const int MAX_PASSWORD = 40;
+    static const int MAX_ACCOUNT  = 40;
 
  public:
     // Some DECnet object numbers

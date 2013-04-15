@@ -1,4 +1,4 @@
-latd (1.32) unstable; urgency=low
+latd (1.33) unstable; urgency=low
 
   * Switch to dpkg-source 3.0 (native) format
   * Fix build flags
@@ -6,6 +6,12 @@ latd (1.32) unstable; urgency=low
   * Fix some Lintian errors regarding LSB and build flags
 
  -- Chrissie Caulfield <chrissie@debian.org>  Mon, 15 Apr 2013 09:27:12 +0100
+
+latd (1.32) unstable; urgency=low
+
+  * Revert changes in 1.31 that are not related to #699625 so we can get into wheezy
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Mon,  5 Feb 2013 11:50:55 +0000
 
 latd (1.31) unstable; urgency=low
 

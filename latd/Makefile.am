@@ -4,7 +4,6 @@ AUTOMAKE_OPTIONS = 1.4 foreign
 
 
 DPKG_EXPORT_BUILDFLAGS = 1
-include /usr/share/dpkg/buildflags.mk
 
 AM_CXXFLAGS = -fno-rtti -fno-exceptions -Wno-unused
 

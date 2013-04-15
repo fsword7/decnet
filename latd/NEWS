@@ -1,3 +1,65 @@
+latd (1.31) unstable; urgency=low
+
+  * Don't crash if we are fed a malicious version number.
+    Closes: #699625
+  * Fix some Lintian errors regarding LSB and build flags
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun,  6 Dec 2013 11:32:08 +0000
+
+latd (1.30) unstable; urgency=low
+
+  * Make it compile on Debian GNU/KFreeBSD (patch by Cyril Brulebois)
+    Closes: #559409
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun,  6 Dec 2009 10:47:12 +0000
+
+latd (1.29) unstable; urgency=low
+
+  * Set MAX_CONNECTIONS back up to 254 from a debugging number of 4!
+  * Increase the maximum number of replies which could cause crashes
+    on busy systems.
+    Fix from Hristo Grigorov, LUKOIL Technolodgy Services.
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Wed, 25 Jun 2009 10:24:32 +0100
+	
+latd (1.28) unstable; urgency=low
+
+  * Fix a typing delay bug.
+  * Get rid of some compile-time warnings.
+  * Fix a missing header with newer compilers
+  * Fix debian build so it works with DH_COMPAT=5
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sat, 04 Oct 2008 13:04:51 +0100
+
+latd (1.27) unstable; urgency=low
+
+  * Fix copyrights
+  * Update auto tools
+
+ -- Christine Caulfield <Christine.Caulfield@googlemail.com>  Sun, 24 Aug 2008 14:10:57 +0100
+
+latd (1.26.2) unstable; urgency=low
+
+  * Fix includes for gcc 4.3
+    Closes bug #454886
+
+ -- Patrick Caulfield <patrick@debian.org>  Sat, 08 Dec 2007 11:09:24 +0000
+
+latd (1.26.1) unstable; urgency=low
+
+  * Fix for GCC 4.3
+    Closes: #417318
+  * Add LSB annotations to init script.
+  
+ -- Patrick Caulfield <patrick@debian.org>  Wed,  4 Apr 2007 08:56:17 +0100
+
+latd (1.26) unstable; urgency=low
+
+  * Fix compile on Debian/kFreeBSD
+    Closes: #403740
+
+ -- Patrick Caulfield <patrick@debian.org>  Tue, 19 Dec 2006 14:56:10 +0000
+
 latd (1.25) unstable; urgency=low
 
   * llogin stops terminal driver generating CRs. Should help in editors.

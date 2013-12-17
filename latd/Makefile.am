@@ -47,5 +47,5 @@ latd_LDADD = $(latd_DEPENDENCIES) @LIBUTIL@
 moprc_DEPENDENCIES = @INTERFACE@
 moprc_LDADD = $(moprc_DEPENDENCIES)
 
-llogin_LDADD = @LIBLOCKDEV@
+llogin_LDADD =
 

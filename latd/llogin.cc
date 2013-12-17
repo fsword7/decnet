@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2001-2008 Christine Caulfield                 christine.caulfield@googlemail.com
+    (c) 2001-2013 Christine Caulfield                 christine.caulfield@googlemail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#include <sys/file.h>
 #include <sys/utsname.h>
 #include <stdio.h>
 #include <errno.h>
@@ -38,9 +39,6 @@
 #include <limits.h>
 #include <assert.h>
 #include <termios.h>
-#ifdef HAVE_LOCKDEV_H
-#include <lockdev.h>
-#endif
 
 #include <list>
 #include <queue>
@@ -74,7 +72,7 @@ static int usage(char *cmd)
     printf ("       -d -v      show learned services verbosely\n");
     printf ("       -p         connect to a local device rather than a service\n");
     printf ("       -f <file>  log all output to <file>\n");
-#ifdef HAVE_LOCKDEV_H
+#ifndef DISABLE_DEVICE_LOCKING
     printf ("       -L         Don't do device locking when using -p\n");
 #endif
     printf ("       -H <node>  remote node name\n");
@@ -474,26 +472,26 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
     struct termios old_term;
     struct termios new_term;
 
-#ifdef HAVE_LOCKDEV_H
-    if (!nolock)
-    {
-	if (dev_lock(portname))
-	{
-	    fprintf(stderr, "Can't lock Device %s\n", portname);
-	    return -1;
-	}
-    }
-#endif
 
     termfd = open(portname, O_RDWR);
     if (termfd < 0)
     {
 	fprintf(stderr, "Cannot open device %s: %s\n", portname, strerror(errno));
-#ifdef HAVE_LOCKDEV_H
-	dev_unlock(portname, getpid());
-#endif
 	return -1;
     }
+
+#ifndef DISABLE_DEVICE_LOCKING
+    if (!nolock)
+    {
+	if (::flock(termfd, LOCK_EX|LOCK_NB))
+	{
+	    fprintf(stderr, "Can't lock device %s\n", portname);
+	    close(termfd);
+	    return -1;
+	}
+    }
+#endif
+
 
     tcgetattr(termfd, &old_term);
     new_term = old_term;
@@ -516,10 +514,12 @@ static int do_use_port(char *portname, int quit_char, int crlf, int bsdel, int l
 
     // Reset terminal attributes
     tcsetattr(termfd, TCSANOW, &old_term);
+
+#ifdef DISABLE_DEVICE_LOCKING
+    if (!nolock) ::flock(termfd, LOCK_UN);
+#endif
+
     close(termfd);
 
-#ifdef HAVE_LOCKDEV_H
-    if (!nolock) dev_unlock(portname, getpid());
-#endif
     return 0;
 }

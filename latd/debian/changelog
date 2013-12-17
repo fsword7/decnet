@@ -1,6 +1,13 @@
+latd (1.34) unstable; urgency=low
+
+  * use flock(2) instead of liblockdev
+    Closes: #728020
+
+ -- Chrissie Caulfield <chrissie@debian.org>  Tue, 17 Dec 2013 15:21:22 +0000
+
 latd (1.33) unstable; urgency=low
 
-  * Switch to dpkg-source 3.0 (native) format
+  * Switch to dpkg-source 4.0 (native) format
   * Fix build flags
   * Update automake version
   * Fix some Lintian errors regarding LSB and build flags

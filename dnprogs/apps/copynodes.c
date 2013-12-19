@@ -1,5 +1,5 @@
 /******************************************************************************
-    (c) 2008 Christine Caulfield             christine.caulfield@gmail.com
+    (c) 2008-2013 Christine Caulfield             christine.caulfield@gmail.com
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,9 +51,14 @@ static int get_node_list(char *nodename, char *ldif_dc)
 
 	// Get exec data as that's not in the remote node list!
 	exec_addr = getnodeadd();
+	if (!exec_addr) {
+		return -1;
+	}
 	exec_area = exec_addr->a_addr[1]>>2;
 	nodeaddr = exec_addr->a_addr[0] | exec_addr->a_addr[1]<<8;
 	exec_dev = getexecdev();
+	if (!exec_dev)
+		return -1;
 	exec_node = getnodebyaddr((char*)exec_addr->a_addr, 2, AF_DECnet);
 
 	memset(&accessdata, 0, sizeof(accessdata));

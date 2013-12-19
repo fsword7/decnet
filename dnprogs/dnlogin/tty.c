@@ -496,7 +496,7 @@ int tty_process_terminal(char *buf, int len)
 
 		/* I don't really understand this, but it's needed to make ^C work
 		   as ^Y at the VMS command-line */
-		if ((buf[i] == CTRL_C) && (!char_attr[(int)buf[i]] & 3))
+		if ((buf[i] == CTRL_C) && (!(char_attr[(int)buf[i]] & 3)))
 			buf[i] = CTRL_Y;
 
 		/* Check for OOB */

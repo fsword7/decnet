@@ -8,6 +8,7 @@ MANPAGES=dnlogin.1
 
 PROG1OBJS=dnlogin.o found.o cterm.o tty.o
 
+CFLAGS:=$(filter-out -fsigned-char,$(CFLAGS))
 CFLAGS+=-funsigned-char -Wall
 
 CFLAGS+=-g

@@ -1,3 +1,11 @@
+dnprogs (2.62) UNRELEASED
+
+  * Don't mux fsigned-char & -funsigned-char in llogin Makefile
+    Closes: #719137
+  * Fix compile warning in llogin/tty.c
+
+
+
 dnprogs (2.61) unstable; urgency=low
 
   * Include libvaxdata/src/test.c in the distribution tarball

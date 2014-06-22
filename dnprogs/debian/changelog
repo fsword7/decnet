@@ -1,10 +1,17 @@
-dnprogs (2.61) unstable; urgency=low
+dnprogs (2.63) unstable; urgency=low
+
+  * Orphan the package
+
+ -- Chrissie Caulfield <chrissie@debian.org>  Thu,  5 Jun 2014 15:35:31 +0100
+
+dnprogs (2.62) unstable; urgency=low
 
   * Don't mux fsigned-char & -funsigned-char in llogin Makefile
     Closes: #719137
   * Fix compile warning in llogin/tty.c
   * Fix crash in dncopynodes if /etc/decnet.conf did not exist
     Closes: 715829
+  * Fix lintian (LSB) warnings in the init scripts
 
  -- Chrissie Caulfield <chrissie@debian.org>  Thu, 19 Dec 2013 14:05:33 +0000
 

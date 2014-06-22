@@ -19,7 +19,8 @@
 #
 # Daemons to start are defined in /etc/default/decnet
 #
-
+. /lib/lsb/init-functions
+#
 [ -f /etc/default/decnet ] && . /etc/default/decnet
 
 ADDR="`grep executor /etc/decnet.conf 2> /dev/null | cut -f2`"

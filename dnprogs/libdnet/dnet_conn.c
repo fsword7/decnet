@@ -218,6 +218,7 @@ int dnet_conn(char *host, char *objname, int type, unsigned char *opt_out, int o
 		struct sockaddr_dn sa_bind;
 		struct dn_naddr *dna = getnodeadd();
 
+		memset(&sa_bind, 0, sizeof(sa_bind));
 		sa_bind.sdn_family = AF_DECnet;
 		sa_bind.sdn_flags = 0;
 		memcpy(&sa_bind.sdn_add, dna, sizeof(*dna));

@@ -1,3 +1,9 @@
+dnprogs (2.64) unstable; urgency=low
+  * Even though this is no longer a Debian package, keep the changelog
+    here for neatness.
+  * Send libdnet/dnet_htoa messages to stderr rather than stdout
+    Patch from Francois-Xavier Le Bail <fx.lebail@yahoo.com>
+
 dnprogs (2.63) unstable; urgency=low
 
   * Orphan the package

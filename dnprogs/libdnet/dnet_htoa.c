@@ -37,7 +37,7 @@ char *dnet_htoa(struct dn_naddr *addr)
 
 	if ((dnhosts = fopen(SYSCONF_PREFIX "/etc/decnet.conf","r")) == NULL)
 	{
-		printf("dnet_htoa: Can not open " SYSCONF_PREFIX "/etc/decnet.conf\n");
+		fprintf(stderr, "dnet_htoa: Can not open " SYSCONF_PREFIX "/etc/decnet.conf\n");
 		return 0;
 	}
 	while (fgets(nodeln,80,dnhosts) != NULL)
@@ -49,7 +49,7 @@ char *dnet_htoa(struct dn_naddr *addr)
 	    	       (strcmp(nodetag,"node")     != 0)) ||
 		       (strcmp(nametag,"name")     != 0))
 		   {
-		       printf("dnet_htoa: Invalid decnet.conf syntax\n");
+		       fprintf(stderr, "dnet_htoa: Invalid decnet.conf syntax\n");
 			 fclose(dnhosts);
 		       return 0;
 		   }

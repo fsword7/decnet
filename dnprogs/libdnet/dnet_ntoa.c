@@ -24,7 +24,7 @@
 #include <netdnet/dn.h>
 #include <netdnet/dnetdb.h>
 
-static char	asc_addr[6];
+static char	asc_addr[8];
 
 char *dnet_ntoa(struct dn_naddr *addr)
 {
